@@ -1,5 +1,5 @@
 import pandas as pd
-import pandas_ta as ta
+import ta
 from typing import Optional
 
 class Strategy:
@@ -29,9 +29,9 @@ class SMACrossoverStrategy(Strategy):
         signals = pd.DataFrame(index=df.index)
         signals['Signal'] = 0
         
-        # Calculate SMAs
-        short_sma = ta.sma(df['Close'], length=self.short_window)
-        long_sma = ta.sma(df['Close'], length=self.long_window)
+        # Calculate SMAs using ta library
+        short_sma = df['Close'].rolling(window=self.short_window).mean()
+        long_sma = df['Close'].rolling(window=self.long_window).mean()
         
         # Generate signals
         # Golden Cross: Short crosses above Long
@@ -65,7 +65,9 @@ class RSIStrategy(Strategy):
         if df is None or df.empty or 'Close' not in df.columns:
             return pd.Series(dtype=int)
         
-        rsi = ta.rsi(df['Close'], length=self.period)
+        # Calculate RSI using ta library
+        rsi_indicator = ta.momentum.RSIIndicator(close=df['Close'], window=self.period)
+        rsi = rsi_indicator.rsi()
         signals = pd.Series(0, index=df.index)
         
         # Buy when RSI crosses above lower threshold (recovering from oversold)
@@ -76,7 +78,7 @@ class RSIStrategy(Strategy):
         # Buy: RSI was < lower yesterday, and > lower today (Crossing up)
         # Sell: RSI was > upper yesterday, and < upper today (Crossing down)
         
-        if rsi is None:
+        if rsi is None or rsi.isna().all():
             return signals
 
         prev_rsi = rsi.shift(1)
@@ -97,21 +99,14 @@ class BollingerBandsStrategy(Strategy):
         if df is None or df.empty or 'Close' not in df.columns:
             return pd.Series(dtype=int)
         
-        # Calculate Bollinger Bands
-        bb = ta.bbands(df['Close'], length=self.length, std=self.std)
+        # Calculate Bollinger Bands using ta library
+        bollinger = ta.volatility.BollingerBands(close=df['Close'], window=self.length, window_dev=self.std)
         
-        if bb is None:
+        lower_band = bollinger.bollinger_lband()
+        upper_band = bollinger.bollinger_hband()
+        
+        if lower_band is None or upper_band is None:
             return pd.Series(0, index=df.index)
-            
-        lower_col = f"BBL_{self.length}_{self.std}.0"
-        upper_col = f"BBU_{self.length}_{self.std}.0"
-        
-        # Check if columns exist (pandas_ta naming can vary)
-        if lower_col not in bb.columns:
-            # Fallback to guessing column names if needed, but usually standard
-            cols = bb.columns
-            lower_col = cols[0]
-            upper_col = cols[2]
 
         signals = pd.Series(0, index=df.index)
         
@@ -119,7 +114,7 @@ class BollingerBandsStrategy(Strategy):
         # Buy when price touches lower band
         # Sell when price touches upper band
         
-        signals.loc[df['Close'] < bb[lower_col]] = 1
-        signals.loc[df['Close'] > bb[upper_col]] = -1
+        signals.loc[df['Close'] < lower_band] = 1
+        signals.loc[df['Close'] > upper_band] = -1
         
         return signals
