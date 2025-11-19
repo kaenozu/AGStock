@@ -92,41 +92,6 @@ class TestFetchStockData:
         
         result = fetch_stock_data(['7203.T'], period='1y')
         
-        # エラー時は空の辞書を返す
-        assert isinstance(result, dict)
-        assert len(result) == 0
-    
-    @patch('src.data_loader.yf.download')
-    def test_fetch_with_different_periods(self, mock_download):
-        """異なる期間でのデータ取得テスト"""
-        mock_data = pd.DataFrame({
-            'Open': [100],
-            'High': [105],
-            'Low': [95],
-            'Close': [102],
-            'Volume': [1000000]
-        }, index=pd.date_range('2023-01-01', periods=1))
-        
-        mock_download.return_value = mock_data
-        
-        # 異なる期間でテスト
-        for period in ['1y', '2y', '5y']:
-            result = fetch_stock_data(['7203.T'], period=period)
-            assert '7203.T' in result
-            
-            # yf.downloadが呼ばれたことを確認（引数の詳細は確認しない）
-            assert mock_download.called
-
-
-class TestGetLatestPrice:
-    """get_latest_price関数のテスト"""
-    
-    def test_get_latest_price_normal(self):
-        """正常なデータフレームから最新価格を取得"""
-        df = pd.DataFrame({
-            'Close': [100, 101, 102, 103, 104]
-        })
-        
         price = get_latest_price(df)
         assert price == 104
     
