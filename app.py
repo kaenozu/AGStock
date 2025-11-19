@@ -27,6 +27,11 @@ if ticker_group == "カスタム入力":
 
 period = st.sidebar.selectbox("分析期間", ["1y", "2y", "5y"], index=1)
 
+st.sidebar.divider()
+st.sidebar.subheader("リスク管理")
+allow_short = st.sidebar.checkbox("空売りを許可する (Short Selling)", value=False)
+position_size = st.sidebar.slider("ポジションサイズ (Position Size)", 0.1, 1.0, 1.0, 0.1)
+
 # Initialize Strategies
 strategies = [
     SMACrossoverStrategy(5, 25),
@@ -53,7 +58,7 @@ if st.button("市場をスキャンして推奨銘柄を探す", type="primary")
         progress_bar = st.progress(0)
         
         # 2. Run Analysis
-        backtester = Backtester() # Uses default 0.1% cost
+        backtester = Backtester(allow_short=allow_short, position_size=position_size)
         
         for i, ticker in enumerate(tickers):
             df = data_map.get(ticker)
@@ -79,7 +84,10 @@ if st.button("市場をスキャンして推奨銘柄を探す", type="primary")
                             action = "BUY"
                             last_signal_date = date
                         elif signal == -1:
-                            action = "SELL"
+                            if allow_short:
+                                action = "SELL (SHORT)"
+                            else:
+                                action = "SELL"
                             last_signal_date = date
                             
                     if action != "HOLD":
@@ -149,15 +157,43 @@ if st.button("市場をスキャンして推奨銘柄を探す", type="primary")
                 # Add Buy/Sell markers (Entry/Exit points from trades)
                 trades = res['trades']
                 if trades:
-                    entry_dates = [t['entry_date'] for t in trades]
-                    entry_prices = [t['entry_price'] for t in trades]
-                    exit_dates = [t['exit_date'] for t in trades]
-                    exit_prices = [t['exit_price'] for t in trades]
+                    # Separate Long and Short trades
+                    long_entries = [t for t in trades if t['type'] == 'Long']
+                    short_entries = [t for t in trades if t['type'] == 'Short']
                     
-                    fig.add_trace(go.Scatter(x=entry_dates, y=entry_prices, mode='markers', 
-                                           marker=dict(color='green', size=10, symbol='triangle-up'), name='Entry'))
-                    fig.add_trace(go.Scatter(x=exit_dates, y=exit_prices, mode='markers', 
-                                           marker=dict(color='red', size=10, symbol='triangle-down'), name='Exit'))
+                    # Long Entry (Green Up)
+                    if long_entries:
+                        fig.add_trace(go.Scatter(
+                            x=[t['entry_date'] for t in long_entries], 
+                            y=[t['entry_price'] for t in long_entries], 
+                            mode='markers', 
+                            marker=dict(color='green', size=10, symbol='triangle-up'), 
+                            name='Long Entry'
+                        ))
+                        fig.add_trace(go.Scatter(
+                            x=[t['exit_date'] for t in long_entries], 
+                            y=[t['exit_price'] for t in long_entries], 
+                            mode='markers', 
+                            marker=dict(color='red', size=10, symbol='triangle-down'), 
+                            name='Long Exit'
+                        ))
+
+                    # Short Entry (Purple Down)
+                    if short_entries:
+                        fig.add_trace(go.Scatter(
+                            x=[t['entry_date'] for t in short_entries], 
+                            y=[t['entry_price'] for t in short_entries], 
+                            mode='markers', 
+                            marker=dict(color='purple', size=10, symbol='triangle-down'), 
+                            name='Short Entry'
+                        ))
+                        fig.add_trace(go.Scatter(
+                            x=[t['exit_date'] for t in short_entries], 
+                            y=[t['exit_price'] for t in short_entries], 
+                            mode='markers', 
+                            marker=dict(color='blue', size=10, symbol='triangle-up'), 
+                            name='Short Exit'
+                        ))
                 
                 fig.update_layout(title=f"{TICKER_NAMES.get(selected_ticker_row, selected_ticker_row)} - {strategy_name}",
                                 xaxis_title="Date", yaxis_title="Price")
