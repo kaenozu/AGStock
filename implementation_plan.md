@@ -19,9 +19,13 @@ Move from single-stock analysis to portfolio-level analysis.
 - **Rebalancing Logic**: (Optional) Periodically rebalance portfolio weights.
 
 #### [MODIFY] [app.py](file:///c:/gemini-thinkpad/AGStock/app.py)
-- Add "Portfolio Simulation" mode.
-- Allow selecting multiple stocks (e.g., Top 5 from AI ranking).
-- Display "Portfolio Equity Curve" vs "Benchmark (Nikkei 225)".
+- **Tabs**: Use `st.tabs` to separate "Market Scan", "Portfolio Simulation", and "Paper Trading".
+- **Portfolio Tab**:
+    - Input: Multi-select tickers (default to top AI recommendations).
+    - Input: Total Capital.
+    - Output: Correlation Matrix (Heatmap).
+    - Output: Portfolio Equity Curve vs Benchmark.
+    - Logic: Use `PortfolioManager.simulate_portfolio` with equal weights (initially).
 
 ### Phase 5: Paper Trading (Forward Test)
 Track real-time performance without risking real money.
@@ -39,8 +43,11 @@ Track real-time performance without risking real money.
     5. Log daily equity.
 
 #### [MODIFY] [app.py](file:///c:/gemini-thinkpad/AGStock/app.py)
-- Add "Paper Trading Dashboard" tab.
-- Show current virtual portfolio status, open profit/loss, and trade history.
+- **Paper Trading Tab**:
+    - Display Metrics: Current Cash, Total Equity, Unrealized P&L (using `PaperTrader.get_current_balance`).
+    - Display Table: Current Positions (using `PaperTrader.get_positions`).
+    - Display Table: Trade History (using `PaperTrader.get_trade_history`).
+    - Action: Button to "Refresh Prices" (calls `PaperTrader.update_daily_equity`).
 
 ### Phase 6: Fundamental Filters (Bonus)
 Filter stocks based on value.
