@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from src.constants import NIKKEI_225_TICKERS, TICKER_NAMES
 from src.data_loader import fetch_stock_data, get_latest_price
-from src.strategies import SMACrossoverStrategy, RSIStrategy, BollingerBandsStrategy, CombinedStrategy
+from src.strategies import SMACrossoverStrategy, RSIStrategy, BollingerBandsStrategy, CombinedStrategy, MLStrategy
 from src.backtester import Backtester
 from src.cache_config import install_cache
 
@@ -37,7 +37,8 @@ strategies = [
     SMACrossoverStrategy(5, 25),
     RSIStrategy(14, 30, 70),
     BollingerBandsStrategy(20, 2),
-    CombinedStrategy()
+    CombinedStrategy(),
+    MLStrategy()
 ]
 
 if st.button("市場をスキャンして推奨銘柄を探す", type="primary"):
