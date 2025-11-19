@@ -5,7 +5,7 @@ import pandas as pd
 import yfinance as yf
 import datetime
 from src.constants import NIKKEI_225_TICKERS, TICKER_NAMES
-from src.strategies import RSIStrategy, BollingerBandsStrategy, CombinedStrategy
+from src.strategies import SMACrossoverStrategy, RSIStrategy, BollingerBandsStrategy, CombinedStrategy, MLStrategy
 from src.cache_config import install_cache
 
 # Install cache
@@ -27,6 +27,10 @@ def get_strategy(strategy_name, params):
         return CombinedStrategy(**strat_params)
     elif strategy_name == "Bollinger Bands":
         return BollingerBandsStrategy(**strat_params)
+    elif strategy_name == "SMA Crossover":
+        return SMACrossoverStrategy(**strat_params)
+    elif strategy_name == "AI Random Forest":
+        return MLStrategy(**strat_params)
     return None
 
 def main():
@@ -38,7 +42,7 @@ def main():
     print(f"Fetching data for {len(tickers)} tickers...")
     # Fetch slightly more data than needed for indicators (e.g. 1 year)
     try:
-        df_all = yf.download(tickers, period="1y", group_by='ticker', auto_adjust=True, threads=True, progress=False)
+        df_all = yf.download(tickers, period="2y", group_by='ticker', auto_adjust=True, threads=True, progress=False)
     except Exception as e:
         print(f"Error fetching data: {e}")
         return
@@ -47,7 +51,12 @@ def main():
     
     for ticker in tickers:
         if len(tickers) > 1:
-            df = df_all[ticker].copy()
+            # yfinance returns MultiIndex if multiple tickers
+            # Check if ticker is in columns level 0
+            try:
+                df = df_all[ticker].copy()
+            except KeyError:
+                continue
         else:
             df = df_all.copy()
             
@@ -56,15 +65,10 @@ def main():
             continue
             
         # Determine which strategy to use
-        # If we have optimized params, use the best one.
-        # Otherwise, check all default strategies?
-        # Let's check "RSI Reversal" and "Combined" by default or optimized.
-        
         strategies_to_check = []
         
         if ticker in best_params and best_params[ticker]:
             # Use the best strategy found
-            # Find strategy with max train_return
             best_strat_name = max(best_params[ticker], key=lambda x: best_params[ticker][x]['train_return'])
             params = best_params[ticker][best_strat_name]['params']
             strategies_to_check.append((best_strat_name, params))
@@ -72,6 +76,7 @@ def main():
             # Use defaults
             strategies_to_check.append(("RSI Reversal", {}))
             strategies_to_check.append(("Combined", {}))
+            strategies_to_check.append(("AI Random Forest", {}))
             
         for strat_name, params in strategies_to_check:
             strategy = get_strategy(strat_name, params)
@@ -79,7 +84,11 @@ def main():
                 continue
                 
             # Generate signals
-            sig_series = strategy.generate_signals(df)
+            try:
+                sig_series = strategy.generate_signals(df)
+            except Exception as e:
+                # print(f"Error generating signals for {ticker} with {strat_name}: {e}")
+                continue
             
             # Check the last signal (Today's Close)
             if sig_series.empty:

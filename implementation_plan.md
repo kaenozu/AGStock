@@ -1,52 +1,44 @@
-# Implementation Plan - Short Selling & Risk Management
+# Implementation Plan - Machine Learning Strategy (Random Forest)
 
-This plan implements the "Short Selling" and "Position Sizing" features to further enhance profitability and risk control.
+To truly live up to the name "AI Stock Predictor", I will implement a Machine Learning strategy using **Random Forest**. This model will learn complex, non-linear relationships between technical indicators to predict future price movements.
 
 ## User Review Required
 
-> [!WARNING]
-> **Short Selling Risk**: Short selling involves unlimited risk (theoretically). The system includes Stop Loss, but gaps in market price can still cause larger-than-expected losses.
-> **Margin Requirements**: Real-world shorting requires a margin account. This simulation assumes you can borrow shares.
+> [!IMPORTANT]
+> **Training Time**: ML models require training time. The app might be slightly slower when selecting this strategy.
+> **Data Requirements**: ML needs sufficient historical data to learn patterns. It works best with "5y" or "Max" data.
 
 ## Proposed Changes
 
-### 1. Core Backtester Upgrade
-Enable the system to profit from falling prices.
+### 1. Dependencies
+Add machine learning libraries.
 
-#### [MODIFY] [src/backtester.py](file:///c:/gemini-thinkpad/AGStock/src/backtester.py)
-- Add `allow_short` (bool) parameter to `__init__`.
-- Update `run` method to handle `current_position = -1`.
-- Implement "Flip" logic:
-    - Signal `-1` when Long: Sell to Close + Sell to Open (Short).
-    - Signal `1` when Short: Buy to Cover + Buy to Open (Long).
-- Add `position_size` (float) parameter (default 1.0) to simulate portfolio allocation.
+#### [MODIFY] [requirements.txt](file:///c:/gemini-thinkpad/AGStock/requirements.txt)
+- Add `scikit-learn`.
 
-### 2. Strategy Updates
-Ensure strategies work well with shorting.
+### 2. Strategy Implementation
+Create a new strategy class that uses `RandomForestClassifier`.
 
 #### [MODIFY] [src/strategies.py](file:///c:/gemini-thinkpad/AGStock/src/strategies.py)
-- Review `CombinedStrategy` and others.
-- (Most standard strategies already output -1 for Sell, which naturally maps to Short if enabled).
+- Import `RandomForestClassifier` from `sklearn.ensemble`.
+- Implement `MLStrategy` class:
+    - **Feature Engineering**: Calculate RSI, SMA ratios (Price/SMA), Volatility, Momentum.
+    - **Target Creation**: Create a target variable (e.g., "Price Up > 0% tomorrow").
+    - **Training**: Train the model on historical data (Rolling window or Walk-Forward).
+    - **Prediction**: Generate signals based on model probability.
 
 ### 3. App Integration
-Add controls to the GUI.
+Make the ML strategy available in the GUI.
 
 #### [MODIFY] [app.py](file:///c:/gemini-thinkpad/AGStock/app.py)
-- Add checkbox "空売りを許可する (Allow Short Selling)".
-- Add slider "ポジションサイズ (Position Size)" (10% - 100%).
-- Update charts to show "Short Entry" (Purple Triangle) and "Short Exit" (Blue Triangle) if needed, or reuse existing markers.
-
-### 4. Daily Scan Update
-Report short opportunities.
-
-#### [MODIFY] [daily_scan.py](file:///c:/gemini-thinkpad/AGStock/daily_scan.py)
-- Update logic to recommend "SELL (SHORT)" actions if `allow_short` is enabled.
+- Add `MLStrategy` to the `strategies` list.
+- (Optional) Display "Model Confidence" or "Feature Importance" if possible.
 
 ## Verification Plan
 
 ### Automated Tests
-- **test_backtester.py**: Add test case for `allow_short=True`. Verify that a price drop results in a profit.
-- **test_backtester.py**: Add test case for `position_size=0.5`. Verify that returns are halved (approx).
+- **test_strategies.py**: Add a test for `MLStrategy`. Verify it can train and generate signals without errors.
 
 ### Manual Verification
-- Run `app.py`, enable Short Selling, and check if the Equity Curve improves for downtrend stocks (e.g., check a stock that performed poorly in 2022/2023 if any).
+- Run `app.py`, select `MLStrategy`, and verify it produces a backtest result.
+- Compare its performance (Equity Curve) against standard strategies like RSI.
