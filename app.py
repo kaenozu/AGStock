@@ -3,13 +3,17 @@ import pandas as pd
 import plotly.graph_objects as go
 from src.constants import NIKKEI_225_TICKERS, TICKER_NAMES
 from src.data_loader import fetch_stock_data, get_latest_price
-from src.strategies import SMACrossoverStrategy, RSIStrategy, BollingerBandsStrategy
+from src.strategies import SMACrossoverStrategy, RSIStrategy, BollingerBandsStrategy, CombinedStrategy
 from src.backtester import Backtester
+from src.cache_config import install_cache
+
+# Install cache
+install_cache()
 
 st.set_page_config(page_title="AI Stock Predictor", layout="wide")
 
-st.title("📈 日本株 AI 予測アナライザー")
-st.markdown("過去のデータから統計的に最も期待値の高い売買シグナルを検出します。")
+st.title("📈 日本株 AI 予測アナライザー (Pro)")
+st.markdown("現実的なコストとリスクを考慮した、プロ仕様のバックテストエンジン搭載。")
 
 # Sidebar
 st.sidebar.header("設定")
@@ -27,7 +31,8 @@ period = st.sidebar.selectbox("分析期間", ["1y", "2y", "5y"], index=1)
 strategies = [
     SMACrossoverStrategy(5, 25),
     RSIStrategy(14, 30, 70),
-    BollingerBandsStrategy(20, 2)
+    BollingerBandsStrategy(20, 2),
+    CombinedStrategy()
 ]
 
 if st.button("市場をスキャンして推奨銘柄を探す", type="primary"):
@@ -48,7 +53,7 @@ if st.button("市場をスキャンして推奨銘柄を探す", type="primary")
         progress_bar = st.progress(0)
         
         # 2. Run Analysis
-        backtester = Backtester()
+        backtester = Backtester() # Uses default 0.1% cost
         
         for i, ticker in enumerate(tickers):
             df = data_map.get(ticker)
@@ -56,9 +61,14 @@ if st.button("市場をスキャンして推奨銘柄を探す", type="primary")
                 continue
                 
             for strategy in strategies:
-                res = backtester.run(df, strategy)
+                # Run with default risk management
+                res = backtester.run(df, strategy, stop_loss=0.05, take_profit=0.10)
                 if res:
                     # Check for signals in the last 5 days
+                    # Note: 'signals' in res are the raw signals.
+                    # The backtester executes on Next Day Open.
+                    # So if we have a signal today, we act tomorrow.
+                    
                     recent_signals = res['signals'].iloc[-5:]
                     last_signal_date = None
                     action = "HOLD"
@@ -72,9 +82,6 @@ if st.button("市場をスキャンして推奨銘柄を探す", type="primary")
                             action = "SELL"
                             last_signal_date = date
                             
-                    # If no recent signal, check if we are currently in a "holding" position based on the strategy
-                    # (This depends on how backtester tracks positions, but for now let's stick to explicit signals)
-                    
                     if action != "HOLD":
                         # Format date for display
                         date_str = last_signal_date.strftime('%Y-%m-%d')
@@ -84,6 +91,7 @@ if st.button("市場をスキャンして推奨銘柄を探す", type="primary")
                             "Name": TICKER_NAMES.get(ticker, ticker),
                             "Strategy": strategy.name,
                             "Return": res['total_return'],
+                            "Max Drawdown": res['max_drawdown'],
                             "Action": action,
                             "Signal Date": date_str,
                             "Last Price": get_latest_price(df)
@@ -103,8 +111,9 @@ if st.button("市場をスキャンして推奨銘柄を探す", type="primary")
             st.info("過去のバックテストで高いリターンを出した戦略が、現在シグナルを出している銘柄です。")
             
             # Format for display
-            display_df = actionable_df[['Ticker', 'Name', 'Action', 'Signal Date', 'Strategy', 'Return', 'Last Price']].copy()
+            display_df = actionable_df[['Ticker', 'Name', 'Action', 'Signal Date', 'Strategy', 'Return', 'Max Drawdown', 'Last Price']].copy()
             display_df['Return'] = display_df['Return'].apply(lambda x: f"{x*100:.1f}%")
+            display_df['Max Drawdown'] = display_df['Max Drawdown'].apply(lambda x: f"{x*100:.1f}%")
             display_df['Last Price'] = display_df['Last Price'].apply(lambda x: f"¥{x:,.0f}")
             
             st.dataframe(display_df, use_container_width=True)
@@ -126,28 +135,41 @@ if st.button("市場をスキャンして推奨銘柄を探す", type="primary")
                 df = data_map[selected_ticker_row]
                 # Find strategy object
                 strat = next(s for s in strategies if s.name == strategy_name)
-                res = backtester.run(df, strat)
+                res = backtester.run(df, strat, stop_loss=0.05, take_profit=0.10)
                 
-                # Plot
+                col1, col2, col3 = st.columns(3)
+                col1.metric("期間収益率", f"{res['total_return']*100:.1f}%")
+                col2.metric("勝率", f"{res['win_rate']*100:.1f}%")
+                col3.metric("最大ドローダウン", f"{res['max_drawdown']*100:.1f}%")
+
+                # Plot Price
                 fig = go.Figure()
                 fig.add_trace(go.Scatter(x=df.index, y=df['Close'], mode='lines', name='Close Price'))
                 
-                # Add Buy/Sell markers
-                signals = res['signals']
-                buys = df[signals == 1]
-                sells = df[signals == -1]
-                
-                fig.add_trace(go.Scatter(x=buys.index, y=buys['Close'], mode='markers', 
-                                       marker=dict(color='green', size=10, symbol='triangle-up'), name='Buy Signal'))
-                fig.add_trace(go.Scatter(x=sells.index, y=sells['Close'], mode='markers', 
-                                       marker=dict(color='red', size=10, symbol='triangle-down'), name='Sell Signal'))
+                # Add Buy/Sell markers (Entry/Exit points from trades)
+                trades = res['trades']
+                if trades:
+                    entry_dates = [t['entry_date'] for t in trades]
+                    entry_prices = [t['entry_price'] for t in trades]
+                    exit_dates = [t['exit_date'] for t in trades]
+                    exit_prices = [t['exit_price'] for t in trades]
+                    
+                    fig.add_trace(go.Scatter(x=entry_dates, y=entry_prices, mode='markers', 
+                                           marker=dict(color='green', size=10, symbol='triangle-up'), name='Entry'))
+                    fig.add_trace(go.Scatter(x=exit_dates, y=exit_prices, mode='markers', 
+                                           marker=dict(color='red', size=10, symbol='triangle-down'), name='Exit'))
                 
                 fig.update_layout(title=f"{TICKER_NAMES.get(selected_ticker_row, selected_ticker_row)} - {strategy_name}",
                                 xaxis_title="Date", yaxis_title="Price")
                 
                 st.plotly_chart(fig, use_container_width=True)
                 
-                st.metric("期間収益率", f"{res['total_return']*100:.1f}%")
+                # Plot Equity Curve
+                st.subheader("資産推移 (Equity Curve)")
+                fig_eq = go.Figure()
+                fig_eq.add_trace(go.Scatter(x=res['equity_curve'].index, y=res['equity_curve'], mode='lines', name='Equity', line=dict(color='gold')))
+                fig_eq.update_layout(title="資産の増減シミュレーション", xaxis_title="Date", yaxis_title="Equity (JPY)")
+                st.plotly_chart(fig_eq, use_container_width=True)
                 
         else:
             st.warning("現在、有効なシグナルが出ている銘柄はありませんでした。")
