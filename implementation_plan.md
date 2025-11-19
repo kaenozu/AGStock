@@ -1,45 +1,59 @@
-# Implementation Plan - Realistic Trading System Refactor
+# Implementation Plan - Advanced Features
 
-This plan aims to transform the current "theoretical" trading system into a robust, realistic engine capable of actual market application.
+This plan focuses on maximizing profitability through AI optimization and improving daily usability.
 
 ## User Review Required
 
 > [!IMPORTANT]
-> **Performance Drop Expected**: By removing "look-ahead bias" and adding transaction costs, the reported win rates and returns will significantly drop. This is not a bug; it is the **reality** of the market.
-> **Execution Logic Change**: Trades will now be executed at the **Next Day's Open** price, not the current day's Close price.
+> **Computation Time**: Optimization (Phase 1) can be time-consuming as it runs thousands of simulations.
+> **Overfitting Risk**: While Optuna finds the "best" past parameters, we must be careful not to overfit. We will use a simple validation approach (train on 80%, test on 20%) to mitigate this.
 
 ## Proposed Changes
 
-### Phase 1: Core Backtester Overhaul (Highest Priority)
-The goal is to make the simulation mathematically correct and realistic.
+### Phase 1: AI Parameter Optimization (Priority: High)
+Use `optuna` to find the best strategy parameters for each specific stock.
 
-#### [MODIFY] [src/backtester.py](file:///c:/gemini-thinkpad/AGStock/src/backtester.py)
-- **Remove Look-ahead Bias**: Change execution logic to use `df['Open'].shift(-1)` for entry/exit prices.
-- **Add Costs**: Introduce `commission` (default 0.1%) and `slippage` parameters.
-- **Risk Management**: Implement `stop_loss` (e.g., -5%) and `take_profit` (e.g., +10%) logic within the trade loop.
-- **New Metrics**: Calculate `Max Drawdown` (maximum peak-to-valley loss) to assess risk.
+#### [NEW] [src/optimizer.py](file:///c:/gemini-thinkpad/AGStock/src/optimizer.py)
+- Define objective functions for Optuna.
+- Optimize:
+    - **RSI**: Period, Upper/Lower thresholds.
+    - **Bollinger Bands**: Length, Std Dev.
+    - **Trend Filter**: SMA Period.
+    - **Stop Loss / Take Profit**: Levels.
 
-### Phase 2: Strategy Improvements
-Basic strategies need safeguards.
+#### [NEW] [optimize_parameters.py](file:///c:/gemini-thinkpad/AGStock/optimize_parameters.py)
+- Script to run the optimizer for all target tickers.
+- Saves results to `best_params.json`.
 
-#### [MODIFY] [src/strategies.py](file:///c:/gemini-thinkpad/AGStock/src/strategies.py)
-- **Trend Filter**: Add an optional `trend_filter` (e.g., SMA 200) to all strategies. Only take long positions if the trend is up.
-- **Combined Strategy**: Create a new strategy class that combines multiple signals (e.g., RSI + MACD).
+#### [MODIFY] [requirements.txt](file:///c:/gemini-thinkpad/AGStock/requirements.txt)
+- Add `optuna`.
 
-### Phase 3: Verification & Reporting
-We need to see the "real" numbers.
+### Phase 2: Daily Signal Report (Priority: Medium)
+Turn the system into a daily tool.
 
-#### [MODIFY] [verify_accuracy.py](file:///c:/gemini-thinkpad/AGStock/verify_accuracy.py)
-- Update to use the new Backtester parameters.
-- Split data: Use the first 80% of data for optimization (if any) and the last 20% for "Out-of-Sample" testing to verify true performance.
-- Report `Max Drawdown` and `Risk-Reward Ratio`.
+#### [NEW] [daily_scan.py](file:///c:/gemini-thinkpad/AGStock/daily_scan.py)
+- Loads `best_params.json`.
+- Fetches the latest data (up to today).
+- Checks if a signal is generated for "Tomorrow Open".
+- Outputs a clear list: "BUY these", "SELL these".
+
+### Phase 3: Visualization & App Upgrade (Priority: Low)
+Make the results visible.
+
+#### [MODIFY] [app.py](file:///c:/gemini-thinkpad/AGStock/app.py)
+- Integrate the new `Backtester` and `Strategies`.
+- Show Equity Curve (Asset growth chart).
+- Visualize Buy/Sell points on the main chart.
 
 ## Verification Plan
 
 ### Automated Tests
-1.  **Sanity Check**: Run `verify_accuracy.py` on a single ticker with known price movements to verify that trades happen at the *next day's open*.
-2.  **Cost Impact**: Run the same strategy with 0% cost vs 0.1% cost to verify that performance decreases as expected.
-3.  **Stop Loss Check**: Verify that trades are closed early if the price hits the stop loss level.
+We will create a `tests/` directory.
+
+- **test_optimizer.py**: Verify that Optuna can run a few trials and produce a valid parameter set.
+- **test_backtester.py**: Verify the "Next Day Open" execution logic and cost calculations.
+- **test_strategies.py**: Verify that strategies produce correct signals given mock data.
 
 ### Manual Verification
-- I will generate a new `report.md` and compare it with the old one to demonstrate the difference between "fantasy" and "reality".
+- Run `optimize_parameters.py` for a few tickers and verify `best_params.json` is created.
+- Run `daily_scan.py` and check if the output matches the latest chart situation.
