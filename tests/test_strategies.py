@@ -59,7 +59,7 @@ class TestSMACrossoverStrategy:
             'Volume': 1000000
         }, index=dates)
         
-        strategy = SMACrossoverStrategy(short_window=5, long_window=10)
+        strategy = SMACrossoverStrategy(short_window=5, long_window=10, trend_period=0)
         signals = strategy.generate_signals(df)
         
         # 買いシグナルが少なくとも1つ存在することを確認
@@ -84,7 +84,7 @@ class TestSMACrossoverStrategy:
             'Volume': 1000000
         }, index=dates)
         
-        strategy = SMACrossoverStrategy(short_window=5, long_window=10)
+        strategy = SMACrossoverStrategy(short_window=5, long_window=10, trend_period=0)
         signals = strategy.generate_signals(df)
         
         # 売りシグナルが少なくとも1つ存在することを確認
