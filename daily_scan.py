@@ -18,12 +18,15 @@ def load_best_params():
     return {}
 
 def get_strategy(strategy_name, params):
+    # Filter out risk management params that are not part of strategy __init__
+    strat_params = {k: v for k, v in params.items() if k not in ['stop_loss', 'take_profit']}
+    
     if strategy_name == "RSI Reversal":
-        return RSIStrategy(**params)
+        return RSIStrategy(**strat_params)
     elif strategy_name == "Combined":
-        return CombinedStrategy(**params)
+        return CombinedStrategy(**strat_params)
     elif strategy_name == "Bollinger Bands":
-        return BollingerBandsStrategy(**params)
+        return BollingerBandsStrategy(**strat_params)
     return None
 
 def main():
