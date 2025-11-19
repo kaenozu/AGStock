@@ -1,8 +1,10 @@
+from typing import List, Dict
+
 # List of Nikkei 225 Tickers (Simplified for initial version to ensure speed)
 # In a real app, we might fetch this dynamically or have a fuller list.
 # Adding .T for Yahoo Finance Japan compatibility.
 
-NIKKEI_225_TICKERS = [
+NIKKEI_225_TICKERS: List[str] = [
     "7203.T", # Toyota
     "9984.T", # Softbank Group
     "6758.T", # Sony
@@ -47,7 +49,7 @@ NIKKEI_225_TICKERS = [
 ]
 
 # Map for human readable names (Optional, but nice to have)
-TICKER_NAMES = {
+TICKER_NAMES: Dict[str, str] = {
     "7203.T": "Toyota Motor",
     "9984.T": "SoftBank Group",
     "6758.T": "Sony Group",

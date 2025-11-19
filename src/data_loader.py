@@ -1,13 +1,9 @@
 import yfinance as yf
 import pandas as pd
 import streamlit as st
-from src.cache_config import install_cache
+from typing import List, Dict
 
-# Install cache to prevent excessive API calls
-install_cache()
-
-@st.cache_data(ttl=3600)  # Cache data for 1 hour
-def fetch_stock_data(tickers, period="2y"):
+def fetch_stock_data(tickers: List[str], period: str = "2y") -> Dict[str, pd.DataFrame]:
     """
     Fetches historical stock data for a list of tickers.
     
@@ -48,7 +44,7 @@ def fetch_stock_data(tickers, period="2y"):
 
     return data_dict
 
-def get_latest_price(df):
+def get_latest_price(df: pd.DataFrame) -> float:
     """Returns the latest close price from a dataframe."""
     if df is None or df.empty:
         return 0.0
