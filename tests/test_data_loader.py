@@ -92,6 +92,20 @@ class TestFetchStockData:
         
         result = fetch_stock_data(['7203.T'], period='1y')
         
+        # エラー時は空の辞書を返す
+        assert isinstance(result, dict)
+        assert len(result) == 0
+
+
+class TestGetLatestPrice:
+    """get_latest_price関数のテスト"""
+    
+    def test_get_latest_price_normal(self):
+        """正常なデータフレームから最新価格を取得"""
+        df = pd.DataFrame({
+            'Close': [100, 101, 102, 103, 104]
+        })
+        
         price = get_latest_price(df)
         assert price == 104
     
