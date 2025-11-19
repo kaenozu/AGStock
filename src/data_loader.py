@@ -3,7 +3,6 @@ import pandas as pd
 import streamlit as st
 from typing import List, Dict
 
-@st.cache_data(ttl=3600)  # Cache data for 1 hour
 def fetch_stock_data(tickers: List[str], period: str = "2y") -> Dict[str, pd.DataFrame]:
     """
     Fetches historical stock data for a list of tickers.
