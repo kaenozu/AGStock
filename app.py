@@ -13,7 +13,14 @@ st.markdown("過去のデータから統計的に最も期待値の高い売買�
 
 # Sidebar
 st.sidebar.header("設定")
-ticker_group = st.sidebar.selectbox("対象銘柄", ["日経225 (主要銘柄)"])
+ticker_group = st.sidebar.selectbox("対象銘柄", ["日経225 (主要銘柄)", "カスタム入力"])
+
+custom_tickers = []
+if ticker_group == "カスタム入力":
+    custom_input = st.sidebar.text_area("銘柄コードを入力 (カンマ区切り)", "7203.T, 9984.T")
+    if custom_input:
+        custom_tickers = [t.strip() for t in custom_input.split(",")]
+
 period = st.sidebar.selectbox("分析期間", ["1y", "2y", "5y"], index=1)
 
 # Initialize Strategies
@@ -26,7 +33,15 @@ strategies = [
 if st.button("市場をスキャンして推奨銘柄を探す", type="primary"):
     with st.spinner("データを取得し、全戦略をバックテスト中..."):
         # 1. Fetch Data
-        tickers = NIKKEI_225_TICKERS
+        if ticker_group == "カスタム入力":
+            tickers = custom_tickers
+        else:
+            tickers = NIKKEI_225_TICKERS
+            
+        if not tickers:
+            st.error("銘柄が指定されていません。")
+            st.stop()
+            
         data_map = fetch_stock_data(tickers, period=period)
         
         results = []
