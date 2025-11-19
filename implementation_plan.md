@@ -1,44 +1,62 @@
-# Implementation Plan - Machine Learning Strategy (Random Forest)
+# Implementation Plan - Future Enhancements (Phase 4 & 5)
 
-To truly live up to the name "AI Stock Predictor", I will implement a Machine Learning strategy using **Random Forest**. This model will learn complex, non-linear relationships between technical indicators to predict future price movements.
+This plan outlines the next steps to transform AGStock into a professional-grade trading platform, focusing on Portfolio Management and Real-time Paper Trading.
 
 ## User Review Required
 
 > [!IMPORTANT]
-> **Training Time**: ML models require training time. The app might be slightly slower when selecting this strategy.
-> **Data Requirements**: ML needs sufficient historical data to learn patterns. It works best with "5y" or "Max" data.
+> **Data Sources**: Fundamental data (PER/PBR) might require more reliable API sources than yfinance, but we will attempt to use yfinance first.
+> **Persistence**: Paper trading requires saving state (current positions, cash) to a local database (SQLite).
 
 ## Proposed Changes
 
-### 1. Dependencies
-Add machine learning libraries.
+### Phase 4: Portfolio Management (Risk Diversification)
+Move from single-stock analysis to portfolio-level analysis.
 
-#### [MODIFY] [requirements.txt](file:///c:/gemini-thinkpad/AGStock/requirements.txt)
-- Add `scikit-learn`.
-
-### 2. Strategy Implementation
-Create a new strategy class that uses `RandomForestClassifier`.
-
-#### [MODIFY] [src/strategies.py](file:///c:/gemini-thinkpad/AGStock/src/strategies.py)
-- Import `RandomForestClassifier` from `sklearn.ensemble`.
-- Implement `MLStrategy` class:
-    - **Feature Engineering**: Calculate RSI, SMA ratios (Price/SMA), Volatility, Momentum.
-    - **Target Creation**: Create a target variable (e.g., "Price Up > 0% tomorrow").
-    - **Training**: Train the model on historical data (Rolling window or Walk-Forward).
-    - **Prediction**: Generate signals based on model probability.
-
-### 3. App Integration
-Make the ML strategy available in the GUI.
+#### [NEW] [src/portfolio.py](file:///c:/gemini-thinkpad/AGStock/src/portfolio.py)
+- **Correlation Matrix**: Calculate correlation between selected stocks to warn about concentrated risk.
+- **Portfolio Backtest**: Run backtests on multiple stocks simultaneously, respecting total capital constraints.
+- **Rebalancing Logic**: (Optional) Periodically rebalance portfolio weights.
 
 #### [MODIFY] [app.py](file:///c:/gemini-thinkpad/AGStock/app.py)
-- Add `MLStrategy` to the `strategies` list.
-- (Optional) Display "Model Confidence" or "Feature Importance" if possible.
+- Add "Portfolio Simulation" mode.
+- Allow selecting multiple stocks (e.g., Top 5 from AI ranking).
+- Display "Portfolio Equity Curve" vs "Benchmark (Nikkei 225)".
+
+### Phase 5: Paper Trading (Forward Test)
+Track real-time performance without risking real money.
+
+#### [NEW] [paper_trade.py](file:///c:/gemini-thinkpad/AGStock/paper_trade.py)
+- **Database**: Use `sqlite3` to store:
+    - `balance`: Current cash.
+    - `positions`: Current holdings (Ticker, Quantity, Entry Price).
+    - `orders`: History of orders.
+- **Daily Routine**:
+    1. Update current prices of holdings.
+    2. Check for Exit signals (SL/TP or Strategy Exit).
+    3. Check for Entry signals (from `daily_scan`).
+    4. Execute trades (update DB).
+    5. Log daily equity.
+
+#### [MODIFY] [app.py](file:///c:/gemini-thinkpad/AGStock/app.py)
+- Add "Paper Trading Dashboard" tab.
+- Show current virtual portfolio status, open profit/loss, and trade history.
+
+### Phase 6: Fundamental Filters (Bonus)
+Filter stocks based on value.
+
+#### [MODIFY] [src/data_loader.py](file:///c:/gemini-thinkpad/AGStock/src/data_loader.py)
+- Fetch `info` from yfinance (PER, PBR, Dividend Yield).
+
+#### [MODIFY] [daily_scan.py](file:///c:/gemini-thinkpad/AGStock/daily_scan.py)
+- Add filters: e.g., "Only buy if PER < 15".
 
 ## Verification Plan
 
 ### Automated Tests
-- **test_strategies.py**: Add a test for `MLStrategy`. Verify it can train and generate signals without errors.
+- **test_portfolio.py**: Verify correlation calculations and portfolio return aggregation.
+- **test_paper_trade.py**: Verify database operations (buy/sell updates balance correctly).
 
 ### Manual Verification
-- Run `app.py`, select `MLStrategy`, and verify it produces a backtest result.
-- Compare its performance (Equity Curve) against standard strategies like RSI.
+- **Portfolio**: Compare a diversified portfolio (5 stocks) vs single stock. Check if Drawdown is reduced.
+- **Paper Trading**: Run `paper_trade.py` for a few days (simulated) and check if the database updates correctly.
