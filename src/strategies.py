@@ -1,11 +1,12 @@
 import pandas as pd
 import pandas_ta as ta
+from typing import Optional
 
 class Strategy:
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         self.name = name
 
-    def generate_signals(self, df):
+    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
         """
         Takes a DataFrame with 'Close' column and adds 'Signal' column.
         1: Buy
@@ -15,12 +16,16 @@ class Strategy:
         raise NotImplementedError
 
 class SMACrossoverStrategy(Strategy):
-    def __init__(self, short_window=5, long_window=25):
+    def __init__(self, short_window: int = 5, long_window: int = 25) -> None:
         super().__init__(f"SMA Crossover ({short_window}/{long_window})")
         self.short_window = short_window
         self.long_window = long_window
 
-    def generate_signals(self, df):
+    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+        # 空データフレームチェック
+        if df is None or df.empty or 'Close' not in df.columns:
+            return pd.Series(dtype=int)
+        
         signals = pd.DataFrame(index=df.index)
         signals['Signal'] = 0
         
@@ -49,13 +54,17 @@ class SMACrossoverStrategy(Strategy):
         return final_signals
 
 class RSIStrategy(Strategy):
-    def __init__(self, period=14, lower=30, upper=70):
+    def __init__(self, period: int = 14, lower: float = 30, upper: float = 70) -> None:
         super().__init__(f"RSI ({period}) Reversal")
         self.period = period
         self.lower = lower
         self.upper = upper
 
-    def generate_signals(self, df):
+    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+        # 空データフレームチェック
+        if df is None or df.empty or 'Close' not in df.columns:
+            return pd.Series(dtype=int)
+        
         rsi = ta.rsi(df['Close'], length=self.period)
         signals = pd.Series(0, index=df.index)
         
@@ -68,7 +77,7 @@ class RSIStrategy(Strategy):
         # Sell: RSI was > upper yesterday, and < upper today (Crossing down)
         
         if rsi is None:
-             return signals
+            return signals
 
         prev_rsi = rsi.shift(1)
         
@@ -78,12 +87,16 @@ class RSIStrategy(Strategy):
         return signals
 
 class BollingerBandsStrategy(Strategy):
-    def __init__(self, length=20, std=2):
+    def __init__(self, length: int = 20, std: float = 2) -> None:
         super().__init__(f"Bollinger Bands ({length}, {std})")
         self.length = length
         self.std = std
 
-    def generate_signals(self, df):
+    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+        # 空データフレームチェック
+        if df is None or df.empty or 'Close' not in df.columns:
+            return pd.Series(dtype=int)
+        
         # Calculate Bollinger Bands
         bb = ta.bbands(df['Close'], length=self.length, std=self.std)
         
@@ -95,10 +108,10 @@ class BollingerBandsStrategy(Strategy):
         
         # Check if columns exist (pandas_ta naming can vary)
         if lower_col not in bb.columns:
-             # Fallback to guessing column names if needed, but usually standard
-             cols = bb.columns
-             lower_col = cols[0]
-             upper_col = cols[2]
+            # Fallback to guessing column names if needed, but usually standard
+            cols = bb.columns
+            lower_col = cols[0]
+            upper_col = cols[2]
 
         signals = pd.Series(0, index=df.index)
         

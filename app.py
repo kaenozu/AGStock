@@ -104,35 +104,45 @@ if st.button("市場をスキャンして推奨銘柄を探す", type="primary")
             
             if selected_ticker_row:
                 # Find the best strategy for this ticker from our results
-                best_strat_row = actionable_df[actionable_df['Ticker'] == selected_ticker_row].iloc[0]
-                strategy_name = best_strat_row['Strategy']
-                
-                # Re-run to get details
-                df = data_map[selected_ticker_row]
-                # Find strategy object
-                strat = next(s for s in strategies if s.name == strategy_name)
-                res = backtester.run(df, strat)
-                
-                # Plot
-                fig = go.Figure()
-                fig.add_trace(go.Scatter(x=df.index, y=df['Close'], mode='lines', name='Close Price'))
-                
-                # Add Buy/Sell markers
-                signals = res['signals']
-                buys = df[signals == 1]
-                sells = df[signals == -1]
-                
-                fig.add_trace(go.Scatter(x=buys.index, y=buys['Close'], mode='markers', 
-                                       marker=dict(color='green', size=10, symbol='triangle-up'), name='Buy Signal'))
-                fig.add_trace(go.Scatter(x=sells.index, y=sells['Close'], mode='markers', 
-                                       marker=dict(color='red', size=10, symbol='triangle-down'), name='Sell Signal'))
-                
-                fig.update_layout(title=f"{TICKER_NAMES.get(selected_ticker_row, selected_ticker_row)} - {strategy_name}",
-                                xaxis_title="Date", yaxis_title="Price")
-                
-                st.plotly_chart(fig, use_container_width=True)
-                
-                st.metric("期間収益率", f"{res['total_return']*100:.1f}%")
+                ticker_results = actionable_df[actionable_df['Ticker'] == selected_ticker_row]
+                if ticker_results.empty:
+                    st.warning("選択された銘柄のデータがありません。")
+                else:
+                    best_strat_row = ticker_results.iloc[0]
+                    strategy_name = best_strat_row['Strategy']
+                    
+                    # Re-run to get details
+                    if selected_ticker_row not in data_map:
+                        st.error(f"銘柄 {selected_ticker_row} のデータが見つかりません。")
+                    else:
+                        df = data_map[selected_ticker_row]
+                        # Find strategy object
+                        strat = next(s for s in strategies if s.name == strategy_name)
+                        res = backtester.run(df, strat)
+                        
+                        if res is None:
+                            st.error("バックテストの実行に失敗しました。")
+                        else:
+                            # Plot
+                            fig = go.Figure()
+                            fig.add_trace(go.Scatter(x=df.index, y=df['Close'], mode='lines', name='Close Price'))
+                            
+                            # Add Buy/Sell markers
+                            signals = res['signals']
+                            buys = df[signals == 1]
+                            sells = df[signals == -1]
+                            
+                            fig.add_trace(go.Scatter(x=buys.index, y=buys['Close'], mode='markers', 
+                                                   marker=dict(color='green', size=10, symbol='triangle-up'), name='Buy Signal'))
+                            fig.add_trace(go.Scatter(x=sells.index, y=sells['Close'], mode='markers', 
+                                                   marker=dict(color='red', size=10, symbol='triangle-down'), name='Sell Signal'))
+                            
+                            fig.update_layout(title=f"{TICKER_NAMES.get(selected_ticker_row, selected_ticker_row)} - {strategy_name}",
+                                            xaxis_title="Date", yaxis_title="Price")
+                            
+                            st.plotly_chart(fig, use_container_width=True)
+                            
+                            st.metric("期間収益率", f"{res['total_return']*100:.1f}%")
                 
         else:
             st.warning("現在、有効なシグナルが出ている銘柄はありませんでした。")

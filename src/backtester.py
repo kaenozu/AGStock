@@ -1,11 +1,12 @@
 import pandas as pd
 import numpy as np
+from typing import Optional, Dict, Any
 
 class Backtester:
-    def __init__(self, initial_capital=1000000):
+    def __init__(self, initial_capital: float = 1000000) -> None:
         self.initial_capital = initial_capital
 
-    def run(self, df, strategy):
+    def run(self, df: pd.DataFrame, strategy: 'Strategy') -> Optional[Dict[str, Any]]:
         """
         Runs a strategy on a dataframe and returns performance metrics.
         """
@@ -48,12 +49,6 @@ class Backtester:
         
         # Metrics
         total_return = df['Cumulative_Return'].iloc[-1] - 1 if not df['Cumulative_Return'].empty else 0
-        
-        # Win Rate calculation (per trade)
-        trades = signals[signals != 0]
-        # This is tricky without a full trade log. 
-        # Let's approximate: Count days with positive strategy return vs negative?
-        # No, better to count completed trades.
         
         # Simple metric: Total Return is the most important for ranking.
         
