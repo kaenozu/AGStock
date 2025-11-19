@@ -43,12 +43,13 @@
 - [ ] **App Integration**
     - [ ] Add "Portfolio Simulation" mode to `app.py`.
 
-## Phase 5: Paper Trading (Planned)
-- [ ] **Paper Trading Engine**
-    - [ ] Create `paper_trade.py` with SQLite database.
-    - [ ] Implement order execution and balance tracking.
-- [ ] **Dashboard**
-    - [ ] Add Paper Trading view to `app.py`.
+## Phase 5: Paper Trading (Completed)
+- [x] **Paper Trading Engine**
+    - [x] Create `src/paper_trader.py` with SQLite database.
+    - [x] Implement order execution and balance tracking.
+- [x] **Daily Script**
+    - [x] Create `paper_trade.py` for daily trading routine.
+
 
 ## Phase 6: Fundamental Analysis (Planned)
 - [ ] **Data Fetching**
