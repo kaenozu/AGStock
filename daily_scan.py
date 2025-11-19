@@ -99,7 +99,7 @@ def main():
                 signals.append({
                     "Ticker": ticker,
                     "Name": TICKER_NAMES.get(ticker, ""),
-                    "Action": "SELL",
+                    "Action": "SELL (SHORT)",
                     "Strategy": strat_name,
                     "Price": df['Close'].iloc[-1]
                 })

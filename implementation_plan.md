@@ -1,59 +1,52 @@
-# Implementation Plan - Advanced Features
+# Implementation Plan - Short Selling & Risk Management
 
-This plan focuses on maximizing profitability through AI optimization and improving daily usability.
+This plan implements the "Short Selling" and "Position Sizing" features to further enhance profitability and risk control.
 
 ## User Review Required
 
-> [!IMPORTANT]
-> **Computation Time**: Optimization (Phase 1) can be time-consuming as it runs thousands of simulations.
-> **Overfitting Risk**: While Optuna finds the "best" past parameters, we must be careful not to overfit. We will use a simple validation approach (train on 80%, test on 20%) to mitigate this.
+> [!WARNING]
+> **Short Selling Risk**: Short selling involves unlimited risk (theoretically). The system includes Stop Loss, but gaps in market price can still cause larger-than-expected losses.
+> **Margin Requirements**: Real-world shorting requires a margin account. This simulation assumes you can borrow shares.
 
 ## Proposed Changes
 
-### Phase 1: AI Parameter Optimization (Priority: High)
-Use `optuna` to find the best strategy parameters for each specific stock.
+### 1. Core Backtester Upgrade
+Enable the system to profit from falling prices.
 
-#### [NEW] [src/optimizer.py](file:///c:/gemini-thinkpad/AGStock/src/optimizer.py)
-- Define objective functions for Optuna.
-- Optimize:
-    - **RSI**: Period, Upper/Lower thresholds.
-    - **Bollinger Bands**: Length, Std Dev.
-    - **Trend Filter**: SMA Period.
-    - **Stop Loss / Take Profit**: Levels.
+#### [MODIFY] [src/backtester.py](file:///c:/gemini-thinkpad/AGStock/src/backtester.py)
+- Add `allow_short` (bool) parameter to `__init__`.
+- Update `run` method to handle `current_position = -1`.
+- Implement "Flip" logic:
+    - Signal `-1` when Long: Sell to Close + Sell to Open (Short).
+    - Signal `1` when Short: Buy to Cover + Buy to Open (Long).
+- Add `position_size` (float) parameter (default 1.0) to simulate portfolio allocation.
 
-#### [NEW] [optimize_parameters.py](file:///c:/gemini-thinkpad/AGStock/optimize_parameters.py)
-- Script to run the optimizer for all target tickers.
-- Saves results to `best_params.json`.
+### 2. Strategy Updates
+Ensure strategies work well with shorting.
 
-#### [MODIFY] [requirements.txt](file:///c:/gemini-thinkpad/AGStock/requirements.txt)
-- Add `optuna`.
+#### [MODIFY] [src/strategies.py](file:///c:/gemini-thinkpad/AGStock/src/strategies.py)
+- Review `CombinedStrategy` and others.
+- (Most standard strategies already output -1 for Sell, which naturally maps to Short if enabled).
 
-### Phase 2: Daily Signal Report (Priority: Medium)
-Turn the system into a daily tool.
-
-#### [NEW] [daily_scan.py](file:///c:/gemini-thinkpad/AGStock/daily_scan.py)
-- Loads `best_params.json`.
-- Fetches the latest data (up to today).
-- Checks if a signal is generated for "Tomorrow Open".
-- Outputs a clear list: "BUY these", "SELL these".
-
-### Phase 3: Visualization & App Upgrade (Priority: Low)
-Make the results visible.
+### 3. App Integration
+Add controls to the GUI.
 
 #### [MODIFY] [app.py](file:///c:/gemini-thinkpad/AGStock/app.py)
-- Integrate the new `Backtester` and `Strategies`.
-- Show Equity Curve (Asset growth chart).
-- Visualize Buy/Sell points on the main chart.
+- Add checkbox "空売りを許可する (Allow Short Selling)".
+- Add slider "ポジションサイズ (Position Size)" (10% - 100%).
+- Update charts to show "Short Entry" (Purple Triangle) and "Short Exit" (Blue Triangle) if needed, or reuse existing markers.
+
+### 4. Daily Scan Update
+Report short opportunities.
+
+#### [MODIFY] [daily_scan.py](file:///c:/gemini-thinkpad/AGStock/daily_scan.py)
+- Update logic to recommend "SELL (SHORT)" actions if `allow_short` is enabled.
 
 ## Verification Plan
 
 ### Automated Tests
-We will create a `tests/` directory.
-
-- **test_optimizer.py**: Verify that Optuna can run a few trials and produce a valid parameter set.
-- **test_backtester.py**: Verify the "Next Day Open" execution logic and cost calculations.
-- **test_strategies.py**: Verify that strategies produce correct signals given mock data.
+- **test_backtester.py**: Add test case for `allow_short=True`. Verify that a price drop results in a profit.
+- **test_backtester.py**: Add test case for `position_size=0.5`. Verify that returns are halved (approx).
 
 ### Manual Verification
-- Run `optimize_parameters.py` for a few tickers and verify `best_params.json` is created.
-- Run `daily_scan.py` and check if the output matches the latest chart situation.
+- Run `app.py`, enable Short Selling, and check if the Equity Curve improves for downtrend stocks (e.g., check a stock that performed poorly in 2022/2023 if any).

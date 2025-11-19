@@ -42,3 +42,10 @@ The Streamlit app has been upgraded to "Pro" specifications.
 run_app.bat
 ```
 (Or `streamlit run app.py`)
+
+## 4. Risk Management Features
+
+We have added powerful risk control tools:
+
+- **Short Selling (空売り)**: You can now profit from falling markets. Enable it in the sidebar.
+- **Position Sizing**: Control how much capital to allocate per trade (e.g., 50%). This helps in managing portfolio risk.
