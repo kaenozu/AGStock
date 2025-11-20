@@ -113,3 +113,27 @@
     - [x] Update `app.py` to allow market selection (Japan/US/Europe/All).
 - [x] **Testing**
     - [x] Run backtest on global portfolio.
+
+## Phase 14: Notification System (Completed)
+- [x] **Slack Integration**
+    - [x] Create `src/notifier.py` with Slack webhook support.
+    - [x] Add notification for strong BUY signals.
+- [x] **Email Integration**
+    - [x] Add email notification support.
+    - [x] Create daily summary email template.
+
+## Phase 15: GitHub Actions Automation (Completed)
+- [x] **Workflow Setup**
+    - [x] Create `.github/workflows/daily_scan.yml`.
+    - [x] Configure cron schedule (17:00 JST daily).
+- [x] **Reporting**
+    - [x] Auto-save results to `reports/` folder.
+    - [x] Create Issue on error.
+
+## Phase 16: Dashboard Enhancement (Completed)
+- [x] **Real-time Features**
+    - [x] Add real-time price updates.
+    - [x] Create performance heatmap.
+- [x] **Alert System**
+    - [x] Add custom alert configuration.
+    - [x] Implement price threshold notifications.

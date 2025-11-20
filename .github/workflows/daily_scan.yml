@@ -1,0 +1,69 @@
+name: Daily Market Scan
+
+on:
+  schedule:
+    # Run at 17:00 JST (08:00 UTC) every weekday
+    - cron: '0 8 * * 1-5'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  scan-and-trade:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Run Auto Trader
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        EMAIL_ENABLED: ${{ secrets.EMAIL_ENABLED }}
+        EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+        EMAIL_TO: ${{ secrets.EMAIL_TO }}
+      run: |
+        python auto_trader.py 2>&1 | tee reports/daily_scan_$(date +%Y%m%d).log
+        
+    - name: Save Results
+      run: |
+        mkdir -p reports
+        # Copy backtest results if they exist
+        if [ -f backtest_summary.csv ]; then
+          cp backtest_summary.csv reports/summary_$(date +%Y%m%d).csv
+        fi
+        
+    - name: Commit Results
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add reports/
+        git diff --quiet && git diff --staged --quiet || git commit -m "chore: Daily scan results $(date +%Y-%m-%d)"
+        
+    - name: Push Results
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.ref }}
+        
+    - name: Create Issue on Failure
+      if: failure()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: '⚠️ Daily Scan Failed - ' + new Date().toISOString().split('T')[0],
+            body: 'The automated daily scan failed. Please check the workflow logs for details.\n\nWorkflow Run: ' + context.payload.repository.html_url + '/actions/runs/' + context.runId,
+            labels: ['automated', 'error']
+          })

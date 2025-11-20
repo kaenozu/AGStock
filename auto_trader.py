@@ -6,6 +6,7 @@ from src.strategies import LightGBMStrategy
 from src.paper_trader import PaperTrader
 from src.execution import ExecutionEngine
 from src.cache_config import install_cache
+from src.notifier import Notifier
 
 def run_auto_trader():
     print(f"--- Auto Trader Started: {datetime.datetime.now()} ---")
@@ -15,6 +16,7 @@ def run_auto_trader():
     pt = PaperTrader()
     engine = ExecutionEngine(pt)
     strategy = LightGBMStrategy(lookback_days=365, threshold=0.005)
+    notifier = Notifier()
     
     # 2. Fetch Data
     print("Fetching data...")
@@ -48,9 +50,14 @@ def run_auto_trader():
         is_held = ticker in positions.index
         
         if last_signal == 1 and not is_held:
-            signals.append({'ticker': ticker, 'action': 'BUY', 'confidence': 1.0}) # TODO: Get real confidence
+            sig = {'ticker': ticker, 'action': 'BUY', 'confidence': 1.0, 'strategy': 'LightGBM'}
+            signals.append(sig)
+            # Notify strong signal
+            notifier.notify_strong_signal(ticker, 'BUY', 1.0, prices[ticker], 'LightGBM')
         elif last_signal == -1 and is_held:
-            signals.append({'ticker': ticker, 'action': 'SELL', 'confidence': 1.0})
+            sig = {'ticker': ticker, 'action': 'SELL', 'confidence': 1.0, 'strategy': 'LightGBM'}
+            signals.append(sig)
+            notifier.notify_strong_signal(ticker, 'SELL', 1.0, prices[ticker], 'LightGBM')
             
     print(f"Generated {len(signals)} signals.")
     
@@ -63,6 +70,15 @@ def run_auto_trader():
         
     # 5. Update Equity
     pt.update_daily_equity()
+    
+    # 6. Send Daily Summary
+    balance = pt.get_current_balance()
+    portfolio_value = balance['total_equity']
+    # Calculate daily P&L (simplified - compare to yesterday)
+    daily_pnl = 0.0  # TODO: Track historical equity for accurate daily P&L
+    
+    notifier.notify_daily_summary(signals, portfolio_value, daily_pnl)
+    
     print("--- Auto Trader Finished ---")
 
 if __name__ == "__main__":

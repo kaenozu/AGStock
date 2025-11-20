@@ -49,7 +49,7 @@ strategies = [
 ]
 
 # Main Tabs
-tab1, tab2, tab3 = st.tabs(["📊 Market Scan", "💼 Portfolio Simulation", "📝 Paper Trading"])
+tab1, tab2, tab3, tab4 = st.tabs(["📊 Market Scan", "💼 Portfolio Simulation", "📝 Paper Trading", "🎯 Dashboard"])
 
 # --- Tab 1: Market Scan ---
 with tab1:
@@ -405,3 +405,86 @@ with tab3:
         st.dataframe(history, use_container_width=True)
     else:
         st.info("取引履歴はありません。")
+
+# --- Tab 4: Dashboard ---
+with tab4:
+    st.header("🎯 パフォーマンス・ダッシュボード")
+    st.write("全銘柄のパフォーマンスを一目で確認できます。")
+    
+    # Performance Heatmap
+    st.subheader("📊 パフォーマンス・ヒートマップ")
+    
+    if st.button("ヒートマップを生成", type="primary"):
+        with st.spinner("データ取得中..."):
+            # Get tickers based on selection
+            if ticker_group == "カスタム入力":
+                heatmap_tickers = custom_tickers[:20]  # Limit for performance
+            else:
+                heatmap_tickers = MARKETS[selected_market][:20]
+            
+            data_map_hm = fetch_stock_data(heatmap_tickers, period="1mo")
+            
+            # Calculate returns
+            returns_data = []
+            for ticker in heatmap_tickers:
+                df = data_map_hm.get(ticker)
+                if df is not None and not df.empty and len(df) > 1:
+                    daily_return = (df['Close'].iloc[-1] - df['Close'].iloc[0]) / df['Close'].iloc[0]
+                    returns_data.append({
+                        'Ticker': ticker,
+                        'Name': TICKER_NAMES.get(ticker, ticker),
+                        'Return': daily_return
+                    })
+            
+            if returns_data:
+                returns_df = pd.DataFrame(returns_data)
+                
+                # Create heatmap
+                fig_heatmap = px.treemap(
+                    returns_df,
+                    path=['Ticker'],
+                    values=abs(returns_df['Return']),  # Size by absolute return
+                    color='Return',
+                    color_continuous_scale='RdYlGn',
+                    color_continuous_midpoint=0,
+                    title="過去1ヶ月のリターン (緑=上昇、赤=下落)"
+                )
+                fig_heatmap.update_traces(textinfo="label+value+percent parent")
+                st.plotly_chart(fig_heatmap, use_container_width=True)
+                
+                # Top/Bottom performers
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.subheader("🚀 トップ5")
+                    top5 = returns_df.nlargest(5, 'Return')[['Ticker', 'Name', 'Return']]
+                    top5['Return'] = top5['Return'].apply(lambda x: f"{x*100:+.2f}%")
+                    st.dataframe(top5, use_container_width=True)
+                
+                with col2:
+                    st.subheader("📉 ワースト5")
+                    bottom5 = returns_df.nsmallest(5, 'Return')[['Ticker', 'Name', 'Return']]
+                    bottom5['Return'] = bottom5['Return'].apply(lambda x: f"{x*100:+.2f}%")
+                    st.dataframe(bottom5, use_container_width=True)
+    
+    st.divider()
+    
+    # Alert Configuration
+    st.subheader("🔔 アラート設定")
+    st.write("価格変動アラートを設定できます（将来実装予定）。")
+    
+    alert_ticker = st.selectbox(
+        "監視する銘柄",
+        options=MARKETS[selected_market][:10],
+        format_func=lambda x: f"{x} - {TICKER_NAMES.get(x, '')}"
+    )
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        alert_type = st.selectbox("アラートタイプ", ["価格上昇", "価格下落"])
+    with col2:
+        threshold = st.number_input("閾値 (%)", min_value=1.0, max_value=50.0, value=5.0, step=0.5)
+    
+    if st.button("アラートを設定"):
+        st.success(f"✓ {alert_ticker} の{alert_type}アラート（{threshold}%）を設定しました（デモ）")
+        st.info("実際のアラートは `src/notifier.py` を使用して実装できます。")
+
