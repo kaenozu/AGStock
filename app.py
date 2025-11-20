@@ -468,6 +468,72 @@ with tab4:
     
     st.divider()
     
+    st.divider()
+    
+    # Performance Tracking
+    st.subheader("📈 パフォーマンス追跡")
+    st.write("Paper Tradingの運用成績を可視化します。")
+    
+    pt_perf = PaperTrader()
+    balance = pt_perf.get_current_balance()
+    equity_history = pt_perf.get_equity_history()
+    
+    # Current Status
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("総資産", f"¥{balance['total_equity']:,.0f}")
+    with col2:
+        profit = balance['total_equity'] - pt_perf.initial_capital
+        profit_pct = (profit / pt_perf.initial_capital) * 100
+        st.metric("損益", f"¥{profit:+,.0f}", f"{profit_pct:+.2f}%")
+    with col3:
+        st.metric("現金", f"¥{balance['cash']:,.0f}")
+    
+    # Equity Curve
+    if not equity_history.empty:
+        st.subheader("資産推移")
+        fig_equity = go.Figure()
+        fig_equity.add_trace(go.Scatter(
+            x=equity_history['date'],
+            y=equity_history['equity'],
+            mode='lines',
+            name='Total Equity',
+            line=dict(color='gold', width=2)
+        ))
+        fig_equity.add_hline(
+            y=pt_perf.initial_capital,
+            line_dash="dash",
+            line_color="gray",
+            annotation_text="初期資金"
+        )
+        fig_equity.update_layout(
+            title="資産推移（Paper Trading）",
+            xaxis_title="日付",
+            yaxis_title="資産 (円)",
+            hovermode='x unified'
+        )
+        st.plotly_chart(fig_equity, use_container_width=True)
+        
+        # Monthly Performance
+        if len(equity_history) > 1:
+            equity_history['month'] = pd.to_datetime(equity_history['date']).dt.to_period('M')
+            monthly_returns = equity_history.groupby('month').agg({
+                'equity': ['first', 'last']
+            })
+            monthly_returns['return'] = (
+                (monthly_returns[('equity', 'last')] - monthly_returns[('equity', 'first')]) / 
+                monthly_returns[('equity', 'first')]
+            )
+            
+            if len(monthly_returns) > 0:
+                st.subheader("月次リターン")
+                monthly_returns_display = monthly_returns['return'].apply(lambda x: f"{x*100:+.2f}%")
+                st.dataframe(monthly_returns_display.to_frame(name='リターン'), use_container_width=True)
+    else:
+        st.info("まだ取引履歴がありません。Paper Tradingタブで取引を開始してください。")
+    
+    st.divider()
+    
     # Alert Configuration
     st.subheader("🔔 アラート設定")
     st.write("価格変動アラートを設定できます（将来実装予定）。")
