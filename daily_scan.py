@@ -49,6 +49,25 @@ def main():
 
     signals = []
     
+    # Check Market Sentiment
+    from src.sentiment import SentimentAnalyzer
+    
+    print("Analyzing Market Sentiment...")
+    try:
+        sa = SentimentAnalyzer()
+        sentiment = sa.get_market_sentiment()
+        print(f"Market Sentiment: {sentiment['label']} (Score: {sentiment['score']:.2f})")
+        
+        # Filter logic: If sentiment is Very Negative (< -0.2), suppress BUYs
+        allow_buy = True
+        if sentiment['score'] < -0.2:
+            print("⚠️ Market Sentiment is Negative. Suppressing BUY signals.")
+            allow_buy = False
+            
+    except Exception as e:
+        print(f"Error analyzing sentiment: {e}")
+        allow_buy = True # Default to allow if error
+    
     for ticker in tickers:
         if len(tickers) > 1:
             # yfinance returns MultiIndex if multiple tickers
@@ -97,12 +116,36 @@ def main():
             last_signal = sig_series.iloc[-1]
             
             if last_signal == 1:
+                if not allow_buy:
+                    continue
+                    
+                # Check Fundamentals for BUY signals
+                from src.data_loader import fetch_fundamental_data
+                from src.fundamentals import FundamentalFilter
+                
+                fund_filter = FundamentalFilter()
+                fundamentals = fetch_fundamental_data(ticker)
+                
+                # Default thresholds (can be moved to config later)
+                is_undervalued = fund_filter.filter_undervalued(fundamentals, max_pe=30, max_pbr=5)
+                is_quality = fund_filter.filter_quality(fundamentals, min_roe=0.05)
+                
+                # Add fundamental info to signal
+                pe = fundamentals.get('trailingPE') if fundamentals else None
+                roe = fundamentals.get('returnOnEquity') if fundamentals else None
+                
+                # Only filter if we have data, otherwise warn?
+                # For now, let's just add the info and maybe mark it
+                
                 signals.append({
                     "Ticker": ticker,
                     "Name": TICKER_NAMES.get(ticker, ""),
                     "Action": "BUY",
                     "Strategy": strat_name,
-                    "Price": df['Close'].iloc[-1]
+                    "Price": df['Close'].iloc[-1],
+                    "PER": round(pe, 2) if pe else "N/A",
+                    "ROE": round(roe, 4) if roe else "N/A",
+                    "Valid_Fund": is_undervalued and is_quality
                 })
             elif last_signal == -1:
                 signals.append({

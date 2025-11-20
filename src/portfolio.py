@@ -153,3 +153,138 @@ class PortfolioManager:
             optimized_weights[ticker] = result.x[i]
             
         return optimized_weights
+
+    def rebalance_portfolio(self, current_holdings: Dict[str, float], target_weights: Dict[str, float], total_equity: float) -> Dict[str, float]:
+        """
+        Calculates the amount to buy/sell for each asset to reach target weights.
+        
+        Args:
+            current_holdings: Dict of Ticker -> Current Value (JPY)
+            target_weights: Dict of Ticker -> Target Weight (0.0-1.0)
+            total_equity: Total portfolio value (Cash + Holdings)
+            
+        Returns:
+            Dict of Ticker -> Amount to Buy (positive) or Sell (negative) in JPY
+        """
+        trades = {}
+        
+        # Calculate target value for each asset
+        for ticker, weight in target_weights.items():
+            target_value = total_equity * weight
+            current_value = current_holdings.get(ticker, 0.0)
+            diff = target_value - current_value
+            
+            if abs(diff) > 1000: # Ignore small changes (< 1000 JPY)
+                trades[ticker] = diff
+                
+        # Handle assets to sell completely (not in target)
+        for ticker, value in current_holdings.items():
+            if ticker not in target_weights and value > 0:
+                trades[ticker] = -value
+                
+        return trades
+
+    def simulate_rebalancing(self, data_map: Dict[str, pd.DataFrame], initial_weights: Dict[str, float], rebalance_freq_days: int = 20) -> Dict[str, Any]:
+        """
+        Simulates portfolio performance with periodic rebalancing to initial weights.
+        
+        Args:
+            data_map: Dictionary of Ticker -> DataFrame
+            initial_weights: Target weights to rebalance to
+            rebalance_freq_days: Number of trading days between rebalancing
+            
+        Returns:
+            Dict containing performance metrics and equity curve
+        """
+        # 1. Align Data
+        tickers = list(initial_weights.keys())
+        if not tickers:
+            return None
+            
+        # Create unified index
+        all_dates = sorted(list(set().union(*[df.index for df in data_map.values() if df is not None])))
+        full_index = pd.DatetimeIndex(all_dates)
+        
+        # Create price matrix (forward fill to handle missing days)
+        prices = pd.DataFrame(index=full_index)
+        for ticker in tickers:
+            if ticker in data_map and data_map[ticker] is not None:
+                prices[ticker] = data_map[ticker]['Close'].reindex(full_index).ffill()
+        
+        prices.dropna(inplace=True) # Start from when all assets have data
+        
+        if prices.empty:
+            return None
+            
+        # 2. Simulation Loop
+        cash = self.initial_capital
+        holdings = {t: 0.0 for t in tickers} # Shares held
+        equity_curve = []
+        
+        # Initial Allocation
+        current_equity = cash
+        for ticker, weight in initial_weights.items():
+            target_val = current_equity * weight
+            price = prices[ticker].iloc[0]
+            shares = target_val / price
+            holdings[ticker] = shares
+            cash -= shares * price
+            
+        # Loop through days
+        days_since_rebalance = 0
+        
+        for i in range(len(prices)):
+            date = prices.index[i]
+            current_prices = prices.iloc[i]
+            
+            # Calculate Equity
+            portfolio_val = cash + sum(holdings[t] * current_prices[t] for t in tickers)
+            equity_curve.append(portfolio_val)
+            
+            # Rebalance Check
+            days_since_rebalance += 1
+            if days_since_rebalance >= rebalance_freq_days:
+                # Rebalance!
+                current_equity = portfolio_val
+                
+                # Sell first to raise cash
+                for ticker, weight in initial_weights.items():
+                    target_val = current_equity * weight
+                    current_val = holdings[ticker] * current_prices[ticker]
+                    diff = target_val - current_val
+                    
+                    if diff < 0: # Sell
+                        shares_to_sell = abs(diff) / current_prices[ticker]
+                        holdings[ticker] -= shares_to_sell
+                        cash += shares_to_sell * current_prices[ticker]
+                        
+                # Buy next
+                for ticker, weight in initial_weights.items():
+                    target_val = current_equity * weight
+                    current_val = holdings[ticker] * current_prices[ticker]
+                    diff = target_val - current_val
+                    
+                    if diff > 0: # Buy
+                        shares_to_buy = diff / current_prices[ticker]
+                        # Check cash constraint (simplified)
+                        cost = shares_to_buy * current_prices[ticker]
+                        if cost <= cash:
+                            holdings[ticker] += shares_to_buy
+                            cash -= cost
+                            
+                days_since_rebalance = 0
+                
+        # Results
+        equity_series = pd.Series(equity_curve, index=prices.index)
+        total_return = (equity_series.iloc[-1] - self.initial_capital) / self.initial_capital
+        
+        # Max Drawdown
+        running_max = equity_series.cummax()
+        drawdown = (equity_series - running_max) / running_max
+        max_drawdown = drawdown.min()
+        
+        return {
+            "equity_curve": equity_series,
+            "total_return": total_return,
+            "max_drawdown": max_drawdown
+        }

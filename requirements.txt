@@ -1,6 +1,9 @@
 streamlit
 yfinance
 pandas
+streamlit
+yfinance
+pandas
 numpy
 ta
 plotly
@@ -9,3 +12,7 @@ optuna
 scikit-learn
 matplotlib
 lightgbm
+reportlab
+feedparser
+textblob
+tensorflow

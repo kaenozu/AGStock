@@ -21,6 +21,7 @@ paper_trading.db
 best_params.json
 daily_signals.csv
 results.txt
+sentiment_history.db
 
 # IDE
 .vscode/
