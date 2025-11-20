@@ -2,9 +2,9 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
-from src.constants import NIKKEI_225_TICKERS, TICKER_NAMES
+from src.constants import NIKKEI_225_TICKERS, TICKER_NAMES, MARKETS
 from src.data_loader import fetch_stock_data, get_latest_price
-from src.strategies import SMACrossoverStrategy, RSIStrategy, BollingerBandsStrategy, CombinedStrategy, MLStrategy
+from src.strategies import SMACrossoverStrategy, RSIStrategy, BollingerBandsStrategy, CombinedStrategy, MLStrategy, LightGBMStrategy
 from src.backtester import Backtester
 from src.portfolio import PortfolioManager
 from src.paper_trader import PaperTrader
@@ -15,12 +15,15 @@ install_cache()
 
 st.set_page_config(page_title="AI Stock Predictor", layout="wide")
 
-st.title("📈 日本株 AI 予測アナライザー (Pro)")
-st.markdown("現実的なコストとリスクを考慮した、プロ仕様のバックテストエンジン搭載。")
+st.title("🌍 グローバル株式 AI 予測アナライザー (Pro)")
+st.markdown("日本・米国・欧州の主要株式を対象とした、プロ仕様のバックテストエンジン搭載。")
 
 # Sidebar
 st.sidebar.header("設定")
-ticker_group = st.sidebar.selectbox("対象銘柄", ["日経225 (主要銘柄)", "カスタム入力"])
+
+# Market Selection
+selected_market = st.sidebar.selectbox("市場選択 (Market)", ["Japan", "US", "Europe", "All"], index=0)
+ticker_group = st.sidebar.selectbox("対象銘柄", [f"{selected_market} 主要銘柄", "カスタム入力"])
 
 custom_tickers = []
 if ticker_group == "カスタム入力":
@@ -41,11 +44,12 @@ strategies = [
     RSIStrategy(14, 30, 70),
     BollingerBandsStrategy(20, 2),
     CombinedStrategy(),
-    MLStrategy()
+    MLStrategy(),
+    LightGBMStrategy()
 ]
 
 # Main Tabs
-tab1, tab2, tab3 = st.tabs(["📊 Market Scan", "💼 Portfolio Simulation", "📝 Paper Trading"])
+tab1, tab2, tab3, tab4 = st.tabs(["📊 Market Scan", "💼 Portfolio Simulation", "📝 Paper Trading", "🎯 Dashboard"])
 
 # --- Tab 1: Market Scan ---
 with tab1:
@@ -58,7 +62,7 @@ with tab1:
             if ticker_group == "カスタム入力":
                 tickers = custom_tickers
             else:
-                tickers = NIKKEI_225_TICKERS
+                tickers = MARKETS[selected_market]
                 
             if not tickers:
                 st.error("銘柄が指定されていません。")
@@ -286,10 +290,26 @@ with tab2:
                         # Find the strategy instance
                         pf_strategies[ticker] = next(s for s in strategies if s.name == selected_strat_name)
                 
-                # Equal weights
-                weight = 1.0 / len(selected_portfolio)
-                weights = {t: weight for t in selected_portfolio}
+                st.divider()
                 
+                # Weight Optimization
+                weight_mode = st.radio("配分比率 (Weights)", ["均等配分 (Equal)", "最適化 (Max Sharpe)"], horizontal=True)
+                
+                weights = {}
+                if weight_mode == "均等配分 (Equal)":
+                    weight = 1.0 / len(selected_portfolio)
+                    weights = {t: weight for t in selected_portfolio}
+                else:
+                    with st.spinner("シャープレシオ最大化ポートフォリオを計算中..."):
+                        weights = pm.optimize_portfolio(data_map_pf)
+                        st.success("最適化完了")
+                        
+                        # Display Weights
+                        st.write("推奨配分比率:")
+                        w_df = pd.DataFrame.from_dict(weights, orient='index', columns=['Weight'])
+                        w_df['Weight'] = w_df['Weight'].apply(lambda x: f"{x*100:.1f}%")
+                        st.dataframe(w_df.T)
+
                 pf_res = pm.simulate_portfolio(data_map_pf, pf_strategies, weights)
                 
                 if pf_res:
@@ -385,3 +405,152 @@ with tab3:
         st.dataframe(history, use_container_width=True)
     else:
         st.info("取引履歴はありません。")
+
+# --- Tab 4: Dashboard ---
+with tab4:
+    st.header("🎯 パフォーマンス・ダッシュボード")
+    st.write("全銘柄のパフォーマンスを一目で確認できます。")
+    
+    # Performance Heatmap
+    st.subheader("📊 パフォーマンス・ヒートマップ")
+    
+    if st.button("ヒートマップを生成", type="primary"):
+        with st.spinner("データ取得中..."):
+            # Get tickers based on selection
+            if ticker_group == "カスタム入力":
+                heatmap_tickers = custom_tickers[:20]  # Limit for performance
+            else:
+                heatmap_tickers = MARKETS[selected_market][:20]
+            
+            data_map_hm = fetch_stock_data(heatmap_tickers, period="1mo")
+            
+            # Calculate returns
+            returns_data = []
+            for ticker in heatmap_tickers:
+                df = data_map_hm.get(ticker)
+                if df is not None and not df.empty and len(df) > 1:
+                    daily_return = (df['Close'].iloc[-1] - df['Close'].iloc[0]) / df['Close'].iloc[0]
+                    returns_data.append({
+                        'Ticker': ticker,
+                        'Name': TICKER_NAMES.get(ticker, ticker),
+                        'Return': daily_return
+                    })
+            
+            if returns_data:
+                returns_df = pd.DataFrame(returns_data)
+                
+                # Create heatmap
+                fig_heatmap = px.treemap(
+                    returns_df,
+                    path=['Ticker'],
+                    values=abs(returns_df['Return']),  # Size by absolute return
+                    color='Return',
+                    color_continuous_scale='RdYlGn',
+                    color_continuous_midpoint=0,
+                    title="過去1ヶ月のリターン (緑=上昇、赤=下落)"
+                )
+                fig_heatmap.update_traces(textinfo="label+value+percent parent")
+                st.plotly_chart(fig_heatmap, use_container_width=True)
+                
+                # Top/Bottom performers
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.subheader("🚀 トップ5")
+                    top5 = returns_df.nlargest(5, 'Return')[['Ticker', 'Name', 'Return']]
+                    top5['Return'] = top5['Return'].apply(lambda x: f"{x*100:+.2f}%")
+                    st.dataframe(top5, use_container_width=True)
+                
+                with col2:
+                    st.subheader("📉 ワースト5")
+                    bottom5 = returns_df.nsmallest(5, 'Return')[['Ticker', 'Name', 'Return']]
+                    bottom5['Return'] = bottom5['Return'].apply(lambda x: f"{x*100:+.2f}%")
+                    st.dataframe(bottom5, use_container_width=True)
+    
+    st.divider()
+    
+    st.divider()
+    
+    # Performance Tracking
+    st.subheader("📈 パフォーマンス追跡")
+    st.write("Paper Tradingの運用成績を可視化します。")
+    
+    pt_perf = PaperTrader()
+    balance = pt_perf.get_current_balance()
+    equity_history = pt_perf.get_equity_history()
+    
+    # Current Status
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("総資産", f"¥{balance['total_equity']:,.0f}")
+    with col2:
+        profit = balance['total_equity'] - pt_perf.initial_capital
+        profit_pct = (profit / pt_perf.initial_capital) * 100
+        st.metric("損益", f"¥{profit:+,.0f}", f"{profit_pct:+.2f}%")
+    with col3:
+        st.metric("現金", f"¥{balance['cash']:,.0f}")
+    
+    # Equity Curve
+    if not equity_history.empty:
+        st.subheader("資産推移")
+        fig_equity = go.Figure()
+        fig_equity.add_trace(go.Scatter(
+            x=equity_history['date'],
+            y=equity_history['equity'],
+            mode='lines',
+            name='Total Equity',
+            line=dict(color='gold', width=2)
+        ))
+        fig_equity.add_hline(
+            y=pt_perf.initial_capital,
+            line_dash="dash",
+            line_color="gray",
+            annotation_text="初期資金"
+        )
+        fig_equity.update_layout(
+            title="資産推移（Paper Trading）",
+            xaxis_title="日付",
+            yaxis_title="資産 (円)",
+            hovermode='x unified'
+        )
+        st.plotly_chart(fig_equity, use_container_width=True)
+        
+        # Monthly Performance
+        if len(equity_history) > 1:
+            equity_history['month'] = pd.to_datetime(equity_history['date']).dt.to_period('M')
+            monthly_returns = equity_history.groupby('month').agg({
+                'equity': ['first', 'last']
+            })
+            monthly_returns['return'] = (
+                (monthly_returns[('equity', 'last')] - monthly_returns[('equity', 'first')]) / 
+                monthly_returns[('equity', 'first')]
+            )
+            
+            if len(monthly_returns) > 0:
+                st.subheader("月次リターン")
+                monthly_returns_display = monthly_returns['return'].apply(lambda x: f"{x*100:+.2f}%")
+                st.dataframe(monthly_returns_display.to_frame(name='リターン'), use_container_width=True)
+    else:
+        st.info("まだ取引履歴がありません。Paper Tradingタブで取引を開始してください。")
+    
+    st.divider()
+    
+    # Alert Configuration
+    st.subheader("🔔 アラート設定")
+    st.write("価格変動アラートを設定できます（将来実装予定）。")
+    
+    alert_ticker = st.selectbox(
+        "監視する銘柄",
+        options=MARKETS[selected_market][:10],
+        format_func=lambda x: f"{x} - {TICKER_NAMES.get(x, '')}"
+    )
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        alert_type = st.selectbox("アラートタイプ", ["価格上昇", "価格下落"])
+    with col2:
+        threshold = st.number_input("閾値 (%)", min_value=1.0, max_value=50.0, value=5.0, step=0.5)
+    
+    if st.button("アラートを設定"):
+        st.success(f"✓ {alert_ticker} の{alert_type}アラート（{threshold}%）を設定しました（デモ）")
+        st.info("実際のアラートは `src/notifier.py` を使用して実装できます。")
+

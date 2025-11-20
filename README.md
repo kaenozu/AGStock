@@ -1,107 +1,173 @@
-# 📈 AGStock - 日本株 AI 予測アナライザー
+# AGStock - AI Trading System
 
-過去のデータから統計的に最も期待値の高い売買シグナルを検出する株式分析アプリケーション。
-
-## ✨ 機能
-
-- **日経225銘柄のバックテスト**: 主要銘柄の過去データを分析
-- **複数の戦略**: SMA Crossover、RSI、Bollinger Bands
-- **リアルタイムシグナル検出**: 現在の市場状況に基づくシグナル
-- **インタラクティブなUI**: Streamlitによる直感的な操作
-- **詳細な分析**: チャートとメトリクスによる可視化
+グローバル株式市場（日本・米国・欧州）を対象とした、AI駆動の自動トレーディングシステム。
 
 ## 🚀 クイックスタート
 
-### インストール
-
+### 1. セットアップ（初回のみ）
 ```bash
-# リポジトリをクローン
-git clone https://github.com/kaenozu/AGStock.git
-cd AGStock
+# Windows
+setup.bat
 
-# 依存関係をインストール
-pip install -r requirements.txt
+# Mac/Linux
+chmod +x setup.sh
+./setup.sh
 ```
 
-### 実行
-
+### 2. アプリ起動
 ```bash
 streamlit run app.py
 ```
 
-ブラウザで `http://localhost:8501` が自動的に開きます。
+ブラウザで `http://localhost:8501` が自動で開きます。
 
-## 🧪 テスト
+---
 
+## 📊 主な機能
+
+### 1. Market Scan（市場スキャン）
+- 全銘柄を自動スキャンして有望なシグナルを検出
+- 6つの戦略（RSI, Bollinger, Combined, ML, LightGBM）
+- ワンクリックでペーパートレードに反映
+
+### 2. Portfolio Simulation（ポートフォリオ）
+- 複数銘柄の組み合わせをシミュレーション
+- 相関行列で分散投資を最適化
+- シャープレシオ最大化ポートフォリオ自動計算
+
+### 3. Paper Trading（仮想取引）
+- 1000万円の仮想資金でリアルタイム取引
+- 全取引履歴を記録
+- 日次資産推移グラフ
+
+### 4. Dashboard（ダッシュボード）
+- パフォーマンス・ヒートマップ
+- トップ/ワースト銘柄
+- アラート設定
+
+---
+
+## 🤖 自動実行
+
+### 毎日自動でスキャン
 ```bash
-# テスト用依存関係をインストール
-pip install -r requirements-dev.txt
-
-# すべてのテストを実行
-pytest tests/ -v
-
-# カバレッジ付きで実行
-pytest tests/ --cov=src --cov-report=html
+python auto_trader.py
 ```
 
-## 📁 プロジェクト構造
+### GitHub Actionsで完全自動化
+- 毎日17:00 JST に自動実行
+- 結果は `reports/` フォルダに保存
+- エラー時は自動でIssue作成
+
+設定方法: `.github/ACTIONS_SETUP.md` 参照
+
+---
+
+## 🔔 通知設定
+
+### Slack通知
+```bash
+export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+```
+
+### メール通知
+```bash
+export EMAIL_ENABLED="true"
+export EMAIL_FROM="your@email.com"
+export EMAIL_PASSWORD="your-app-password"
+export EMAIL_TO="recipient@email.com"
+```
+
+---
+
+## 📈 バックテスト結果
+
+**LightGBM戦略（過去2年間、グローバル20銘柄）**:
+- 平均リターン: **+18.4%**
+- シャープレシオ: **0.91**
+- 勝率: **90%**
+
+詳細: `python backtest_report.py` で最新レポート生成
+
+---
+
+## 🛠️ よく使うコマンド
+
+```bash
+# バックテストレポート生成
+python backtest_report.py
+
+# 自動トレーダー実行
+python auto_trader.py
+
+# データバックアップ
+python backup.py
+
+# アプリ起動
+streamlit run app.py
+```
+
+---
+
+## 📁 プロジェクト構成
 
 ```
 AGStock/
-├── app.py                 # Streamlitメインアプリケーション
+├── app.py                  # メインアプリ
+├── auto_trader.py          # 自動トレーダー
+├── backtest_report.py      # レポート生成
+├── backup.py               # バックアップ
 ├── src/
-│   ├── strategies.py      # 戦略クラス（SMA、RSI、Bollinger Bands）
-│   ├── backtester.py      # バックテスタークラス
-│   ├── data_loader.py     # データ取得関数
-│   └── constants.py       # 定数定義（ティッカーリスト）
-├── tests/
-│   ├── conftest.py        # pytest共通フィクスチャ
-│   ├── test_strategies.py # 戦略テスト
-│   ├── test_backtester.py # バックテスターテスト
-│   ├── test_data_loader.py# データローダーテスト
-│   └── test_constants.py  # 定数テスト
-├── pytest.ini             # pytest設定
-├── requirements.txt       # 本番依存関係
-└── requirements-dev.txt   # 開発依存関係
+│   ├── strategies.py       # 取引戦略
+│   ├── backtester.py       # バックテストエンジン
+│   ├── portfolio.py        # ポートフォリオ管理
+│   ├── paper_trader.py     # 仮想取引
+│   ├── execution.py        # 注文実行
+│   ├── notifier.py         # 通知システム
+│   ├── features.py         # 特徴量エンジニアリング
+│   └── data_loader.py      # データ取得
+├── .github/workflows/      # GitHub Actions
+└── reports/                # 実行結果（自動生成）
 ```
 
-## 🎯 使い方
+---
 
-1. **市場をスキャン**: 「市場をスキャンして推奨銘柄を探す」ボタンをクリック
-2. **シグナルを確認**: 買い/売りシグナルが出ている銘柄を確認
-3. **詳細分析**: 銘柄を選択してチャートとメトリクスを表示
+## 🔧 トラブルシューティング
 
-## 🔧 戦略
+### Q: データ取得が遅い
+A: キャッシュが有効です。2回目以降は高速化されます。
 
-### SMA Crossover
-短期移動平均線と長期移動平均線のクロスオーバーを検出
+### Q: LightGBMでエラー
+A: `pip install --upgrade lightgbm` で最新版に更新
 
-### RSI
-相対力指数（RSI）の過買い/過売りからの反転を検出
+### Q: Paper Trading DBがリセットされた
+A: `backup.py` で定期バックアップを推奨
 
-### Bollinger Bands
-ボリンジャーバンドのタッチによる平均回帰を検出
+### Q: GitHub Actionsが動かない
+A: Secrets設定を確認（`.github/ACTIONS_SETUP.md` 参照）
 
-## 📊 テストカバレッジ
+---
 
-- **57個のテスト**: すべてパス ✅
-- **主要モジュール**: 戦略、バックテスター、データローダー、定数
-- **型ヒント**: 全モジュールに型アノテーション付き
+## 📊 パフォーマンス追跡
 
-## 🤝 コントリビューション
+月次・年次のパフォーマンスを確認:
+```bash
+streamlit run app.py
+```
+→ 「Dashboard」タブ → 「パフォーマンス追跡」
 
-プルリクエストを歓迎します！
+---
 
-1. フォークする
-2. フィーチャーブランチを作成 (`git checkout -b feature/amazing-feature`)
-3. コミット (`git commit -m 'Add amazing feature'`)
-4. プッシュ (`git push origin feature/amazing-feature`)
-5. プルリクエストを作成
+## 🎯 次のステップ
+
+1. **初回セットアップ**: `setup.bat` 実行
+2. **通知設定**: Slack/メール設定（任意）
+3. **バックテスト確認**: `python backtest_report.py`
+4. **アプリ起動**: `streamlit run app.py`
+5. **自動化**: GitHub Actions設定（任意）
+
+---
 
 ## 📝 ライセンス
 
-このプロジェクトはMITライセンスの下で公開されています。
-
-## ⚠️ 免責事項
-
-このツールは教育目的で作成されています。実際の投資判断には使用しないでください。投資は自己責任で行ってください。
+個人利用のみ。

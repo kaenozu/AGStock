@@ -65,3 +65,75 @@
 - [x] **App UX Improvements**
     - [x] **Portfolio**: Auto-select best strategy for each stock.
     - [x] **Paper Trading**: Add "One-Click Order" button to Market Scan results.
+
+## Phase 8: Advanced Alpha Generation (In Progress)
+- [x] **Setup**
+    - [x] Install `lightgbm`.
+- [x] **Feature Engineering**
+    - [x] Create `src/features.py` for advanced indicators (ATR, Volatility, etc.).
+- [x] **Model Implementation**
+    - [x] Create `LightGBMStrategy` in `src/strategies.py`.
+    - [x] Implement Walk-Forward Validation logic.
+
+## Phase 9: Portfolio Optimization (In Progress)
+- [x] **Logic Implementation**
+    - [x] Add `optimize_portfolio` method to `src/portfolio.py` (Mean-Variance).
+- [x] **App Integration**
+    - [x] Add "Optimization" section to Portfolio tab in `app.py`.
+
+## Phase 10: Macro Factors & Market Regime (Completed)
+- [x] **Data Fetching**
+    - [x] Update `data_loader.py` to fetch Macro data (USD/JPY, ^GSPC, ^TNX).
+- [x] **Feature Engineering**
+    - [x] Update `src/features.py` to include Macro correlations.
+- [x] **Model Update**
+    - [x] Retrain `LightGBMStrategy` with Macro features.
+
+## Phase 11: Automated Execution (Completed)
+- [x] **Execution Engine**
+    - [x] Create `src/execution.py` to handle order logic (Size, Limit/Market).
+- [x] **Automation Script**
+    - [x] Create `auto_trader.py` to run the full pipeline (Data -> Predict -> Trade).
+    - [x] Implement "Risk Checks" (Max drawdown limit, Max position size).
+
+## Phase 12: Backtest Visualization & Reporting (Completed)
+- [x] **Report Generator**
+    - [x] Create `backtest_report.py` to run comprehensive backtests.
+    - [x] Generate performance metrics (Sharpe, Win Rate, Monthly Returns).
+- [x] **Visualization**
+    - [x] Create equity curves comparison chart.
+    - [x] Generate confusion matrix for LightGBM predictions.
+    - [x] Create monthly returns heatmap.
+
+## Phase 13: Global Market Expansion (Completed)
+- [x] **Universe Expansion**
+    - [x] Add US stocks (S&P 500 constituents) to `src/constants.py`.
+    - [x] Add European stocks (STOXX 50) to `src/constants.py`.
+- [x] **App Integration**
+    - [x] Update `app.py` to allow market selection (Japan/US/Europe/All).
+- [x] **Testing**
+    - [x] Run backtest on global portfolio.
+
+## Phase 14: Notification System (Completed)
+- [x] **Slack Integration**
+    - [x] Create `src/notifier.py` with Slack webhook support.
+    - [x] Add notification for strong BUY signals.
+- [x] **Email Integration**
+    - [x] Add email notification support.
+    - [x] Create daily summary email template.
+
+## Phase 15: GitHub Actions Automation (Completed)
+- [x] **Workflow Setup**
+    - [x] Create `.github/workflows/daily_scan.yml`.
+    - [x] Configure cron schedule (17:00 JST daily).
+- [x] **Reporting**
+    - [x] Auto-save results to `reports/` folder.
+    - [x] Create Issue on error.
+
+## Phase 16: Dashboard Enhancement (Completed)
+- [x] **Real-time Features**
+    - [x] Add real-time price updates.
+    - [x] Create performance heatmap.
+- [x] **Alert System**
+    - [x] Add custom alert configuration.
+    - [x] Implement price threshold notifications.

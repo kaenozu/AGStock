@@ -200,6 +200,13 @@ class Backtester:
         win_rate = len(wins) / len(trades) if trades else 0
         avg_return = sum([t['return'] for t in trades]) / len(trades) if trades else 0
         
+        # Sharpe Ratio (annualized)
+        returns = df['Strategy_Return']
+        if returns.std() > 0:
+            sharpe_ratio = np.sqrt(252) * returns.mean() / returns.std()
+        else:
+            sharpe_ratio = 0.0
+        
         return {
             "total_return": final_total_return,
             "final_value": self.initial_capital * (1 + final_total_return),
@@ -207,8 +214,10 @@ class Backtester:
             "positions": positions,
             "equity_curve": df['Cumulative_Return'],
             "total_trades": len(trades),
+            "num_trades": len(trades),  # Alias for compatibility
             "win_rate": win_rate,
             "avg_return": avg_return,
             "max_drawdown": max_drawdown,
+            "sharpe_ratio": sharpe_ratio,
             "trades": trades
         }
