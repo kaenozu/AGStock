@@ -80,3 +80,27 @@
     - [x] Add `optimize_portfolio` method to `src/portfolio.py` (Mean-Variance).
 - [x] **App Integration**
     - [x] Add "Optimization" section to Portfolio tab in `app.py`.
+
+## Phase 10: Macro Factors & Market Regime (Completed)
+- [x] **Data Fetching**
+    - [x] Update `data_loader.py` to fetch Macro data (USD/JPY, ^GSPC, ^TNX).
+- [x] **Feature Engineering**
+    - [x] Update `src/features.py` to include Macro correlations.
+- [x] **Model Update**
+    - [x] Retrain `LightGBMStrategy` with Macro features.
+
+## Phase 11: Automated Execution (Completed)
+- [x] **Execution Engine**
+    - [x] Create `src/execution.py` to handle order logic (Size, Limit/Market).
+- [x] **Automation Script**
+    - [x] Create `auto_trader.py` to run the full pipeline (Data -> Predict -> Trade).
+    - [x] Implement "Risk Checks" (Max drawdown limit, Max position size).
+
+## Phase 12: Backtest Visualization & Reporting (Completed)
+- [x] **Report Generator**
+    - [x] Create `backtest_report.py` to run comprehensive backtests.
+    - [x] Generate performance metrics (Sharpe, Win Rate, Monthly Returns).
+- [x] **Visualization**
+    - [x] Create equity curves comparison chart.
+    - [x] Generate confusion matrix for LightGBM predictions.
+    - [x] Create monthly returns heatmap.

@@ -213,7 +213,8 @@ class MLStrategy(Strategy):
         return signals
 
 import lightgbm as lgb
-from src.features import add_advanced_features
+from src.features import add_advanced_features, add_macro_features
+from src.data_loader import fetch_macro_data
 
 class LightGBMStrategy(Strategy):
     def __init__(self, lookback_days=365, threshold=0.005):
@@ -222,11 +223,19 @@ class LightGBMStrategy(Strategy):
         self.threshold = threshold
         self.model = None
         self.feature_cols = ['ATR', 'BB_Width', 'RSI', 'MACD', 'MACD_Signal', 'MACD_Diff', 
-                             'Dist_SMA_20', 'Dist_SMA_50', 'Dist_SMA_200', 'OBV', 'Volume_Change']
+                             'Dist_SMA_20', 'Dist_SMA_50', 'Dist_SMA_200', 'OBV', 'Volume_Change',
+                             'USDJPY_Ret', 'USDJPY_Corr', 'SP500_Ret', 'SP500_Corr', 'US10Y_Ret', 'US10Y_Corr']
 
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
         # 1. Feature Engineering
         data = add_advanced_features(df)
+        
+        # Add Macro Features
+        # Note: In a real backtest, we should fetch this once and pass it in, 
+        # but for now we fetch inside to keep API simple.
+        # We use a cache so it's not too slow.
+        macro_data = fetch_macro_data(period="5y") # Fetch enough history
+        data = add_macro_features(data, macro_data)
         
         # Need enough data for lookback + features
         min_required = self.lookback_days + 50

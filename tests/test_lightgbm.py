@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch, MagicMock
 import pandas as pd
 import numpy as np
 from src.strategies import LightGBMStrategy
@@ -19,7 +20,18 @@ class TestLightGBMStrategy(unittest.TestCase):
         self.df['High'] = self.df[['Open', 'Close']].max(axis=1) + 1
         self.df['Low'] = self.df[['Open', 'Close']].min(axis=1) - 1
 
-    def test_generate_signals(self):
+    @patch('src.strategies.fetch_macro_data')
+    def test_generate_signals(self, mock_fetch_macro):
+        # Mock macro data
+        dates = self.df.index
+        mock_macro_df = pd.DataFrame({"Close": np.random.rand(len(dates)) * 100}, index=dates)
+        
+        mock_fetch_macro.return_value = {
+            "USDJPY": mock_macro_df,
+            "SP500": mock_macro_df,
+            "US10Y": mock_macro_df
+        }
+        
         strategy = LightGBMStrategy(lookback_days=100)
         signals = strategy.generate_signals(self.df)
         

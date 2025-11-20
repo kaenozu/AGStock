@@ -49,3 +49,38 @@ def add_advanced_features(df: pd.DataFrame) -> pd.DataFrame:
     # Don't drop here, let the strategy handle it to preserve recent data for prediction
     
     return df
+
+def add_macro_features(df: pd.DataFrame, macro_data: dict) -> pd.DataFrame:
+    """
+    Adds macro economic features to the dataframe.
+    """
+    df = df.copy()
+    
+    if not macro_data:
+        return df
+        
+    # Align dates
+    # Macro data might have different trading days (US holidays vs JP holidays)
+    # We forward fill macro data to align with stock data
+    
+    for name, macro_df in macro_data.items():
+        # Calculate daily return/change for macro factor
+        if name == "US10Y":
+            # Yield change (basis points)
+            macro_feat = macro_df['Close'].diff()
+        else:
+            # Price return
+            macro_feat = macro_df['Close'].pct_change()
+            
+        # Reindex to match stock df
+        # ffill to propagate last known value (e.g. during JP holiday if US open, or vice versa)
+        aligned_feat = macro_feat.reindex(df.index, method='ffill')
+        
+        df[f'{name}_Ret'] = aligned_feat
+        
+        # Add rolling correlation (e.g. 20 days)
+        # Correlation between Stock Close Return and Macro Return
+        stock_ret = df['Close'].pct_change()
+        df[f'{name}_Corr'] = stock_ret.rolling(window=20).corr(aligned_feat)
+        
+    return df
