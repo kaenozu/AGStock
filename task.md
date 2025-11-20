@@ -52,11 +52,15 @@
 - [x] **App Integration**
     - [x] Add "Paper Trading Dashboard" tab to `app.py`.
 
-## Phase 6: Fundamental Analysis (Planned)
-- [ ] **Data Fetching**
-    - [ ] Update `data_loader.py` to fetch PER/PBR.
-- [ ] **Filtering**
-    - [ ] Add fundamental filters to `daily_scan.py`.
+## Phase 6: Fundamental Analysis (Completed)
+- [x] **Data Fetching**
+    - [x] Update `data_loader.py` to fetch PER, PBR, ROE, Market Cap using `yfinance`.
+    - [x] Implement caching for fundamental data (update weekly/monthly for earnings, daily for price ratios).
+- [x] **Filtering Logic**
+    - [x] Create `src/fundamentals.py` to handle filtering logic (e.g., PER < 20, ROE > 8%).
+    - [x] Integrate fundamental filters into `daily_scan.py`.
+- [x] **App Integration**
+    - [x] Display fundamental metrics in `app.py` dashboard.
 
 ## Phase 7: Refinement & Automation (Completed)
 - [x] **Portfolio Logic Refinement**
@@ -66,7 +70,7 @@
     - [x] **Portfolio**: Auto-select best strategy for each stock.
     - [x] **Paper Trading**: Add "One-Click Order" button to Market Scan results.
 
-## Phase 8: Advanced Alpha Generation (In Progress)
+## Phase 8: Advanced Alpha Generation (Completed)
 - [x] **Setup**
     - [x] Install `lightgbm`.
 - [x] **Feature Engineering**
@@ -75,7 +79,7 @@
     - [x] Create `LightGBMStrategy` in `src/strategies.py`.
     - [x] Implement Walk-Forward Validation logic.
 
-## Phase 9: Portfolio Optimization (In Progress)
+## Phase 9: Portfolio Optimization (Completed)
 - [x] **Logic Implementation**
     - [x] Add `optimize_portfolio` method to `src/portfolio.py` (Mean-Variance).
 - [x] **App Integration**
@@ -137,3 +141,80 @@
 - [x] **Alert System**
     - [x] Add custom alert configuration.
     - [x] Implement price threshold notifications.
+
+## Phase 17: CLI & Configuration (Completed)
+- [x] **Configuration Management**
+    - [x] Create `config.yaml` for centralized settings (capital, risk, notifications).
+    - [x] Create `src/config.py` to load and validate configuration.
+- [x] **CLI Tool**
+    - [x] Create `agstock.py` using `argparse`.
+    - [x] Implement commands: `run`, `backtest`, `report`, `backup`.
+
+## Phase 18: Enhanced Backup & Automation (Completed)
+- [x] **Automated Backup**
+    - [x] Add cron/Task Scheduler setup to `setup.sh`/`setup.bat`.
+    - [x] Implement cloud sync option (copy to specified path).
+- [x] **Automation Reliability**
+    - [x] Add retry logic for data fetching and API calls.
+    - [x] Implement comprehensive logging to file.
+
+## Phase 19: Portfolio Rebalancing (Completed)
+- [x] **Rebalancing Logic**
+    - [x] Add `rebalance_portfolio` function to `src/portfolio.py`.
+    - [x] Implement periodic rebalancing (e.g., monthly) in backtester.
+- [x] **Simulation**
+    - [x] Create rebalancing simulation script.
+    - [x] Visualize rebalancing effect on performance.
+
+## Phase 20: Visualization & Reporting (Completed)
+- [x] **Interactive Reports**
+    - [x] Enhance `backtest_report.py` to generate interactive HTML.
+    - [x] Add strategy correlation heatmap.
+- [x] **PDF Export**
+    - [x] Implement PDF report generation using `reportlab` or `weasyprint`.
+
+## Phase 21: Notification Channels (Completed)
+- [x] **Discord Integration**
+    - [x] Add Discord webhook support to `src/notifier.py`.
+- [x] **Push Notifications**
+    - [x] Add Pushover/Pushbullet support.
+
+## Phase 22: Custom Strategy Plugins (Completed)
+- [x] **Plugin System**
+    - [x] Create `src/strategies/custom/` directory.
+    - [x] Implement dynamic strategy loading in `src/strategies.py`.
+- [x] **UI Integration**
+    - [x] Auto-detect custom strategies in `app.py`.
+
+## Phase 23: Quality Assurance (Completed)
+- [x] **Unit Tests**
+    - [x] Create unit tests for new components (`tests/`)
+    - [x] Set up `black` and `isort` configuration (`pyproject.toml`)
+    - [x] Verify all tests pass
+- [ ] **Code Quality**
+    - [ ] Create pre-commit hook setup.
+
+## Phase 24: Sentiment Analysis (Completed)
+- [x] **News Aggregation**
+    - [x] Fetch news headlines via RSS or API (e.g., NewsAPI).
+- [x] **Sentiment Scoring**
+    - [x] Implement basic NLP (Natural Language Processing) to score sentiment (Positive/Negative).
+- [x] **Signal Filtering**
+    - [x] Filter "Buy" signals if sentiment is strongly negative.
+
+## Phase 25: Deep Learning (Completed)
+- [x] **Model Development**
+    - [x] Implement LSTM or Transformer model for time-series prediction.
+- [x] **Integration**
+    - [x] Add as a new strategy class (`DeepLearningStrategy`).
+
+## Phase 26: Sentiment Analysis Enhancement (Completed)
+- [x] **Data Persistence**
+    - [x] Add sentiment history database storage.
+    - [x] Implement historical data retrieval methods.
+- [x] **Visualization**
+    - [x] Create sentiment timeline chart (7/30 days).
+    - [x] Add news headlines display widget.
+    - [x] Implement sentiment gauge indicator.
+- [x] **UX Improvements**
+    - [x] Move sentiment to dedicated expandable section.

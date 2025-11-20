@@ -152,8 +152,65 @@ def generate_backtest_report():
     fig.write_html('backtest_comparison.html')
     print("✓ Saved: backtest_comparison.html")
     
+    # Generate PDF Report
+    try:
+        generate_pdf_report(summary_df)
+        print("✓ Saved: backtest_report.pdf")
+    except Exception as e:
+        print(f"⚠ PDF generation failed: {e}")
+    
     print("\n=== Report Complete ===")
     return summary_df
+
+def generate_pdf_report(summary_df: pd.DataFrame):
+    """Generate a PDF report using ReportLab."""
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet
+    
+    doc = SimpleDocTemplate("backtest_report.pdf", pagesize=letter)
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Title
+    elements.append(Paragraph("AGStock Backtest Report", styles['Title']))
+    elements.append(Spacer(1, 12))
+    elements.append(Paragraph(f"Generated: {datetime.datetime.now()}", styles['Normal']))
+    elements.append(Spacer(1, 24))
+    
+    # Table
+    # Convert DataFrame to list of lists
+    data = [summary_df.columns.to_list()] + summary_df.values.tolist()
+    # Round numbers for display
+    formatted_data = [data[0]]
+    for row in data[1:]:
+        formatted_row = []
+        for item in row:
+            if isinstance(item, float):
+                formatted_row.append(f"{item:.4f}")
+            else:
+                formatted_row.append(str(item))
+        formatted_data.append(formatted_row)
+        
+    # Add Index (Strategy Name)
+    formatted_data[0].insert(0, "Strategy")
+    for i, idx in enumerate(summary_df.index):
+        formatted_data[i+1].insert(0, idx)
+        
+    t = Table(formatted_data)
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+    elements.append(t)
+    
+    doc.build(elements)
 
 if __name__ == "__main__":
     generate_backtest_report()

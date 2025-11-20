@@ -55,6 +55,14 @@ echo [5/5] Running quick test...
 python -c "import streamlit; import lightgbm; import yfinance; print('All imports successful!')"
 
 echo.
+echo [6/6] Optional: Setup Scheduled Task
+set /p schedule="Do you want to schedule daily auto-trade at 17:00? (y/n): "
+if /i "%schedule%"=="y" (
+    schtasks /create /tn "AGStock_AutoTrade" /tr "python %CD%\auto_trader.py" /sc daily /st 17:00
+    echo Scheduled task created!
+)
+
+echo.
 echo ========================================
 echo Setup Complete!
 echo ========================================

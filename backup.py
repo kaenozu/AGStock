@@ -52,6 +52,25 @@ def backup_data():
     
     # Cleanup old backups (keep last 10)
     cleanup_old_backups()
+    
+    # Sync to cloud if configured
+    from src.config import config
+    cloud_path = config.get("paths.cloud_backup_path")
+    if cloud_path:
+        sync_to_cloud(backup_dir, cloud_path)
+
+def sync_to_cloud(backup_dir, cloud_path):
+    """Sync backup to a cloud folder (e.g., Dropbox/OneDrive)."""
+    try:
+        cloud_dest = Path(cloud_path) / backup_dir.name
+        if not Path(cloud_path).exists():
+            print(f"⚠ Cloud path not found: {cloud_path}")
+            return
+            
+        shutil.copytree(backup_dir, cloud_dest)
+        print(f"✓ Synced to cloud: {cloud_dest}")
+    except Exception as e:
+        print(f"⚠ Cloud sync failed: {e}")
 
 def cleanup_old_backups(keep=10):
     """Keep only the most recent N backups."""
