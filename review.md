@@ -1,51 +1,42 @@
-# 自動売買システムのレビュー結果
+# Project Review: AGStock
 
-## 結論：このまま実運用するのは非常に危険です
+## Overview
+The **AGStock** project has successfully evolved from a simple backtester to a comprehensive trading system with Portfolio Management and Paper Trading capabilities. The code is modular, well-tested, and the UI is functional.
 
-現在のコードとロジックを詳細に分析した結果、**このまま実際の資金を投入して運用するのは推奨できません**。
-シミュレーション（バックテスト）の結果は現実よりも遥かに良く見えてしまっており、実際には損失を出す可能性が高い構造になっています。
+## Key Components Review
 
-以下に、具体的な問題点と改善が必要な項目を挙げます。
+### 1. App UI (`app.py`)
+- **Strengths**:
+    - **Tabs**: The separation into "Market Scan", "Portfolio Simulation", and "Paper Trading" provides a clear workflow.
+    - **Visualization**: Good use of Plotly for equity curves and correlation matrices.
+    - **Interactivity**: Manual trading interface is intuitive.
+- **Improvements**:
+    - **Strategy Selection**: In Portfolio Simulation, all stocks currently use `CombinedStrategy`. It would be better to allow selecting the strategy for each stock or default to the best-performing one.
+    - **Automated Signals**: The Paper Trading tab is currently manual. Integrating the "Market Scan" signals directly into the Paper Trading execution flow (e.g., "Execute All Signals" button) would be a huge UX improvement.
 
-## 1. 重大な欠陥：未来のデータの参照 (Look-ahead Bias)
+### 2. Portfolio Logic (`src/portfolio.py`)
+- **Strengths**:
+    - **Correlation**: Correctly calculates the correlation matrix to help with diversification.
+    - **Simulation**: Aggregates individual backtest results into a portfolio equity curve.
+- **Potential Issues**:
+    - **Date Alignment**: The current logic assumes date alignment between stocks. If one stock has missing data (e.g., suspended trading), `fill_value=0` might cause temporary drops in the equity curve. Using a common date index and forward-filling prices *before* calculating equity would be more robust.
 
-現在のバックテストロジックには、**「カンニング」**が含まれています。
+### 3. Paper Trading Engine (`src/paper_trader.py`)
+- **Strengths**:
+    - **Persistence**: SQLite is correctly used to store state (Balance, Positions, Orders).
+    - **Logic**: Correctly handles "Average Down" (averaging entry price) and Realized P&L.
+- **Future Considerations**:
+    - **Concurrency**: If the app is deployed or accessed by multiple users, SQLite might hit locking issues. For a single-user local app, this is fine.
+    - **Corporate Actions**: Dividends and Stock Splits are not currently handled.
 
-- **現状**: その日の「終値」を使ってシグナル（買い/売り）を判定し、**その日の「終値」で売買したことになっています**。
-- **現実**: その日の「終値」は、マーケットが閉まる瞬間まで確定しません。終値が確定してシグナルが出たときには、もうその日の市場は閉まっており、取引できません。
-- **影響**: これにより、パフォーマンスが現実よりも劇的に良く見えてしまいます。
-- **修正案**: シグナルが出た「翌日の始値」で売買するようにロジックを変更する必要があります。
+## Next Steps Recommendations
 
-## 2. 取引コストの無視
+1.  **Automated Daily Routine**:
+    - Create a script (or button in App) that runs the `Daily Scan`, filters for high-confidence signals, and **automatically places orders** in the Paper Trader.
+2.  **Strategy Optimization**:
+    - Allow the Portfolio Simulator to pick the *best* strategy for each stock based on historical performance, rather than hardcoding `CombinedStrategy`.
+3.  **Refine Portfolio Calculation**:
+    - Improve the date alignment logic in `PortfolioManager` to handle missing data more gracefully.
 
-現在のシミュレーションでは、手数料やスリッページ（注文価格と約定価格のズレ）が完全に無視されています。
-
-- **現状**: `(売り値 - 買い値) / 買い値` で純粋な値幅だけを利益としています。
-- **現実**: 日本株の場合、売買手数料がかかります。また、成行注文だと不利な価格で約定すること（スリッページ）がよくあります。
-- **影響**: 特に取引回数が多い戦略（SMAクロスなど）では、手数料負けして資産が減っていく可能性が高いです。
-- **修正案**: 1トレードごとに0.1%〜0.2%程度の手数料・コストを差し引いて計算する必要があります。
-
-## 3. 戦略の単純さとリスク管理の欠如
-
-実装されている戦略（SMA、RSI、ボリンジャーバンド）は、教科書的な基本形そのままであり、現代の複雑な市場で勝ち続けるには単純すぎます。
-
-- **損切り（ストップロス）がない**: 予想が外れた場合に損失を限定する仕組みがありません。反対のシグナルが出るまで持ち続けるため、一度の大暴落で資産の大半を失うリスクがあります。
-- **ダマシ（Whipsaw）への弱さ**: SMAクロスなどは、トレンドがない「もみ合い相場」では「買ってすぐに下がり、売ってすぐに上がる」を繰り返し、往復ビンタで損失が積み上がります。
-
-## 4. 過学習（カーブフィッティング）の罠
-
-レポートにある「三菱重工で260%のリターン」などは、**「たまたま過去2年間で相性が良かった銘柄」**を後から選んでいるだけである可能性が高いです。
-
-- **生存バイアス**: 4000銘柄の中から、たまたまうまくいったものをピックアップしても、それが明日からも続く保証はどこにもありません。
-- **サンプル数不足**: RSI戦略などは平均取引回数が1.9回と極端に少なく、統計的に信頼できるデータではありません。たまたま2回勝っただけかもしれません。
-
-## 改善へのロードマップ
-
-本気で利益を目指すなら、以下のステップで作り直す必要があります。
-
-1.  **バックテストの厳密化**: 「翌日の始値」でエントリーするように修正し、手数料（往復0.2%程度）を考慮に入れる。
-2.  **リスク管理の実装**: エントリーと同時に「損切りライン（例：-5%）」と「利確ライン」を設定するロジックを追加する。
-3.  **戦略の高度化**: 単一の指標だけでなく、トレンドフィルター（長期移動平均線が上向きのときだけ買うなど）や、ファンダメンタルズ要素を組み合わせる。
-4.  **フォワードテスト**: 過去データだけでなく、直近のデータ（テストに使っていない期間）でも利益が出るか検証する。
-
-現状のアプリは「相場の雰囲気を掴むツール」としては有用ですが、「自動売買システム」としては未完成です。
+## Conclusion
+The system is solid. The transition from "Analysis" to "Action" (Paper Trading) is the most significant recent achievement. The next phase should focus on **Automation** and **Refinement**.

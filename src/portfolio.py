@@ -40,12 +40,10 @@ class PortfolioManager:
         """
         
         individual_results = {}
-        portfolio_equity = pd.Series(0.0, dtype=float)
         
-        # Align dates: Find common date range or just union?
-        # Union is better, filling missing with 0 change (cash)
+        # 1. Collect all equity curves
+        equity_curves = {}
         
-        # First, run backtests
         for ticker, weight in weights.items():
             if ticker not in data_map or data_map[ticker] is None:
                 continue
@@ -65,38 +63,31 @@ class PortfolioManager:
             
             if res:
                 individual_results[ticker] = res
-                
-                # Equity curve of this component
-                # res['equity_curve'] is cumulative return (e.g. 1.05, 0.98)
-                # We need value: allocated_capital * res['equity_curve']
-                
-                # Reindex to handle different start dates?
-                # For simplicity, assume data_map covers similar periods or handle alignment later.
-                component_value = allocated_capital * res['equity_curve']
-                
-                if portfolio_equity.empty:
-                    portfolio_equity = component_value
-                else:
-                    # Add to portfolio equity, aligning indices (filling 0 for missing dates is wrong, should fill with initial capital?)
-                    # Better: Fill forward?
-                    # Let's use an outer join sum.
-                    portfolio_equity = portfolio_equity.add(component_value, fill_value=0)
-                    
-        # Handle unallocated cash (if weights sum < 1.0)
+                # Store the equity curve (value)
+                equity_curves[ticker] = res['equity_curve'] * allocated_capital
+
+        if not equity_curves:
+            return None
+
+        # 2. Create unified index
+        all_dates = sorted(list(set().union(*[ec.index for ec in equity_curves.values()])))
+        full_index = pd.DatetimeIndex(all_dates)
+        
+        # 3. Reindex and Sum
+        portfolio_equity = pd.Series(0.0, index=full_index)
+        
+        for ticker, ec in equity_curves.items():
+            # Reindex to full range, forward fill (hold value), fill initial NaNs with allocated capital
+            allocated_capital = self.initial_capital * weights[ticker]
+            reindexed_ec = ec.reindex(full_index).ffill().fillna(allocated_capital)
+            portfolio_equity += reindexed_ec
+
+        # Handle unallocated cash
         total_weight = sum(weights.values())
         cash_weight = 1.0 - total_weight
         if cash_weight > 0:
             cash_value = self.initial_capital * cash_weight
-            # Add constant cash value (assuming 0 interest)
-            # We need an index. Use the portfolio_equity index.
-            if not portfolio_equity.empty:
-                portfolio_equity += cash_value
-
-        if portfolio_equity.empty:
-            return None
-
-        # Fill NaNs (if any)
-        portfolio_equity = portfolio_equity.ffill().fillna(self.initial_capital)
+            portfolio_equity += cash_value
 
         # Calculate Metrics
         total_return = (portfolio_equity.iloc[-1] - self.initial_capital) / self.initial_capital

@@ -37,11 +37,11 @@
     - [x] Implement `MLStrategy` using Random Forest.
     - [x] Integrate ML into App and Daily Scan.
 
-## Phase 4: Portfolio Management (Planned)
-- [ ] **Portfolio Logic**
-    - [ ] Create `src/portfolio.py` for correlation and portfolio backtesting.
-- [ ] **App Integration**
-    - [ ] Add "Portfolio Simulation" mode to `app.py`.
+## Phase 4: Portfolio Management (Completed)
+- [x] **Portfolio Logic**
+    - [x] Create `src/portfolio.py` for correlation and portfolio backtesting.
+- [x] **App Integration**
+    - [x] Add "Portfolio Simulation" mode to `app.py`.
 
 ## Phase 5: Paper Trading (Completed)
 - [x] **Paper Trading Engine**
@@ -49,10 +49,19 @@
     - [x] Implement order execution and balance tracking.
 - [x] **Daily Script**
     - [x] Create `paper_trade.py` for daily trading routine.
-
+- [x] **App Integration**
+    - [x] Add "Paper Trading Dashboard" tab to `app.py`.
 
 ## Phase 6: Fundamental Analysis (Planned)
 - [ ] **Data Fetching**
     - [ ] Update `data_loader.py` to fetch PER/PBR.
 - [ ] **Filtering**
     - [ ] Add fundamental filters to `daily_scan.py`.
+
+## Phase 7: Refinement & Automation (Completed)
+- [x] **Portfolio Logic Refinement**
+    - [x] Improve date alignment in `src/portfolio.py`.
+    - [x] Allow per-ticker strategy selection in `simulate_portfolio`.
+- [x] **App UX Improvements**
+    - [x] **Portfolio**: Auto-select best strategy for each stock.
+    - [x] **Paper Trading**: Add "One-Click Order" button to Market Scan results.
