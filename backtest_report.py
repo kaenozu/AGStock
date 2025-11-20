@@ -3,7 +3,7 @@ import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
-from src.constants import NIKKEI_225_TICKERS
+from src.constants import ALL_STOCKS
 from src.data_loader import fetch_stock_data
 from src.strategies import RSIStrategy, BollingerBandsStrategy, CombinedStrategy, MLStrategy, LightGBMStrategy
 from src.backtester import Backtester
@@ -39,7 +39,7 @@ def generate_backtest_report():
     install_cache()
     
     # Test tickers (use subset for speed)
-    test_tickers = NIKKEI_225_TICKERS[:10]  # Top 10 for quick test
+    test_tickers = ALL_STOCKS[:20]  # Sample 20 from global universe (JP, US, EU mix)
     
     # Strategies to compare
     strategies = {

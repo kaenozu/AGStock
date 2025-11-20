@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
-from src.constants import NIKKEI_225_TICKERS, TICKER_NAMES
+from src.constants import NIKKEI_225_TICKERS, TICKER_NAMES, MARKETS
 from src.data_loader import fetch_stock_data, get_latest_price
 from src.strategies import SMACrossoverStrategy, RSIStrategy, BollingerBandsStrategy, CombinedStrategy, MLStrategy, LightGBMStrategy
 from src.backtester import Backtester
@@ -15,12 +15,15 @@ install_cache()
 
 st.set_page_config(page_title="AI Stock Predictor", layout="wide")
 
-st.title("📈 日本株 AI 予測アナライザー (Pro)")
-st.markdown("現実的なコストとリスクを考慮した、プロ仕様のバックテストエンジン搭載。")
+st.title("🌍 グローバル株式 AI 予測アナライザー (Pro)")
+st.markdown("日本・米国・欧州の主要株式を対象とした、プロ仕様のバックテストエンジン搭載。")
 
 # Sidebar
 st.sidebar.header("設定")
-ticker_group = st.sidebar.selectbox("対象銘柄", ["日経225 (主要銘柄)", "カスタム入力"])
+
+# Market Selection
+selected_market = st.sidebar.selectbox("市場選択 (Market)", ["Japan", "US", "Europe", "All"], index=0)
+ticker_group = st.sidebar.selectbox("対象銘柄", [f"{selected_market} 主要銘柄", "カスタム入力"])
 
 custom_tickers = []
 if ticker_group == "カスタム入力":
@@ -59,7 +62,7 @@ with tab1:
             if ticker_group == "カスタム入力":
                 tickers = custom_tickers
             else:
-                tickers = NIKKEI_225_TICKERS
+                tickers = MARKETS[selected_market]
                 
             if not tickers:
                 st.error("銘柄が指定されていません。")

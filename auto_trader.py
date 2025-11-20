@@ -1,6 +1,6 @@
 import pandas as pd
 import datetime
-from src.constants import NIKKEI_225_TICKERS
+from src.constants import ALL_STOCKS
 from src.data_loader import fetch_stock_data, get_latest_price
 from src.strategies import LightGBMStrategy
 from src.paper_trader import PaperTrader
@@ -18,7 +18,7 @@ def run_auto_trader():
     
     # 2. Fetch Data
     print("Fetching data...")
-    tickers = NIKKEI_225_TICKERS
+    tickers = ALL_STOCKS[:50]  # Sample 50 stocks from global universe for speed
     data_map = fetch_stock_data(tickers, period="2y")
     
     # 3. Generate Signals

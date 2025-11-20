@@ -104,3 +104,12 @@
     - [x] Create equity curves comparison chart.
     - [x] Generate confusion matrix for LightGBM predictions.
     - [x] Create monthly returns heatmap.
+
+## Phase 13: Global Market Expansion (Completed)
+- [x] **Universe Expansion**
+    - [x] Add US stocks (S&P 500 constituents) to `src/constants.py`.
+    - [x] Add European stocks (STOXX 50) to `src/constants.py`.
+- [x] **App Integration**
+    - [x] Update `app.py` to allow market selection (Japan/US/Europe/All).
+- [x] **Testing**
+    - [x] Run backtest on global portfolio.

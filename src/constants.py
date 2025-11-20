@@ -91,3 +91,62 @@ TICKER_NAMES: Dict[str, str] = {
     "8002.T": "Marubeni",
     "8591.T": "Orix",
 }
+
+# S&P 500 Top Stocks (US Market)
+SP500_TICKERS: List[str] = [
+    # Tech Giants (FAANG+)
+    "AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA", "TSLA",
+    # Finance
+    "JPM", "BAC", "WFC", "GS", "MS", "C",
+    # Healthcare
+    "JNJ", "UNH", "PFE", "ABBV", "TMO", "MRK",
+    # Consumer
+    "WMT", "HD", "PG", "KO", "PEP", "NKE", "MCD",
+    # Industrial
+    "BA", "CAT", "GE", "MMM", "HON",
+    # Energy
+    "XOM", "CVX", "COP",
+    # Communication
+    "DIS", "NFLX", "CMCSA", "VZ", "T",
+]
+
+# STOXX 50 (European Market)
+STOXX50_TICKERS: List[str] = [
+    # France
+    "MC.PA",    # LVMH
+    "OR.PA",    # L'Oréal
+    "SAN.PA",   # Sanofi
+    "TTE.PA",   # TotalEnergies
+    "AIR.PA",   # Airbus
+    # Germany
+    "SAP.DE",   # SAP
+    "SIE.DE",   # Siemens
+    "VOW3.DE",  # Volkswagen
+    "MBG.DE",   # Mercedes-Benz
+    "ALV.DE",   # Allianz
+    # Netherlands
+    "ASML.AS",  # ASML
+    "INGA.AS",  # ING
+    "PHIA.AS",  # Philips
+    # Switzerland
+    "NESN.SW",  # Nestlé
+    "NOVN.SW",  # Novartis
+    "ROG.SW",   # Roche
+    # Spain
+    "SAN.MC",   # Santander
+    "ITX.MC",   # Inditex
+    # Italy
+    "ENI.MI",   # Eni
+]
+
+# Combined universe for global trading
+ALL_STOCKS: List[str] = NIKKEI_225_TICKERS + SP500_TICKERS + STOXX50_TICKERS
+
+# Market groupings
+MARKETS: Dict[str, List[str]] = {
+    "Japan": NIKKEI_225_TICKERS,
+    "US": SP500_TICKERS,
+    "Europe": STOXX50_TICKERS,
+    "All": ALL_STOCKS
+}
+
