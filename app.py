@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from src.constants import NIKKEI_225_TICKERS, TICKER_NAMES
 from src.data_loader import fetch_stock_data, get_latest_price
-from src.strategies import SMACrossoverStrategy, RSIStrategy, BollingerBandsStrategy, CombinedStrategy, MLStrategy
+from src.strategies import SMACrossoverStrategy, RSIStrategy, BollingerBandsStrategy, CombinedStrategy, MLStrategy, LightGBMStrategy
 from src.backtester import Backtester
 from src.portfolio import PortfolioManager
 from src.paper_trader import PaperTrader
@@ -41,7 +41,8 @@ strategies = [
     RSIStrategy(14, 30, 70),
     BollingerBandsStrategy(20, 2),
     CombinedStrategy(),
-    MLStrategy()
+    MLStrategy(),
+    LightGBMStrategy()
 ]
 
 # Main Tabs
@@ -286,10 +287,26 @@ with tab2:
                         # Find the strategy instance
                         pf_strategies[ticker] = next(s for s in strategies if s.name == selected_strat_name)
                 
-                # Equal weights
-                weight = 1.0 / len(selected_portfolio)
-                weights = {t: weight for t in selected_portfolio}
+                st.divider()
                 
+                # Weight Optimization
+                weight_mode = st.radio("配分比率 (Weights)", ["均等配分 (Equal)", "最適化 (Max Sharpe)"], horizontal=True)
+                
+                weights = {}
+                if weight_mode == "均等配分 (Equal)":
+                    weight = 1.0 / len(selected_portfolio)
+                    weights = {t: weight for t in selected_portfolio}
+                else:
+                    with st.spinner("シャープレシオ最大化ポートフォリオを計算中..."):
+                        weights = pm.optimize_portfolio(data_map_pf)
+                        st.success("最適化完了")
+                        
+                        # Display Weights
+                        st.write("推奨配分比率:")
+                        w_df = pd.DataFrame.from_dict(weights, orient='index', columns=['Weight'])
+                        w_df['Weight'] = w_df['Weight'].apply(lambda x: f"{x*100:.1f}%")
+                        st.dataframe(w_df.T)
+
                 pf_res = pm.simulate_portfolio(data_map_pf, pf_strategies, weights)
                 
                 if pf_res:

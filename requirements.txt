@@ -8,3 +8,4 @@ requests-cache
 optuna
 scikit-learn
 matplotlib
+lightgbm

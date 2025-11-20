@@ -103,3 +103,53 @@ class PortfolioManager:
             "max_drawdown": max_drawdown,
             "individual_results": individual_results
         }
+
+    def optimize_portfolio(self, data_map: Dict[str, pd.DataFrame], risk_free_rate: float = 0.0) -> Dict[str, float]:
+        """
+        Optimizes portfolio weights using Mean-Variance Optimization to maximize Sharpe Ratio.
+        """
+        from scipy.optimize import minimize
+        
+        tickers = list(data_map.keys())
+        if not tickers:
+            return {}
+            
+        # Prepare data matrix (Daily Returns)
+        close_prices = {}
+        for ticker, df in data_map.items():
+            if df is not None and not df.empty:
+                close_prices[ticker] = df['Close']
+                
+        if not close_prices:
+            return {}
+            
+        prices_df = pd.DataFrame(close_prices)
+        returns_df = prices_df.pct_change().dropna()
+        
+        if returns_df.empty:
+            return {t: 1.0/len(tickers) for t in tickers}
+            
+        mean_returns = returns_df.mean() * 252 # Annualized
+        cov_matrix = returns_df.cov() * 252 # Annualized
+        
+        num_assets = len(tickers)
+        
+        def negative_sharpe(weights):
+            portfolio_return = np.sum(mean_returns * weights)
+            portfolio_volatility = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))
+            if portfolio_volatility == 0:
+                return 0
+            sharpe = (portfolio_return - risk_free_rate) / portfolio_volatility
+            return -sharpe
+            
+        constraints = ({'type': 'eq', 'fun': lambda x: np.sum(x) - 1})
+        bounds = tuple((0.0, 1.0) for _ in range(num_assets))
+        initial_weights = num_assets * [1. / num_assets,]
+        
+        result = minimize(negative_sharpe, initial_weights, method='SLSQP', bounds=bounds, constraints=constraints)
+        
+        optimized_weights = {}
+        for i, ticker in enumerate(tickers):
+            optimized_weights[ticker] = result.x[i]
+            
+        return optimized_weights

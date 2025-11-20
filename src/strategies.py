@@ -211,3 +211,84 @@ class MLStrategy(Strategy):
         # Note: Signals for the training period remain 0 (Hold)
         
         return signals
+
+import lightgbm as lgb
+from src.features import add_advanced_features
+
+class LightGBMStrategy(Strategy):
+    def __init__(self, lookback_days=365, threshold=0.005):
+        super().__init__("LightGBM Alpha")
+        self.lookback_days = lookback_days
+        self.threshold = threshold
+        self.model = None
+        self.feature_cols = ['ATR', 'BB_Width', 'RSI', 'MACD', 'MACD_Signal', 'MACD_Diff', 
+                             'Dist_SMA_20', 'Dist_SMA_50', 'Dist_SMA_200', 'OBV', 'Volume_Change']
+
+    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+        # 1. Feature Engineering
+        data = add_advanced_features(df)
+        
+        # Need enough data for lookback + features
+        min_required = self.lookback_days + 50
+        if len(data) < min_required:
+            return pd.Series(0, index=df.index)
+            
+        signals = pd.Series(0, index=df.index)
+        
+        # 2. Walk-Forward Validation
+        # We simulate a realistic scenario:
+        # Retrain the model every 'retrain_period' days (e.g., 90 days / ~60 trading days)
+        # Train on [Start : Current_Date], Predict [Current_Date : Current_Date + Period]
+        
+        retrain_period = 60 # Approx 3 months of trading days
+        
+        # Start predicting after the initial lookback period
+        start_idx = self.lookback_days
+        end_idx = len(data)
+        
+        current_idx = start_idx
+        
+        while current_idx < end_idx:
+            # Define Training Data (All history up to current point)
+            # To avoid training on ancient history that might be irrelevant, 
+            # we could limit the training window (e.g., last 2 years).
+            # For now, let's use an expanding window but capped at 5 years if needed.
+            
+            train_end = current_idx
+            train_start = max(0, train_end - 1000) # Max 1000 days history
+            
+            train_df = data.iloc[train_start:train_end].dropna()
+            
+            # Define Prediction Window (Next 'retrain_period' days)
+            pred_end = min(current_idx + retrain_period, end_idx)
+            test_df = data.iloc[current_idx:pred_end].dropna()
+            
+            if train_df.empty or test_df.empty:
+                current_idx += retrain_period
+                continue
+                
+            # Prepare X, y
+            X_train = train_df[self.feature_cols]
+            y_train = (train_df['Return_1d'] > 0).astype(int)
+            
+            # Train
+            params = {'objective': 'binary', 'metric': 'binary_logloss', 'verbosity': -1, 'seed': 42}
+            train_data = lgb.Dataset(X_train, label=y_train)
+            self.model = lgb.train(params, train_data, num_boost_round=100)
+            
+            # Predict for the chunk
+            X_test = test_df[self.feature_cols]
+            if not X_test.empty:
+                preds = self.model.predict(X_test)
+                
+                # Generate Signals for this chunk
+                chunk_signals = pd.Series(0, index=X_test.index)
+                chunk_signals[preds > 0.55] = 1
+                chunk_signals[preds < 0.45] = -1
+                
+                signals.loc[chunk_signals.index] = chunk_signals
+            
+            # Move to next chunk
+            current_idx += retrain_period
+            
+        return signals

@@ -65,3 +65,18 @@
 - [x] **App UX Improvements**
     - [x] **Portfolio**: Auto-select best strategy for each stock.
     - [x] **Paper Trading**: Add "One-Click Order" button to Market Scan results.
+
+## Phase 8: Advanced Alpha Generation (In Progress)
+- [x] **Setup**
+    - [x] Install `lightgbm`.
+- [x] **Feature Engineering**
+    - [x] Create `src/features.py` for advanced indicators (ATR, Volatility, etc.).
+- [x] **Model Implementation**
+    - [x] Create `LightGBMStrategy` in `src/strategies.py`.
+    - [x] Implement Walk-Forward Validation logic.
+
+## Phase 9: Portfolio Optimization (In Progress)
+- [x] **Logic Implementation**
+    - [x] Add `optimize_portfolio` method to `src/portfolio.py` (Mean-Variance).
+- [x] **App Integration**
+    - [x] Add "Optimization" section to Portfolio tab in `app.py`.
