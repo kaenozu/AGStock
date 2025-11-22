@@ -1,48 +1,74 @@
-import yfinance as yf
-import pandas as pd
-import streamlit as st
-from typing import List, Dict
+import logging
+from typing import Dict, Mapping, Sequence
 
-def fetch_stock_data(tickers: List[str], period: str = "2y") -> Dict[str, pd.DataFrame]:
+import pandas as pd
+import yfinance as yf
+
+logger = logging.getLogger(__name__)
+
+
+def process_downloaded_data(
+    raw_data: pd.DataFrame,
+    tickers: Sequence[str],
+    column_map: Mapping[str, str] | None = None,
+) -> Dict[str, pd.DataFrame]:
     """
-    Fetches historical stock data for a list of tickers.
-    
+    yfinanceのダウンロード結果をティッカーごとに分割してクリーンアップする。
+
     Args:
-        tickers (list): List of ticker symbols (e.g., ['7203.T', '9984.T'])
-        period (str): Data period to download (default: '2y')
-        
+        raw_data (pd.DataFrame): yfinanceから取得した生データ。
+        tickers (Sequence[str]): 出力したいティッカー名のリスト。
+        column_map (Mapping[str, str] | None): 出力名とyfinance上のシンボル名のマッピング。
+
     Returns:
-        dict: A dictionary where keys are tickers and values are DataFrames.
+        Dict[str, pd.DataFrame]: ティッカーごとに分割・NaN除去されたデータ。
     """
+    if raw_data is None or raw_data.empty or not tickers:
+        return {}
+
+    column_map = column_map or {}
+    is_multi_index = isinstance(raw_data.columns, pd.MultiIndex)
+    processed: Dict[str, pd.DataFrame] = {}
+
+    for ticker in tickers:
+        source_key = column_map.get(ticker, ticker)
+
+        if is_multi_index:
+            if source_key not in raw_data.columns.get_level_values(0):
+                continue
+            df = raw_data[source_key].copy()
+        else:
+            if len(tickers) > 1:
+                # 複数ティッカーを想定した単純DataFrameは扱えないためスキップ
+                if source_key not in raw_data.columns:
+                    continue
+                df = raw_data[[source_key]].copy()
+            else:
+                df = raw_data.copy()
+
+        if isinstance(df, pd.Series):
+            df = df.to_frame()
+
+        df.dropna(inplace=True)
+        if not df.empty:
+            processed[ticker] = df
+
+    return processed
+
+
+def fetch_stock_data(tickers: Sequence[str], period: str = "2y") -> Dict[str, pd.DataFrame]:
+    """複数ティッカーの株価データを取得する。"""
     if not tickers:
         return {}
-    
-    data_dict = {}
-    
-    # Download in bulk is faster usually, but yfinance returns a multi-index dataframe
-    # which can be tricky. Let's try bulk download first.
+
     try:
-        # group_by='ticker' makes it easier to separate
-        df = yf.download(tickers, period=period, group_by='ticker', auto_adjust=True, threads=True)
-        
-        for ticker in tickers:
-            # Extract individual dataframe
-            if len(tickers) > 1:
-                stock_df = df[ticker].copy()
-            else:
-                stock_df = df.copy()
-                
-            # Basic cleaning
-            stock_df.dropna(inplace=True)
-            
-            if not stock_df.empty:
-                data_dict[ticker] = stock_df
-                
-    except Exception as e:
-        st.error(f"Error fetching data: {e}")
+        raw = yf.download(tickers, period=period, group_by='ticker', auto_adjust=True, threads=True)
+    except Exception as exc:  # pragma: no cover - 例外経路はテストでモック化
+        logger.error("Error fetching data: %s", exc)
         return {}
 
-    return data_dict
+    return process_downloaded_data(raw, tickers)
+
 
 def get_latest_price(df: pd.DataFrame) -> float:
     """Returns the latest close price from a dataframe."""
@@ -50,37 +76,19 @@ def get_latest_price(df: pd.DataFrame) -> float:
         return 0.0
     return df['Close'].iloc[-1]
 
+
 def fetch_macro_data(period: str = "2y") -> Dict[str, pd.DataFrame]:
-    """
-    Fetches macro economic data: USD/JPY, S&P 500, US 10Y Yield.
-    """
+    """為替や株価指数などのマクロ指標データをまとめて取得する。"""
     tickers = {
         "USDJPY": "JPY=X",
         "SP500": "^GSPC",
-        "US10Y": "^TNX"
+        "US10Y": "^TNX",
     }
-    
-    data_dict = {}
+
     try:
-        # Fetch one by one to be safe or bulk
-        # Bulk is fine
-        df = yf.download(list(tickers.values()), period=period, group_by='ticker', auto_adjust=True, threads=True)
-        
-        for name, ticker in tickers.items():
-            if len(tickers) > 1:
-                if ticker in df.columns.levels[0]: # Check if ticker exists in top level index
-                    macro_df = df[ticker].copy()
-                else:
-                    continue
-            else:
-                macro_df = df.copy()
-            
-            macro_df.dropna(inplace=True)
-            if not macro_df.empty:
-                data_dict[name] = macro_df
-                
-    except Exception as e:
-        st.error(f"Error fetching macro data: {e}")
+        raw = yf.download(list(tickers.values()), period=period, group_by='ticker', auto_adjust=True, threads=True)
+    except Exception as exc:  # pragma: no cover - 例外経路はテストでモック化
+        logger.error("Error fetching macro data: %s", exc)
         return {}
-        
-    return data_dict
+
+    return process_downloaded_data(raw, tickers.keys(), tickers)

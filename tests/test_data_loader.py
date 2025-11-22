@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 from unittest.mock import patch, MagicMock
-from src.data_loader import fetch_stock_data, get_latest_price
+from src.data_loader import fetch_stock_data, fetch_macro_data, get_latest_price, process_downloaded_data
 
 
 class TestFetchStockData:
@@ -97,6 +97,106 @@ class TestFetchStockData:
         assert len(result) == 0
 
 
+class TestProcessDownloadedData:
+    """process_downloaded_data関数のテスト"""
+
+    def test_process_single_ticker_dataframe(self):
+        """単一ティッカーの通常のDataFrameを処理できる"""
+        raw = pd.DataFrame(
+            {
+                'Open': [100, None, 102],
+                'High': [105, 106, 107],
+                'Low': [95, 96, 97],
+                'Close': [102, 103, 104],
+                'Volume': [1000000, 1100000, 1200000],
+            },
+            index=pd.date_range('2023-01-01', periods=3),
+        )
+
+        result = process_downloaded_data(raw, ['7203.T'])
+
+        assert '7203.T' in result
+        # NaNを含む行は削除される
+        assert len(result['7203.T']) == 2
+
+    def test_process_multi_ticker_dataframe(self):
+        """マルチインデックスのDataFrameを複数ティッカーに分割できる"""
+        raw = pd.DataFrame(
+            {
+                ('7203.T', 'Close'): [102, 103],
+                ('9984.T', 'Close'): [202, 203],
+            },
+            index=pd.date_range('2023-01-01', periods=2),
+        )
+        raw.columns = pd.MultiIndex.from_tuples(raw.columns)
+
+        result = process_downloaded_data(raw, ['7203.T', '9984.T'])
+
+        assert set(result.keys()) == {'7203.T', '9984.T'}
+        assert all(isinstance(df, pd.DataFrame) for df in result.values())
+
+    def test_process_missing_ticker(self):
+        """データに含まれないティッカーは結果に含まれない"""
+        raw = pd.DataFrame(
+            {
+                ('7203.T', 'Close'): [102, 103],
+            },
+            index=pd.date_range('2023-01-01', periods=2),
+        )
+        raw.columns = pd.MultiIndex.from_tuples(raw.columns)
+
+        result = process_downloaded_data(raw, ['7203.T', '9984.T'])
+
+        assert '7203.T' in result
+        assert '9984.T' not in result
+
+
+class TestFetchMacroData:
+    """fetch_macro_data関数のテスト"""
+
+    @patch('src.data_loader.yf.download')
+    def test_fetch_macro_data_success(self, mock_download):
+        tickers = {'USDJPY': 'JPY=X', 'SP500': '^GSPC', 'US10Y': '^TNX'}
+        data = pd.DataFrame(
+            {
+                ('JPY=X', 'Close'): [110, 111],
+                ('^GSPC', 'Close'): [4500, 4520],
+                ('^TNX', 'Close'): [1.5, 1.6],
+            },
+            index=pd.date_range('2023-01-01', periods=2),
+        )
+        data.columns = pd.MultiIndex.from_tuples(data.columns)
+        mock_download.return_value = data
+
+        result = fetch_macro_data()
+
+        assert set(result.keys()) == set(tickers.keys())
+        assert all(not df.empty for df in result.values())
+
+    @patch('src.data_loader.yf.download')
+    def test_fetch_macro_data_missing_symbol(self, mock_download):
+        data = pd.DataFrame(
+            {
+                ('JPY=X', 'Close'): [110, 111],
+            },
+            index=pd.date_range('2023-01-01', periods=2),
+        )
+        data.columns = pd.MultiIndex.from_tuples(data.columns)
+        mock_download.return_value = data
+
+        result = fetch_macro_data()
+
+        assert 'USDJPY' in result
+        assert 'SP500' not in result
+        assert 'US10Y' not in result
+
+    @patch('src.data_loader.yf.download')
+    def test_fetch_macro_data_exception(self, mock_download):
+        mock_download.side_effect = Exception("API error")
+
+        result = fetch_macro_data()
+
+        assert result == {}
 class TestGetLatestPrice:
     """get_latest_price関数のテスト"""
     
