@@ -339,13 +339,31 @@ class Backtester:
         win_rate = len(wins) / len(trades) if trades else 0.0
         avg_return = np.mean([t['return'] for t in trades]) if trades else 0.0
         
+        # Sharpe Ratio (annualized)
+        daily_returns = equity_curve.pct_change().dropna()
+        if len(daily_returns) > 0 and daily_returns.std() > 0:
+            sharpe_ratio = np.sqrt(252) * daily_returns.mean() / daily_returns.std()
+        else:
+            sharpe_ratio = 0.0
+        
+        # Create positions series for backward compatibility
+        # This is a simplified version - tracks whether we have any position
+        positions = pd.Series(0, index=full_index)
+        for i, date in enumerate(full_index):
+            has_position = any(holdings[ticker] != 0 for ticker in data_map.keys())
+            positions.iloc[i] = 1 if has_position else 0
+        
         return {
             "total_return": total_return,
             "final_value": final_portfolio_value,
             "equity_curve": equity_curve,
+            "signals": signals_map,  # Return the signals map
+            "positions": positions,  # Simplified position tracking
             "trades": trades,
             "win_rate": win_rate,
             "avg_return": avg_return,
             "max_drawdown": max_drawdown,
-            "total_trades": len(trades)
+            "sharpe_ratio": sharpe_ratio,
+            "total_trades": len(trades),
+            "num_trades": len(trades)  # Alias for compatibility
         }

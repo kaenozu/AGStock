@@ -105,6 +105,12 @@ def test_unified_backtester_single_asset():
     res = bt.run(df, strat, stop_loss=10.0, take_profit=10.0)
     
     assert res['total_trades'] == 1
+    assert res['num_trades'] == 1  # Verify alias
+    assert 'sharpe_ratio' in res
+    assert 'signals' in res
+    assert 'positions' in res
+    assert isinstance(res['sharpe_ratio'], (int, float))
+    
     trade = res['trades'][0]
     assert trade['entry_price'] == 101
     assert trade['exit_price'] == 105
