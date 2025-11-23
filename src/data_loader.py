@@ -160,8 +160,29 @@ def fetch_stock_data(tickers: Sequence[str], period: str = "2y") -> Dict[str, pd
         df = db.load_data(ticker, start_date=start_date)
         if not df.empty:
             result[ticker] = df
-            
+
     return result
+
+
+def fetch_long_term_data(ticker: str, years: int = 10) -> pd.DataFrame:
+    """
+    Fetch long-term historical data for a single ticker.
+
+    Args:
+        ticker (str): Target ticker symbol.
+        years (int): Number of years to fetch. Defaults to 10.
+
+    Returns:
+        pd.DataFrame: OHLCV dataframe indexed by datetime. Empty if unavailable.
+    """
+    period = f"{years}y"
+    data = fetch_stock_data([ticker], period=period)
+    df = data.get(ticker, pd.DataFrame())
+
+    if not df.empty:
+        df = df.sort_index()
+
+    return df
 
 
 def get_latest_price(df: pd.DataFrame) -> float:
