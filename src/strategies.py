@@ -3,6 +3,11 @@ import numpy as np
 import ta
 from typing import Optional
 from sklearn.ensemble import RandomForestClassifier
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, LSTM, Dropout
+from tensorflow.keras.optimizers import Adam
+from sklearn.preprocessing import MinMaxScaler
 
 class Strategy:
     def __init__(self, name: str, trend_period: int = 200) -> None:
@@ -135,25 +140,22 @@ class CombinedStrategy(Strategy):
 
 class MLStrategy(Strategy):
     def __init__(self, name: str = "AI Random Forest", trend_period: int = 0) -> None:
-        # Trend period 0 because ML should learn the trend itself
         super().__init__(name, trend_period)
-        self.model = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=42)
+        self.model = RandomForestClassifier(n_estimators=100, random_state=42)
 
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
-        if df is None or df.empty or len(df) < 100:
+        if df is None or df.empty or 'Close' not in df.columns:
             return pd.Series(dtype=int)
-            
+        
         data = df.copy()
         
-        # --- Feature Engineering ---
-        # 1. RSI
+        # 1. Technical Indicators
         data['RSI'] = ta.momentum.RSIIndicator(close=data['Close'], window=14).rsi()
+        data['SMA_20'] = data['Close'].rolling(window=20).mean()
+        data['SMA_50'] = data['Close'].rolling(window=50).mean()
+        data['SMA_Ratio'] = data['SMA_20'] / data['SMA_50']
         
-        # 2. SMA Ratio (Price / SMA20)
-        sma20 = data['Close'].rolling(window=20).mean()
-        data['SMA_Ratio'] = data['Close'] / sma20
-        
-        # 3. Volatility (Std Dev / Close)
+        # 2. Volatility
         data['Volatility'] = data['Close'].rolling(window=20).std() / data['Close']
         
         # 4. Returns Lag
@@ -301,3 +303,139 @@ class LightGBMStrategy(Strategy):
             current_idx += retrain_period
             
         return signals
+
+class DeepLearningStrategy(Strategy):
+    def __init__(self, lookback=60, epochs=10, batch_size=32, trend_period=200):
+        super().__init__("Deep Learning (LSTM)", trend_period)
+        self.lookback = lookback
+        self.epochs = epochs
+        self.batch_size = batch_size
+        self.model = None
+        self.scaler = MinMaxScaler(feature_range=(0, 1))
+
+    def _create_sequences(self, data):
+        X, y = [], []
+        for i in range(self.lookback, len(data)):
+            X.append(data[i-self.lookback:i, 0])
+            y.append(data[i, 0])
+        return np.array(X), np.array(y)
+
+    def build_model(self, input_shape):
+        model = Sequential()
+        model.add(LSTM(units=50, return_sequences=True, input_shape=input_shape))
+        model.add(Dropout(0.2))
+        model.add(LSTM(units=50, return_sequences=False))
+        model.add(Dropout(0.2))
+        model.add(Dense(units=25))
+        model.add(Dense(units=1))
+        
+        model.compile(optimizer=Adam(learning_rate=0.001), loss='mean_squared_error')
+        return model
+
+    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+        """
+        Generate signals using LSTM model.
+        1: Buy, -1: Sell, 0: Hold
+        """
+        # Preprocessing
+        if df is None or df.empty or 'Close' not in df.columns:
+            return pd.Series(dtype=int)
+
+        data = df.copy()
+        if len(data) < self.lookback + 20: # Need enough data
+            return pd.Series(0, index=df.index)
+
+        # Use Close price for prediction
+        dataset = data['Close'].values.reshape(-1, 1)
+        
+        # Scale data
+        scaled_data = self.scaler.fit_transform(dataset)
+        
+        X, y = self._create_sequences(scaled_data)
+        
+        if len(X) == 0:
+            return pd.Series(0, index=df.index)
+
+        X = np.reshape(X, (X.shape[0], X.shape[1], 1))
+        
+        # Build and Train Model
+        if self.model is None:
+            self.model = self.build_model((X.shape[1], 1))
+            # Train on all available data to learn patterns
+            # Note: This is a simplified implementation. In production, use walk-forward.
+            self.model.fit(X, y, batch_size=self.batch_size, epochs=self.epochs, verbose=0)
+
+        # Predict
+        predictions = self.model.predict(X, verbose=0)
+        predictions = self.scaler.inverse_transform(predictions)
+        
+        signals = pd.Series(0, index=df.index)
+        
+        # Logic:
+        # If Predicted Price > Current Price -> Buy
+        actual_close = data['Close']
+        
+        for i in range(len(predictions)):
+            # The date we are predicting FOR
+            target_idx = self.lookback + i
+            if target_idx >= len(df):
+                break
+                
+            # The date we are making the decision (The day before target)
+            decision_idx = target_idx - 1
+            
+            current_price = actual_close.iloc[decision_idx]
+            predicted_price = predictions[i][0]
+            
+            # Threshold for signal (e.g., > 0.5% predicted gain)
+            threshold = 0.005
+            
+            if predicted_price > current_price * (1 + threshold):
+                signals.iloc[decision_idx] = 1
+            elif predicted_price < current_price * (1 - threshold):
+                signals.iloc[decision_idx] = -1
+                
+        return self.apply_trend_filter(df, signals)
+
+def load_custom_strategies() -> list:
+    """
+    Load custom strategies from src/strategies/custom/ directory.
+    Returns a list of instantiated strategy objects.
+    """
+    import os
+    import importlib.util
+    import sys
+    
+    custom_strategies = []
+    custom_dir = os.path.join(os.path.dirname(__file__), "custom")
+    
+    if not os.path.exists(custom_dir):
+        return custom_strategies
+        
+    for filename in os.listdir(custom_dir):
+        if filename.endswith(".py") and filename != "__init__.py":
+            filepath = os.path.join(custom_dir, filename)
+            module_name = f"src.strategies.custom.{filename[:-3]}"
+            
+            try:
+                spec = importlib.util.spec_from_file_location(module_name, filepath)
+                if spec and spec.loader:
+                    module = importlib.util.module_from_spec(spec)
+                    sys.modules[module_name] = module
+                    spec.loader.exec_module(module)
+                    
+                    # Find classes that inherit from Strategy
+                    for name, obj in inspect.getmembers(module):
+                        if inspect.isclass(obj) and issubclass(obj, Strategy) and obj is not Strategy:
+                            try:
+                                strategy_instance = obj()
+                                custom_strategies.append(strategy_instance)
+                                print(f"Loaded custom strategy: {strategy_instance.name}")
+                            except Exception as e:
+                                print(f"Failed to instantiate {name}: {e}")
+            except Exception as e:
+                print(f"Failed to load custom strategy from {filename}: {e}")
+                
+    return custom_strategies
+
+import inspect

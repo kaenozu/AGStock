@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from src.constants import NIKKEI_225_TICKERS, TICKER_NAMES, MARKETS
 from src.data_loader import fetch_stock_data, get_latest_price
-from src.strategies import SMACrossoverStrategy, RSIStrategy, BollingerBandsStrategy, CombinedStrategy, MLStrategy, LightGBMStrategy
+from src.strategies import SMACrossoverStrategy, RSIStrategy, BollingerBandsStrategy, CombinedStrategy, MLStrategy, LightGBMStrategy, DeepLearningStrategy, load_custom_strategies
 from src.backtester import Backtester
 from src.portfolio import PortfolioManager
 from src.paper_trader import PaperTrader
@@ -12,6 +12,18 @@ from src.cache_config import install_cache
 
 # Install cache
 install_cache()
+
+# Initialize Strategies
+strategies = [
+    SMACrossoverStrategy(),
+    RSIStrategy(),
+    BollingerBandsStrategy(),
+    CombinedStrategy(),
+    MLStrategy(),
+    LightGBMStrategy(),
+    DeepLearningStrategy()
+]
+strategies.extend(load_custom_strategies())
 
 st.set_page_config(page_title="AI Stock Predictor", layout="wide")
 
@@ -33,30 +45,127 @@ if ticker_group == "カスタム入力":
 
 period = st.sidebar.selectbox("分析期間", ["1y", "2y", "5y"], index=1)
 
+# Risk Management
 st.sidebar.divider()
 st.sidebar.subheader("リスク管理")
-allow_short = st.sidebar.checkbox("空売りを許可する (Short Selling)", value=False)
-position_size = st.sidebar.slider("ポジションサイズ (Position Size)", 0.1, 1.0, 1.0, 0.1)
+allow_short = st.sidebar.checkbox("空売りを許可", value=False)
+position_size = st.sidebar.slider("ポジションサイズ (%)", min_value=10, max_value=100, value=100, step=10) / 100
 
-# Initialize Strategies
-strategies = [
-    SMACrossoverStrategy(5, 25),
-    RSIStrategy(14, 30, 70),
-    BollingerBandsStrategy(20, 2),
-    CombinedStrategy(),
-    MLStrategy(),
-    LightGBMStrategy()
-]
+# Create Tabs
+tab1, tab2, tab3, tab4 = st.tabs(["📊 市場スキャン", "💼 ポートフォリオ", "📝 ペーパートレード", "📈 ダッシュボード"])
 
-# Main Tabs
-tab1, tab2, tab3, tab4 = st.tabs(["📊 Market Scan", "💼 Portfolio Simulation", "📝 Paper Trading", "🎯 Dashboard"])
-
-# --- Tab 1: Market Scan ---
 with tab1:
     st.header("市場全体スキャン")
     st.write("指定した銘柄群に対して全戦略をバックテストし、有望なシグナルを検出します。")
 
     if st.button("市場をスキャンして推奨銘柄を探す", type="primary"):
+        # === Sentiment Analysis Section ===
+        with st.expander("📰 市場センチメント分析", expanded=True):
+            from src.sentiment import SentimentAnalyzer
+            
+            # Cache SentimentAnalyzer in session state
+            if 'sentiment_analyzer' not in st.session_state:
+                st.session_state.sentiment_analyzer = SentimentAnalyzer()
+            sa = st.session_state.sentiment_analyzer
+            
+            with st.spinner("市場センチメントを分析中..."):
+                sentiment = sa.get_market_sentiment()
+                # Save to database
+                sa.save_sentiment_history(sentiment)
+            
+            # Current Sentiment Display
+            col1, col2, col3 = st.columns(3)
+            
+            # Sentiment Gauge
+            with col1:
+                st.metric("センチメントスコア", f"{sentiment['score']:.2f}", sentiment['label'])
+                
+                # Color-coded label
+                if sentiment['label'] == 'Positive':
+                    st.success(f"🟢 {sentiment['label']}")
+                elif sentiment['label'] == 'Negative':
+                    st.error(f"🔴 {sentiment['label']}")
+                else:
+                    st.info(f"🟡 {sentiment['label']}")
+            
+            with col2:
+                st.metric("ニュース件数", sentiment['news_count'])
+            
+            with col3:
+                # Gauge Indicator (use already imported go from top of file)
+                fig_gauge = go.Figure(go.Indicator(
+                    mode="gauge+number",
+                    value=sentiment['score'],
+                    domain={'x': [0, 1], 'y': [0, 1]},
+                    title={'text': "Sentiment"},
+                    gauge={
+                        'axis': {'range': [-1, 1]},
+                        'bar': {'color': "darkblue"},
+                        'steps': [
+                            {'range': [-1, -0.15], 'color': "lightcoral"},
+                            {'range': [-0.15, 0.15], 'color': "lightyellow"},
+                            {'range': [0.15, 1], 'color': "lightgreen"}
+                        ],
+                        'threshold': {
+                            'line': {'color': "red", 'width': 4},
+                            'thickness': 0.75,
+                            'value': -0.2
+                        }
+                    }
+                ))
+                fig_gauge.update_layout(height=200, margin=dict(l=10, r=10, t=30, b=10))
+                st.plotly_chart(fig_gauge, use_container_width=True)
+            
+            # Sentiment Timeline
+            st.subheader("📈 センチメント推移")
+            history_days = st.radio("表示期間", [7, 30], horizontal=True, key="sentiment_history_days")
+            history = sa.get_sentiment_history(days=history_days)
+            
+            if history:
+                history_df = pd.DataFrame(history)
+                history_df['timestamp'] = pd.to_datetime(history_df['timestamp'])
+                
+                fig_timeline = go.Figure()
+                fig_timeline.add_trace(go.Scatter(
+                    x=history_df['timestamp'],
+                    y=history_df['score'],
+                    mode='lines+markers',
+                    name='Sentiment Score',
+                    line=dict(color='royalblue', width=2),
+                    marker=dict(size=8)
+                ))
+                fig_timeline.add_hline(y=0, line_dash="dash", line_color="gray", annotation_text="Neutral")
+                fig_timeline.add_hline(y=0.15, line_dash="dot", line_color="green", annotation_text="Positive Threshold")
+                fig_timeline.add_hline(y=-0.15, line_dash="dot", line_color="red", annotation_text="Negative Threshold")
+                fig_timeline.update_layout(
+                    title=f"過去{history_days}日間のセンチメント推移",
+                    xaxis_title="日付",
+                    yaxis_title="スコア",
+                    yaxis_range=[-1, 1],
+                    hovermode='x unified',
+                    height=300
+                )
+                st.plotly_chart(fig_timeline, use_container_width=True)
+            else:
+                st.info("まだ履歴データがありません。スキャンを繰り返すことで履歴が蓄積されます。")
+            
+            # Top News Headlines
+            st.subheader("📰 最新ニュース見出し")
+            if sentiment.get('top_news'):
+                for i, news in enumerate(sentiment['top_news'][:5], 1):
+                    # Note: Individual news sentiment could be pre-calculated in get_market_sentiment()
+                    # but for now we keep it simple
+                    news_text = f"{news['title']} {news.get('summary', '')}"
+                    news_sentiment = sa.analyze_sentiment(news_text)
+                    sentiment_emoji = "🟢" if news_sentiment > 0.1 else "🔴" if news_sentiment < -0.1 else "🟡"
+                    st.markdown(f"{i}. {sentiment_emoji} [{news['title']}]({news['link']})")
+            else:
+                st.info("ニュースが取得できませんでした。")
+            
+            # Warning if sentiment is bad
+            if sentiment['score'] < -0.2:
+                st.error("⚠️ 市場センチメントが悪化しています。買いシグナルは抑制されます。")
+        
         with st.spinner("データを取得し、全戦略をバックテスト中..."):
             # 1. Fetch Data
             if ticker_group == "カスタム入力":
@@ -125,7 +234,23 @@ with tab1:
                 
                 st.subheader(f"🔥 本日の推奨シグナル ({len(actionable_df)}件)")
                 
-                display_df = actionable_df[['Ticker', 'Name', 'Action', 'Signal Date', 'Strategy', 'Return', 'Max Drawdown', 'Last Price']].copy()
+                # Fetch Fundamentals for display
+                from src.data_loader import fetch_fundamental_data
+                
+                # Add columns for fundamentals
+                actionable_df['PER'] = "N/A"
+                actionable_df['ROE'] = "N/A"
+                
+                # Fetch data for top results to avoid slow loading
+                for idx, row in actionable_df.iterrows():
+                    fund = fetch_fundamental_data(row['Ticker'])
+                    if fund:
+                        pe = fund.get('trailingPE')
+                        roe = fund.get('returnOnEquity')
+                        actionable_df.at[idx, 'PER'] = f"{pe:.1f}x" if pe else "N/A"
+                        actionable_df.at[idx, 'ROE'] = f"{roe*100:.1f}%" if roe else "N/A"
+
+                display_df = actionable_df[['Ticker', 'Name', 'Action', 'Signal Date', 'Strategy', 'Return', 'Max Drawdown', 'Last Price', 'PER', 'ROE']].copy()
                 display_df['Return'] = display_df['Return'].apply(lambda x: f"{x*100:.1f}%")
                 display_df['Max Drawdown'] = display_df['Max Drawdown'].apply(lambda x: f"{x*100:.1f}%")
                 display_df['Last Price'] = display_df['Last Price'].apply(lambda x: f"¥{x:,.0f}")
