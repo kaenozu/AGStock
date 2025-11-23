@@ -103,6 +103,7 @@ class Backtester:
         entry_prices: Dict[str, float] = {t: 0.0 for t in data_map}
         trades: List[Dict[str, Any]] = []
         portfolio_value_history: List[float] = []
+        position_history: List[int] = []  # Track position state at each timestep
         trailing_stop_levels: Dict[str, float] = {t: 0.0 for t in data_map}  # Track trailing stop per ticker
         highest_prices: Dict[str, float] = {t: 0.0 for t in data_map}  # Track highest price since entry
 
@@ -115,12 +116,20 @@ class Backtester:
 
         # Main simulation loop (skip last day – no next open price)
         for i in range(len(full_index) - 1):
-            # Portfolio market‑to‑market value for sizing decisions
-            current_portfolio_value = cash + sum(
-                holdings[t] * aligned_data[t]["Close"].iloc[i]
-                for t in data_map
-                if not pd.isna(aligned_data[t]["Close"].iloc[i])
-            )
+            # Portfolio market-to-market value for sizing decisions
+            # For short positions, calculate value as: entry_price - current_price
+            current_portfolio_value = cash
+            for t in data_map:
+                if holdings[t] != 0 and not pd.isna(aligned_data[t]["Close"].iloc[i]):
+                    if holdings[t] > 0:  # Long position
+                        current_portfolio_value += holdings[t] * aligned_data[t]["Close"].iloc[i]
+                    else:  # Short position
+                        # Short value = entry_price * abs(shares) - current_price * abs(shares)
+                        # Which simplifies to: (entry_price - current_price) * abs(shares)
+                        entry_price_val = entry_prices[t]
+                        current_price_val = aligned_data[t]["Close"].iloc[i]
+                        profit =  (entry_price_val - current_price_val) * abs(holdings[t])
+                        current_portfolio_value += profit
 
             for ticker, df in aligned_data.items():
                 today_sig = df["Signal"].iloc[i]
@@ -154,6 +163,7 @@ class Backtester:
                                 "type": "Long",
                                 "reason": "Trailing Stop",
                             })
+                            cash += holdings[ticker] * trailing_stop_levels[ticker]
                             holdings[ticker] = 0.0
                             entry_prices[ticker] = 0.0
                             trailing_stop_levels[ticker] = 0.0
@@ -173,6 +183,7 @@ class Backtester:
                                 "type": "Long",
                                 "reason": "Take Profit",
                             })
+                            cash += holdings[ticker] * (entry * (1 + take_profit))
                             holdings[ticker] = 0.0
                             entry_prices[ticker] = 0.0
                             trailing_stop_levels[ticker] = 0.0
@@ -192,6 +203,7 @@ class Backtester:
                                 "type": "Long",
                                 "reason": "Stop Loss",
                             })
+                            cash += holdings[ticker] * (entry * (1 - stop_loss))
                             holdings[ticker] = 0.0
                             entry_prices[ticker] = 0.0
                             trailing_stop_levels[ticker] = 0.0
@@ -213,6 +225,7 @@ class Backtester:
                             "return": ret,
                             "type": "Long",
                         })
+                        cash += holdings[ticker] * exec_price
                         holdings[ticker] = 0.0
                         entry_prices[ticker] = 0.0
                         exit_executed = True
@@ -228,6 +241,8 @@ class Backtester:
                             "return": ret,
                             "type": "Short",
                         })
+                        # For short, cash update is PnL: (entry - exit) * shares
+                        cash += (entry - exec_price) * abs(holdings[ticker])
                         holdings[ticker] = 0.0
                         entry_prices[ticker] = 0.0
                         exit_executed = True
@@ -312,6 +327,7 @@ class Backtester:
                         shares = self._size_position(ticker, current_portfolio_value, exec_price)
                         holdings[ticker] = shares
                         entry_prices[ticker] = exec_price
+                        cash -= shares * exec_price
                         # Initialize trailing stop tracking
                         highest_prices[ticker] = exec_price
                         if trailing_stop and trailing_stop > 0:
@@ -321,21 +337,45 @@ class Backtester:
                         shares = self._size_position(ticker, current_portfolio_value, exec_price)
                         holdings[ticker] = -shares
                         entry_prices[ticker] = exec_price
+                        # Cash unchanged for short entry (margin model)
 
-            # Record portfolio value at end of day i
-            end_of_day_value = cash + sum(
-                holdings[t] * aligned_data[t]["Close"].iloc[i]
-                for t in data_map
-                if not pd.isna(aligned_data[t]["Close"].iloc[i])
-            )
+            # Record portfolio value and position state at end of day i
+            # For short positions, calculate value correctly
+            end_of_day_value = cash
+            for t in data_map:
+                if holdings[t] != 0 and not pd.isna(aligned_data[t]["Close"].iloc[i]):
+                    if holdings[t] > 0:  # Long position
+                        end_of_day_value += holdings[t] * aligned_data[t]["Close"].iloc[i]
+                    else:  # Short position
+                        entry_price_val = entry_prices[t]
+                        current_price_val = aligned_data[t]["Close"].iloc[i]
+                        profit = (entry_price_val - current_price_val) * abs(holdings[t])
+                        end_of_day_value += profit
             portfolio_value_history.append(end_of_day_value)
+            
+            # Record position state: 1 if long, -1 if short, 0 if flat
+            position_state = 0
+            for h in holdings.values():
+                if h > 0:
+                    position_state = 1
+                    break
+                elif h < 0:
+                    position_state = -1
+                    break
+            position_history.append(position_state)
 
         # Final valuation after last day
-        final_portfolio_value = cash + sum(
-            holdings[t] * aligned_data[t]["Close"].iloc[-1]
-            for t in data_map
-            if not pd.isna(aligned_data[t]["Close"].iloc[-1])
-        )
+        # For short positions, calculate value correctly
+        final_portfolio_value = cash
+        for t in data_map:
+            if holdings[t] != 0 and not pd.isna(aligned_data[t]["Close"].iloc[-1]):
+                if holdings[t] > 0:  # Long position
+                    final_portfolio_value += holdings[t] * aligned_data[t]["Close"].iloc[-1]
+                else:  # Short position
+                    entry_price_val = entry_prices[t]
+                    current_price_val = aligned_data[t]["Close"].iloc[-1]
+                    profit = (entry_price_val - current_price_val) * abs(holdings[t])
+                    final_portfolio_value += profit
         portfolio_value_history.append(final_portfolio_value)
         equity_curve_raw = pd.Series(portfolio_value_history, index=full_index)
         # Normalize equity curve to start at 1.0
@@ -352,10 +392,18 @@ class Backtester:
         sharpe_ratio = (
             np.sqrt(252) * daily_returns.mean() / daily_returns.std()
         ) if len(daily_returns) > 0 and daily_returns.std() > 0 else 0.0
-        positions = pd.Series(
-            [1 if any(h != 0 for h in holdings.values()) else 0 for _ in full_index],
-            index=full_index,
-        )
+        # Add final position state
+        final_position_state = 0
+        for h in holdings.values():
+            if h > 0:
+                final_position_state = 1
+                break
+            elif h < 0:
+                final_position_state = -1
+                break
+        position_history.append(final_position_state)
+        
+        positions = pd.Series(position_history, index=full_index)
         
         # Adjust signals format for backward compatibility
         if single_asset_mode:

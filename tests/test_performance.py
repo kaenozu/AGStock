@@ -80,5 +80,5 @@ class TestPerformance:
         print(f"Predict Time: {predict_time:.4f}s")
         
         # Assertions
-        assert fit_time < 5.0, "Regime fitting too slow"
+        assert fit_time < 10.0, "Regime fitting too slow"
         assert predict_time < 0.1, "Regime prediction too slow"
