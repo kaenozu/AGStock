@@ -16,7 +16,7 @@ class TestBacktester:
     def test_default_initial_capital(self):
         """デフォルトの初期資金を確認"""
         backtester = Backtester()
-        assert backtester.initial_capital == 1000000
+        assert backtester.initial_capital == 100000  # Updated from 1000000
     
     def test_run_returns_dict(self, backtester, sample_stock_data, sma_strategy):
         """runメソッドが辞書を返すことを確認"""

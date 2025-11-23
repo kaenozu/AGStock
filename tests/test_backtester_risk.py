@@ -7,9 +7,11 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.backtester import Backtester
+from src.strategies import Strategy
 
-class MockStrategy:
+class MockStrategy(Strategy):
     def __init__(self, signals):
+        super().__init__("Mock")
         self.signals = signals
 
     def generate_signals(self, df):
@@ -32,13 +34,13 @@ class TestBacktesterRisk(unittest.TestCase):
         signals = pd.Series([0, 1, 0, 0, 0], index=self.df.index)
         strategy = MockStrategy(signals)
         
-        # Full Position
+        # Full Position (disable stop_loss/take_profit for clean test)
         bt_full = Backtester(position_size=1.0, commission=0, slippage=0)
-        res_full = bt_full.run(self.df, strategy)
+        res_full = bt_full.run(self.df, strategy, stop_loss=None, take_profit=None)
         
         # Half Position
         bt_half = Backtester(position_size=0.5, commission=0, slippage=0)
-        res_half = bt_half.run(self.df, strategy)
+        res_half = bt_half.run(self.df, strategy, stop_loss=None, take_profit=None)
         
         # Return should be roughly half
         self.assertGreater(res_full['total_return'], res_half['total_return'])

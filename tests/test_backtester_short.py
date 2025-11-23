@@ -7,9 +7,11 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.backtester import Backtester
+from src.strategies import Strategy
 
-class MockStrategy:
+class MockStrategy(Strategy):
     def __init__(self, signals):
+        super().__init__("Mock")
         self.signals = signals
 
     def generate_signals(self, df):

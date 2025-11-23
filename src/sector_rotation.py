@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 import logging
 from src.constants import SECTOR_ETFS, SECTOR_NAMES_JA, CYCLE_SECTOR_MAP
 from src.data_loader import fetch_stock_data
@@ -96,7 +96,7 @@ class SectorRotationEngine:
     
     def calculate_optimal_weights(
         self, 
-        cycle: str = None,
+        cycle: Optional[str] = None,
         use_momentum: bool = True,
         momentum_weight: float = 0.5
     ) -> Dict[str, float]:

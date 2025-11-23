@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Mapping, Sequence
+from typing import Dict, Mapping, Sequence, Any, Optional
 
 import pandas as pd
 import yfinance as yf
@@ -155,7 +155,7 @@ def fetch_macro_data(period: str = "2y") -> Dict[str, pd.DataFrame]:
     return process_downloaded_data(raw, tickers.keys(), tickers)
 
 
-def fetch_fundamental_data(ticker: str) -> Dict:
+def fetch_fundamental_data(ticker: str) -> Optional[Dict[str, Any]]:
     """
     Fetches fundamental data for a single ticker.
     Returns a dictionary with keys: trailingPE, priceToBook, returnOnEquity, marketCap, forwardPE, dividendYield.

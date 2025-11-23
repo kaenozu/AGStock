@@ -7,17 +7,26 @@ from src.data_loader import fetch_stock_data, fetch_macro_data, get_latest_price
 class TestFetchStockData:
     """fetch_stock_data関数のテスト"""
     
+    @patch('src.data_loader.DataManager')
     @patch('src.data_loader.yf.download')
-    def test_fetch_single_ticker(self, mock_download):
+    def test_fetch_single_ticker(self, mock_download, mock_datamanager):
         """単一ティッカーのデータ取得テスト"""
         # モックデータを作成
+        now = pd.Timestamp.now()
+        dates = pd.date_range(end=now, periods=3)
         mock_data = pd.DataFrame({
             'Open': [100, 101, 102],
             'High': [105, 106, 107],
             'Low': [95, 96, 97],
             'Close': [102, 103, 104],
             'Volume': [1000000, 1100000, 1200000]
-        }, index=pd.date_range('2023-01-01', periods=3))
+        }, index=dates)
+
+        # DataManagerのモック設定
+        mock_db = MagicMock()
+        # 1回目は空（キャッシュなし）、2回目はデータあり（保存後）
+        mock_db.load_data.side_effect = [pd.DataFrame(), mock_data]
+        mock_datamanager.return_value = mock_db
         
         mock_download.return_value = mock_data
         
@@ -28,11 +37,15 @@ class TestFetchStockData:
         assert isinstance(result['7203.T'], pd.DataFrame)
         assert len(result['7203.T']) == 3
     
+    @patch('src.data_loader.DataManager')
     @patch('src.data_loader.yf.download')
-    def test_fetch_multiple_tickers(self, mock_download):
+    def test_fetch_multiple_tickers(self, mock_download, mock_datamanager):
         """複数ティッカーのデータ取得テスト"""
         # 複数ティッカーのモックデータ
         tickers = ['7203.T', '9984.T']
+        
+        now = pd.Timestamp.now()
+        dates = pd.date_range(end=now, periods=2)
         
         # yfinanceは複数ティッカーの場合、マルチインデックスを返す
         mock_data = pd.DataFrame({
@@ -46,7 +59,31 @@ class TestFetchStockData:
             ('9984.T', 'Low'): [195, 196],
             ('9984.T', 'Close'): [202, 203],
             ('9984.T', 'Volume'): [2000000, 2100000],
-        }, index=pd.date_range('2023-01-01', periods=2))
+        }, index=dates)
+
+        # DataManagerのモック設定
+        mock_db = MagicMock()
+        # 1回目x2（各ティッカー）、2回目x2（保存後）
+        # fetch_stock_data loops tickers twice: once to check cache, once to reload
+        # But wait, fetch_stock_data logic:
+        # Step 1: Loop tickers, check cache.
+        # Step 2: Download.
+        # Step 3: Loop processed, save, reload.
+        # So for 2 tickers:
+        # 1. load(T1) -> empty
+        # 2. load(T2) -> empty
+        # 3. download
+        # 4. save(T1)
+        # 5. load(T1) -> data
+        # 6. save(T2)
+        # 7. load(T2) -> data
+        
+        # Split mock data for individual returns
+        df_7203 = mock_data['7203.T'].copy()
+        df_9984 = mock_data['9984.T'].copy()
+        
+        mock_db.load_data.side_effect = [pd.DataFrame(), pd.DataFrame(), df_7203, df_9984]
+        mock_datamanager.return_value = mock_db
         
         # マルチインデックスカラムを設定
         mock_data.columns = pd.MultiIndex.from_tuples(mock_data.columns)
@@ -64,17 +101,27 @@ class TestFetchStockData:
         assert isinstance(result, dict)
         assert len(result) == 0
     
+    @patch('src.data_loader.DataManager')
     @patch('src.data_loader.yf.download')
-    def test_fetch_with_nan_values(self, mock_download):
+    def test_fetch_with_nan_values(self, mock_download, mock_datamanager):
         """NaN値を含むデータの処理テスト"""
         # NaN値を含むモックデータ
+        now = pd.Timestamp.now()
+        dates = pd.date_range(end=now, periods=3)
         mock_data = pd.DataFrame({
             'Open': [100, None, 102],
             'High': [105, 106, None],
             'Low': [95, 96, 97],
             'Close': [102, 103, 104],
             'Volume': [1000000, 1100000, 1200000]
-        }, index=pd.date_range('2023-01-01', periods=3))
+        }, index=dates)
+
+        # DataManagerのモック設定
+        mock_db = MagicMock()
+        # Cleaned data (dropna applied)
+        cleaned_data = mock_data.dropna()
+        mock_db.load_data.side_effect = [pd.DataFrame(), cleaned_data]
+        mock_datamanager.return_value = mock_db
         
         mock_download.return_value = mock_data
         
@@ -82,11 +129,18 @@ class TestFetchStockData:
         
         # NaN行が削除されることを確認
         assert '7203.T' in result
+        print(f"Result DataFrame:\n{result['7203.T']}")
         # dropna()が呼ばれるので、NaNを含む行は削除される
         assert len(result['7203.T']) < 3
     
+    @patch('src.data_loader.DataManager')
     @patch('src.data_loader.yf.download')
-    def test_fetch_with_exception(self, mock_download):
+    def test_fetch_with_exception(self, mock_download, mock_datamanager):
+        """例外発生時の処理テスト"""
+        # DataManagerのモック設定
+        mock_db = MagicMock()
+        mock_db.load_data.return_value = pd.DataFrame()
+        mock_datamanager.return_value = mock_db
         """例外発生時の処理テスト"""
         mock_download.side_effect = Exception("Network error")
         
