@@ -1,13 +1,20 @@
 import pandas as pd
 import numpy as np
 import ta
-from typing import Optional
+from typing import Optional, Dict, Any
 from sklearn.ensemble import RandomForestClassifier
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, LSTM, Dropout
 from tensorflow.keras.optimizers import Adam
 from sklearn.preprocessing import MinMaxScaler
+import lightgbm as lgb
+from src.features import add_advanced_features, add_macro_features
+from src.data_loader import fetch_macro_data
+import inspect
+import os
+import importlib.util
+import sys
 
 class Strategy:
     def __init__(self, name: str, trend_period: int = 200) -> None:
@@ -23,8 +30,6 @@ class Strategy:
         filtered_signals = signals.copy()
         
         # Filter Longs: Can only Buy if Close > SMA(200)
-        # Note: This might filter out "Reversal" strategies at the bottom.
-        # But for safety, trading with the trend is better.
         long_condition = df['Close'] > trend_sma
         filtered_signals.loc[(signals == 1) & (~long_condition)] = 0
         
@@ -36,6 +41,30 @@ class Strategy:
 
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
         raise NotImplementedError
+
+    def analyze(self, df: pd.DataFrame) -> Dict[str, Any]:
+        """
+        Standard interface for strategies to return signal and confidence.
+        Default implementation wraps generate_signals.
+        """
+        signals = self.generate_signals(df)
+        if signals.empty:
+            return {'signal': 0, 'confidence': 0.0}
+            
+        # Get the latest signal (for the last available date)
+        last_signal = signals.iloc[-1]
+        
+        return {
+            'signal': int(last_signal),
+            'confidence': 1.0 if last_signal != 0 else 0.0
+        }
+
+    def get_signal_explanation(self, signal: int) -> str:
+        if signal == 1:
+            return "買いシグナル"
+        elif signal == -1:
+            return "売りシグナル"
+        return "様子見"
 
 class SMACrossoverStrategy(Strategy):
     def __init__(self, short_window: int = 5, long_window: int = 25, trend_period: int = 200) -> None:
@@ -58,6 +87,13 @@ class SMACrossoverStrategy(Strategy):
         signals.loc[(short_sma < long_sma) & (short_sma.shift(1) >= long_sma.shift(1))] = -1
         
         return self.apply_trend_filter(df, signals)
+
+    def get_signal_explanation(self, signal: int) -> str:
+        if signal == 1:
+            return "短期移動平均線が長期移動平均線を上抜けました（ゴールデンクロス）。上昇トレンドの始まりを示唆しています。"
+        elif signal == -1:
+            return "短期移動平均線が長期移動平均線を下抜けました（デッドクロス）。下落トレンドの始まりを示唆しています。"
+        return "明確なトレンド転換シグナルは出ていません。"
 
 class RSIStrategy(Strategy):
     def __init__(self, period: int = 14, lower: float = 30, upper: float = 70, trend_period: int = 200) -> None:
@@ -86,6 +122,13 @@ class RSIStrategy(Strategy):
         
         return self.apply_trend_filter(df, signals)
 
+    def get_signal_explanation(self, signal: int) -> str:
+        if signal == 1:
+            return f"RSIが{self.lower}を下回った後、回復しました。売られすぎからの反発を示唆しています。"
+        elif signal == -1:
+            return f"RSIが{self.upper}を上回った後、下落しました。買われすぎからの反落を示唆しています。"
+        return "RSIは中立圏内で推移しています。"
+
 class BollingerBandsStrategy(Strategy):
     def __init__(self, length: int = 20, std: float = 2, trend_period: int = 200) -> None:
         super().__init__(f"Bollinger Bands ({length}, {std})", trend_period)
@@ -108,6 +151,13 @@ class BollingerBandsStrategy(Strategy):
         signals.loc[df['Close'] > upper_band] = -1
         
         return self.apply_trend_filter(df, signals)
+
+    def get_signal_explanation(self, signal: int) -> str:
+        if signal == 1:
+            return "株価がボリンジャーバンドの下限にタッチしました。売られすぎからの反発が期待できます。"
+        elif signal == -1:
+            return "株価がボリンジャーバンドの上限にタッチしました。過熱感があり、反落の可能性があります。"
+        return "バンド内での推移が続いています。"
 
 class CombinedStrategy(Strategy):
     def __init__(self, rsi_period: int = 14, bb_length: int = 20, bb_std: float = 2, trend_period: int = 200) -> None:
@@ -137,6 +187,13 @@ class CombinedStrategy(Strategy):
         signals.loc[(rsi > 70) & (df['Close'] > upper_band)] = -1
         
         return self.apply_trend_filter(df, signals)
+
+    def get_signal_explanation(self, signal: int) -> str:
+        if signal == 1:
+            return "RSIとボリンジャーバンドの両方が「売られすぎ」を示しています。強い反発のチャンスです。"
+        elif signal == -1:
+            return "RSIとボリンジャーバンドの両方が「買われすぎ」を示しています。強い反落の警戒が必要です。"
+        return "複数の指標による強いシグナルは出ていません。"
 
 class MLStrategy(Strategy):
     def __init__(self, name: str = "AI Random Forest", trend_period: int = 0) -> None:
@@ -180,8 +237,6 @@ class MLStrategy(Strategy):
         y = valid_data['Target']
         
         # --- Train/Test Split ---
-        # Train on first 70%, Predict on last 30%
-        # This simulates "Learning from the past"
         split_idx = int(len(X) * 0.7)
         
         X_train, X_test = X.iloc[:split_idx], X.iloc[split_idx:]
@@ -193,30 +248,21 @@ class MLStrategy(Strategy):
         self.model.fit(X_train, y_train)
         
         # Predict
-        # We predict for the TEST set
         predictions = self.model.predict(X_test)
         
-        # Map predictions to signals
-        # Pred 1 -> Buy (1)
-        # Pred 0 -> Sell (-1) (Short if allowed, or just Exit)
-        
         signals = pd.Series(0, index=df.index)
-        
-        # Align predictions with original index
-        # X_test index corresponds to the days we make the prediction (for tomorrow)
         test_indices = X_test.index
-        
         pred_series = pd.Series(predictions, index=test_indices)
-        
         signals.loc[test_indices] = pred_series.apply(lambda x: 1 if x == 1 else -1)
-        
-        # Note: Signals for the training period remain 0 (Hold)
         
         return signals
 
-import lightgbm as lgb
-from src.features import add_advanced_features, add_macro_features
-from src.data_loader import fetch_macro_data
+    def get_signal_explanation(self, signal: int) -> str:
+        if signal == 1:
+            return "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
+        elif signal == -1:
+            return "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+        return "AIによる明確な予測は出ていません。"
 
 class LightGBMStrategy(Strategy):
     def __init__(self, lookback_days=365, threshold=0.005):
@@ -229,48 +275,25 @@ class LightGBMStrategy(Strategy):
                              'USDJPY_Ret', 'USDJPY_Corr', 'SP500_Ret', 'SP500_Corr', 'US10Y_Ret', 'US10Y_Corr']
 
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
-        # 1. Feature Engineering
         data = add_advanced_features(df)
-        
-        # Add Macro Features
-        # Note: In a real backtest, we should fetch this once and pass it in, 
-        # but for now we fetch inside to keep API simple.
-        # We use a cache so it's not too slow.
-        macro_data = fetch_macro_data(period="5y") # Fetch enough history
+        macro_data = fetch_macro_data(period="5y")
         data = add_macro_features(data, macro_data)
         
-        # Need enough data for lookback + features
         min_required = self.lookback_days + 50
         if len(data) < min_required:
             return pd.Series(0, index=df.index)
             
         signals = pd.Series(0, index=df.index)
-        
-        # 2. Walk-Forward Validation
-        # We simulate a realistic scenario:
-        # Retrain the model every 'retrain_period' days (e.g., 90 days / ~60 trading days)
-        # Train on [Start : Current_Date], Predict [Current_Date : Current_Date + Period]
-        
-        retrain_period = 60 # Approx 3 months of trading days
-        
-        # Start predicting after the initial lookback period
+        retrain_period = 60
         start_idx = self.lookback_days
         end_idx = len(data)
-        
         current_idx = start_idx
         
         while current_idx < end_idx:
-            # Define Training Data (All history up to current point)
-            # To avoid training on ancient history that might be irrelevant, 
-            # we could limit the training window (e.g., last 2 years).
-            # For now, let's use an expanding window but capped at 5 years if needed.
-            
             train_end = current_idx
-            train_start = max(0, train_end - 1000) # Max 1000 days history
-            
+            train_start = max(0, train_end - 1000)
             train_df = data.iloc[train_start:train_end].dropna()
             
-            # Define Prediction Window (Next 'retrain_period' days)
             pred_end = min(current_idx + retrain_period, end_idx)
             test_df = data.iloc[current_idx:pred_end].dropna()
             
@@ -278,134 +301,220 @@ class LightGBMStrategy(Strategy):
                 current_idx += retrain_period
                 continue
                 
-            # Prepare X, y
             X_train = train_df[self.feature_cols]
             y_train = (train_df['Return_1d'] > 0).astype(int)
             
-            # Train
             params = {'objective': 'binary', 'metric': 'binary_logloss', 'verbosity': -1, 'seed': 42}
             train_data = lgb.Dataset(X_train, label=y_train)
             self.model = lgb.train(params, train_data, num_boost_round=100)
             
-            # Predict for the chunk
             X_test = test_df[self.feature_cols]
             if not X_test.empty:
                 preds = self.model.predict(X_test)
-                
-                # Generate Signals for this chunk
                 chunk_signals = pd.Series(0, index=X_test.index)
                 chunk_signals[preds > 0.55] = 1
                 chunk_signals[preds < 0.45] = -1
-                
                 signals.loc[chunk_signals.index] = chunk_signals
             
-            # Move to next chunk
             current_idx += retrain_period
             
         return signals
 
+    def get_signal_explanation(self, signal: int) -> str:
+        if signal == 1:
+            return "LightGBMモデルがマクロ経済指標やテクニカル指標を分析し、上昇確率が高いと判断しました。"
+        elif signal == -1:
+            return "LightGBMモデルがマクロ経済指標やテクニカル指標を分析し、下落リスクが高いと判断しました。"
+        return "AIによる強い確信度は得られていません。"
+
 class DeepLearningStrategy(Strategy):
-    def __init__(self, lookback=60, epochs=10, batch_size=32, trend_period=200):
+    def __init__(self, lookback=60, epochs=5, batch_size=32, trend_period=200, train_window_days=365, predict_window_days=20):
         super().__init__("Deep Learning (LSTM)", trend_period)
         self.lookback = lookback
         self.epochs = epochs
         self.batch_size = batch_size
+        self.train_window_days = train_window_days
+        self.predict_window_days = predict_window_days
         self.model = None
         self.scaler = MinMaxScaler(feature_range=(0, 1))
 
     def _create_sequences(self, data):
         X, y = [], []
         for i in range(self.lookback, len(data)):
-            X.append(data[i-self.lookback:i, 0])
+            X.append(data[i-self.lookback:i])
             y.append(data[i, 0])
         return np.array(X), np.array(y)
 
     def build_model(self, input_shape):
         model = Sequential()
-        model.add(LSTM(units=50, return_sequences=True, input_shape=input_shape))
+        model.add(LSTM(units=50, return_sequences=False, input_shape=input_shape))
         model.add(Dropout(0.2))
-        model.add(LSTM(units=50, return_sequences=False))
-        model.add(Dropout(0.2))
-        model.add(Dense(units=25))
         model.add(Dense(units=1))
-        
         model.compile(optimizer=Adam(learning_rate=0.001), loss='mean_squared_error')
         return model
 
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
-        """
-        Generate signals using LSTM model.
-        1: Buy, -1: Sell, 0: Hold
-        """
-        # Preprocessing
         if df is None or df.empty or 'Close' not in df.columns:
             return pd.Series(dtype=int)
 
         data = df.copy()
-        if len(data) < self.lookback + 20: # Need enough data
+        data['Volume'] = data['Volume'].replace(0, np.nan).fillna(method='ffill')
+        data['Volatility'] = data['Close'].rolling(window=20).std() / data['Close']
+        data.dropna(inplace=True)
+        
+        if len(data) < self.train_window_days + self.lookback:
             return pd.Series(0, index=df.index)
 
-        # Use Close price for prediction
-        dataset = data['Close'].values.reshape(-1, 1)
-        
-        # Scale data
-        scaled_data = self.scaler.fit_transform(dataset)
-        
-        X, y = self._create_sequences(scaled_data)
-        
-        if len(X) == 0:
-            return pd.Series(0, index=df.index)
-
-        X = np.reshape(X, (X.shape[0], X.shape[1], 1))
-        
-        # Build and Train Model
-        if self.model is None:
-            self.model = self.build_model((X.shape[1], 1))
-            # Train on all available data to learn patterns
-            # Note: This is a simplified implementation. In production, use walk-forward.
-            self.model.fit(X, y, batch_size=self.batch_size, epochs=self.epochs, verbose=0)
-
-        # Predict
-        predictions = self.model.predict(X, verbose=0)
-        predictions = self.scaler.inverse_transform(predictions)
-        
+        feature_cols = ['Close', 'Volume', 'Volatility']
+        dataset = data[feature_cols].values
         signals = pd.Series(0, index=df.index)
         
-        # Logic:
-        # If Predicted Price > Current Price -> Buy
-        actual_close = data['Close']
+        start_index = self.train_window_days
+        end_index = len(dataset)
+        step = self.predict_window_days
         
-        for i in range(len(predictions)):
-            # The date we are predicting FOR
-            target_idx = self.lookback + i
-            if target_idx >= len(df):
+        print(f"Starting Walk-Forward Validation for DL Strategy... (Total steps: {(end_index - start_index) // step})")
+        
+        for current_idx in range(start_index, end_index, step):
+            train_start = max(0, current_idx - self.train_window_days)
+            train_end = current_idx
+            predict_end = min(current_idx + step, end_index)
+            
+            if train_end >= predict_end:
                 break
                 
-            # The date we are making the decision (The day before target)
-            decision_idx = target_idx - 1
+            train_data = dataset[train_start:train_end]
+            local_scaler = MinMaxScaler(feature_range=(0, 1))
+            scaled_train = local_scaler.fit_transform(train_data)
             
-            current_price = actual_close.iloc[decision_idx]
-            predicted_price = predictions[i][0]
+            X_train, y_train = self._create_sequences(scaled_train)
             
-            # Threshold for signal (e.g., > 0.5% predicted gain)
+            if len(X_train) == 0:
+                continue
+                
+            model = self.build_model((X_train.shape[1], X_train.shape[2]))
+            model.fit(X_train, y_train, batch_size=self.batch_size, epochs=self.epochs, verbose=0)
+            
+            pred_data_start = current_idx - self.lookback
+            pred_data_raw = dataset[pred_data_start:predict_end]
+            scaled_pred_input = local_scaler.transform(pred_data_raw)
+            X_pred, _ = self._create_sequences(scaled_pred_input)
+            
+            if len(X_pred) == 0:
+                continue
+                
+            predictions_scaled = model.predict(X_pred, verbose=0)
+            dummy_pred = np.zeros((len(predictions_scaled), len(feature_cols)))
+            dummy_pred[:, 0] = predictions_scaled.flatten()
+            predictions = local_scaler.inverse_transform(dummy_pred)[:, 0]
+            
             threshold = 0.005
             
-            if predicted_price > current_price * (1 + threshold):
-                signals.iloc[decision_idx] = 1
-            elif predicted_price < current_price * (1 - threshold):
-                signals.iloc[decision_idx] = -1
+            for i in range(len(predictions)):
+                target_df_idx = current_idx + i
+                if target_df_idx >= len(data):
+                    break
+                decision_idx = target_df_idx - 1
+                if decision_idx < 0:
+                    continue
+                    
+                current_price = data['Close'].iloc[decision_idx]
+                predicted_price = predictions[i]
                 
+                if predicted_price > current_price * (1 + threshold):
+                    signals.iloc[data.index.get_loc(data.index[decision_idx])] = 1
+                elif predicted_price < current_price * (1 - threshold):
+                    signals.iloc[data.index.get_loc(data.index[decision_idx])] = -1
+                    
         return self.apply_trend_filter(df, signals)
 
+    def get_signal_explanation(self, signal: int) -> str:
+        if signal == 1:
+            return "ディープラーニング（LSTM）が過去の価格・出来高・変動率から、短期的な上昇トレンドを予測しました。"
+        elif signal == -1:
+            return "ディープラーニング（LSTM）が過去の価格・出来高・変動率から、短期的な下落トレンドを予測しました。"
+        return "予測価格は現在の価格と大きな差がありません。"
+
+class DividendStrategy(Strategy):
+    def __init__(self, min_yield: float = 0.035, max_payout: float = 0.80, trend_period: int = 200) -> None:
+        super().__init__("High Dividend Accumulation", trend_period)
+        self.min_yield = min_yield
+        self.max_payout = max_payout
+
+    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+        if df is None or df.empty or 'Close' not in df.columns:
+            return pd.Series(dtype=int)
+        signals = pd.Series(1, index=df.index)
+        return self.apply_trend_filter(df, signals)
+
+    def get_signal_explanation(self, signal: int) -> str:
+        if signal == 1:
+            return "高配当かつ財務健全性が確認されました。長期保有・積立に適しています。"
+        return "条件を満たしていません。"
+
+class EnsembleStrategy(Strategy):
+    def __init__(self):
+        super().__init__("Ensemble Strategy")
+        from src.ensemble import EnsembleVoter
+        
+        self.strategies = [
+            DeepLearningStrategy(),
+            LightGBMStrategy(),
+            CombinedStrategy()
+        ]
+        
+        self.weights = {
+            "Deep Learning (LSTM)": 1.5,
+            "LightGBM Alpha": 1.2,
+            "Combined (RSI + BB)": 1.0
+        }
+        
+        self.voter = EnsembleVoter(self.strategies, self.weights)
+
+    def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+        # EnsembleVoter usually works on a single point in time or iterates.
+        # But our strategies return full Series of signals.
+        # We can implement a vectorized voting mechanism here.
+        
+        # 1. Get signals from all strategies
+        all_signals = pd.DataFrame(index=df.index)
+        
+        for strategy in self.strategies:
+            print(f"Ensemble: Running {strategy.name}...")
+            s_sig = strategy.generate_signals(df)
+            all_signals[strategy.name] = s_sig
+            
+        # 2. Apply weights
+        weighted_sum = pd.Series(0.0, index=df.index)
+        total_weight = 0.0
+        
+        for strategy in self.strategies:
+            w = self.weights.get(strategy.name, 1.0)
+            weighted_sum += all_signals[strategy.name] * w
+            total_weight += w
+            
+        # 3. Normalize
+        final_score = weighted_sum / total_weight
+        
+        # 4. Threshold
+        final_signals = pd.Series(0, index=df.index)
+        final_signals[final_score > 0.3] = 1
+        final_signals[final_score < -0.3] = -1
+        
+        return final_signals
+
+    def analyze(self, df: pd.DataFrame) -> Dict[str, Any]:
+        # For single point analysis (used in UI cards)
+        return self.voter.vote(df)
+
+    def get_signal_explanation(self, signal: int) -> str:
+        if signal == 1:
+            return "全モデルの総合判断（アンサンブル）による強力な買いシグナルです。"
+        elif signal == -1:
+            return "全モデルの総合判断（アンサンブル）による強力な売りシグナルです。"
+        return "モデル間の判断が割れているか、明確なシグナルがありません。"
+
 def load_custom_strategies() -> list:
-    """
-    Load custom strategies from src/strategies/custom/ directory.
-    Returns a list of instantiated strategy objects.
-    """
-    import os
-    import importlib.util
-    import sys
-    
     custom_strategies = []
     custom_dir = os.path.join(os.path.dirname(__file__), "custom")
     
@@ -424,7 +533,6 @@ def load_custom_strategies() -> list:
                     sys.modules[module_name] = module
                     spec.loader.exec_module(module)
                     
-                    # Find classes that inherit from Strategy
                     for name, obj in inspect.getmembers(module):
                         if inspect.isclass(obj) and issubclass(obj, Strategy) and obj is not Strategy:
                             try:
@@ -437,5 +545,3 @@ def load_custom_strategies() -> list:
                 print(f"Failed to load custom strategy from {filename}: {e}")
                 
     return custom_strategies
-
-import inspect
