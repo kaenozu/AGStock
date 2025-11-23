@@ -19,10 +19,10 @@ class Notifier:
         self.email_password = os.getenv("EMAIL_PASSWORD")
         self.email_to = os.getenv("EMAIL_TO")
 
-    def send_slack(self, message: str, title: str = "AGStock Alert") -> bool:
+    def notify_slack(self, message: str, title: str = "AGStock Alert") -> bool:
         """Send notification to Slack."""
         if not self.slack_webhook:
-            print("Slack webhook not configured. Skipping Slack notification.")
+            # print("Slack webhook not configured. Skipping Slack notification.")
             return False
             
         payload = {
@@ -40,6 +40,38 @@ class Notifier:
         except Exception as e:
             print(f"✗ Slack notification error: {e}")
             return False
+
+    def notify_discord(self, message: str):
+        """Send notification via Discord Webhook."""
+        from src.config import config
+        webhook_url = config.get("notifications.discord.webhook_url")
+        if not webhook_url:
+            return
+            
+        payload = {"content": message}
+        try:
+            requests.post(webhook_url, json=payload, timeout=5)
+        except Exception as e:
+            print(f"Failed to send Discord notification: {e}")
+
+    def notify_pushover(self, message: str):
+        """Send notification via Pushover."""
+        from src.config import config
+        user_key = config.get("notifications.pushover.user_key")
+        api_token = config.get("notifications.pushover.api_token")
+        
+        if not user_key or not api_token:
+            return
+            
+        payload = {
+            "token": api_token,
+            "user": user_key,
+            "message": message
+        }
+        try:
+            requests.post("https://api.pushover.net/1/messages.json", data=payload, timeout=5)
+        except Exception as e:
+            print(f"Failed to send Pushover notification: {e}")
 
     def send_email(self, subject: str, body: str, html: bool = False) -> bool:
         """Send email notification."""
@@ -71,83 +103,42 @@ class Notifier:
             return False
 
     def notify_strong_signal(self, ticker: str, action: str, confidence: float, price: float, strategy: str):
-        """Notify about a strong trading signal."""
-        emoji = "🚀" if action == "BUY" else "📉"
+        """Notify when a strong signal is detected."""
+        message = f"🚀 STRONG SIGNAL: {action} {ticker}\nPrice: {price}\nConfidence: {confidence:.2f}\nStrategy: {strategy}"
         
-        message = f"{emoji} *{action} Signal: {ticker}*\n"
-        message += f"Strategy: {strategy}\n"
-        message += f"Confidence: {confidence:.1%}\n"
-        message += f"Price: ${price:.2f}"
+        self.notify_slack(message)
+        self.notify_discord(message)
+        self.notify_pushover(message)
         
-        # Slack
-        self.send_slack(message, title="Strong Trading Signal")
-        
-        # Email
-        subject = f"{emoji} {action} Signal: {ticker}"
-        email_body = f"""
-Strong Trading Signal Detected
+        if self.email_enabled:
+            subject = f"AGStock Alert: {action} {ticker}"
+            self.send_email(subject, message)
 
-Ticker: {ticker}
-Action: {action}
-Strategy: {strategy}
-Confidence: {confidence:.1%}
-Current Price: ${price:.2f}
-
-This is an automated notification from AGStock AI Trading System.
-        """
-        self.send_email(subject, email_body.strip())
-
-    def notify_daily_summary(self, signals: List[Dict], portfolio_value: float, daily_pnl: float):
-        """Send daily summary notification."""
+    def notify_daily_summary(self, signals: list, portfolio_value: float, daily_pnl: float):
+        """Send daily summary."""
         num_signals = len(signals)
+        signal_text = "\n".join([f"- {s['action']} {s['ticker']} ({s['strategy']})" for s in signals]) if signals else "No trades today."
         
-        # Slack message
-        slack_msg = f"📊 *Daily Summary*\n\n"
-        slack_msg += f"Portfolio Value: ${portfolio_value:,.2f}\n"
-        slack_msg += f"Daily P&L: ${daily_pnl:+,.2f} ({daily_pnl/portfolio_value*100:+.2f}%)\n"
-        slack_msg += f"New Signals: {num_signals}\n\n"
-        
-        if signals:
-            slack_msg += "*Top Signals:*\n"
-            for sig in signals[:5]:  # Top 5
-                slack_msg += f"• {sig['ticker']}: {sig['action']} ({sig['strategy']})\n"
-        
-        self.send_slack(slack_msg, title="Daily Trading Summary")
-        
-        # Email (HTML format)
-        email_subject = f"Daily Trading Summary - {num_signals} New Signals"
-        email_html = f"""
-<html>
-<body>
-<h2>📊 Daily Trading Summary</h2>
-<table border="1" cellpadding="5">
-<tr><td><b>Portfolio Value</b></td><td>${portfolio_value:,.2f}</td></tr>
-<tr><td><b>Daily P&L</b></td><td style="color: {'green' if daily_pnl > 0 else 'red'}">${daily_pnl:+,.2f} ({daily_pnl/portfolio_value*100:+.2f}%)</td></tr>
-<tr><td><b>New Signals</b></td><td>{num_signals}</td></tr>
-</table>
+        message = f"""📊 Daily Summary
+Portfolio Value: ¥{portfolio_value:,.0f}
+Daily P&L: ¥{daily_pnl:,.0f}
 
-<h3>Top Signals</h3>
-<ul>
+Signals:
+{signal_text}
 """
-        for sig in signals[:10]:
-            email_html += f"<li><b>{sig['ticker']}</b>: {sig['action']} - {sig['strategy']} (Confidence: {sig.get('confidence', 1.0):.1%})</li>\n"
+        self.notify_slack(message)
+        self.notify_discord(message)
+        self.notify_pushover(message)
         
-        email_html += """
-</ul>
-<p><i>This is an automated notification from AGStock AI Trading System.</i></p>
-</body>
-</html>
-"""
-        self.send_email(email_subject, email_html, html=True)
+        if self.email_enabled:
+            self.send_email("AGStock Daily Summary", message)
 
-    def notify_error(self, error_message: str, context: str = ""):
-        """Notify about system errors."""
-        message = f"⚠️ *System Error*\n\n"
-        if context:
-            message += f"Context: {context}\n"
-        message += f"Error: {error_message}"
+    def notify_error(self, error_msg: str):
+        """Notify system error."""
+        message = f"⚠️ System Error: {error_msg}"
+        self.notify_slack(message)
+        self.notify_discord(message)
+        self.notify_pushover(message)
         
-        self.send_slack(message, title="AGStock Error Alert")
-        
-        subject = "⚠️ AGStock System Error"
-        self.send_email(subject, f"Context: {context}\n\nError: {error_message}")
+        if self.email_enabled:
+            self.send_email("AGStock Error", message)

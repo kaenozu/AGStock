@@ -92,3 +92,26 @@ def fetch_macro_data(period: str = "2y") -> Dict[str, pd.DataFrame]:
         return {}
 
     return process_downloaded_data(raw, tickers.keys(), tickers)
+
+
+def fetch_fundamental_data(ticker: str) -> Dict:
+    """
+    Fetches fundamental data for a single ticker.
+    Returns a dictionary with keys: trailingPE, priceToBook, returnOnEquity, marketCap, forwardPE, dividendYield.
+    Returns None if data is unavailable.
+    """
+    try:
+        ticker_obj = yf.Ticker(ticker)
+        info = ticker_obj.info
+        
+        return {
+            "trailingPE": info.get("trailingPE"),
+            "priceToBook": info.get("priceToBook"),
+            "returnOnEquity": info.get("returnOnEquity"),
+            "marketCap": info.get("marketCap"),
+            "forwardPE": info.get("forwardPE"),
+            "dividendYield": info.get("dividendYield")
+        }
+    except Exception as e:
+        logger.error("Error fetching fundamentals for %s: %s", ticker, e)
+        return None
