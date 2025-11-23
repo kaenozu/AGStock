@@ -56,18 +56,75 @@ def process_downloaded_data(
     return processed
 
 
+from datetime import datetime, timedelta
+from src.data_manager import DataManager
+
+def parse_period(period: str) -> datetime:
+    """Convert period string (e.g., '2y', '1mo') to start datetime."""
+    now = datetime.now()
+    if period.endswith('y'):
+        years = int(period[:-1])
+        return now - timedelta(days=years * 365)
+    elif period.endswith('mo'):
+        months = int(period[:-2])
+        return now - timedelta(days=months * 30)
+    elif period.endswith('d'):
+        days = int(period[:-1])
+        return now - timedelta(days=days)
+    else:
+        # Default fallback
+        return now - timedelta(days=730)
+
 def fetch_stock_data(tickers: Sequence[str], period: str = "2y") -> Dict[str, pd.DataFrame]:
-    """複数ティッカーの株価データを取得する。"""
+    """
+    Fetch stock data for multiple tickers, using local cache when possible.
+    Uses bulk download for efficiency when multiple tickers need updates.
+    """
     if not tickers:
         return {}
 
-    try:
-        raw = yf.download(tickers, period=period, group_by='ticker', auto_adjust=True, threads=True)
-    except Exception as exc:  # pragma: no cover - 例外経路はテストでモック化
-        logger.error("Error fetching data: %s", exc)
-        return {}
-
-    return process_downloaded_data(raw, tickers)
+    db = DataManager()
+    start_date = parse_period(period)
+    result = {}
+    need_download = []
+    
+    # Step 1: Try to load from database
+    for ticker in tickers:
+        cached_df = db.load_data(ticker, start_date=start_date)
+        
+        if not cached_df.empty:
+            latest_date = cached_df.index[-1]
+            # Check if data is up-to-date (within last 2 days to account for weekends)
+            if latest_date >= datetime.now() - timedelta(days=2):
+                result[ticker] = cached_df
+            else:
+                need_download.append(ticker)
+                result[ticker] = cached_df  # Keep cached data as fallback
+        else:
+            need_download.append(ticker)
+    
+    # Step 2: Bulk download for tickers that need updates
+    if need_download:
+        try:
+            logger.info(f"Downloading data for {len(need_download)} tickers: {need_download}")
+            # Use bulk download for efficiency
+            raw = yf.download(need_download, period=period, group_by='ticker', auto_adjust=True, threads=True)
+            
+            if not raw.empty:
+                processed = process_downloaded_data(raw, need_download)
+                
+                # Save to database and update results
+                for ticker, df in processed.items():
+                    if not df.empty:
+                        db.save_data(df, ticker)
+                        # Reload from DB to ensure consistency
+                        result[ticker] = db.load_data(ticker, start_date=start_date)
+            
+        except Exception as e:
+            logger.error(f"Error downloading data for {need_download}: {e}")
+            # Fall back to cached data if download fails
+    
+    return result
 
 
 def get_latest_price(df: pd.DataFrame) -> float:

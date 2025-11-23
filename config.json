@@ -1,0 +1,12 @@
+{
+    "notifications": {
+        "line": {
+            "enabled": false,
+            "token": ""
+        },
+        "discord": {
+            "enabled": false,
+            "webhook_url": ""
+        }
+    }
+}

@@ -1,0 +1,1413 @@
+{
+    "scan_date": "2025-11-21 17:38:30",
+    "sentiment": {
+        "score": 0.05762896825396824,
+        "label": "Neutral",
+        "news_count": 20,
+        "top_news": [
+            {
+                "title": "Make sure you're asking the right question when it comes to the AI-bubble debate",
+                "link": "https://finance.yahoo.com/news/sure-youre-asking-comes-ai-210115203.html",
+                "published": "2025-11-19T21:01:15Z",
+                "summary": ""
+            },
+            {
+                "title": "Elliott Management Is Betting Big on This Dividend-Paying Gold Stock. Should You Buy Shares Now?",
+                "link": "https://finance.yahoo.com/news/elliott-management-betting-big-dividend-210038399.html",
+                "published": "2025-11-19T21:00:38Z",
+                "summary": ""
+            },
+            {
+                "title": "Should You Buy the Selloff in Plug Power Stock Today?",
+                "link": "https://finance.yahoo.com/news/buy-selloff-plug-power-stock-205734149.html",
+                "published": "2025-11-19T20:57:34Z",
+                "summary": ""
+            },
+            {
+                "title": "Natural Gas Juggernaut Fuels 506% Earnings Growth In Combustible Market. Can It Spark A Breakout?",
+                "link": "https://www.investors.com/research/breakout-stocks-technical-analysis/expand-energy-natural-gas-fuels-explosive-growth/?src=A00220&yptr=yahoo",
+                "published": "2025-11-19T21:00:07Z",
+                "summary": ""
+            },
+            {
+                "title": "S&P 500 Kicks Higher at Finish. Now It's Nvidia Time.",
+                "link": "https://www.barrons.com/livecoverage/stock-market-news-today-111925/card/s-p-500-kicks-higher-at-finish-now-its-nvidia-time--pm0tSVrhW1v1Do5z8HMy?siteid=yhoof2&yptr=yahoo",
+                "published": "2025-11-19T21:03:15Z",
+                "summary": ""
+            }
+        ]
+    },
+    "results": [
+        {
+            "Ticker": "7203.T",
+            "Name": "Toyota Motor",
+            "Strategy": "AI Random Forest",
+            "Return": 0.04607120266057785,
+            "Max Drawdown": -0.10078067304048356,
+            "Win Rate": 0.52,
+            "Sharpe Ratio": 0.3503909716210578,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 3097.0,
+            "Risk Level": "中 (Medium)",
+            "Risk Color": "orange",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。",
+            "PER": 10.5,
+            "PBR": 1.1,
+            "ROE": 0.12
+        },
+        {
+            "Ticker": "7203.T",
+            "Name": "Toyota Motor",
+            "Strategy": "Deep Learning (LSTM)",
+            "Return": 0.16707914105255095,
+            "Max Drawdown": -0.05507402048120388,
+            "Win Rate": 0.6666666666666666,
+            "Sharpe Ratio": 1.0194777537040869,
+            "Action": "BUY",
+            "Signal Date": "2025-11-18",
+            "Last Price": 3097.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "ディープラーニング（LSTM）が時系列データから将来の株価上昇を予測しました。",
+            "PER": 10.5,
+            "PBR": 1.1,
+            "ROE": 0.12
+        },
+        {
+            "Ticker": "9984.T",
+            "Name": "SoftBank Group",
+            "Strategy": "AI Random Forest",
+            "Return": 0.31062944500093326,
+            "Max Drawdown": -0.1109898918930819,
+            "Win Rate": 0.5238095238095238,
+            "Sharpe Ratio": 0.8998586789010052,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 17090.0,
+            "Risk Level": "中 (Medium)",
+            "Risk Color": "orange",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。",
+            "PER": 55.0,
+            "PBR": 2.5,
+            "ROE": 0.02
+        },
+        {
+            "Ticker": "9984.T",
+            "Name": "SoftBank Group",
+            "Strategy": "Deep Learning (LSTM)",
+            "Return": 0.7377769511518861,
+            "Max Drawdown": -0.08958436056369957,
+            "Win Rate": 0.47368421052631576,
+            "Sharpe Ratio": 1.5480907848690835,
+            "Action": "BUY",
+            "Signal Date": "2025-11-19",
+            "Last Price": 17090.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "ディープラーニング（LSTM）が時系列データから将来の株価上昇を予測しました。",
+            "PER": 55.0,
+            "PBR": 2.5,
+            "ROE": 0.02
+        },
+        {
+            "Ticker": "6758.T",
+            "Name": "Sony Group",
+            "Strategy": "AI Random Forest",
+            "Return": 0.16352870366934358,
+            "Max Drawdown": -0.08095768827286395,
+            "Win Rate": 0.43478260869565216,
+            "Sharpe Ratio": 0.6919517242885252,
+            "Action": "BUY",
+            "Signal Date": "2025-11-20",
+            "Last Price": 4507.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
+        },
+        {
+            "Ticker": "6861.T",
+            "Name": "Keyence",
+            "Strategy": "AI Random Forest",
+            "Return": 0.011511318056266484,
+            "Max Drawdown": -0.07486226411419362,
+            "Win Rate": 0.46153846153846156,
+            "Sharpe Ratio": 0.10929423045288915,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 54400.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+        },
+        {
+            "Ticker": "6098.T",
+            "Name": "Recruit Holdings",
+            "Strategy": "SMA Crossover (5/25)",
+            "Return": 0.009711838581325516,
+            "Max Drawdown": -0.038603360648713836,
+            "Win Rate": 0.0,
+            "Sharpe Ratio": 0.13833783411379666,
+            "Action": "SELL",
+            "Signal Date": "2025-11-21",
+            "Last Price": 7708.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "短期移動平均線が長期移動平均線を下抜けました（デッドクロス）。下落トレンドの始まりを示唆しています。"
+        },
+        {
+            "Ticker": "6098.T",
+            "Name": "Recruit Holdings",
+            "Strategy": "AI Random Forest",
+            "Return": -0.11203472667291425,
+            "Max Drawdown": -0.2310966130332311,
+            "Win Rate": 0.4583333333333333,
+            "Sharpe Ratio": -0.323668029094845,
+            "Action": "BUY",
+            "Signal Date": "2025-11-20",
+            "Last Price": 7708.0,
+            "Risk Level": "高 (High)",
+            "Risk Color": "red",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
+        },
+        {
+            "Ticker": "6098.T",
+            "Name": "Recruit Holdings",
+            "Strategy": "Deep Learning (LSTM)",
+            "Return": 0.044534694979209144,
+            "Max Drawdown": -0.07762514525490373,
+            "Win Rate": 0.5,
+            "Sharpe Ratio": 0.3264052795430547,
+            "Action": "SELL",
+            "Signal Date": "2025-11-17",
+            "Last Price": 7708.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "ディープラーニング（LSTM）が時系列データから将来の株価下落を予測しました。"
+        },
+        {
+            "Ticker": "8035.T",
+            "Name": "Tokyo Electron",
+            "Strategy": "AI Random Forest",
+            "Return": 0.22540449627438286,
+            "Max Drawdown": -0.10354805442272921,
+            "Win Rate": 0.5,
+            "Sharpe Ratio": 0.7830412884015372,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 30180.0,
+            "Risk Level": "中 (Medium)",
+            "Risk Color": "orange",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+        },
+        {
+            "Ticker": "8035.T",
+            "Name": "Tokyo Electron",
+            "Strategy": "Deep Learning (LSTM)",
+            "Return": 0.1355565411178965,
+            "Max Drawdown": -0.07327327327327332,
+            "Win Rate": 0.5,
+            "Sharpe Ratio": 0.8633794231516774,
+            "Action": "BUY",
+            "Signal Date": "2025-11-19",
+            "Last Price": 30180.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "ディープラーニング（LSTM）が時系列データから将来の株価上昇を予測しました。"
+        },
+        {
+            "Ticker": "9983.T",
+            "Name": "Fast Retailing",
+            "Strategy": "AI Random Forest",
+            "Return": 0.10097852733614499,
+            "Max Drawdown": -0.10386047279926279,
+            "Win Rate": 0.4444444444444444,
+            "Sharpe Ratio": 0.4803202087316274,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 54800.0,
+            "Risk Level": "中 (Medium)",
+            "Risk Color": "orange",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+        },
+        {
+            "Ticker": "9983.T",
+            "Name": "Fast Retailing",
+            "Strategy": "Deep Learning (LSTM)",
+            "Return": -0.02968889045836165,
+            "Max Drawdown": -0.134000611839435,
+            "Win Rate": 0.0,
+            "Sharpe Ratio": -0.07525934941949965,
+            "Action": "BUY",
+            "Signal Date": "2025-11-18",
+            "Last Price": 54800.0,
+            "Risk Level": "中 (Medium)",
+            "Risk Color": "orange",
+            "Explanation": "ディープラーニング（LSTM）が時系列データから将来の株価上昇を予測しました。"
+        },
+        {
+            "Ticker": "4063.T",
+            "Name": "Shin-Etsu Chemical",
+            "Strategy": "AI Random Forest",
+            "Return": 0.04981736189657515,
+            "Max Drawdown": -0.07163138702015165,
+            "Win Rate": 0.4,
+            "Sharpe Ratio": 0.44360026772826744,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 4500.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+        },
+        {
+            "Ticker": "9432.T",
+            "Name": "Nippon Telegraph & Telephone",
+            "Strategy": "AI Random Forest",
+            "Return": 0.05414153316375869,
+            "Max Drawdown": -0.04555760321867547,
+            "Win Rate": 0.6666666666666666,
+            "Sharpe Ratio": 0.5751899065105762,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 154.1999969482422,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+        },
+        {
+            "Ticker": "7974.T",
+            "Name": "Nintendo",
+            "Strategy": "AI Random Forest",
+            "Return": 0.07210780668198047,
+            "Max Drawdown": -0.10453604564389572,
+            "Win Rate": 0.4166666666666667,
+            "Sharpe Ratio": 0.3510082613978174,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 13300.0,
+            "Risk Level": "中 (Medium)",
+            "Risk Color": "orange",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+        },
+        {
+            "Ticker": "8306.T",
+            "Name": "Mitsubishi UFJ Financial",
+            "Strategy": "AI Random Forest",
+            "Return": 0.35645156639048503,
+            "Max Drawdown": -0.04528763769889844,
+            "Win Rate": 0.6666666666666666,
+            "Sharpe Ratio": 1.5786863875819823,
+            "Action": "BUY",
+            "Signal Date": "2025-11-20",
+            "Last Price": 2385.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。",
+            "PER": 12.0,
+            "PBR": 0.8,
+            "ROE": 0.09
+        },
+        {
+            "Ticker": "8316.T",
+            "Name": "Sumitomo Mitsui Financial",
+            "Strategy": "AI Random Forest",
+            "Return": 0.15373105109397844,
+            "Max Drawdown": -0.05228037091426,
+            "Win Rate": 0.5,
+            "Sharpe Ratio": 0.7876193867858591,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 4449.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+        },
+        {
+            "Ticker": "6501.T",
+            "Name": "Hitachi",
+            "Strategy": "AI Random Forest",
+            "Return": 0.1127861081309407,
+            "Max Drawdown": -0.11459349924715492,
+            "Win Rate": 0.21052631578947367,
+            "Sharpe Ratio": 0.5470620579764285,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 4710.0,
+            "Risk Level": "中 (Medium)",
+            "Risk Color": "orange",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+        },
+        {
+            "Ticker": "6501.T",
+            "Name": "Hitachi",
+            "Strategy": "Deep Learning (LSTM)",
+            "Return": 0.14597200511270136,
+            "Max Drawdown": -0.11885962900354322,
+            "Win Rate": 0.4,
+            "Sharpe Ratio": 0.6170963042865907,
+            "Action": "BUY",
+            "Signal Date": "2025-11-19",
+            "Last Price": 4710.0,
+            "Risk Level": "中 (Medium)",
+            "Risk Color": "orange",
+            "Explanation": "ディープラーニング（LSTM）が時系列データから将来の株価上昇を予測しました。"
+        },
+        {
+            "Ticker": "4502.T",
+            "Name": "Takeda Pharmaceutical",
+            "Strategy": "AI Random Forest",
+            "Return": 0.06737470315877636,
+            "Max Drawdown": -0.051301968051168566,
+            "Win Rate": 0.3333333333333333,
+            "Sharpe Ratio": 0.6601667174693205,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 4437.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+        },
+        {
+            "Ticker": "7267.T",
+            "Name": "Honda Motor",
+            "Strategy": "Bollinger Bands (20, 2)",
+            "Return": -0.016304347826087584,
+            "Max Drawdown": -0.07932098765432123,
+            "Win Rate": 0,
+            "Sharpe Ratio": -0.06425716762140109,
+            "Action": "BUY",
+            "Signal Date": "2025-11-18",
+            "Last Price": 1538.5,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "株価がボリンジャーバンドの下限にタッチしました。売られすぎからの反発が期待できます。"
+        },
+        {
+            "Ticker": "7267.T",
+            "Name": "Honda Motor",
+            "Strategy": "AI Random Forest",
+            "Return": 0.1969919487315539,
+            "Max Drawdown": -0.06246866761122669,
+            "Win Rate": 0.45454545454545453,
+            "Sharpe Ratio": 1.0700107431284376,
+            "Action": "BUY",
+            "Signal Date": "2025-11-20",
+            "Last Price": 1538.5,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
+        },
+        {
+            "Ticker": "7267.T",
+            "Name": "Honda Motor",
+            "Strategy": "Deep Learning (LSTM)",
+            "Return": 0.0823982493310349,
+            "Max Drawdown": -0.07932098765432084,
+            "Win Rate": 0.5,
+            "Sharpe Ratio": 0.45957216413167856,
+            "Action": "BUY",
+            "Signal Date": "2025-11-18",
+            "Last Price": 1538.5,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "ディープラーニング（LSTM）が時系列データから将来の株価上昇を予測しました。"
+        },
+        {
+            "Ticker": "8058.T",
+            "Name": "Mitsubishi Corp",
+            "Strategy": "AI Random Forest",
+            "Return": 0.21372418417928363,
+            "Max Drawdown": -0.042988624108752094,
+            "Win Rate": 0.6,
+            "Sharpe Ratio": 1.3553982866750436,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 3658.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+        },
+        {
+            "Ticker": "8001.T",
+            "Name": "Itochu",
+            "Strategy": "AI Random Forest",
+            "Return": 0.04538181333607905,
+            "Max Drawdown": -0.05141955835962142,
+            "Win Rate": 0.5238095238095238,
+            "Sharpe Ratio": 0.39892116023780994,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 9057.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+        },
+        {
+            "Ticker": "8766.T",
+            "Name": "Tokio Marine",
+            "Strategy": "AI Random Forest",
+            "Return": 0.05626188609872229,
+            "Max Drawdown": -0.08222413539863477,
+            "Win Rate": 0.4,
+            "Sharpe Ratio": 0.3204500612257627,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 5541.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+        },
+        {
+            "Ticker": "6902.T",
+            "Name": "Denso",
+            "Strategy": "AI Random Forest",
+            "Return": -0.13994482264963293,
+            "Max Drawdown": -0.13994482264963293,
+            "Win Rate": 0.25,
+            "Sharpe Ratio": -1.4041498938786876,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 2067.5,
+            "Risk Level": "中 (Medium)",
+            "Risk Color": "orange",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+        },
+        {
+            "Ticker": "6902.T",
+            "Name": "Denso",
+            "Strategy": "Deep Learning (LSTM)",
+            "Return": 0.05764774029936781,
+            "Max Drawdown": -0.06401112227519028,
+            "Win Rate": 0.5,
+            "Sharpe Ratio": 0.46411064515103906,
+            "Action": "BUY",
+            "Signal Date": "2025-11-20",
+            "Last Price": 2067.5,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "ディープラーニング（LSTM）が時系列データから将来の株価上昇を予測しました。"
+        },
+        {
+            "Ticker": "6367.T",
+            "Name": "Daikin Industries",
+            "Strategy": "AI Random Forest",
+            "Return": 0.026871394491060796,
+            "Max Drawdown": -0.09738754225140196,
+            "Win Rate": 0.47368421052631576,
+            "Sharpe Ratio": 0.2125631539673706,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 19560.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+        },
+        {
+            "Ticker": "6367.T",
+            "Name": "Daikin Industries",
+            "Strategy": "Deep Learning (LSTM)",
+            "Return": 0.06508595887769886,
+            "Max Drawdown": -0.10566286170423353,
+            "Win Rate": 0.5,
+            "Sharpe Ratio": 0.40123082069705024,
+            "Action": "BUY",
+            "Signal Date": "2025-11-19",
+            "Last Price": 19560.0,
+            "Risk Level": "中 (Medium)",
+            "Risk Color": "orange",
+            "Explanation": "ディープラーニング（LSTM）が時系列データから将来の株価上昇を予測しました。"
+        },
+        {
+            "Ticker": "4543.T",
+            "Name": "Terumo",
+            "Strategy": "AI Random Forest",
+            "Return": 0.18565545394224992,
+            "Max Drawdown": -0.04430027687908923,
+            "Win Rate": 0.375,
+            "Sharpe Ratio": 0.9680270285813939,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 2460.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+        },
+        {
+            "Ticker": "6954.T",
+            "Name": "Fanuc",
+            "Strategy": "AI Random Forest",
+            "Return": 0.23781054088858955,
+            "Max Drawdown": -0.056485355648535504,
+            "Win Rate": 0.45161290322580644,
+            "Sharpe Ratio": 0.9092000596604471,
+            "Action": "BUY",
+            "Signal Date": "2025-11-20",
+            "Last Price": 4814.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
+        },
+        {
+            "Ticker": "6954.T",
+            "Name": "Fanuc",
+            "Strategy": "Deep Learning (LSTM)",
+            "Return": 0.004250285010995336,
+            "Max Drawdown": -0.08229905768694604,
+            "Win Rate": 0.3333333333333333,
+            "Sharpe Ratio": 0.06647459952134353,
+            "Action": "BUY",
+            "Signal Date": "2025-11-19",
+            "Last Price": 4814.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "ディープラーニング（LSTM）が時系列データから将来の株価上昇を予測しました。"
+        },
+        {
+            "Ticker": "6981.T",
+            "Name": "Murata Manufacturing",
+            "Strategy": "AI Random Forest",
+            "Return": 0.1618504659672657,
+            "Max Drawdown": -0.05178012887769972,
+            "Win Rate": 0.4117647058823529,
+            "Sharpe Ratio": 0.8095887001929557,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 3033.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+        },
+        {
+            "Ticker": "6981.T",
+            "Name": "Murata Manufacturing",
+            "Strategy": "Deep Learning (LSTM)",
+            "Return": 0.23705084744193528,
+            "Max Drawdown": -0.026539961264221743,
+            "Win Rate": 1.0,
+            "Sharpe Ratio": 1.6462682191777867,
+            "Action": "BUY",
+            "Signal Date": "2025-11-19",
+            "Last Price": 3033.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "ディープラーニング（LSTM）が時系列データから将来の株価上昇を予測しました。"
+        },
+        {
+            "Ticker": "6273.T",
+            "Name": "SMC",
+            "Strategy": "AI Random Forest",
+            "Return": 0.0721843120742256,
+            "Max Drawdown": -0.08630340714388811,
+            "Win Rate": 0.3888888888888889,
+            "Sharpe Ratio": 0.3792810241912122,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 52140.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+        },
+        {
+            "Ticker": "6273.T",
+            "Name": "SMC",
+            "Strategy": "Deep Learning (LSTM)",
+            "Return": 0.017869241541396352,
+            "Max Drawdown": -0.06332737030411474,
+            "Win Rate": 0.5,
+            "Sharpe Ratio": 0.16391031780261622,
+            "Action": "BUY",
+            "Signal Date": "2025-11-20",
+            "Last Price": 52140.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "ディープラーニング（LSTM）が時系列データから将来の株価上昇を予測しました。"
+        },
+        {
+            "Ticker": "7741.T",
+            "Name": "HOYA",
+            "Strategy": "AI Random Forest",
+            "Return": 0.013027711169092404,
+            "Max Drawdown": -0.08455479698926793,
+            "Win Rate": 0.6111111111111112,
+            "Sharpe Ratio": 0.12409057326244387,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 23110.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+        },
+        {
+            "Ticker": "7741.T",
+            "Name": "HOYA",
+            "Strategy": "Deep Learning (LSTM)",
+            "Return": 0.07369670434236708,
+            "Max Drawdown": -0.10693716191512966,
+            "Win Rate": 0.3333333333333333,
+            "Sharpe Ratio": 0.502546514661742,
+            "Action": "BUY",
+            "Signal Date": "2025-11-19",
+            "Last Price": 23110.0,
+            "Risk Level": "中 (Medium)",
+            "Risk Color": "orange",
+            "Explanation": "ディープラーニング（LSTM）が時系列データから将来の株価上昇を予測しました。"
+        },
+        {
+            "Ticker": "2914.T",
+            "Name": "Japan Tobacco",
+            "Strategy": "AI Random Forest",
+            "Return": 0.21427190886766567,
+            "Max Drawdown": -0.06286733387475914,
+            "Win Rate": 0.52,
+            "Sharpe Ratio": 1.359715461853032,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 5770.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+        },
+        {
+            "Ticker": "9020.T",
+            "Name": "East Japan Railway",
+            "Strategy": "AI Random Forest",
+            "Return": 0.2042362580730357,
+            "Max Drawdown": -0.05112794930396454,
+            "Win Rate": 0.6666666666666666,
+            "Sharpe Ratio": 1.2991246682129922,
+            "Action": "BUY",
+            "Signal Date": "2025-11-20",
+            "Last Price": 3962.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
+        },
+        {
+            "Ticker": "9022.T",
+            "Name": "Central Japan Railway",
+            "Strategy": "AI Random Forest",
+            "Return": 0.17052279827199412,
+            "Max Drawdown": -0.040697674418604536,
+            "Win Rate": 0.5384615384615384,
+            "Sharpe Ratio": 1.2645360656323228,
+            "Action": "BUY",
+            "Signal Date": "2025-11-20",
+            "Last Price": 4090.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
+        },
+        {
+            "Ticker": "4452.T",
+            "Name": "Kao",
+            "Strategy": "AI Random Forest",
+            "Return": 0.13319802918057122,
+            "Max Drawdown": -0.028727337684439955,
+            "Win Rate": 0.38095238095238093,
+            "Sharpe Ratio": 1.2717800134920991,
+            "Action": "BUY",
+            "Signal Date": "2025-11-20",
+            "Last Price": 6589.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
+        },
+        {
+            "Ticker": "4661.T",
+            "Name": "Oriental Land",
+            "Strategy": "AI Random Forest",
+            "Return": 0.0840251824084548,
+            "Max Drawdown": -0.12732437153489776,
+            "Win Rate": 0.6842105263157895,
+            "Sharpe Ratio": 0.45800673009301296,
+            "Action": "BUY",
+            "Signal Date": "2025-11-20",
+            "Last Price": 3073.0,
+            "Risk Level": "中 (Medium)",
+            "Risk Color": "orange",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
+        },
+        {
+            "Ticker": "5401.T",
+            "Name": "Nippon Steel",
+            "Strategy": "AI Random Forest",
+            "Return": -0.0029333017638399905,
+            "Max Drawdown": -0.05163003243622946,
+            "Win Rate": 0.4444444444444444,
+            "Sharpe Ratio": 0.011262304470279972,
+            "Action": "BUY",
+            "Signal Date": "2025-11-20",
+            "Last Price": 623.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
+        },
+        {
+            "Ticker": "7011.T",
+            "Name": "Mitsubishi Heavy Industries",
+            "Strategy": "Bollinger Bands (20, 2)",
+            "Return": 0.3900198366588181,
+            "Max Drawdown": -0.04691943127962079,
+            "Win Rate": 0.6666666666666666,
+            "Sharpe Ratio": 1.3106046487140013,
+            "Action": "BUY",
+            "Signal Date": "2025-11-21",
+            "Last Price": 3855.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "株価がボリンジャーバンドの下限にタッチしました。売られすぎからの反発が期待できます。"
+        },
+        {
+            "Ticker": "7011.T",
+            "Name": "Mitsubishi Heavy Industries",
+            "Strategy": "AI Random Forest",
+            "Return": 0.16699731276481145,
+            "Max Drawdown": -0.12518285882860758,
+            "Win Rate": 0.4782608695652174,
+            "Sharpe Ratio": 0.5975919595606132,
+            "Action": "BUY",
+            "Signal Date": "2025-11-20",
+            "Last Price": 3855.0,
+            "Risk Level": "中 (Medium)",
+            "Risk Color": "orange",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
+        },
+        {
+            "Ticker": "9101.T",
+            "Name": "Nippon Yusen",
+            "Strategy": "AI Random Forest",
+            "Return": 0.03171139730056449,
+            "Max Drawdown": -0.045738836132846815,
+            "Win Rate": 0.2857142857142857,
+            "Sharpe Ratio": 0.3285392161799421,
+            "Action": "BUY",
+            "Signal Date": "2025-11-20",
+            "Last Price": 4952.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
+        },
+        {
+            "Ticker": "9101.T",
+            "Name": "Nippon Yusen",
+            "Strategy": "Deep Learning (LSTM)",
+            "Return": 0.23523103878100016,
+            "Max Drawdown": -0.11261646230177415,
+            "Win Rate": 0.6,
+            "Sharpe Ratio": 0.8275305104343144,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 4952.0,
+            "Risk Level": "中 (Medium)",
+            "Risk Color": "orange",
+            "Explanation": "ディープラーニング（LSTM）が時系列データから将来の株価下落を予測しました。"
+        },
+        {
+            "Ticker": "9104.T",
+            "Name": "Mitsui O.S.K. Lines",
+            "Strategy": "SMA Crossover (5/25)",
+            "Return": -0.0694339728489527,
+            "Max Drawdown": -0.21044464387143966,
+            "Win Rate": 0.16666666666666666,
+            "Sharpe Ratio": -0.2650512134195787,
+            "Action": "SELL",
+            "Signal Date": "2025-11-18",
+            "Last Price": 4408.0,
+            "Risk Level": "高 (High)",
+            "Risk Color": "red",
+            "Explanation": "短期移動平均線が長期移動平均線を下抜けました（デッドクロス）。下落トレンドの始まりを示唆しています。"
+        },
+        {
+            "Ticker": "9104.T",
+            "Name": "Mitsui O.S.K. Lines",
+            "Strategy": "AI Random Forest",
+            "Return": -0.11591326975872729,
+            "Max Drawdown": -0.13461050272876438,
+            "Win Rate": 0.3,
+            "Sharpe Ratio": -0.6766993341562991,
+            "Action": "BUY",
+            "Signal Date": "2025-11-20",
+            "Last Price": 4408.0,
+            "Risk Level": "中 (Medium)",
+            "Risk Color": "orange",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
+        },
+        {
+            "Ticker": "9104.T",
+            "Name": "Mitsui O.S.K. Lines",
+            "Strategy": "Deep Learning (LSTM)",
+            "Return": 0.2108699640580909,
+            "Max Drawdown": -0.05405075741565873,
+            "Win Rate": 0.6,
+            "Sharpe Ratio": 1.2531979278772438,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 4408.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "ディープラーニング（LSTM）が時系列データから将来の株価下落を予測しました。"
+        },
+        {
+            "Ticker": "9107.T",
+            "Name": "Kawasaki Kisen",
+            "Strategy": "AI Random Forest",
+            "Return": 0.027737859298033518,
+            "Max Drawdown": -0.058988145228654934,
+            "Win Rate": 0.5294117647058824,
+            "Sharpe Ratio": 0.24488048290831987,
+            "Action": "BUY",
+            "Signal Date": "2025-11-20",
+            "Last Price": 2090.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
+        },
+        {
+            "Ticker": "1605.T",
+            "Name": "Inpex",
+            "Strategy": "AI Random Forest",
+            "Return": 0.0256676553679418,
+            "Max Drawdown": -0.04523431982154174,
+            "Win Rate": 0.23076923076923078,
+            "Sharpe Ratio": 0.23203347119158657,
+            "Action": "BUY",
+            "Signal Date": "2025-11-20",
+            "Last Price": 3170.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
+        },
+        {
+            "Ticker": "5020.T",
+            "Name": "ENEOS Holdings",
+            "Strategy": "AI Random Forest",
+            "Return": 0.2548915882121112,
+            "Max Drawdown": -0.038836989110859574,
+            "Win Rate": 0.631578947368421,
+            "Sharpe Ratio": 1.5521119548968114,
+            "Action": "BUY",
+            "Signal Date": "2025-11-20",
+            "Last Price": 1016.5,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
+        },
+        {
+            "Ticker": "8031.T",
+            "Name": "Mitsui & Co",
+            "Strategy": "AI Random Forest",
+            "Return": 0.136785568577388,
+            "Max Drawdown": -0.05928484402563174,
+            "Win Rate": 0.5217391304347826,
+            "Sharpe Ratio": 0.8914343667920722,
+            "Action": "BUY",
+            "Signal Date": "2025-11-20",
+            "Last Price": 3988.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
+        },
+        {
+            "Ticker": "8002.T",
+            "Name": "Marubeni",
+            "Strategy": "AI Random Forest",
+            "Return": 0.3500909123907341,
+            "Max Drawdown": -0.054402102496715045,
+            "Win Rate": 0.6666666666666666,
+            "Sharpe Ratio": 2.170103482733944,
+            "Action": "SELL",
+            "Signal Date": "2025-11-20",
+            "Last Price": 3825.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+        },
+        {
+            "Ticker": "8591.T",
+            "Name": "Orix",
+            "Strategy": "AI Random Forest",
+            "Return": 0.2770932079913053,
+            "Max Drawdown": -0.08077309926886624,
+            "Win Rate": 0.7619047619047619,
+            "Sharpe Ratio": 1.7548369100762122,
+            "Action": "BUY",
+            "Signal Date": "2025-11-20",
+            "Last Price": 4077.0,
+            "Risk Level": "低 (Low)",
+            "Risk Color": "green",
+            "Explanation": "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
+        }
+    ],
+    "portfolio": null,
+    "high_dividend": [
+        {
+            "Ticker": "7203.T",
+            "Name": "Toyota Motor",
+            "Yield": 0.031200000000000002,
+            "PayoutRatio": 0.2688,
+            "Last Price": 3097.0,
+            "Action": "BUY",
+            "DividendCAGR": 16.12,
+            "ConsecutiveIncreases": 5,
+            "DividendHistory": [
+                {
+                    "year": 2020,
+                    "dividend": 45.0
+                },
+                {
+                    "year": 2021,
+                    "dividend": 51.0
+                },
+                {
+                    "year": 2022,
+                    "dividend": 53.0
+                },
+                {
+                    "year": 2023,
+                    "dividend": 65.0
+                },
+                {
+                    "year": 2024,
+                    "dividend": 85.0
+                },
+                {
+                    "year": 2025,
+                    "dividend": 95.0
+                }
+            ]
+        },
+        {
+            "Ticker": "9984.T",
+            "Name": "SoftBank Group",
+            "Yield": 0.14,
+            "PayoutRatio": 0.020599999,
+            "Last Price": 17090.0,
+            "Action": "BUY",
+            "DividendCAGR": 0.0,
+            "ConsecutiveIncreases": 0,
+            "DividendHistory": [
+                {
+                    "year": 2020,
+                    "dividend": 44.0
+                },
+                {
+                    "year": 2021,
+                    "dividend": 44.0
+                },
+                {
+                    "year": 2022,
+                    "dividend": 44.0
+                },
+                {
+                    "year": 2023,
+                    "dividend": 44.0
+                },
+                {
+                    "year": 2024,
+                    "dividend": 44.0
+                },
+                {
+                    "year": 2025,
+                    "dividend": 44.0
+                }
+            ]
+        },
+        {
+            "Ticker": "9432.T",
+            "Name": "Nippon Telegraph & Telephone",
+            "Yield": 0.0347,
+            "PayoutRatio": 0.41799998,
+            "Last Price": 154.1999969482422,
+            "Action": "BUY",
+            "DividendCAGR": 6.13,
+            "ConsecutiveIncreases": 5,
+            "DividendHistory": [
+                {
+                    "year": 2020,
+                    "dividend": 3.9
+                },
+                {
+                    "year": 2021,
+                    "dividend": 4.2
+                },
+                {
+                    "year": 2022,
+                    "dividend": 4.8
+                },
+                {
+                    "year": 2023,
+                    "dividend": 4.9
+                },
+                {
+                    "year": 2024,
+                    "dividend": 5.2
+                },
+                {
+                    "year": 2025,
+                    "dividend": 5.25
+                }
+            ]
+        },
+        {
+            "Ticker": "8306.T",
+            "Name": "Mitsubishi UFJ Financial",
+            "Yield": 0.0327,
+            "PayoutRatio": 0.44939998,
+            "Last Price": 2385.0,
+            "Action": "BUY",
+            "DividendCAGR": 24.24,
+            "ConsecutiveIncreases": 5,
+            "DividendHistory": [
+                {
+                    "year": 2020,
+                    "dividend": 25.0
+                },
+                {
+                    "year": 2021,
+                    "dividend": 26.0
+                },
+                {
+                    "year": 2022,
+                    "dividend": 30.5
+                },
+                {
+                    "year": 2023,
+                    "dividend": 36.5
+                },
+                {
+                    "year": 2024,
+                    "dividend": 45.5
+                },
+                {
+                    "year": 2025,
+                    "dividend": 74.0
+                }
+            ]
+        },
+        {
+            "Ticker": "8316.T",
+            "Name": "Sumitomo Mitsui Financial",
+            "Yield": 0.0356,
+            "PayoutRatio": 0.39029998,
+            "Last Price": 4449.0,
+            "Action": "BUY",
+            "DividendCAGR": 16.59,
+            "ConsecutiveIncreases": 5,
+            "DividendHistory": [
+                {
+                    "year": 2020,
+                    "dividend": 65.0
+                },
+                {
+                    "year": 2021,
+                    "dividend": 66.666668
+                },
+                {
+                    "year": 2022,
+                    "dividend": 73.333332
+                },
+                {
+                    "year": 2023,
+                    "dividend": 86.666668
+                },
+                {
+                    "year": 2024,
+                    "dividend": 105.0
+                },
+                {
+                    "year": 2025,
+                    "dividend": 140.0
+                }
+            ]
+        },
+        {
+            "Ticker": "7267.T",
+            "Name": "Honda Motor",
+            "Yield": 0.0462,
+            "PayoutRatio": 0.45400003,
+            "Last Price": 1538.5,
+            "Action": "BUY",
+            "DividendCAGR": 19.77,
+            "ConsecutiveIncreases": 0,
+            "DividendHistory": [
+                {
+                    "year": 2020,
+                    "dividend": 28.0
+                },
+                {
+                    "year": 2021,
+                    "dividend": 42.99999699999999
+                },
+                {
+                    "year": 2022,
+                    "dividend": 41.666668
+                },
+                {
+                    "year": 2023,
+                    "dividend": 49.0
+                },
+                {
+                    "year": 2024,
+                    "dividend": 73.0
+                },
+                {
+                    "year": 2025,
+                    "dividend": 69.0
+                }
+            ]
+        },
+        {
+            "Ticker": "8058.T",
+            "Name": "Mitsubishi Corp",
+            "Yield": 0.0304,
+            "PayoutRatio": 0.5994,
+            "Last Price": 3658.0,
+            "Action": "BUY",
+            "DividendCAGR": 18.47,
+            "ConsecutiveIncreases": 5,
+            "DividendHistory": [
+                {
+                    "year": 2020,
+                    "dividend": 45.0
+                },
+                {
+                    "year": 2021,
+                    "dividend": 46.0
+                },
+                {
+                    "year": 2022,
+                    "dividend": 52.0
+                },
+                {
+                    "year": 2023,
+                    "dividend": 69.333332
+                },
+                {
+                    "year": 2024,
+                    "dividend": 85.0
+                },
+                {
+                    "year": 2025,
+                    "dividend": 105.0
+                }
+            ]
+        },
+        {
+            "Ticker": "8001.T",
+            "Name": "Itochu",
+            "Yield": 0.49,
+            "PayoutRatio": 0.3008,
+            "Last Price": 9057.0,
+            "Action": "BUY",
+            "DividendCAGR": 18.25,
+            "ConsecutiveIncreases": 5,
+            "DividendHistory": [
+                {
+                    "year": 2020,
+                    "dividend": 86.5
+                },
+                {
+                    "year": 2021,
+                    "dividend": 91.0
+                },
+                {
+                    "year": 2022,
+                    "dividend": 128.0
+                },
+                {
+                    "year": 2023,
+                    "dividend": 155.0
+                },
+                {
+                    "year": 2024,
+                    "dividend": 180.0
+                },
+                {
+                    "year": 2025,
+                    "dividend": 200.0
+                }
+            ]
+        },
+        {
+            "Ticker": "6902.T",
+            "Name": "Denso",
+            "Yield": 0.0317,
+            "PayoutRatio": 0.5033,
+            "Last Price": 2067.5,
+            "Action": "BUY",
+            "DividendCAGR": 12.83,
+            "ConsecutiveIncreases": 4,
+            "DividendHistory": [
+                {
+                    "year": 2020,
+                    "dividend": 35.0
+                },
+                {
+                    "year": 2021,
+                    "dividend": 35.0
+                },
+                {
+                    "year": 2022,
+                    "dividend": 43.75
+                },
+                {
+                    "year": 2023,
+                    "dividend": 48.75
+                },
+                {
+                    "year": 2024,
+                    "dividend": 62.0
+                },
+                {
+                    "year": 2025,
+                    "dividend": 64.0
+                }
+            ]
+        },
+        {
+            "Ticker": "5401.T",
+            "Name": "Nippon Steel",
+            "Yield": 0.0387,
+            "PayoutRatio": 0.4774,
+            "Last Price": 623.0,
+            "Action": "BUY",
+            "DividendCAGR": 47.63,
+            "ConsecutiveIncreases": 1,
+            "DividendHistory": [
+                {
+                    "year": 2021,
+                    "dividend": 16.0
+                },
+                {
+                    "year": 2022,
+                    "dividend": 36.0
+                },
+                {
+                    "year": 2023,
+                    "dividend": 33.0
+                },
+                {
+                    "year": 2024,
+                    "dividend": 33.0
+                },
+                {
+                    "year": 2025,
+                    "dividend": 76.0
+                }
+            ]
+        },
+        {
+            "Ticker": "9107.T",
+            "Name": "Kawasaki Kisen",
+            "Yield": 0.0576,
+            "PayoutRatio": 0.36650002,
+            "Last Price": 2090.0,
+            "Action": "BUY",
+            "DividendCAGR": 3.23,
+            "ConsecutiveIncreases": 1,
+            "DividendHistory": [
+                {
+                    "year": 2022,
+                    "dividend": 99.999996
+                },
+                {
+                    "year": 2023,
+                    "dividend": 133.33333199999998
+                },
+                {
+                    "year": 2024,
+                    "dividend": 100.0
+                },
+                {
+                    "year": 2025,
+                    "dividend": 110.0
+                }
+            ]
+        },
+        {
+            "Ticker": "1605.T",
+            "Name": "Inpex",
+            "Yield": 0.0319,
+            "PayoutRatio": 0.2566,
+            "Last Price": 3170.0,
+            "Action": "BUY",
+            "DividendCAGR": 15.81,
+            "ConsecutiveIncreases": 0,
+            "DividendHistory": [
+                {
+                    "year": 2020,
+                    "dividend": 24.0
+                },
+                {
+                    "year": 2021,
+                    "dividend": 48.0
+                },
+                {
+                    "year": 2022,
+                    "dividend": 62.0
+                },
+                {
+                    "year": 2023,
+                    "dividend": 74.0
+                },
+                {
+                    "year": 2024,
+                    "dividend": 86.0
+                },
+                {
+                    "year": 2025,
+                    "dividend": 50.0
+                }
+            ]
+        },
+        {
+            "Ticker": "8591.T",
+            "Name": "Orix",
+            "Yield": 0.0466,
+            "PayoutRatio": 0.39080003,
+            "Last Price": 4077.0,
+            "Action": "BUY",
+            "DividendCAGR": 14.81,
+            "ConsecutiveIncreases": 2,
+            "DividendHistory": [
+                {
+                    "year": 2020,
+                    "dividend": 76.0
+                },
+                {
+                    "year": 2021,
+                    "dividend": 80.0
+                },
+                {
+                    "year": 2022,
+                    "dividend": 89.4
+                },
+                {
+                    "year": 2023,
+                    "dividend": 85.6
+                },
+                {
+                    "year": 2024,
+                    "dividend": 117.97
+                },
+                {
+                    "year": 2025,
+                    "dividend": 151.60000000000002
+                }
+            ]
+        }
+    ],
+    "patterns": [
+        {
+            "ticker": "7203.T",
+            "pattern": "Double Bottom",
+            "confidence": 0.95,
+            "description": "底値を2回試し、反発の兆し (W字型) - TEST DATA",
+            "points": [
+                "2025-09-23",
+                "2025-10-23"
+            ]
+        }
+    ]
+}
