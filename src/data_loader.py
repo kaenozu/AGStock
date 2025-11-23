@@ -140,6 +140,10 @@ def fetch_macro_data(period: str = "2y") -> Dict[str, pd.DataFrame]:
         "USDJPY": "JPY=X",
         "SP500": "^GSPC",
         "US10Y": "^TNX",
+        "US02Y": "^IRX",  # 2-Year Treasury (for yield curve)
+        "VIX": "^VIX",    # Volatility Index
+        "OIL": "CL=F",    # Crude Oil Futures
+        "GOLD": "GC=F",   # Gold Futures
     }
 
     try:

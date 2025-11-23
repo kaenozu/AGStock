@@ -1,7 +1,10 @@
 import pandas as pd
 import numpy as np
 import ta
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List, Union
+from dataclasses import dataclass
+from enum import Enum
+import logging
 from sklearn.ensemble import RandomForestClassifier
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
@@ -15,6 +18,25 @@ import inspect
 import os
 import importlib.util
 import sys
+
+logger = logging.getLogger(__name__)
+
+class OrderType(Enum):
+    MARKET = "MARKET"
+    LIMIT = "LIMIT"
+    STOP = "STOP"
+
+@dataclass
+class Order:
+    ticker: str
+    type: OrderType
+    action: str # 'BUY' or 'SELL'
+    quantity: float
+    price: Optional[float] = None # Limit or Stop price
+    stop_loss: Optional[float] = None
+    take_profit: Optional[float] = None
+    trailing_stop_pct: Optional[float] = None # For trailing stop logic
+    expiry: str = "GTC" # Good Till Cancelled or DAY
 
 class Strategy:
     def __init__(self, name: str, trend_period: int = 200) -> None:
@@ -453,9 +475,11 @@ class DividendStrategy(Strategy):
         return "条件を満たしていません。"
 
 class EnsembleStrategy(Strategy):
-    def __init__(self):
+    def __init__(self, enable_regime_detection: bool = True):
         super().__init__("Ensemble Strategy")
         from src.ensemble import EnsembleVoter
+        from src.regime import RegimeDetector
+        from src.data_loader import fetch_macro_data
         
         self.strategies = [
             DeepLearningStrategy(),
@@ -463,24 +487,73 @@ class EnsembleStrategy(Strategy):
             CombinedStrategy()
         ]
         
-        self.weights = {
+        # デフォルトウェイト
+        self.base_weights = {
             "Deep Learning (LSTM)": 1.5,
             "LightGBM Alpha": 1.2,
             "Combined (RSI + BB)": 1.0
         }
         
+        self.weights = self.base_weights.copy()
+        
         self.voter = EnsembleVoter(self.strategies, self.weights)
+        
+        # レジーム検知
+        self.enable_regime_detection = enable_regime_detection
+        self.regime_detector = None
+        self.current_regime = None
+        
+        if self.enable_regime_detection:
+            try:
+                # マクロデータを取得してRegimeDetectorを訓練
+                macro_data = fetch_macro_data(period="5y")
+                if macro_data:
+                    self.regime_detector = RegimeDetector(n_regimes=3)
+                    self.regime_detector.fit(macro_data)
+                    logger.info("RegimeDetector initialized and fitted.")
+                else:
+                    logger.warning("Failed to fetch macro data. Regime detection disabled.")
+                    self.enable_regime_detection = False
+            except Exception as e:
+                logger.error(f"Error initializing RegimeDetector: {e}")
+                self.enable_regime_detection = False
+
 
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
         # EnsembleVoter usually works on a single point in time or iterates.
         # But our strategies return full Series of signals.
         # We can implement a vectorized voting mechanism here.
         
+        # 0. Regime Detection & Weight Adjustment
+        if self.enable_regime_detection and self.regime_detector:
+            try:
+                from src.data_loader import fetch_macro_data
+                macro_data = fetch_macro_data(period="1y")
+                regime_id, regime_label, features = self.regime_detector.predict_current_regime(macro_data)
+                self.current_regime = {"id": regime_id, "label": regime_label, "features": features}
+                
+                # レジームに基づいてウェイトを調整
+                if regime_id == 2:  # 暴落警戒 (Risk-Off)
+                    # 全体的にポジションサイズを縮小
+                    self.weights = {k: v * 0.5 for k, v in self.base_weights.items()}
+                    logger.info(f"Regime: {regime_label} - Reducing position sizes to 50%")
+                elif regime_id == 1:  # 不安定 (Volatile)
+                    # 中程度に縮小
+                    self.weights = {k: v * 0.75 for k, v in self.base_weights.items()}
+                    logger.info(f"Regime: {regime_label} - Reducing position sizes to 75%")
+                else:  # 安定上昇 (Stable Bull)
+                    # 通常通り
+                    self.weights = self.base_weights.copy()
+                    logger.info(f"Regime: {regime_label} - Using normal position sizes")
+            except Exception as e:
+                logger.error(f"Error in regime detection: {e}")
+                self.weights = self.base_weights.copy()
+        
         # 1. Get signals from all strategies
         all_signals = pd.DataFrame(index=df.index)
         
         for strategy in self.strategies:
-            print(f"Ensemble: Running {strategy.name}...")
+            # print(f"Ensemble: Running {strategy.name}...\") 
             s_sig = strategy.generate_signals(df)
             all_signals[strategy.name] = s_sig
             
@@ -496,10 +569,47 @@ class EnsembleStrategy(Strategy):
         # 3. Normalize
         final_score = weighted_sum / total_weight
         
-        # 4. Threshold
-        final_signals = pd.Series(0, index=df.index)
-        final_signals[final_score > 0.3] = 1
-        final_signals[final_score < -0.3] = -1
+        # 4. Generate Orders based on Score
+        final_signals = pd.Series(0, index=df.index, dtype=object)
+        
+        # Iterate to create Order objects (Vectorizing this is hard with objects)
+        for i in range(len(df)):
+            score = final_score.iloc[i]
+            if abs(score) <= 0.3: continue
+            
+            price = df['Close'].iloc[i]
+            
+            if score > 0.5: # Strong Buy -> Limit Order
+                # Limit Buy at 0.5% below Close to get better entry
+                limit_price = price * 0.995
+                final_signals.iloc[i] = Order(
+                    ticker="Asset", # Placeholder, overwritten by Backtester
+                    type=OrderType.LIMIT,
+                    action="BUY",
+                    quantity=0, # Auto-calculated by Backtester
+                    price=limit_price,
+                    stop_loss=0.05, # 5% Fixed SL (initial)
+                    take_profit=0.15, # 15% TP
+                    trailing_stop_pct=0.05 # 5% Trailing Stop
+                )
+            elif score > 0.3: # Moderate Buy -> Market Order
+                final_signals.iloc[i] = Order(
+                    ticker="Asset",
+                    type=OrderType.MARKET,
+                    action="BUY",
+                    quantity=0,
+                    stop_loss=0.03, # Tighter SL
+                    take_profit=0.08
+                )
+            elif score < -0.3: # Sell/Short
+                final_signals.iloc[i] = Order(
+                    ticker="Asset",
+                    type=OrderType.MARKET,
+                    action="SELL",
+                    quantity=0,
+                    stop_loss=0.03,
+                    take_profit=0.08
+                )
         
         return final_signals
 

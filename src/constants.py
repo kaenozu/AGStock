@@ -150,3 +150,36 @@ MARKETS: Dict[str, List[str]] = {
     "All": ALL_STOCKS
 }
 
+# US Sector ETFs (SPDR Sector Select)
+SECTOR_ETFS: Dict[str, str] = {
+    "XLF": "Financial",           # 金融
+    "XLE": "Energy",              # エネルギー
+    "XLK": "Technology",          # ハイテク
+    "XLV": "Healthcare",          # ヘルスケア
+    "XLP": "Consumer Staples",    # 生活必需品
+    "XLI": "Industrials",         # 資本財
+    "XLY": "Consumer Discretionary",  # 一般消費財
+    "XLU": "Utilities",           # 公益
+    "XLRE": "Real Estate",        # 不動産
+}
+
+# Sector names in Japanese
+SECTOR_NAMES_JA: Dict[str, str] = {
+    "XLF": "金融",
+    "XLE": "エネルギー",
+    "XLK": "ハイテク",
+    "XLV": "ヘルスケア",
+    "XLP": "生活必需品",
+    "XLI": "資本財",
+    "XLY": "一般消費財",
+    "XLU": "公益",
+    "XLRE": "不動産",
+}
+
+# Economic Cycle to Sector Mapping
+CYCLE_SECTOR_MAP: Dict[str, List[str]] = {
+    "early_recovery": ["XLF", "XLK", "XLRE"],  # 金融相場: 金融、ハイテク、不動産
+    "expansion": ["XLI", "XLY", "XLE"],         # 業績相場: 資本財、一般消費財、エネルギー
+    "early_recession": ["XLE", "XLP"],          # 逆金融相場: エネルギー、生活必需品
+    "recession": ["XLU", "XLV", "XLP"],         # 逆業績相場: 公益、ヘルスケア、生活必需品
+}
