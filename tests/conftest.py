@@ -4,17 +4,6 @@ import numpy as np
 from datetime import datetime, timedelta
 
 
-def pytest_addoption(parser):
-    """pytest-covが利用できない環境でもpytestを実行できるようにするためのダミーオプションを登録。"""
-    parser.addoption("--cov", action="store", default=None, help="Dummy --cov option for offline environments")
-    parser.addoption(
-        "--cov-report",
-        action="append",
-        default=[],
-        help="Dummy --cov-report option for offline environments",
-    )
-
-
 @pytest.fixture
 def sample_stock_data():
     """サンプル株価データフレームを生成"""
