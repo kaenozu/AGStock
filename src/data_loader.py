@@ -56,18 +56,112 @@ def process_downloaded_data(
     return processed
 
 
+from datetime import datetime, timedelta
+from src.data_manager import DataManager
+
+def parse_period(period: str) -> datetime:
+    """Convert period string (e.g., '2y', '1mo') to start datetime."""
+    now = datetime.now()
+    if period.endswith('y'):
+        years = int(period[:-1])
+        return now - timedelta(days=years * 365)
+    elif period.endswith('mo'):
+        months = int(period[:-2])
+        return now - timedelta(days=months * 30)
+    elif period.endswith('d'):
+        days = int(period[:-1])
+        return now - timedelta(days=days)
+    else:
+        # Default fallback
+        return now - timedelta(days=730)
+
 def fetch_stock_data(tickers: Sequence[str], period: str = "2y") -> Dict[str, pd.DataFrame]:
-    """複数ティッカーの株価データを取得する。"""
+    """
+    Fetch stock data for multiple tickers, using local cache when possible.
+    """
     if not tickers:
         return {}
 
-    try:
-        raw = yf.download(tickers, period=period, group_by='ticker', auto_adjust=True, threads=True)
-    except Exception as exc:  # pragma: no cover - 例外経路はテストでモック化
-        logger.error("Error fetching data: %s", exc)
-        return {}
+    db = DataManager()
+    start_date = parse_period(period)
+    result = {}
+    
+    # Identify what needs to be fetched
+    tickers_to_download = []
+    
+    for ticker in tickers:
+        latest_date = db.get_latest_date(ticker)
+        
+        if latest_date is None:
+            # No data, fetch full period
+            tickers_to_download.append(ticker)
+        elif latest_date < datetime.now() - timedelta(days=1):
+            # Data exists but might be stale, fetch from latest_date
+            # For simplicity in bulk download, we might just re-download the missing tail for all
+            # But yfinance bulk download is easiest with a single start date.
+            # Mixed strategies are complex.
+            # Strategy: 
+            # 1. Load what we have from DB.
+            # 2. If end of DB data < required end (now), fetch incremental.
+            
+            # For now, to keep bulk download efficiency, let's try to fetch only if significantly outdated
+            # or if the requested period goes further back than what we have.
+            
+            # Actually, simplest robust approach for now:
+            # Check if we have data covering the requested period.
+            # If not, or if we need new data, download.
+            
+            # Incremental update per ticker is safer but slower than bulk.
+            # Let's stick to the original plan:
+            # 1. Try to load from DB.
+            # 2. If missing/insufficient, download from API.
+            pass
 
-    return process_downloaded_data(raw, tickers)
+    # Simplified Logic for Robustness:
+    # We will iterate tickers, check DB. If up-to-date, use it. If not, add to download list.
+    # But wait, bulk download is much faster.
+    
+    # Hybrid approach:
+    # 1. Load all available data from DB.
+    # 2. Identify tickers that need update (latest_date < yesterday).
+    # 3. Bulk download for those tickers from their earliest missing date? 
+    #    No, bulk download needs common start.
+    
+    # Revised Strategy:
+    # Always try to fetch "new" data for ALL tickers from the earliest "latest_date" among them?
+    # Or just use yfinance caching? No, we want our own DB.
+    
+    # Let's do this:
+    # 1. For each ticker, check latest_date.
+    # 2. If latest_date is old, fetch data from latest_date to Now.
+    # 3. Save to DB.
+    # 4. Load requested period from DB.
+    
+    for ticker in tickers:
+        latest_date = db.get_latest_date(ticker)
+        
+        # Determine fetch start date
+        if latest_date:
+            fetch_start = latest_date + timedelta(days=1)
+        else:
+            fetch_start = start_date
+            
+        if fetch_start < datetime.now():
+            try:
+                # Fetch individual ticker to support different start dates
+                # This is slower than bulk but correct for incremental updates
+                new_data = yf.download(ticker, start=fetch_start, progress=False, threads=False)
+                if not new_data.empty:
+                    db.save_data(new_data, ticker)
+            except Exception as e:
+                logger.error(f"Error updating {ticker}: {e}")
+        
+        # Load from DB
+        df = db.load_data(ticker, start_date=start_date)
+        if not df.empty:
+            result[ticker] = df
+            
+    return result
 
 
 def get_latest_price(df: pd.DataFrame) -> float:

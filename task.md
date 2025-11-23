@@ -503,22 +503,219 @@
   - [x] Visualize Efficient Frontier and Correlation Matrix
 
 - [x] Phase 41: System Polish & Final Documentation
+- [x] **App Integration**
+    - [x] Update `app.py` to allow market selection (Japan/US/Europe/All).
+- [x] **Testing**
+    - [x] Run backtest on global portfolio.
+
+## Phase 14: Notification System (Completed)
+- [x] **Slack Integration**
+    - [x] Create `src/notifier.py` with Slack webhook support.
+    - [x] Add notification for strong BUY signals.
+- [x] **Email Integration**
+    - [x] Add email notification support.
+    - [x] Create daily summary email template.
+
+## Phase 15: GitHub Actions Automation (Completed)
+- [x] **Workflow Setup**
+    - [x] Create `.github/workflows/daily_scan.yml`.
+    - [x] Configure cron schedule (17:00 JST daily).
+- [x] **Reporting**
+    - [x] Auto-save results to `reports/` folder.
+    - [x] Create Issue on error.
+
+## Phase 16: Dashboard Enhancement (Completed)
+- [x] **Real-time Features**
+    - [x] Add real-time price updates.
+    - [x] Create performance heatmap.
+- [x] **Alert System**
+    - [x] Add custom alert configuration.
+    - [x] Implement price threshold notifications.
+
+## Phase 17: CLI & Configuration (Completed)
+- [x] **Configuration Management**
+    - [x] Create `config.yaml` for centralized settings (capital, risk, notifications).
+    - [x] Create `src/config.py` to load and validate configuration.
+- [x] **CLI Tool**
+    - [x] Create `agstock.py` using `argparse`.
+    - [x] Implement commands: `run`, `backtest`, `report`, `backup`.
+
+## Phase 18: Enhanced Backup & Automation (Completed)
+- [x] **Automated Backup**
+    - [x] Add cron/Task Scheduler setup to `setup.sh`/`setup.bat`.
+    - [x] Implement cloud sync option (copy to specified path).
+- [x] **Automation Reliability**
+    - [x] Add retry logic for data fetching and API calls.
+    - [x] Implement comprehensive logging to file.
+
+## Phase 19: Portfolio Rebalancing (Completed)
+- [x] **Rebalancing Logic**
+    - [x] Add `rebalance_portfolio` function to `src/portfolio.py`.
+    - [x] Implement periodic rebalancing (e.g., monthly) in backtester.
+- [x] **Simulation**
+    - [x] Create rebalancing simulation script.
+    - [x] Visualize rebalancing effect on performance.
+
+## Phase 20: Visualization & Reporting (Completed)
+- [x] **Interactive Reports**
+    - [x] Enhance `backtest_report.py` to generate interactive HTML.
+    - [x] Add strategy correlation heatmap.
+- [x] **PDF Export**
+    - [x] Implement PDF report generation using `reportlab` or `weasyprint`.
+
+## Phase 21: Notification Channels (Completed)
+- [x] **Discord Integration**
+    - [x] Add Discord webhook support to `src/notifier.py`.
+- [x] **Push Notifications**
+    - [x] Add Pushover/Pushbullet support.
+
+## Phase 22: Custom Strategy Plugins (Completed)
+- [x] **Plugin System**
+    - [x] Create `src/strategies/custom/` directory.
+    - [x] Implement dynamic strategy loading in `src/strategies.py`.
+- [x] **UI Integration**
+    - [x] Auto-detect custom strategies in `app.py`.
+
+## Phase 23: Quality Assurance (Completed)
+- [x] **Unit Tests**
+    - [x] Create unit tests for new components (`tests/`)
+    - [x] Set up `black` and `isort` configuration (`pyproject.toml`)
+    - [x] Verify all tests pass
+- [ ] **Code Quality**
+    - [ ] Create pre-commit hook setup.
+
+## Phase 24: Sentiment Analysis (Completed)
+- [x] **News Aggregation**
+    - [x] Fetch news headlines via RSS or API (e.g., NewsAPI).
+- [x] **Sentiment Scoring**
+    - [x] Implement basic NLP (Natural Language Processing) to score sentiment (Positive/Negative).
+- [x] **Signal Filtering**
+    - [x] Filter "Buy" signals if sentiment is strongly negative.
+
+## Phase 25: Deep Learning (Completed)
+- [x] **Model Development**
+    - [x] Implement LSTM or Transformer model for time-series prediction.
+- [x] **Integration**
+    - [x] Add as a new strategy class (`DeepLearningStrategy`).
+
+## Phase 26: Sentiment Analysis Enhancement (Completed)
+- [x] **Data Persistence**
+    - [x] Add sentiment history database storage.
+    - [x] Implement historical data retrieval methods.
+- [x] **Visualization**
+    - [x] Create sentiment timeline chart (7/30 days).
+    - [x] Add news headlines display widget.
+    - [x] Implement sentiment gauge indicator.
+- [x] **UX Improvements**
+    - [x] Move sentiment to dedicated expandable section.
+
+## Phase 27: UI Simplification (Completed)
+- [x] **Beginner-Friendly Interface**
+    - [x] Add `get_signal_explanation` to strategies
+    - [x] Implement "Today's Best Pick" section
+    - [x] Simplify result cards
+    - [x] Add Risk Level indicators
+    - [x] Hide advanced details behind "Details" toggle.
+
+- [x] Phase 28: Workflow Automation
+  - [x] Enhance `daily_scan.py` to output rich JSON
+  - [x] Modify `app.py` to auto-load latest results
+  - [x] Implement background auto-run on launch
+
+- [x] Phase 29: Robo-Advisor Mode (Portfolio Automation)
+  - [x] Update `daily_scan.py` to calculate optimal portfolio allocation
+  - [x] Save portfolio weights to `scan_results.json`
+  - [x] Display "AI Recommended Portfolio" in `app.py`
+
+- [x] Phase 30: Crypto Support
+  - [x] Add Crypto tickers to `src/constants.py`
+  - [x] Enable Crypto scanning in `daily_scan.py`
+  - [x] Update `app.py` to support Crypto market selection
+
+- [x] Phase 31: Budget-Friendly Features (Odd Lot Support)
+  - [x] Add "Trading Unit" toggle (100 shares vs 1 share) in `app.py` sidebar
+  - [x] Update order logic to handle Odd Lot (S-kabu/Mini-kabu) trading
+  - [x] Update Robo-Advisor to calculate shares based on selected unit
+
+- [x] Phase 32: High Dividend Strategy (Income Gain Focus)
+  - [x] Update `src/data_loader.py` to fetch Dividend Yield
+  - [x] Create `DividendStrategy` in `src/strategies.py`
+  - [x] Update `daily_scan.py` to include Dividend Strategy
+  - [x] Add "High Dividend" section to `app.py`
+
+- [x] Phase 33: Dividend Growth Analysis & Visualization
+  - [x] Fetch historical dividend data (5 years)
+  - [x] Calculate dividend growth rate (CAGR)
+  - [x] Count consecutive dividend increase years
+  - [x] Add dividend trend chart to UI
+  - [x] Update high dividend section with growth metrics
+
+- [x] Phase 34: Notification System (LINE/Discord)
+  - [x] Implement LINE Notify integration
+  - [x] Implement Discord Webhook integration
+  - [x] Create notification formatter for scan results
+  - [x] Add notification settings to config
+  - [x] Update daily_scan.py to send notifications
+
+- [x] Phase 35: Performance Analysis Dashboard
+  - [x] Calculate cumulative P&L from paper trading history
+  - [x] Create strategy-wise performance metrics
+  - [x] Add benchmark comparison (Nikkei 225)
+  - [x] Implement monthly/weekly performance reports
+  - [x] Create interactive performance dashboard in app.py
+- [x] Phase 36: Historical Backtesting (10-Year Validation)
+  - [x] Create `src/backtest_engine.py` for long-term simulation
+  - [x] Implement `fetch_historical_data` (10 years) in `data_loader.py`
+  - [x] Create `HistoricalBacktester` class with CAGR, MaxDD, Sharpe metrics
+  - [x] Add "Historical Validation" tab to `app.py`
+  - [x] Visualize long-term equity curve and annual returns
+- [x] Phase 37: Chart Pattern Recognition (Technical Analysis)
+  - [x] Create `src/patterns.py` for pattern detection algorithms
+  - [x] Implement `detect_double_bottom`, `detect_head_and_shoulders`
+  - [x] Implement `detect_triangle` (Ascending/Descending)
+  - [x] Integrate into `daily_scan.py` and `app.py` with visualization
+  - [ ] Update `daily_scan.py` to scan for patterns
+  - [x] Add "Pattern Scan" section to `app.py`
+
+- [x] Phase 38: Deep Learning Strategy Refinement (Fix Data Leakage)
+  - [x] Refactor `DeepLearningStrategy` in `src/strategies.py`
+  - [x] Implement Walk-Forward Validation logic
+  - [x] Add `Volume` and `Volatility` features
+  - [x] Update `data_loader.py` to fetch sufficient history
+  - [x] Create `verify_dl_strategy.py` for leakage testing
+  - [x] Verify with synthetic data
+
+- [x] Phase 39: Fundamental Analysis Integration
+  - [x] Update `daily_scan.py` to fetch fundamental data
+  - [x] Implement filtering logic (PER, PBR, ROE) in `daily_scan.py`
+  - [x] Add "Fundamental Filters" sidebar to `app.py`
+  - [x] Display fundamental metrics (badges) in `app.py` results
+
+- [x] Phase 40: Advanced Portfolio Optimization
+  - [x] Update `src/portfolio.py` with Efficient Frontier logic
+  - [x] Implement Monte Carlo simulation for portfolio generation
+  - [x] Add "Portfolio" tab to `app.py` with interactive charts
+  - [x] Visualize Efficient Frontier and Correlation Matrix
+
+- [x] Phase 41: System Polish & Final Documentation
   - [x] Clean up temporary files (move tests, delete injectors)
   - [x] Add "Live Mode" (Auto-Refresh) to `app.py`
   - [x] Create `USER_MANUAL.md`
   - [x] Final Verification
 
-- [x] Phase 42: Ensemble Learning (Prediction Accuracy)
-  - [x] Create `src/ensemble.py` for Voting/Stacking logic
-  - [x] Implement `EnsembleStrategy` in `src/strategies.py`
-  - [x] Integrate LightGBM and LSTM into Ensemble
-  - [x] Update `app.py` to include Ensemble Strategy
-
+- [x] Phase 42: Ensemble Learning (Multiple Models)
+    - [x] Create `src/ensemble.py` for voting logic
+    - [x] Implement `EnsembleStrategy` in `src/strategies.py`
+    - [x] Integrate into `app.py`
 - [x] Phase 43: UI Polish (Pro Design)
-  - [x] Create `assets/style.css` for Dark Mode & Glassmorphism
-  - [x] Apply custom CSS in `app.py`
-  - [x] Enhance Plotly chart templates
-
-- [ ] Phase 44: Smart Notifications (Automation Prep)
-  - [ ] Refine `daily_scan.py` notification format
-  - [ ] Add rich messages (charts/images) to Line/Discord
+    - [x] Create `assets/style.css` (Dark Mode, Glassmorphism)
+    - [x] Apply custom fonts and animations
+- [x] Phase 44: Core System Enhancements (Data & Backtest)
+    - [x] Implement `src/data_manager.py` (SQLite Data Cache)
+    - [x] Refactor `src/data_loader.py` to use Data Manager
+    - [x] Refactor `src/backtester.py` (Unified Portfolio Engine)
+    - [x] Update `src/portfolio.py` to use new Backtester
+    - [x] Create tests for Data Manager and Backtester
+- [ ] Phase 45: Smart Notifications (Rich Messages)
+    - [ ] Integrate Line/Discord API
+    - [ ] Send charts and summary reports
