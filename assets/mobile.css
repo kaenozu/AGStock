@@ -1,0 +1,250 @@
+/* Mobile Optimizations for AGStock */
+/* モバイル最適化CSS */
+
+@media (max-width: 768px) {
+
+    /* === Typography === */
+    h1 {
+        font-size: 1.75rem !important;
+        line-height: 1.2;
+    }
+
+    h2 {
+        font-size: 1.5rem !important;
+    }
+
+    h3 {
+        font-size: 1.25rem !important;
+    }
+
+    /* === Sidebar === */
+    [data-testid="stSidebar"] {
+        width: 100% !important;
+    }
+
+    /* === Metrics === */
+    [data-testid="stMetricValue"] {
+        font-size: 1.25rem !important;
+    }
+
+    [data-testid="stMetricLabel"] {
+        font-size: 0.75rem !important;
+    }
+
+    div[data-testid="metric-container"] {
+        padding: var(--spacing-md) !important;
+        margin-bottom: var(--spacing-sm) !important;
+    }
+
+    /* === Buttons === */
+    .stButton>button {
+        width: 100% !important;
+        padding: 0.75rem !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* === Tabs === */
+    .stTabs [data-baseweb="tab"] {
+        height: 40px !important;
+        padding: var(--spacing-xs) var(--spacing-sm) !important;
+        font-size: 0.75rem !important;
+    }
+
+    /* === Columns - Force Stacking === */
+    .row-widget.stHorizontal {
+        flex-direction: column !important;
+    }
+
+    [data-testid="column"] {
+        width: 100% !important;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    /* === Tables === */
+    .dataframe {
+        font-size: 0.8rem !important;
+    }
+
+    .dataframe thead tr th {
+        padding: var(--spacing-sm) !important;
+    }
+
+    .dataframe tbody tr td {
+        padding: 0.25rem 0.5rem !important;
+    }
+
+    /* === Charts === */
+    .js-plotly-plot {
+        height: 300px !important;
+    }
+
+    /* === Forms === */
+    input,
+    textarea,
+    select {
+        font-size: 16px !important;
+        /* Prevents zoom on iOS */
+    }
+
+    /* === Spacing === */
+    .element-container {
+        margin-bottom: 0.75rem;
+    }
+
+    /* === Expanders === */
+    .streamlit-expanderHeader {
+        font-size: 0.9rem !important;
+        padding: var(--spacing-sm) !important;
+    }
+
+    /* === Reduce Padding === */
+    .block-container {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+
+    /* === Extra Small Devices === */
+    h1 {
+        font-size: 1.5rem !important;
+    }
+
+    h2 {
+        font-size: 1.25rem !important;
+    }
+
+    h3 {
+        font-size: 1.1rem !important;
+    }
+
+    [data-testid="stMetricValue"] {
+        font-size: 1.1rem !important;
+    }
+
+    .stButton>button {
+        padding: 0.6rem !important;
+        font-size: 0.85rem !important;
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        font-size: 0.7rem !important;
+        padding: 0.25rem 0.5rem !important;
+    }
+
+    /* === Hide Less Important Elements === */
+    .stMarkdownContainer p:has(img) {
+        font-size: 0.8rem !important;
+    }
+}
+
+/* === Touch Optimization === */
+@media (hover: none) and (pointer: coarse) {
+
+    /* Better touch targets */
+    .stButton>button {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .stCheckbox,
+    .stRadio {
+        min-height: 44px;
+    }
+
+    /* Remove hover effects on touch devices */
+    .stButton>button:hover {
+        transform: none !important;
+    }
+
+    div[data-testid="metric-container"]:hover {
+        transform: none !important;
+    }
+}
+
+/* === Landscape Orientation === */
+@media (max-width: 1024px) and (orientation: landscape) {
+    h1 {
+        font-size: 1.5rem !important;
+    }
+
+    .block-container {
+        max-width: 100% !important;
+    }
+}
+
+/* === Print Optimization === */
+@media print {
+
+    /* Hide interactive elements */
+    .stButton,
+    [data-testid="stSidebar"],
+    .stTabs [data-baseweb="tab-list"] {
+        display: none !important;
+    }
+
+    /* Optimize for black & white printing */
+    [data-testid="metric-container"] {
+        border: 1px solid #000 !important;
+        background: white !important;
+    }
+
+    /* Page breaks */
+    h2 {
+        page-break-before: always;
+    }
+
+    .dataframe {
+        page-break-inside: avoid;
+    }
+}
+
+/* === Responsive Grid for Stock Cards === */
+@media (max-width: 1200px) {
+    .stock-card-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .stock-card-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* === Accessibility - High Contrast Mode === */
+@media (prefers-contrast: high) {
+    :root {
+        --bg-primary: #000000;
+        --bg-secondary: #1a1a1a;
+        --text-primary: #ffffff;
+        --text-secondary: #ffffff;
+        --border-default: #ffffff;
+    }
+
+    [data-testid="metric-container"] {
+        border: 2px solid #ffffff !important;
+    }
+}
+
+/* === Accessibility - Reduced Motion === */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* === Dark Mode Support (System Preference) === */
+@media (prefers-color-scheme: light) {
+    /* Light mode overrides if needed */
+    /* Currently app is dark by default */
+}
