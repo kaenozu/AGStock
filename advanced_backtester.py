@@ -114,6 +114,8 @@ class AdvancedBacktester:
                         best_params = param_dict
             
             except Exception as e:
+                # エラーをログに記録
+                print(f"パラメータ {param_dict} でエラー: {e}")
                 continue
             
             # 進捗表示
@@ -166,7 +168,14 @@ class AdvancedBacktester:
             print(f"  テスト: {test_data.index[0]} ~ {test_data.index[-1]}")
             
             # 訓練（戦略を学習）
-            # 注: 実際には戦略のfitメソッドを呼ぶべきだが、簡略化
+            # 機械学習戦略の場合は、訓練データでモデルを再学習
+            if hasattr(strategy, 'fit'):
+                try:
+                    train_data_map = {ticker: train_data}
+                    strategy.fit(train_data_map)
+                    print(f"  戦略を訓練データで再学習しました")
+                except Exception as e:
+                    print(f"  戦略の訓練でエラー: {e}")
             
             # テスト
             backtester = Backtester(

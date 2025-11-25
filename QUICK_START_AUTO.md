@@ -76,26 +76,33 @@ LINE または Discord に結果を自動送信（設定した場合）
 ```json
 {
   "paper_trading": {
-    "initial_capital": 1000000,  // 初期資本（円）
+    "initial_capital": 1000000,
     "enabled": true
   },
   "auto_trading": {
     "enabled": true,
-    "max_daily_trades": 5,       // 1日の最大取引数
-    "risk_per_trade": 0.02       // 1取引あたりのリスク（2%）
+    "max_daily_trades": 5,
+    "risk_per_trade": 0.02
   },
   "notifications": {
     "line": {
       "enabled": false,
-      "token": "YOUR_LINE_TOKEN"  // LINE Notify トークン
+      "token": "YOUR_LINE_TOKEN"
     },
     "discord": {
       "enabled": false,
-      "webhook_url": ""           // Discord Webhook URL
+      "webhook_url": ""
     }
   }
 }
 ```
+
+**設定項目の説明:**
+- `initial_capital`: 初期資本（円）
+- `max_daily_trades`: 1日の最大取引数
+- `risk_per_trade`: 1取引あたりのリスク（2%）
+- LINE `token`: LINE Notify トークン
+- Discord `webhook_url`: Discord Webhook URL
 
 ### LINE 通知の設定（オプション）
 1. LINE Notify (https://notify-bot.line.me/) にアクセス

@@ -29,7 +29,8 @@ class MorningBrief:
         try:
             with open(path, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except:
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            print(f"設定ファイル読み込みエラー: {e}")
             return {}
     
     def get_market_overview(self) -> Dict:
@@ -54,7 +55,8 @@ class MorningBrief:
                         "change_pct": change_pct,
                         "emoji": "📈" if change_pct > 0 else "📉"
                     }
-            except:
+            except Exception as e:
+                print(f"{name}取得エラー: {e}")
                 overview[name] = None
         
         return overview
@@ -81,7 +83,8 @@ class MorningBrief:
                 "label": sentiment['label'],
                 "emoji": "😊" if sentiment['score'] > 0.2 else "😐" if sentiment['score'] > -0.2 else "😨"
             }
-        except:
+        except Exception as e:
+            print(f"センチメント取得エラー: {e}")
             return {"score": 0, "label": "不明", "emoji": "😐"}
     
     def generate_brief(self) -> str:
