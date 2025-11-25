@@ -22,14 +22,10 @@ from src.paper_trader import PaperTrader
 from src.execution import ExecutionEngine
 
 # 新機能統合
-from src.psychological_guard import PsychologicalGuard
-from src.macro_analyzer import MacroAnalyzer
-from src.liquidity_analyzer import LiquidityAnalyzer
 from src.cache_config import install_cache
 from src.smart_notifier import SmartNotifier
 from src.risk_guard import RiskGuard
 from src.sentiment import SentimentAnalyzer
-from src.backup_manager import BackupManager
 
 
 class FullyAutomatedTrader:
@@ -62,11 +58,8 @@ class FullyAutomatedTrader:
         self.log_file = "logs/auto_trader.log"
         os.makedirs("logs", exist_ok=True)
         
-        # バックアップマネージャー
-        try:
-            self.backup_manager = BackupManager()
-        except:
-            self.backup_manager = None
+        # バックアップマネージャー（オプション機能としてNoneを初期化）
+        self.backup_manager = None
         
         # 実行エンジン
         self.engine = ExecutionEngine(self.pt)
@@ -199,7 +192,7 @@ class FullyAutomatedTrader:
         self.log(f"🚨 緊急停止: {reason}", "CRITICAL")
         
         # バックアップ作成
-        if self.backup_enabled:
+        if self.backup_enabled and self.backup_manager:
             try:
                 backup_path = self.backup_manager.auto_backup()
                 if backup_path:
