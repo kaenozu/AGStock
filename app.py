@@ -3,12 +3,27 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 from src.constants import NIKKEI_225_TICKERS, TICKER_NAMES, MARKETS
-from src.data_loader import fetch_stock_data, get_latest_price
+from src.data_loader import fetch_stock_data, get_latest_price, fetch_news
 from src.strategies import SMACrossoverStrategy, RSIStrategy, BollingerBandsStrategy, CombinedStrategy, MLStrategy, LightGBMStrategy, DeepLearningStrategy, EnsembleStrategy, load_custom_strategies
 from src.backtester import Backtester
 from src.portfolio import PortfolioManager
 from src.paper_trader import PaperTrader
+from src.live_trading import PaperBroker, LiveTradingEngine
+from src.llm_analyzer import LLMAnalyzer
+from src.agents import TechnicalAnalyst, FundamentalAnalyst, MacroStrategist, RiskManager, PortfolioManager
 from src.cache_config import install_cache
+
+# Design System Imports
+from src.design_tokens import Colors, RISK_LEVELS, ACTION_TYPES
+from src.formatters import (
+    format_currency, format_percentage, format_number, 
+    get_risk_level, get_sentiment_label
+)
+from src.ui_components import (
+    display_risk_badge, display_action_badge, display_sentiment_gauge,
+    display_stock_card, display_best_pick_card, display_error_message,
+    display_loading_skeleton
+)
 
 # Install cache
 install_cache()
@@ -32,9 +47,21 @@ st.set_page_config(page_title="AI Stock Predictor", layout="wide")
 st.title("🌍 グローバル株式 AI 予測アナライザー (Pro)")
 st.markdown("日本・米国・欧州の主要株式を対象とした、プロ仕様のバックテストエンジン搭載。")
 
-# Load Custom CSS
-with open("assets/style.css") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+# Load Custom CSS v2 (Improved Design System)
+try:
+    with open("assets/style_v2.css") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+except FileNotFoundError:
+    # Fallback to original CSS
+    with open("assets/style.css") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+# Load Mobile Optimizations
+try:
+    with open("assets/mobile.css") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+except FileNotFoundError:
+    pass  # モバイルCSSはオプション
 
 # Set Default Plotly Template
 import plotly.io as pio
@@ -115,7 +142,26 @@ if st.sidebar.checkbox("🔄 自動更新 (Live Mode)", value=False, help="60秒
     st.rerun()
 
 # Create Tabs
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 市場スキャン", "💼 ポートフォリオ", "📝 ペーパートレード", "📈 ダッシュボード", "🕰️ 過去検証"])
+tab_home, tab1, tab2, tab3, tab4, tab5, tab_perf = st.tabs([
+    "🏠 ホーム", 
+    "📊 市場スキャン", 
+    "💼 ポートフォリオ", 
+    "📝 ペーパートレード", 
+    "📈 ダッシュボード", 
+    "🕰️ 過去検証",
+    "📊 パフォーマンス分析"  # NEW
+])
+
+# --- Tab Home: Simple Dashboard ---
+with tab_home:
+    from src.simple_dashboard import create_simple_dashboard
+    create_simple_dashboard()
+
+# --- Tab Performance: Enhanced Performance Dashboard ---
+with tab_perf:
+    from src.enhanced_performance_dashboard import create_performance_dashboard
+    create_performance_dashboard()
+
 
 with tab1:
     st.header("市場全体スキャン")
@@ -137,7 +183,11 @@ with tab1:
                     cached_results = data
                     st.success(f"✅ 最新のスキャン結果を読み込みました ({data['scan_date']})")
         except Exception as e:
-            st.error(f"キャッシュデータの読み込みに失敗しました: {e}")
+            display_error_message(
+                "data",
+                "スキャン結果の読み込みに失敗しました。ファイルが破損している可能性があります。",
+                str(e)
+            )
 
     run_fresh = False
     # Button logic: If cache exists, button says "Re-scan". If not, "Scan".
@@ -152,20 +202,7 @@ with tab1:
         
         # === Display Cached Sentiment ===
         with st.expander("📰 市場センチメント分析", expanded=True):
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("センチメントスコア", f"{sentiment['score']:.2f}", sentiment['label'])
-                if sentiment['label'] == 'Positive':
-                    st.success(f"🟢 {sentiment['label']}")
-                elif sentiment['label'] == 'Negative':
-                    st.error(f"🔴 {sentiment['label']}")
-                else:
-                    st.info(f"🟡 {sentiment['label']}")
-            with col2:
-                st.metric("ニュース件数", sentiment['news_count'])
-            with col3:
-                # Simple gauge for cache
-                st.metric("Gauge", f"{sentiment['score']:.2f}") 
+            display_sentiment_gauge(sentiment['score'], sentiment.get('news_count', 0))
 
             st.subheader("📰 最新ニュース見出し")
             if sentiment.get('top_news'):
@@ -209,35 +246,47 @@ with tab1:
             actionable_df = actionable_df.sort_values(by="Return", ascending=False)
 
             # 1. Today's Best Pick
-
-
-            st.markdown("---")
-            st.subheader("🏆 今日のイチオシ (Today's Best Pick)")
-            
             if not actionable_df.empty:
                 best_pick = actionable_df.iloc[0]
                 
-                col_best_1, col_best_2 = st.columns([1, 2])
-                with col_best_1:
-                    st.metric("銘柄", f"{best_pick['Name']} ({best_pick['Ticker']})")
-                    st.metric("現在価格", f"¥{best_pick['Last Price']:,.0f}")
-                    st.markdown(f"**リスクレベル**: :{best_pick['Risk Color']}[{best_pick['Risk Level']}]")
-                    
-                    # Fundamental Badges
-                    if 'PER' in best_pick and pd.notna(best_pick['PER']):
-                        st.caption(f"PER: {best_pick['PER']:.1f}倍 | PBR: {best_pick.get('PBR', 0):.2f}倍 | ROE: {best_pick.get('ROE', 0):.1%}")
-                    
-                with col_best_2:
-                    st.success(f"**{best_pick['Action']}** 推奨")
-                    st.markdown(f"**理由**: {best_pick['Explanation']}")
-                    st.caption(f"検知戦略: {best_pick['Strategy']}")
-                    
-                    if st.button("この銘柄を今すぐ注文 (Paper Trading)", key="best_pick_btn_cached", type="primary"):
-                         pt = PaperTrader()
-                         trade_action = "BUY" if best_pick['Action'] == "BUY" else "SELL"
-                         if pt.execute_trade(best_pick['Ticker'], trade_action, trading_unit, best_pick['Last Price'], reason=f"Best Pick: {best_pick['Strategy']}"):
-                             st.balloons()
-                             st.success(f"{best_pick['Name']} を {trading_unit}株 {trade_action} しました！")
+                # リスクレベル判定（統一版）
+                risk_level = get_risk_level(best_pick.get('Max Drawdown', -0.15))
+                
+                # 追加情報の準備
+                additional_info = {}
+                if 'PER' in best_pick and pd.notna(best_pick['PER']):
+                    additional_info['PER'] = best_pick['PER']
+                if 'PBR' in best_pick and pd.notna(best_pick['PBR']):
+                    additional_info['PBR'] = best_pick['PBR']
+                if 'ROE' in best_pick and pd.notna(best_pick['ROE']):
+                    additional_info['ROE'] = best_pick['ROE']
+                
+                # 注文コールバック
+                def handle_best_pick_order(ticker, action, price):
+                    pt = PaperTrader()
+                    trade_action = "BUY" if "BUY" in action else "SELL"
+                    if pt.execute_trade(ticker, trade_action, trading_unit, price, reason=f"Best Pick: {best_pick['Strategy']}"):
+                        st.balloons()
+                        st.success(f"{best_pick['Name']} を {trading_unit}株 {trade_action} しました！")
+                    else:
+                        display_error_message(
+                            "permission",
+                            "注文に失敗しました。資金不足または保有株式が不足しています。",
+                            f"Ticker: {ticker}, Action: {trade_action}, Unit: {trading_unit}"
+                        )
+                
+                # 改善版コンポーネントで表示
+                display_best_pick_card(
+                    ticker=best_pick['Ticker'],
+                    name=best_pick['Name'],
+                    action=best_pick['Action'],
+                    price=best_pick['Last Price'],
+                    explanation=best_pick.get('Explanation', ''),
+                    strategy=best_pick['Strategy'],
+                    risk_level=risk_level,
+                    on_order_click=handle_best_pick_order,
+                    additional_info=additional_info if additional_info else None
+                )
 
             # 1.5. AI Robo-Advisor Portfolio
             if 'portfolio' in cached_results and cached_results['portfolio']:
@@ -298,11 +347,11 @@ with tab1:
                     
                     hd_df = pd.DataFrame(cached_results['high_dividend'])
                     
-                    # Format columns for display
+                    # Format columns for display (統一版フォーマット使用)
                     display_df = hd_df.copy()
-                    display_df['Yield'] = display_df['Yield'].apply(lambda x: f"{x:.2%}")
-                    display_df['PayoutRatio'] = display_df['PayoutRatio'].apply(lambda x: f"{x:.2%}")
-                    display_df['Last Price'] = display_df['Last Price'].apply(lambda x: f"¥{x:,.0f}")
+                    display_df['Yield'] = display_df['Yield'].apply(lambda x: format_percentage(x, decimals=2))
+                    display_df['PayoutRatio'] = display_df['PayoutRatio'].apply(lambda x: format_percentage(x, decimals=2))
+                    display_df['Last Price'] = display_df['Last Price'].apply(lambda x: format_currency(x))
                     
                     # Add growth metrics if available
                     if 'DividendCAGR' in display_df.columns:
@@ -345,25 +394,39 @@ with tab1:
             
             if len(actionable_df) > 1:
                 for idx, row in actionable_df.iloc[1:].iterrows():
-                    with st.container():
-                        c1, c2, c3, c4 = st.columns([2, 2, 3, 2])
-                        with c1:
-                            st.markdown(f"**{row['Name']}**")
-                            st.caption(row['Ticker'])
-                        with c2:
-                            st.markdown(f"**{row['Action']}**")
-                            st.caption(f"¥{row['Last Price']:,.0f}")
-                        with c3:
-                            st.markdown(f"{row['Explanation']}")
-                            st.caption(f"戦略: {row['Strategy']}")
-                        with c4:
-                            st.markdown(f"リスク: :{row['Risk Color']}[{row['Risk Level']}]")
-                            if st.button("注文", key=f"btn_{row['Ticker']}_{row['Strategy']}_cached"):
-                                pt = PaperTrader()
-                                t_act = "BUY" if row['Action'] == "BUY" else "SELL"
-                                if pt.execute_trade(row['Ticker'], t_act, trading_unit, row['Last Price'], reason=f"Card: {row['Strategy']}"):
-                                    st.toast(f"{row['Name']} 注文完了！")
-                        st.divider()
+                    # リスクレベル判定
+                    risk_level = get_risk_level(row.get('Max Drawdown', -0.15))
+                    
+                    # 追加情報
+                    additional_info = {}
+                    if 'PER' in row and pd.notna(row['PER']):
+                        additional_info['PER'] = row['PER']
+                    if 'PBR' in row and pd.notna(row['PBR']):
+                        additional_info['PBR'] = row['PBR']
+                    if 'ROE' in row and pd.notna(row['ROE']):
+                        additional_info['ROE'] = row['ROE']
+                    
+                    # 注文コールバック
+                    def handle_card_order(ticker, action, price, row_data=row):
+                        pt = PaperTrader()
+                        t_act = "BUY" if "BUY" in action else "SELL"
+                        if pt.execute_trade(ticker, t_act, trading_unit, price, reason=f"Card: {row_data['Strategy']}"):
+                            st.toast(f"{row_data['Name']} 注文完了！")
+                        else:
+                            st.warning("注文に失敗しました。")
+                    
+                    # 改善版コンポーネントで表示
+                    display_stock_card(
+                        ticker=row['Ticker'],
+                        name=row['Name'],
+                        action=row['Action'],
+                        price=row['Last Price'],
+                        explanation=row.get('Explanation', ''),
+                        strategy=row['Strategy'],
+                        risk_level=risk_level,
+                        on_order_click=handle_card_order,
+                        additional_info=additional_info if additional_info else None
+                    )
 
             # 2.5. Pattern Scan
             if 'patterns' in cached_results and cached_results['patterns']:
@@ -460,52 +523,20 @@ with tab1:
             sa = st.session_state.sentiment_analyzer
             
             with st.spinner("市場センチメントを分析中..."):
-                sentiment = sa.get_market_sentiment()
-                # Save to database
-                sa.save_sentiment_history(sentiment)
+                try:
+                    sentiment = sa.get_market_sentiment()
+                    # Save to database
+                    sa.save_sentiment_history(sentiment)
+                except Exception as e:
+                    display_error_message(
+                        "network",
+                        "センチメント分析に失敗しました。ネットワーク接続を確認してください。",
+                        str(e)
+                    )
+                    sentiment = {'score': 0, 'label': 'Neutral', 'news_count': 0, 'top_news': []}
             
-            # Current Sentiment Display
-            col1, col2, col3 = st.columns(3)
-            
-            # Sentiment Gauge
-            with col1:
-                st.metric("センチメントスコア", f"{sentiment['score']:.2f}", sentiment['label'])
-                
-                # Color-coded label
-                if sentiment['label'] == 'Positive':
-                    st.success(f"🟢 {sentiment['label']}")
-                elif sentiment['label'] == 'Negative':
-                    st.error(f"🔴 {sentiment['label']}")
-                else:
-                    st.info(f"🟡 {sentiment['label']}")
-            
-            with col2:
-                st.metric("ニュース件数", sentiment['news_count'])
-            
-            with col3:
-                # Gauge Indicator (use already imported go from top of file)
-                fig_gauge = go.Figure(go.Indicator(
-                    mode="gauge+number",
-                    value=sentiment['score'],
-                    domain={'x': [0, 1], 'y': [0, 1]},
-                    title={'text': "Sentiment"},
-                    gauge={
-                        'axis': {'range': [-1, 1]},
-                        'bar': {'color': "darkblue"},
-                        'steps': [
-                            {'range': [-1, -0.15], 'color': "lightcoral"},
-                            {'range': [-0.15, 0.15], 'color': "lightyellow"},
-                            {'range': [0.15, 1], 'color': "lightgreen"}
-                        ],
-                        'threshold': {
-                            'line': {'color': "red", 'width': 4},
-                            'thickness': 0.75,
-                            'value': -0.2
-                        }
-                    }
-                ))
-                fig_gauge.update_layout(height=200, margin=dict(l=10, r=10, t=30, b=10))
-                st.plotly_chart(fig_gauge, use_container_width=True)
+            # Sentiment Display (統一コンポーネント使用)
+            display_sentiment_gauge(sentiment['score'], sentiment.get('news_count', 0))
             
             # Sentiment Timeline
             st.subheader("📈 センチメント推移")
@@ -565,10 +596,22 @@ with tab1:
                 tickers = MARKETS[selected_market]
                 
             if not tickers:
-                st.error("銘柄が指定されていません。")
+                display_error_message(
+                    "data",
+                    "銘柄が指定されていません。サイドバーで銘柄を選択してください。",
+                    None
+                )
                 st.stop()
-                
-            data_map = fetch_stock_data(tickers, period=period)
+            
+            try:
+                data_map = fetch_stock_data(tickers, period=period)
+            except Exception as e:
+                display_error_message(
+                    "network",
+                    "株価データの取得に失敗しました。インターネット接続を確認してください。",
+                    str(e)
+                )
+                st.stop()
             
             results = []
             progress_bar = st.progress(0)
@@ -876,13 +919,12 @@ with tab3:
     balance = pt.get_current_balance()
     
     col1, col2, col3 = st.columns(3)
-    col1.metric("現金残高 (Cash)", f"¥{balance['cash']:,.0f}")
-    col2.metric("総資産 (Total Equity)", f"¥{balance['total_equity']:,.0f}")
+    col1.metric("現金残高 (Cash)", format_currency(balance['cash']))
+    col2.metric("総資産 (Total Equity)", format_currency(balance['total_equity']))
     
     pnl = balance['total_equity'] - pt.initial_capital
-    pnl_color = "normal"
-    if pnl > 0: pnl_color = "normal" # Streamlit handles color in delta
-    col3.metric("全期間損益", f"¥{pnl:,.0f}", delta=f"{pnl/pt.initial_capital*100:.1f}%")
+    pnl_pct = (pnl / pt.initial_capital) * 100
+    col3.metric("全期間損益", format_currency(pnl), delta=f"{pnl_pct:+.1f}%")
     
     st.divider()
     
@@ -1135,13 +1177,13 @@ with tab4:
     # Current Status
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("総資産", f"¥{balance['total_equity']:,.0f}")
+        st.metric("総資産", format_currency(balance['total_equity']))
     with col2:
         profit = balance['total_equity'] - pt_perf.initial_capital
         profit_pct = (profit / pt_perf.initial_capital) * 100
-        st.metric("損益", f"¥{profit:+,.0f}", f"{profit_pct:+.2f}%")
+        st.metric("損益", format_currency(profit, decimals=0), f"{profit_pct:+.2f}%")
     with col3:
-        st.metric("現金", f"¥{balance['cash']:,.0f}")
+        st.metric("現金", format_currency(balance['cash']))
     
     # Equity Curve
     if not equity_history.empty:
@@ -1278,3 +1320,148 @@ with tab5:
                     
             except Exception as e:
                 st.error(f"検証エラー: {e}")
+
+# === AI Investment Committee ===
+st.header("🏛️ AI Investment Committee")  
+st.write("専門AIエージェントの「会議」により投資判断を下します。")
+
+committee_ticker = st.selectbox(
+    "分析対象銘柄",
+    MARKETS.get("Japan", NIKKEI_225_TICKERS),
+    format_func=lambda x: f"{x} - {TICKER_NAMES.get(x, '')}",
+    key="committee_ticker"
+)
+
+if st.button("🏛️ 投資委員会を召集", type="primary", key="run_committee"):
+    with st.spinner(f"{committee_ticker} の分析中..."):
+        # Fetch data
+        stock_data_dict = fetch_stock_data([committee_ticker], period="1y")
+        stock_df = stock_data_dict.get(committee_ticker)
+        
+        news_data = fetch_news(committee_ticker)
+        
+        # Prepare data bundle
+        data = {
+            "stock_data": stock_df,
+            "news_data": news_data,
+            "macro_data": None  # Can be fetched if needed
+        }
+        
+        # Initialize Agents
+        tech_agent = TechnicalAnalyst()
+        fund_agent = FundamentalAnalyst()
+        macro_agent = MacroStrategist()
+        risk_agent = RiskManager()
+        pm_agent = PortfolioManager()
+        
+        # Collect Votes
+        votes = []
+        votes.append(tech_agent.vote(committee_ticker, data))
+        votes.append(fund_agent.vote(committee_ticker, data))
+        votes.append(macro_agent.vote(committee_ticker, data))
+        votes.append(risk_agent.vote(committee_ticker, data))
+       
+        # Final Decision
+        decision = pm_agent.make_decision(committee_ticker, votes)
+        
+        # Display Results
+        st.markdown("---")
+        st.subheader(f"🎯 最終判断: {decision['decision']}")
+        st.metric("Decision Score", f"{decision['score']:.2f}")
+        
+        if decision['decision'] == "BUY":
+            st.success("✅ 委員会は「買い」を推奨します。")
+        elif decision['decision'] == "SELL":
+            st.error("❌ 委員会は「売り」を推奨します。")
+        else:
+            st.info("⚪ 委員会は「様子見」を推奨します。")
+        
+        st.markdown("---")
+        st.subheader("🗣️ エージェント別の意見")
+        
+        for vote in votes:
+            with st.container():
+                icon = "🟢" if vote.decision == "BUY" else "🔴" if vote.decision == "SELL" else "⚪"
+                st.markdown(f"{icon} **{vote.agent_name}**: {vote.decision} (信頼度: {vote.confidence:.2f})")
+                st.caption(vote.reasoning)
+                st.divider()
+        
+        st.markdown("---")
+        st.subheader("📋 会議議事録")
+        for line in decision['summary']:
+            st.markdown(line)
+
+# === Broker Control Panel & Emergency Stop ===
+st.markdown("---")
+st.header("🎛️ Broker Control Panel")
+
+# Load config
+import json
+try:
+    with open("config.json", "r") as f:
+        config = json.load(f)
+except:
+    config = {"broker": {"default_mode": "paper"}, "risk_guard": {"enabled": True}}
+
+col_broker1, col_broker2 = st.columns([2, 1])
+
+with col_broker1:
+    st.subheader("Broker Selection")
+    broker_mode = st.radio(
+        "Select Broker Mode",
+        ["Paper (Simulator)", "IBKR Paper", "IBKR Live"],
+        index=0 if config.get("broker", {}).get("default_mode") == "paper" else 1,
+        help="⚠️ IBKR Live uses REAL MONEY. Only enable after thorough Paper Trading validation."
+    )
+    
+    if broker_mode.startswith("IBKR"):
+        st.warning("⚠️ IBKR mode requires TWS/IB Gateway running and `ib_insync` installed.")
+        st.caption(f"Host: {config.get('broker', {}).get('ibkr', {}).get('host', '127.0.0.1')}")
+        
+        port = config.get('broker', {}).get('ibkr', {}).get('paper_port' if 'Paper' in broker_mode else 'live_port', 7497)
+        st.caption(f"Port: {port}")
+        
+        # Connection status (placeholder - would need actual connection check)
+        connection_status = st.empty()
+        connection_status.info("🔴 Not Connected")
+
+with col_broker2:
+    st.subheader("Safety Controls")
+    
+    # Emergency Stop Button
+    if st.button("🚨 EMERGENCY STOP", type="primary", help="Immediately halt all trading"):
+        st.session_state.emergency_stop = True
+        st.error("⛔ EMERGENCY STOP ACTIVATED")
+        st.balloons()  # Alert sound
+    
+    # Status display
+    if st.session_state.get("emergency_stop", False):
+        st.error("⛔ TRADING HALTED")
+        if st.button("Reset Emergency Stop"):
+            st.session_state.emergency_stop = False
+            st.success("✅ Emergency stop reset")
+    else:
+        st.success("✅ Trading Active")
+
+st.markdown("---")
+
+# RiskGuard Dashboard
+st.subheader("🛡️ Risk Guard Status")
+
+risk_config = config.get("risk_guard", {})
+col_risk1, col_risk2, col_risk3 = st.columns(3)
+
+with col_risk1:
+    st.metric("Daily Loss Limit", f"{risk_config.get('daily_loss_limit_pct', -5.0)}%")
+with col_risk2:
+    st.metric("Max Position Size", f"{risk_config.get('max_position_size_pct', 10.0)}%")
+with col_risk3:
+    st.metric("Max VIX", risk_config.get('max_vix', 40.0))
+
+# Daily P&L Progress (placeholder - would show actual data)
+st.caption("Daily P&L Monitor")
+pnl_pct = 0.0  # Placeholder
+st.progress(max(0, min(1, (pnl_pct + 10) / 20)), text=f"P&L: {pnl_pct:+.2f}%")
+
+if abs(pnl_pct) >= abs(risk_config.get('daily_loss_limit_pct', -5.0)):
+    st.error(f"⚠️ Daily loss limit reached: {pnl_pct:.2f}%")
