@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 from src.performance import PerformanceAnalyzer
-from src.design_tokens import MARKETS, TICKER_NAMES
+from src.constants import MARKETS, TICKER_NAMES
 
 def render_performance_tab(ticker_group, selected_market, custom_tickers):
     """
