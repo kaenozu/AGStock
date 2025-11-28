@@ -1,9 +1,6 @@
 streamlit
 yfinance
 pandas
-streamlit
-yfinance
-pandas
 numpy
 ta
 plotly
