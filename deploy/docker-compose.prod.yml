@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: agstock_app
+    restart: always
+    ports:
+      - "8503:8503"
+    volumes:
+      - ../data:/app/data
+      - ../logs:/app/logs
+      - ../backups:/app/backups
+      - ../reports:/app/reports
+    environment:
+      - ENVIRONMENT=production
+      - PYTHONUNBUFFERED=1
+    env_file:
+      - ../.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8503/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      - redis
+    networks:
+      - agstock_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: agstock_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - agstock_network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: agstock_prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - agstock_network
+
+volumes:
+  redis_data:
+  prometheus_data:
+
+networks:
+  agstock_network:
+    driver: bridge

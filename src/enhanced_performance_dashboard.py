@@ -13,8 +13,10 @@ from src.design_tokens import Colors
 from src.formatters import format_currency, format_percentage
 
 
-def create_performance_dashboard():
+def create_performance_dashboard(currency="JPY"):
     """パフォーマンスダッシュボードを表示"""
+    
+    symbol = "¥" if currency == "JPY" else "$"
     
     st.header("📊 パフォーマンス分析")
     st.markdown("ポートフォリオのパフォーマンスをベンチマークと比較します。")
@@ -68,7 +70,7 @@ def create_performance_dashboard():
             # 日次リターンを計算
             equity_recent['date'] = pd.to_datetime(equity_recent['date'])
             equity_recent = equity_recent.set_index('date')
-            portfolio_returns = equity_recent['equity'].pct_change().dropna()
+            portfolio_returns = equity_recent['total_equity'].pct_change().dropna()
             
             # ベンチマークデータ取得
             benchmark_data = comparator.fetch_benchmark_data(
@@ -109,7 +111,7 @@ def create_performance_dashboard():
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        portfolio_total_return = (equity_recent['equity'].iloc[-1] / equity_recent['equity'].iloc[0] - 1)
+        portfolio_total_return = (equity_recent['total_equity'].iloc[-1] / equity_recent['total_equity'].iloc[0] - 1)
         st.metric(
             "ポートフォリオ",
             format_percentage(portfolio_total_return, decimals=2),

@@ -2,11 +2,36 @@
     "notifications": {
         "line": {
             "enabled": false,
-            "token": ""
-        },
-        "discord": {
-            "enabled": false,
-            "webhook_url": ""
+            "notifications": {
+                "line": {
+                    "enabled": false,
+                    "token": ""
+                },
+                "discord": {
+                    "enabled": false,
+                    "webhook_url": ""
+                }
+            },
+            "rakuten": {
+                "enabled": false,
+                "login_id": "YOUR_LOGIN_ID",
+                "password": "YOUR_PASSWORD",
+                "pin_code": "YOUR_PIN_CODE",
+                "headless": false
+            },
+            "paper_trading": {
+                "enabled": true,
+                "initial_capital": 1000000
+            },
+            "auto_trading": {
+                "enabled": true,
+                "max_daily_trades": 5,
+                "daily_loss_limit_pct": -5.0,
+                "max_vix": 40.0,
+                "risk_per_trade": 0.02
+            },
+            "openai": {
+                "api_key": "YOUR_OPENAI_API_KEY",
+                "model": "gpt-4o"
+            }
         }
-    }
-}

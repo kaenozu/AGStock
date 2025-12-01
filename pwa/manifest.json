@@ -1,0 +1,109 @@
+{
+    "name": "AGStock - AI Trading System",
+    "short_name": "AGStock",
+    "description": "世界クラスのマルチアセット自動取引システム",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#FFFFFF",
+    "theme_color": "#2E86AB",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/assets/icon-72.png",
+            "sizes": "72x72",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/assets/icon-96.png",
+            "sizes": "96x96",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/assets/icon-128.png",
+            "sizes": "128x128",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/assets/icon-144.png",
+            "sizes": "144x144",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/assets/icon-152.png",
+            "sizes": "152x152",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/assets/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/assets/icon-384.png",
+            "sizes": "384x384",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/assets/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "finance",
+        "productivity"
+    ],
+    "screenshots": [
+        {
+            "src": "/assets/screenshot1.png",
+            "sizes": "540x720",
+            "type": "image/png"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "ダッシュボード",
+            "short_name": "Dashboard",
+            "description": "メインダッシュボードを開く",
+            "url": "/?tab=dashboard",
+            "icons": [
+                {
+                    "src": "/assets/icon-96.png",
+                    "sizes": "96x96"
+                }
+            ]
+        },
+        {
+            "name": "フルオート",
+            "short_name": "Auto Trade",
+            "description": "自動取引を開く",
+            "url": "/?tab=auto",
+            "icons": [
+                {
+                    "src": "/assets/icon-96.png",
+                    "sizes": "96x96"
+                }
+            ]
+        },
+        {
+            "name": "市場スキャン",
+            "short_name": "Scan",
+            "description": "市場スキャンを開く",
+            "url": "/?tab=scan",
+            "icons": [
+                {
+                    "src": "/assets/icon-96.png",
+                    "sizes": "96x96"
+                }
+            ]
+        }
+    ]
+}

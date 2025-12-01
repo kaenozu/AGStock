@@ -1,0 +1,962 @@
+{
+    "7203.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 9,
+                "lower": 26,
+                "upper": 75,
+                "trend_period": 276,
+                "stop_loss": 0.05,
+                "take_profit": 0.21000000000000002
+            },
+            "train_return": 0.30860284545870825
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 14,
+                "bb_length": 36,
+                "bb_std": 1.8,
+                "trend_period": 212,
+                "stop_loss": 0.03,
+                "take_profit": 0.21000000000000002
+            },
+            "train_return": 0.04529991711745691
+        }
+    },
+    "9984.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 6,
+                "lower": 35,
+                "upper": 78,
+                "trend_period": 176,
+                "stop_loss": 0.03,
+                "take_profit": 0.25
+            },
+            "train_return": 0.7093183044911548
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 16,
+                "bb_length": 41,
+                "bb_std": 2.2,
+                "trend_period": 290,
+                "stop_loss": 0.02,
+                "take_profit": 0.3
+            },
+            "train_return": 0.6580500579063685
+        }
+    },
+    "6758.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 18,
+                "lower": 32,
+                "upper": 73,
+                "trend_period": 294,
+                "stop_loss": 0.07,
+                "take_profit": 0.22999999999999998
+            },
+            "train_return": 0.9653220803096763
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 11,
+                "bb_length": 21,
+                "bb_std": 2.4,
+                "trend_period": 216,
+                "stop_loss": 0.08,
+                "take_profit": 0.25
+            },
+            "train_return": 0.8706522213591771
+        }
+    },
+    "6861.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 14,
+                "lower": 39,
+                "upper": 63,
+                "trend_period": 289,
+                "stop_loss": 0.03,
+                "take_profit": 0.26
+            },
+            "train_return": 0.3549073289986923
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 11,
+                "bb_length": 41,
+                "bb_std": 2.9000000000000004,
+                "trend_period": 130,
+                "stop_loss": 0.07,
+                "take_profit": 0.24
+            },
+            "train_return": -1.0
+        }
+    },
+    "6098.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 10,
+                "lower": 33,
+                "upper": 76,
+                "trend_period": 134,
+                "stop_loss": 0.09000000000000001,
+                "take_profit": 0.15000000000000002
+            },
+            "train_return": 0.34042218383140466
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 11,
+                "bb_length": 32,
+                "bb_std": 1.7,
+                "trend_period": 191,
+                "stop_loss": 0.08,
+                "take_profit": 0.3
+            },
+            "train_return": 0.44820303456512744
+        }
+    },
+    "8035.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 7,
+                "lower": 26,
+                "upper": 77,
+                "trend_period": 256,
+                "stop_loss": 0.07,
+                "take_profit": 0.05
+            },
+            "train_return": 0.5430234862621934
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 11,
+                "bb_length": 50,
+                "bb_std": 3.0,
+                "trend_period": 294,
+                "stop_loss": 0.02,
+                "take_profit": 0.3
+            },
+            "train_return": -0.10984919496510026
+        }
+    },
+    "9983.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 10,
+                "lower": 32,
+                "upper": 74,
+                "trend_period": 300,
+                "stop_loss": 0.08,
+                "take_profit": 0.15000000000000002
+            },
+            "train_return": 0.16614849057140038
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 5,
+                "bb_length": 17,
+                "bb_std": 2.4,
+                "trend_period": 300,
+                "stop_loss": 0.09000000000000001,
+                "take_profit": 0.05
+            },
+            "train_return": 0.23712421651776833
+        }
+    },
+    "4063.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 12,
+                "lower": 35,
+                "upper": 78,
+                "trend_period": 230,
+                "stop_loss": 0.07,
+                "take_profit": 0.09
+            },
+            "train_return": 0.11874155462813145
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 15,
+                "bb_length": 34,
+                "bb_std": 2.8,
+                "trend_period": 226,
+                "stop_loss": 0.08,
+                "take_profit": 0.22000000000000003
+            },
+            "train_return": -1.0
+        }
+    },
+    "9432.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 12,
+                "lower": 33,
+                "upper": 61,
+                "trend_period": 208,
+                "stop_loss": 0.09000000000000001,
+                "take_profit": 0.3
+            },
+            "train_return": 0.03366515225064207
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 5,
+                "bb_length": 10,
+                "bb_std": 2.0,
+                "trend_period": 295,
+                "stop_loss": 0.08,
+                "take_profit": 0.18
+            },
+            "train_return": 0.04588471503532771
+        }
+    },
+    "7974.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 12,
+                "lower": 31,
+                "upper": 67,
+                "trend_period": 229,
+                "stop_loss": 0.05,
+                "take_profit": 0.21000000000000002
+            },
+            "train_return": 0.6238894845413953
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 10,
+                "bb_length": 44,
+                "bb_std": 2.5,
+                "trend_period": 228,
+                "stop_loss": 0.07,
+                "take_profit": 0.09
+            },
+            "train_return": 0.31968373172694936
+        }
+    },
+    "8306.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 9,
+                "lower": 35,
+                "upper": 77,
+                "trend_period": 241,
+                "stop_loss": 0.08,
+                "take_profit": 0.13
+            },
+            "train_return": 0.70417712317149
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 25,
+                "bb_length": 49,
+                "bb_std": 2.8,
+                "trend_period": 143,
+                "stop_loss": 0.03,
+                "take_profit": 0.3
+            },
+            "train_return": -1.0
+        }
+    },
+    "8316.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 8,
+                "lower": 40,
+                "upper": 73,
+                "trend_period": 275,
+                "stop_loss": 0.03,
+                "take_profit": 0.13
+            },
+            "train_return": 0.6267599248811714
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 27,
+                "bb_length": 36,
+                "bb_std": 2.4,
+                "trend_period": 148,
+                "stop_loss": 0.05,
+                "take_profit": 0.2
+            },
+            "train_return": -1.0
+        }
+    },
+    "6501.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 9,
+                "lower": 40,
+                "upper": 70,
+                "trend_period": 129,
+                "stop_loss": 0.08,
+                "take_profit": 0.11
+            },
+            "train_return": 0.5585168055523753
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 10,
+                "bb_length": 27,
+                "bb_std": 2.0,
+                "trend_period": 177,
+                "stop_loss": 0.04,
+                "take_profit": 0.21000000000000002
+            },
+            "train_return": 0.34178546204728655
+        }
+    },
+    "4502.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 11,
+                "lower": 33,
+                "upper": 62,
+                "trend_period": 269,
+                "stop_loss": 0.08,
+                "take_profit": 0.07
+            },
+            "train_return": 0.35075353000929743
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 6,
+                "bb_length": 10,
+                "bb_std": 1.7,
+                "trend_period": 264,
+                "stop_loss": 0.07,
+                "take_profit": 0.07
+            },
+            "train_return": 0.2629583775114189
+        }
+    },
+    "7267.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 18,
+                "lower": 37,
+                "upper": 71,
+                "trend_period": 212,
+                "stop_loss": 0.1,
+                "take_profit": 0.11
+            },
+            "train_return": 0.0957462228514005
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 17,
+                "bb_length": 20,
+                "bb_std": 2.0,
+                "trend_period": 298,
+                "stop_loss": 0.03,
+                "take_profit": 0.28
+            },
+            "train_return": 0.18773076314937345
+        }
+    },
+    "8058.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 5,
+                "lower": 40,
+                "upper": 75,
+                "trend_period": 100,
+                "stop_loss": 0.1,
+                "take_profit": 0.3
+            },
+            "train_return": 0.15416105816660308
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 5,
+                "bb_length": 39,
+                "bb_std": 1.8,
+                "trend_period": 222,
+                "stop_loss": 0.02,
+                "take_profit": 0.28
+            },
+            "train_return": -0.1305470911951128
+        }
+    },
+    "8001.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 5,
+                "lower": 40,
+                "upper": 79,
+                "trend_period": 186,
+                "stop_loss": 0.06,
+                "take_profit": 0.13
+            },
+            "train_return": 0.35287493757743293
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 5,
+                "bb_length": 26,
+                "bb_std": 1.6,
+                "trend_period": 193,
+                "stop_loss": 0.09000000000000001,
+                "take_profit": 0.16999999999999998
+            },
+            "train_return": 0.2505732928674568
+        }
+    },
+    "8766.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 6,
+                "lower": 39,
+                "upper": 60,
+                "trend_period": 225,
+                "stop_loss": 0.08,
+                "take_profit": 0.13
+            },
+            "train_return": 0.44318775537701
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 10,
+                "bb_length": 18,
+                "bb_std": 2.6,
+                "trend_period": 175,
+                "stop_loss": 0.08,
+                "take_profit": 0.26
+            },
+            "train_return": 0.43820117623917176
+        }
+    },
+    "6902.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 20,
+                "lower": 35,
+                "upper": 64,
+                "trend_period": 162,
+                "stop_loss": 0.03,
+                "take_profit": 0.29
+            },
+            "train_return": 0.19697554388264263
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 6,
+                "bb_length": 16,
+                "bb_std": 1.5,
+                "trend_period": 234,
+                "stop_loss": 0.1,
+                "take_profit": 0.15000000000000002
+            },
+            "train_return": 0.032230218156891526
+        }
+    },
+    "6367.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 12,
+                "lower": 28,
+                "upper": 63,
+                "trend_period": 296,
+                "stop_loss": 0.04,
+                "take_profit": 0.25
+            },
+            "train_return": 0.4840584585311087
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 8,
+                "bb_length": 27,
+                "bb_std": 1.9,
+                "trend_period": 274,
+                "stop_loss": 0.03,
+                "take_profit": 0.27
+            },
+            "train_return": 0.13107104448503978
+        }
+    },
+    "4543.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 20,
+                "lower": 40,
+                "upper": 78,
+                "trend_period": 298,
+                "stop_loss": 0.07,
+                "take_profit": 0.21000000000000002
+            },
+            "train_return": 0.3454864500734264
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 8,
+                "bb_length": 37,
+                "bb_std": 1.5,
+                "trend_period": 230,
+                "stop_loss": 0.08,
+                "take_profit": 0.24
+            },
+            "train_return": 0.04624332483186235
+        }
+    },
+    "6954.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 6,
+                "lower": 23,
+                "upper": 74,
+                "trend_period": 260,
+                "stop_loss": 0.09000000000000001,
+                "take_profit": 0.060000000000000005
+            },
+            "train_return": 0.565302719899724
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 15,
+                "bb_length": 24,
+                "bb_std": 2.5,
+                "trend_period": 213,
+                "stop_loss": 0.04,
+                "take_profit": 0.05
+            },
+            "train_return": -1.0
+        }
+    },
+    "6981.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 14,
+                "lower": 40,
+                "upper": 68,
+                "trend_period": 297,
+                "stop_loss": 0.09000000000000001,
+                "take_profit": 0.05
+            },
+            "train_return": 0.1693246542431256
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 6,
+                "bb_length": 39,
+                "bb_std": 1.5,
+                "trend_period": 182,
+                "stop_loss": 0.03,
+                "take_profit": 0.07
+            },
+            "train_return": 0.0772082613162368
+        }
+    },
+    "6273.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 11,
+                "lower": 29,
+                "upper": 67,
+                "trend_period": 213,
+                "stop_loss": 0.04,
+                "take_profit": 0.08
+            },
+            "train_return": 0.1514357191207956
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 11,
+                "bb_length": 21,
+                "bb_std": 2.5,
+                "trend_period": 225,
+                "stop_loss": 0.06,
+                "take_profit": 0.2
+            },
+            "train_return": 0.12449573197377403
+        }
+    },
+    "7741.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 9,
+                "lower": 36,
+                "upper": 70,
+                "trend_period": 186,
+                "stop_loss": 0.06,
+                "take_profit": 0.14
+            },
+            "train_return": 0.328288629404807
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 26,
+                "bb_length": 49,
+                "bb_std": 2.0,
+                "trend_period": 207,
+                "stop_loss": 0.09000000000000001,
+                "take_profit": 0.060000000000000005
+            },
+            "train_return": -1.0
+        }
+    },
+    "2914.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 8,
+                "lower": 31,
+                "upper": 63,
+                "trend_period": 297,
+                "stop_loss": 0.07,
+                "take_profit": 0.25
+            },
+            "train_return": 0.2667215626090204
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 7,
+                "bb_length": 11,
+                "bb_std": 1.5,
+                "trend_period": 137,
+                "stop_loss": 0.06,
+                "take_profit": 0.27
+            },
+            "train_return": 0.18527510363599378
+        }
+    },
+    "9020.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 8,
+                "lower": 31,
+                "upper": 62,
+                "trend_period": 271,
+                "stop_loss": 0.07,
+                "take_profit": 0.3
+            },
+            "train_return": 0.03790871216884546
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 10,
+                "bb_length": 23,
+                "bb_std": 2.0,
+                "trend_period": 212,
+                "stop_loss": 0.04,
+                "take_profit": 0.16
+            },
+            "train_return": 0.22099575517474163
+        }
+    },
+    "9022.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 5,
+                "lower": 20,
+                "upper": 69,
+                "trend_period": 263,
+                "stop_loss": 0.02,
+                "take_profit": 0.24
+            },
+            "train_return": 0.05564208950320841
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 27,
+                "bb_length": 33,
+                "bb_std": 2.4,
+                "trend_period": 285,
+                "stop_loss": 0.07,
+                "take_profit": 0.29
+            },
+            "train_return": -1.0
+        }
+    },
+    "4452.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 8,
+                "lower": 28,
+                "upper": 70,
+                "trend_period": 125,
+                "stop_loss": 0.1,
+                "take_profit": 0.07
+            },
+            "train_return": 0.21988292399785994
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 9,
+                "bb_length": 35,
+                "bb_std": 1.6,
+                "trend_period": 294,
+                "stop_loss": 0.1,
+                "take_profit": 0.16999999999999998
+            },
+            "train_return": 0.29476783955775854
+        }
+    },
+    "4661.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 14,
+                "lower": 38,
+                "upper": 78,
+                "trend_period": 210,
+                "stop_loss": 0.09000000000000001,
+                "take_profit": 0.05
+            },
+            "train_return": -0.09596451091883378
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 13,
+                "bb_length": 34,
+                "bb_std": 2.0,
+                "trend_period": 152,
+                "stop_loss": 0.02,
+                "take_profit": 0.22000000000000003
+            },
+            "train_return": -0.08493042744363798
+        }
+    },
+    "5401.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 7,
+                "lower": 34,
+                "upper": 73,
+                "trend_period": 256,
+                "stop_loss": 0.1,
+                "take_profit": 0.18
+            },
+            "train_return": 0.16219668512213534
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 5,
+                "bb_length": 10,
+                "bb_std": 2.6,
+                "trend_period": 231,
+                "stop_loss": 0.1,
+                "take_profit": 0.08
+            },
+            "train_return": -6.707301079039462e-05
+        }
+    },
+    "7011.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 11,
+                "lower": 36,
+                "upper": 75,
+                "trend_period": 159,
+                "stop_loss": 0.09000000000000001,
+                "take_profit": 0.25
+            },
+            "train_return": 2.9587131757925174
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 13,
+                "bb_length": 35,
+                "bb_std": 2.0,
+                "trend_period": 280,
+                "stop_loss": 0.03,
+                "take_profit": 0.05
+            },
+            "train_return": -1.0
+        }
+    },
+    "9101.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 13,
+                "lower": 35,
+                "upper": 74,
+                "trend_period": 181,
+                "stop_loss": 0.04,
+                "take_profit": 0.25
+            },
+            "train_return": 0.49054963590666606
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 20,
+                "bb_length": 13,
+                "bb_std": 2.9000000000000004,
+                "trend_period": 251,
+                "stop_loss": 0.03,
+                "take_profit": 0.28
+            },
+            "train_return": -1.0
+        }
+    },
+    "9104.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 6,
+                "lower": 32,
+                "upper": 80,
+                "trend_period": 230,
+                "stop_loss": 0.08,
+                "take_profit": 0.07
+            },
+            "train_return": 0.49239542017182963
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 6,
+                "bb_length": 21,
+                "bb_std": 2.2,
+                "trend_period": 299,
+                "stop_loss": 0.06,
+                "take_profit": 0.14
+            },
+            "train_return": 0.3634710001060199
+        }
+    },
+    "9107.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 6,
+                "lower": 37,
+                "upper": 75,
+                "trend_period": 230,
+                "stop_loss": 0.05,
+                "take_profit": 0.09
+            },
+            "train_return": 0.3211289082848551
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 5,
+                "bb_length": 16,
+                "bb_std": 1.8,
+                "trend_period": 248,
+                "stop_loss": 0.05,
+                "take_profit": 0.16999999999999998
+            },
+            "train_return": 0.6768761961157043
+        }
+    },
+    "1605.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 19,
+                "lower": 34,
+                "upper": 61,
+                "trend_period": 256,
+                "stop_loss": 0.04,
+                "take_profit": 0.1
+            },
+            "train_return": 0.2862556441745195
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 21,
+                "bb_length": 42,
+                "bb_std": 2.2,
+                "trend_period": 181,
+                "stop_loss": 0.09000000000000001,
+                "take_profit": 0.05
+            },
+            "train_return": -1.0
+        }
+    },
+    "5020.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 6,
+                "lower": 27,
+                "upper": 80,
+                "trend_period": 215,
+                "stop_loss": 0.07,
+                "take_profit": 0.09
+            },
+            "train_return": 0.34878704213534806
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 11,
+                "bb_length": 25,
+                "bb_std": 1.9,
+                "trend_period": 217,
+                "stop_loss": 0.1,
+                "take_profit": 0.060000000000000005
+            },
+            "train_return": -0.044045046821137426
+        }
+    },
+    "8031.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 9,
+                "lower": 32,
+                "upper": 60,
+                "trend_period": 214,
+                "stop_loss": 0.1,
+                "take_profit": 0.2
+            },
+            "train_return": 0.204676723733288
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 12,
+                "bb_length": 10,
+                "bb_std": 2.2,
+                "trend_period": 196,
+                "stop_loss": 0.02,
+                "take_profit": 0.22999999999999998
+            },
+            "train_return": -0.16697936760666152
+        }
+    },
+    "8002.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 5,
+                "lower": 33,
+                "upper": 63,
+                "trend_period": 221,
+                "stop_loss": 0.05,
+                "take_profit": 0.15000000000000002
+            },
+            "train_return": 0.2620652843097944
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 5,
+                "bb_length": 19,
+                "bb_std": 1.8,
+                "trend_period": 298,
+                "stop_loss": 0.09000000000000001,
+                "take_profit": 0.3
+            },
+            "train_return": 0.4034687312221234
+        }
+    },
+    "8591.T": {
+        "RSI Reversal": {
+            "params": {
+                "period": 17,
+                "lower": 39,
+                "upper": 69,
+                "trend_period": 200,
+                "stop_loss": 0.04,
+                "take_profit": 0.05
+            },
+            "train_return": 0.16686253314244118
+        },
+        "Combined": {
+            "params": {
+                "rsi_period": 13,
+                "bb_length": 39,
+                "bb_std": 3.0,
+                "trend_period": 175,
+                "stop_loss": 0.03,
+                "take_profit": 0.3
+            },
+            "train_return": -1.0
+        }
+    }
+}

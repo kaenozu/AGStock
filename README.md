@@ -1,173 +1,212 @@
-# AGStock - AI Trading System
+# AGStock - AI-Powered Stock Trading System
 
-グローバル株式市場（日本・米国・欧州）を対象とした、AI駆動の自動トレーディングシステム。
+**個人利用専用システム**
 
-## 🚀 クイックスタート
+このシステムは個人投資家による単独利用を前提として設計されています。
+マルチユーザー対応、スケーラビリティ、複雑な認証機能は不要です。
 
-### 1. セットアップ（初回のみ）
+---
+
+## 🎯 プロジェクト概要
+
+AGStockは、AI技術を活用した個人向け株式自動取引システムです。
+日本株を中心に、暗号資産・FX・先物など多様な資産クラスに対応しています。
+
+### 設計思想
+
+- **個人利用最適化**: 1ユーザーでの快適な使用を最優先
+- **シンプルさ**: 複雑な設定や操作を排除
+- **高パフォーマンス**: 個人PCでも高速動作
+- **使いやすさ**: ワンクリックで主要機能にアクセス
+
+---
+
+## 📋 主要機能
+
+### Phase 0-45 実装済み
+
+- ✅ **AI予測**: LSTM, Transformer, 強化学習
+- ✅ **バックテスト**: 並列処理で高速化
+- ✅ **ペーパートレード**: リスクなしで戦略検証
+- ✅ **リスク管理**: 動的損切り・ポジションサイズ調整
+- ✅ **ポートフォリオ最適化**: 相関分析・セクター分散
+- ✅ **税務最適化**: 損失収穫・NISA管理
+- ✅ **アラートシステム**: 価格・ポートフォリオ通知
+- ✅ **データエクスポート**: CSV/Excel/PDF対応
+
+---
+
+## 🚀 クイックスタート（個人利用）
+
+### 1. インストール
+
 ```bash
-# Windows
-setup.bat
+# リポジトリクローン
+git clone https://github.com/your-username/AGStock.git
+cd AGStock
 
-# Mac/Linux
-chmod +x setup.sh
-./setup.sh
+# 依存関係インストール
+pip install -r requirements.txt
 ```
 
-### 2. アプリ起動
+### 2. 設定
+
 ```bash
+# 環境変数設定（個人用APIキーなど）
+cp .env.example .env
+# .envファイルを編集してAPIキーを設定
+```
+
+### 3. 起動
+
+```bash
+# Streamlitアプリ起動
 streamlit run app.py
 ```
 
-ブラウザで `http://localhost:8501` が自動で開きます。
+ブラウザで `http://localhost:8501` にアクセス
 
 ---
 
-## 📊 主な機能
+## 💡 個人利用のベストプラクティス
 
-### 1. Market Scan（市場スキャン）
-- 全銘柄を自動スキャンして有望なシグナルを検出
-- 6つの戦略（RSI, Bollinger, Combined, ML, LightGBM）
-- ワンクリックでペーパートレードに反映
+### 推奨ワークフロー
 
-### 2. Portfolio Simulation（ポートフォリオ）
-- 複数銘柄の組み合わせをシミュレーション
-- 相関行列で分散投資を最適化
-- シャープレシオ最大化ポートフォリオ自動計算
+1. **朝**: 市場スキャンで有望銘柄を確認
+2. **日中**: リアルタイム監視でエントリーポイントを待つ
+3. **夕方**: ペーパートレードで戦略検証
+4. **週末**: バックテストで戦略改善
 
-### 3. Paper Trading（仮想取引）
-- 1000万円の仮想資金でリアルタイム取引
-- 全取引履歴を記録
-- 日次資産推移グラフ
+### 設定のカスタマイズ
 
-### 4. Dashboard（ダッシュボード）
-- パフォーマンス・ヒートマップ
-- トップ/ワースト銘柄
-- アラート設定
+個人の投資スタイルに合わせて以下を調整:
+
+- **リスク許容度**: `config.json`で設定
+- **アラート閾値**: UIから簡単に変更可能
+- **ポートフォリオ制約**: 相関・セクター露出の上限
 
 ---
 
-## 🤖 自動実行
-
-### 毎日自動でスキャン
-```bash
-python auto_trader.py
-```
-
-### GitHub Actionsで完全自動化
-- 毎日17:00 JST に自動実行
-- 結果は `reports/` フォルダに保存
-- エラー時は自動でIssue作成
-
-設定方法: `.github/ACTIONS_SETUP.md` 参照
-
----
-
-## 🔔 通知設定
-
-### Slack通知
-```bash
-export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
-```
-
-### メール通知
-```bash
-export EMAIL_ENABLED="true"
-export EMAIL_FROM="your@email.com"
-export EMAIL_PASSWORD="your-app-password"
-export EMAIL_TO="recipient@email.com"
-```
-
----
-
-## 📈 バックテスト結果
-
-**LightGBM戦略（過去2年間、グローバル20銘柄）**:
-- 平均リターン: **+18.4%**
-- シャープレシオ: **0.91**
-- 勝率: **90%**
-
-詳細: `python backtest_report.py` で最新レポート生成
-
----
-
-## 🛠️ よく使うコマンド
-
-```bash
-# バックテストレポート生成
-python backtest_report.py
-
-# 自動トレーダー実行
-python auto_trader.py
-
-# データバックアップ
-python backup.py
-
-# アプリ起動
-streamlit run app.py
-```
-
----
-
-## 📁 プロジェクト構成
+## 📊 システムアーキテクチャ
 
 ```
-AGStock/
-├── app.py                  # メインアプリ
-├── auto_trader.py          # 自動トレーダー
-├── backtest_report.py      # レポート生成
-├── backup.py               # バックアップ
-├── src/
-│   ├── strategies.py       # 取引戦略
-│   ├── backtester.py       # バックテストエンジン
-│   ├── portfolio.py        # ポートフォリオ管理
-│   ├── paper_trader.py     # 仮想取引
-│   ├── execution.py        # 注文実行
-│   ├── notifier.py         # 通知システム
-│   ├── features.py         # 特徴量エンジニアリング
-│   └── data_loader.py      # データ取得
-├── .github/workflows/      # GitHub Actions
-└── reports/                # 実行結果（自動生成）
+AGStock (個人利用版)
+├── Frontend (Streamlit)
+│   └── シンプルなUI（21タブ）
+├── Backend
+│   ├── データ取得・分析
+│   ├── AI予測エンジン
+│   └── リスク管理
+├── Data Storage
+│   └── SQLite（軽量・個人利用に最適）
+└── Configuration
+    └── JSON/ENV（簡単に編集可能）
 ```
 
 ---
 
 ## 🔧 トラブルシューティング
 
-### Q: データ取得が遅い
-A: キャッシュが有効です。2回目以降は高速化されます。
+### よくある問題
 
-### Q: LightGBMでエラー
-A: `pip install --upgrade lightgbm` で最新版に更新
-
-### Q: Paper Trading DBがリセットされた
-A: `backup.py` で定期バックアップを推奨
-
-### Q: GitHub Actionsが動かない
-A: Secrets設定を確認（`.github/ACTIONS_SETUP.md` 参照）
-
----
-
-## 📊 パフォーマンス追跡
-
-月次・年次のパフォーマンスを確認:
+**Q: アプリが起動しない**
 ```bash
-streamlit run app.py
+# ポート競合の場合
+streamlit run app.py --server.port 8502
 ```
-→ 「Dashboard」タブ → 「パフォーマンス追跡」
+
+**Q: データが取得できない**
+- APIキーが正しく設定されているか確認
+- インターネット接続を確認
+
+**Q: バックテストが遅い**
+- 並列処理を有効化（デフォルトで有効）
+- 分析期間を短縮
 
 ---
 
-## 🎯 次のステップ
+## 📝 開発方針（個人利用前提）
 
-1. **初回セットアップ**: `setup.bat` 実行
-2. **通知設定**: Slack/メール設定（任意）
-3. **バックテスト確認**: `python backtest_report.py`
-4. **アプリ起動**: `streamlit run app.py`
-5. **自動化**: GitHub Actions設定（任意）
+### 優先事項
+
+1. **使いやすさ** > スケーラビリティ
+2. **パフォーマンス** > 複雑な機能
+3. **シンプルさ** > エンタープライズ機能
+
+### 実装しない機能
+
+- ❌ マルチユーザー認証
+- ❌ 分散処理
+- ❌ 複雑な権限管理
+- ❌ API レート制限
+- ❌ 負荷分散
+
+### 今後の開発方向
+
+- ✅ ワンクリック操作の拡充
+- ✅ 自動化機能の強化
+- ✅ アラートの充実
+- ✅ UI/UXの改善
+- ✅ バックテスト精度向上
 
 ---
 
-## 📝 ライセンス
+## 🛠️ 技術スタック
 
-個人利用のみ。
+- **言語**: Python 3.12
+- **UI**: Streamlit
+- **DB**: SQLite（個人利用に最適）
+- **AI/ML**: TensorFlow, scikit-learn, Optuna
+- **データ**: yfinance, pandas, numpy
+
+---
+
+## 📈 パフォーマンス目標（個人PC）
+
+- バックテスト: < 10秒（100銘柄 x 1年）
+- 市場スキャン: < 5秒（全市場）
+- UI応答: < 1秒
+- メモリ使用量: < 2GB
+
+---
+
+## 🔐 セキュリティ（個人利用）
+
+個人利用のため、以下のシンプルなセキュリティ対策:
+
+- APIキーは`.env`ファイルで管理
+- `.env`は`.gitignore`に追加
+- データベースはローカル保存
+- 外部公開しない（localhost のみ）
+
+---
+
+## 📚 ドキュメント
+
+- [ユーザーマニュアル](docs/USER_MANUAL.md)
+- [クイックスタート](docs/QUICKSTART.md)
+- [FAQ](docs/FAQ.md)
+- [API仕様](docs/API.md)
+
+---
+
+## 🤝 貢献
+
+個人利用プロジェクトですが、改善提案は歓迎します。
+
+---
+
+## 📄 ライセンス
+
+MIT License
+
+---
+
+## 📞 サポート
+
+個人プロジェクトのため、公式サポートはありません。
+GitHubのIssuesで質問・バグ報告を受け付けています。
+
+---
+
+**AGStock - あなた専用のAI投資アシスタント** 🚀📈

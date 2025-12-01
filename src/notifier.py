@@ -5,13 +5,181 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import List, Dict, Optional
 import requests
+import logging
 
+logger = logging.getLogger(__name__)
+
+
+class NotificationService:
+    """通知サービスの基底クラス"""
+    
+    def send(self, alert) -> bool:
+        """
+        アラートを送信
+        
+        Args:
+            alert: Alertオブジェクト
+            
+        Returns:
+            bool: 送信成功したかどうか
+        """
+        raise NotImplementedError
+
+
+class LINENotifyService(NotificationService):
+    """LINE Notify通知サービス"""
+    
+    def __init__(self, access_token: str):
+        """
+        Args:
+            access_token: LINE Notifyのアクセストークン
+        """
+        self.access_token = access_token
+        self.api_url = "https://notify-api.line.me/api/notify"
+    
+    def send(self, alert) -> bool:
+        """LINE Notifyでメッセージを送信"""
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.access_token}"
+            }
+            
+            data = {
+                "message": f"\n{alert.message}\n\n[{alert.priority.value.upper()}] {alert.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
+            }
+            
+            response = requests.post(self.api_url, headers=headers, data=data)
+            
+            if response.status_code == 200:
+                logger.info("LINE notification sent successfully")
+                return True
+            else:
+                logger.error(f"LINE notification failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error sending LINE notification: {e}")
+            return False
+
+
+class DiscordWebhookService(NotificationService):
+    """Discord Webhook通知サービス"""
+    
+    def __init__(self, webhook_url: str):
+        """
+        Args:
+            webhook_url: Discord WebhookのURL
+        """
+        self.webhook_url = webhook_url
+    
+    def send(self, alert) -> bool:
+        """Discord Webhookでメッセージを送信"""
+        try:
+            # 優先度に応じた色設定
+            color_map = {
+                "low": 0x808080,      # Gray
+                "medium": 0x0099ff,   # Blue
+                "high": 0xff9900,     # Orange
+                "critical": 0xff0000  # Red
+            }
+            
+            embed = {
+                "title": f"{alert.alert_type.value.upper()} Alert",
+                "description": alert.message,
+                "color": color_map.get(alert.priority.value, 0x0099ff),
+                "timestamp": alert.timestamp.isoformat(),
+                "footer": {
+                    "text": f"Priority: {alert.priority.value.upper()}"
+                }
+            }
+            
+            data = {
+                "embeds": [embed]
+            }
+            
+            response = requests.post(
+                self.webhook_url,
+                data=json.dumps(data),
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 204:
+                logger.info("Discord notification sent successfully")
+                return True
+            else:
+                logger.error(f"Discord notification failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error sending Discord notification: {e}")
+            return False
+
+
+class Slack WebhookService(NotificationService):
+    """Slack Webhook通知サービス"""
+    
+    def __init__(self, webhook_url: str):
+        """
+        Args:
+            webhook_url: Slack WebhookのURL
+        """
+        self.webhook_url = webhook_url
+    
+    def send(self, alert) -> bool:
+        """Slack Webhookでメッセージを送信"""
+        try:
+            # 優先度に応じたアイコン
+            icon_map = {
+                "low": ":information_source:",
+                "medium": ":warning:",
+                "high": ":rotating_light:",
+                "critical": ":sos:"
+            }
+            
+            data = {
+                "text": f"{icon_map.get(alert.priority.value, ':bell:')} *{alert.alert_type.value.upper()} Alert*",
+                "blocks": [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": alert.message
+                        }
+                    },
+                    {
+                        "type": "context",
+                        "elements": [
+                            {
+                                "type": "mrkdwn",
+                                "text": f"Priority: *{alert.priority.value.upper()}* | {alert.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
+                            }
+                        ]
+                    }
+                ]
+            }
+            
+            response = requests.post(
+                self.webhook_url,
+                data=json.dumps(data),
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                logger.info("Slack notification sent successfully")
+                return True
+            else:
+                logger.error(f"Slack notification failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error sending Slack notification: {e}")
+            return False
+
+
+# 既存のNotifierクラスを保持（後方互換性のため）
 class Notifier:
     def __init__(self):
-        # Slack Webhook URL (set via environment variable)
         self.slack_webhook = os.getenv("SLACK_WEBHOOK_URL")
-        
-        # Email settings (set via environment variables)
         self.email_enabled = os.getenv("EMAIL_ENABLED", "false").lower() == "true"
         self.smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
         self.smtp_port = int(os.getenv("SMTP_PORT", "587"))
@@ -22,12 +190,9 @@ class Notifier:
     def notify_slack(self, message: str, title: str = "AGStock Alert") -> bool:
         """Send notification to Slack."""
         if not self.slack_webhook:
-            # print("Slack webhook not configured. Skipping Slack notification.")
             return False
             
-        payload = {
-            "text": f"*{title}*\n{message}"
-        }
+        payload = {"text": f"*{title}*\n{message}"}
         
         try:
             response = requests.post(self.slack_webhook, json=payload, timeout=10)
@@ -40,105 +205,3 @@ class Notifier:
         except Exception as e:
             print(f"✗ Slack notification error: {e}")
             return False
-
-    def notify_discord(self, message: str):
-        """Send notification via Discord Webhook."""
-        from src.config import config
-        webhook_url = config.get("notifications.discord.webhook_url")
-        if not webhook_url:
-            return
-            
-        payload = {"content": message}
-        try:
-            requests.post(webhook_url, json=payload, timeout=5)
-        except Exception as e:
-            print(f"Failed to send Discord notification: {e}")
-
-    def notify_pushover(self, message: str):
-        """Send notification via Pushover."""
-        from src.config import config
-        user_key = config.get("notifications.pushover.user_key")
-        api_token = config.get("notifications.pushover.api_token")
-        
-        if not user_key or not api_token:
-            return
-            
-        payload = {
-            "token": api_token,
-            "user": user_key,
-            "message": message
-        }
-        try:
-            requests.post("https://api.pushover.net/1/messages.json", data=payload, timeout=5)
-        except Exception as e:
-            print(f"Failed to send Pushover notification: {e}")
-
-    def send_email(self, subject: str, body: str, html: bool = False) -> bool:
-        """Send email notification."""
-        if not self.email_enabled or not self.email_from or not self.email_to:
-            print("Email not configured. Skipping email notification.")
-            return False
-            
-        try:
-            msg = MIMEMultipart('alternative')
-            msg['Subject'] = subject
-            msg['From'] = self.email_from
-            msg['To'] = self.email_to
-            
-            if html:
-                part = MIMEText(body, 'html')
-            else:
-                part = MIMEText(body, 'plain')
-            msg.attach(part)
-            
-            with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
-                server.starttls()
-                server.login(self.email_from, self.email_password)
-                server.send_message(msg)
-                
-            print("✓ Email notification sent")
-            return True
-        except Exception as e:
-            print(f"✗ Email notification error: {e}")
-            return False
-
-    def notify_strong_signal(self, ticker: str, action: str, confidence: float, price: float, strategy: str):
-        """Notify when a strong signal is detected."""
-        message = f"🚀 STRONG SIGNAL: {action} {ticker}\nPrice: {price}\nConfidence: {confidence:.2f}\nStrategy: {strategy}"
-        
-        self.notify_slack(message)
-        self.notify_discord(message)
-        self.notify_pushover(message)
-        
-        if self.email_enabled:
-            subject = f"AGStock Alert: {action} {ticker}"
-            self.send_email(subject, message)
-
-    def notify_daily_summary(self, signals: list, portfolio_value: float, daily_pnl: float):
-        """Send daily summary."""
-        num_signals = len(signals)
-        signal_text = "\n".join([f"- {s['action']} {s['ticker']} ({s['strategy']})" for s in signals]) if signals else "No trades today."
-        
-        message = f"""📊 Daily Summary
-Portfolio Value: ¥{portfolio_value:,.0f}
-Daily P&L: ¥{daily_pnl:,.0f}
-
-Signals:
-{signal_text}
-"""
-        self.notify_slack(message)
-        self.notify_discord(message)
-        self.notify_pushover(message)
-        
-        if self.email_enabled:
-            self.send_email("AGStock Daily Summary", message)
-
-    def notify_error(self, error_msg: str):
-        """Notify system error."""
-        message = f"⚠️ System Error: {error_msg}"
-        self.notify_slack(message)
-        self.notify_discord(message)
-        self.notify_pushover(message)
-        
-        if self.email_enabled:
-            self.send_email("AGStock Error", message)

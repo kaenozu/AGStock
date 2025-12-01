@@ -16,8 +16,10 @@ import time
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 from src.constants import ALL_STOCKS, NIKKEI_225_TICKERS, SP500_TICKERS, STOXX50_TICKERS, MARKETS
-from src.data_loader import fetch_stock_data, get_latest_price, fetch_fundamental_data
-from src.strategies import LightGBMStrategy, MLStrategy, CombinedStrategy
+from src.data_loader import fetch_stock_data, get_latest_price, fetch_fundamental_data, CRYPTO_PAIRS, FX_PAIRS
+from src.strategies import (
+    LightGBMStrategy, MLStrategy, CombinedStrategy, DividendStrategy
+)
 from src.paper_trader import PaperTrader
 from src.execution import ExecutionEngine
 
@@ -26,6 +28,13 @@ from src.cache_config import install_cache
 from src.smart_notifier import SmartNotifier
 from src.risk_guard import RiskGuard
 from src.sentiment import SentimentAnalyzer
+
+# Phase 30-1: リアルタイム適応学習
+from src.regime_detector import MarketRegimeDetector
+from src.dynamic_risk_manager import DynamicRiskManager
+from src.online_learning import OnlineLearner
+from src.kelly_criterion import KellyCriterion
+from src.dynamic_stop import DynamicStopManager
 
 
 class FullyAutomatedTrader:
@@ -37,7 +46,8 @@ class FullyAutomatedTrader:
         self.config = self.load_config(config_path)
         
         # コアコンポーネント
-        self.pt = PaperTrader()
+        initial_capital = self.config.get("paper_trading", {}).get("initial_capital", 1000000)
+        self.pt = PaperTrader(initial_capital=initial_capital)
         self.notifier = SmartNotifier(config_path)
         
         # リスク設定
@@ -45,9 +55,20 @@ class FullyAutomatedTrader:
         self.max_daily_trades = self.risk_config.get("max_daily_trades", 5)
         
         # ポートフォリオ配分目標
-        self.target_japan_pct = 50
+        self.target_japan_pct = 40
         self.target_us_pct = 30
-        self.target_europe_pct = 20
+        self.target_europe_pct = 10
+        self.target_crypto_pct = 10
+        self.target_fx_pct = 10
+        
+        # 資産クラス設定
+        self.asset_config = self.config.get("assets", {
+            "japan_stocks": True,
+            "us_stocks": True,
+            "europe_stocks": True,
+            "crypto": False,
+            "fx": False
+        })
         
         # その他設定
         self.allow_small_mid_cap = True
@@ -63,6 +84,13 @@ class FullyAutomatedTrader:
         
         # 実行エンジン
         self.engine = ExecutionEngine(self.pt)
+        
+        # Phase 30-1: リアルタイム適応学習
+        self.regime_detector = MarketRegimeDetector()
+        self.risk_manager = DynamicRiskManager(self.regime_detector)
+        self.kelly_criterion = KellyCriterion()
+        self.dynamic_stop_manager = DynamicStopManager()
+        self.log("Phase 30-1 & 30-3: リアルタイム適応学習・高度リスク管理モジュール初期化完了")
         
         self.log("フル自動トレーダー初期化完了")
     
@@ -240,32 +268,63 @@ class FullyAutomatedTrader:
                 # 損益率計算
                 pnl_pct = (latest_price - entry_price) / entry_price
                 
-                # 損切り判断（-5%）
-                if pnl_pct < -0.05:
-                    actions.append({
-                        'ticker': ticker,
-                        'action': 'SELL',
-                        'reason': f'損切り（{pnl_pct:.1%}）',
-                        'confidence': 1.0,
-                        'price': latest_price
-                    })
-                    self.log(f"損切り判断: {ticker} ({pnl_pct:.1%})")
+                # Phase 30-3: Dynamic Stop Manager Integration
+                # Load persistent stop/high from DB
+                current_stop = position.get('stop_price', 0)
+                highest_price = position.get('highest_price', entry_price)
                 
-                # 利確判断（+10%）
-                elif pnl_pct > 0.10:
+                # Update DSM state
+                self.dynamic_stop_manager.highest_prices[ticker] = highest_price
+                
+                # Update stop based on latest data
+                new_stop = self.dynamic_stop_manager.update_stop(ticker, latest_price, data[ticker])
+                new_highest = self.dynamic_stop_manager.highest_prices.get(ticker, latest_price)
+                
+                # Save back to DB
+                self.pt.update_position_stop(ticker, new_stop, new_highest)
+                
+                # Check exit condition
+                should_exit, exit_reason = self.dynamic_stop_manager.check_exit(ticker, latest_price)
+                
+                if should_exit:
                     actions.append({
                         'ticker': ticker,
                         'action': 'SELL',
-                        'reason': f'利確（{pnl_pct:.1%}）',
+                        'reason': exit_reason,
                         'confidence': 1.0,
                         'price': latest_price
                     })
-                    self.log(f"利確判断: {ticker} ({pnl_pct:.1%})")
+                    self.log(f"Exit Signal ({ticker}): {exit_reason}")
+                
+                # Fallback to DynamicRiskManager thresholds if DSM doesn't trigger
+                # (Optional: DSM usually covers stop loss, but maybe keep take profit from DRM?)
+                # For now, let's trust DSM for stops, but maybe add DRM take profit if DSM doesn't have it?
+                # DSM has profit locking but maybe not target profit.
+                
+                # Check DRM take profit as secondary
+                try:
+                    params = self.risk_manager.current_params
+                    take_profit_threshold = params.get('take_profit', 0.10)
+                    if pnl_pct > take_profit_threshold:
+                         # Only if DSM didn't trigger
+                         if not should_exit:
+                            actions.append({
+                                'ticker': ticker,
+                                'action': 'SELL',
+                                'reason': f'利確（{pnl_pct:.1%}、閾値{take_profit_threshold:.1%}）',
+                                'confidence': 1.0,
+                                'price': latest_price
+                            })
+                            self.log(f"利確判断: {ticker} ({pnl_pct:.1%})")
+                except:
+                    pass
             
             except Exception as e:
                 self.log(f"ポジション評価エラー ({ticker}): {e}", "WARNING")
         
         return actions
+    
+        return tickers
     
     def get_target_tickers(self) -> List[str]:
         """ポートフォリオバランスに基づいて対象銘柄を返す"""
@@ -276,12 +335,18 @@ class FullyAutomatedTrader:
         japan_value = 0
         us_value = 0
         europe_value = 0
+        crypto_value = 0
+        fx_value = 0
         
         for _, pos in positions.iterrows():
             ticker = pos['ticker']
             value = pos.get('market_value', pos['quantity'] * pos['current_price'])
             
-            if ticker in NIKKEI_225_TICKERS:
+            if ticker in CRYPTO_PAIRS:
+                crypto_value += value
+            elif ticker in FX_PAIRS:
+                fx_value += value
+            elif ticker in NIKKEI_225_TICKERS:
                 japan_value += value
             elif any(ticker.startswith(t) for t in ['', '.'] if ticker in SP500_TICKERS):
                 us_value += value
@@ -294,25 +359,38 @@ class FullyAutomatedTrader:
             japan_pct = (japan_value / total_value) * 100
             us_pct = (us_value / total_value) * 100
             europe_pct = (europe_value / total_value) * 100
+            crypto_pct = (crypto_value / total_value) * 100
+            fx_pct = (fx_value / total_value) * 100
         else:
-            japan_pct = us_pct = europe_pct = 0
+            japan_pct = us_pct = europe_pct = crypto_pct = fx_pct = 0
         
-        self.log(f"現在の地域配分: 日本{japan_pct:.1f}% 米国{us_pct:.1f}% 欧州{europe_pct:.1f}%")
+        self.log(f"現在の資産配分: 日本{japan_pct:.1f}% 米国{us_pct:.1f}% 欧州{europe_pct:.1f}% Crypto{crypto_pct:.1f}% FX{fx_pct:.1f}%")
         
         # 目標との差分を計算し、優先的にスキャンする地域を決定
         tickers = []
         
-        # 日本株（基本常にスキャン、ただし割合を抑える）
-        japan_count = 30 if japan_pct < self.target_japan_pct else 15
-        tickers.extend(NIKKEI_225_TICKERS[:japan_count])
+        # 日本株
+        if self.asset_config.get("japan_stocks", True):
+            japan_count = 30 if japan_pct < self.target_japan_pct else 15
+            tickers.extend(NIKKEI_225_TICKERS[:japan_count])
         
-        # 米国株（不足している場合は多めに）
-        us_count = 20 if us_pct < self.target_us_pct else 10
-        tickers.extend(SP500_TICKERS[:us_count])
+        # 米国株
+        if self.asset_config.get("us_stocks", True):
+            us_count = 20 if us_pct < self.target_us_pct else 10
+            tickers.extend(SP500_TICKERS[:us_count])
         
-        # 欧州株（不足している場合は追加）
-        europe_count = 10 if europe_pct < self.target_europe_pct else 5
-        tickers.extend(STOXX50_TICKERS[:europe_count])
+        # 欧州株
+        if self.asset_config.get("europe_stocks", True):
+            europe_count = 10 if europe_pct < self.target_europe_pct else 5
+            tickers.extend(STOXX50_TICKERS[:europe_count])
+            
+        # 暗号資産
+        if self.asset_config.get("crypto", False):
+            tickers.extend(CRYPTO_PAIRS)
+            
+        # FX
+        if self.asset_config.get("fx", False):
+            tickers.extend(FX_PAIRS)
         
         return tickers
     
@@ -359,8 +437,9 @@ class FullyAutomatedTrader:
         # 戦略初期化
         strategies = [
             ("LightGBM", LightGBMStrategy(lookback_days=365, threshold=0.005)),
-            ("ML Random Forest", MLStrategy()),  # デフォルト引数を使用
-            ("Combined", CombinedStrategy())
+            ("ML Random Forest", MLStrategy()),
+            ("Combined", CombinedStrategy()),
+            ("High Dividend", DividendStrategy())  # 修正済みの安全な高配当戦略を追加
         ]
         
         signals = []
@@ -410,11 +489,38 @@ class FullyAutomatedTrader:
                         else:
                             region = '欧州'
                         
+                        # Phase 30-3: Kelly Criterion for Position Sizing
+                        # Calculate optimal size
+                        balance = self.pt.get_current_balance()
+                        equity = balance['total_equity']
+                        cash = balance['cash']
+                        
+                        # Use default win rate/ratio if no history, or use actual history
+                        # For now, use conservative defaults or fetch from history
+                        # history = self.pt.get_trade_history()
+                        # ... calculate win rate ...
+                        # For simplicity, assume 55% win rate, 1.5 ratio for new signals
+                        kelly_pct = self.kelly_criterion.calculate_size(win_rate=0.55, win_loss_ratio=1.5)
+                        
+                        # Adjust by Regime (DynamicRiskManager)
+                        regime_multiplier = self.risk_manager.current_params.get('position_size', 1.0)
+                        final_size_pct = kelly_pct * regime_multiplier
+                        
+                        # Calculate quantity
+                        target_amount = equity * final_size_pct
+                        target_amount = min(target_amount, cash) # Cap at cash
+                        quantity = int(target_amount / latest_price / 100) * 100
+                        
+                        if quantity < 100:
+                            self.log(f"  {ticker}: 算出数量が少なすぎるためスキップ ({quantity})")
+                            continue
+
                         signals.append({
                             'ticker': ticker,
                             'action': 'BUY',
                             'confidence': 0.85,
                             'price': latest_price,
+                            'quantity': quantity,
                             'strategy': strategy_name,
                             'reason': f'{strategy_name}による買いシグナル（{region}）'
                         })
@@ -465,8 +571,19 @@ class FullyAutomatedTrader:
         # 今日の取引履歴
         history = self.pt.get_trade_history()
         today = datetime.date.today()
-        today_trades = history[history['timestamp'].dt.date == today]
         
+        if not history.empty:
+            # timestampまたはdateカラムを使用
+            time_col = 'timestamp' if 'timestamp' in history.columns else 'date'
+            if time_col in history.columns:
+                # datetime型に変換
+                history[time_col] = pd.to_datetime(history[time_col])
+                today_trades = history[history[time_col].dt.date == today]
+            else:
+                today_trades = pd.DataFrame()
+        else:
+            today_trades = pd.DataFrame()
+            
         # 勝率計算
         if not history.empty:
             wins = len(history[history['realized_pnl'] > 0])
@@ -496,7 +613,21 @@ class FullyAutomatedTrader:
             'advice': self.get_advice(daily_pnl, balance['total_equity'])
         }
         
-        self.notifier.send_daily_summary_rich(summary)
+        # チャート画像生成
+        image_path = None
+        try:
+            from src.visualizer import ReportVisualizer
+            visualizer = ReportVisualizer()
+            
+            # 資産履歴があればチャート生成
+            equity_history = self.pt.get_equity_history()
+            if not equity_history.empty:
+                image_path = visualizer.generate_equity_chart(equity_history)
+                self.log(f"チャート画像生成完了: {image_path}")
+        except Exception as e:
+            self.log(f"チャート画像生成失敗: {e}", "WARNING")
+        
+        self.notifier.send_daily_summary_rich(summary, image_path=image_path)
     
     def get_advice(self, daily_pnl: float, total_equity: float) -> str:
         """アドバイスを生成"""
@@ -558,6 +689,110 @@ class FullyAutomatedTrader:
             )
 
 
+    def check_market_hours(self) -> bool:
+        """
+        市場取引時間中（9:00-15:00 JST）かどうかをチェック
+        Returns:
+            bool: 取引時間外ならTrue（実行許可）、取引時間中ならFalse（実行禁止）
+        """
+        now = datetime.datetime.now()
+        current_time = now.time()
+        
+        # JST 9:00 - 15:00
+        market_start = datetime.time(9, 0)
+        market_end = datetime.time(15, 0)
+        
+        # 平日のみチェック
+        if now.weekday() < 5:  # 0=Mon, 4=Fri
+            if market_start <= current_time <= market_end:
+                return False
+        
+        return True
+
+    def daily_routine(self, force_run: bool = False):
+        """日次ルーチン実行"""
+        self.log("============================================================")
+        self.log(f"自動トレーダー開始: {datetime.datetime.now()}")
+        self.log("============================================================")
+        
+        # 市場時間チェック
+        if not force_run and not self.check_market_hours():
+            self.log("⚠️ 現在は市場取引時間中です (9:00-15:00 JST)", "WARNING")
+            self.log("   不正確なデータによる誤判断を防ぐため、処理を停止します。", "WARNING")
+            self.log("   強制実行する場合は force_run=True を指定してください。", "WARNING")
+            return
+
+        try:
+            # 1. Phase 30-1: 市場レジーム検出とリスクパラメータ更新
+            self.log("Phase 30-1: 市場レジーム検出開始...")
+            try:
+                # 日経平均のデータを取得してレジーム検出
+                market_data = fetch_stock_data(["^N225"], period="3mo")
+                if market_data and "^N225" in market_data:
+                    df_market = market_data["^N225"]
+                    
+                    # レジーム検出
+                    regime = self.regime_detector.detect_regime(df_market)
+                    self.log(f"検出されたレジーム: {regime}")
+                    
+                    # リスクパラメータ更新
+                    params = self.risk_manager.update_parameters(df_market)
+                    self.log(f"リスクパラメータ更新: 損切り={params['stop_loss']*100:.2f}%, "
+                           f"利確={params['take_profit']*100:.2f}%, "
+                           f"ポジションサイズ={params['position_size']:.2f}")
+                    
+                    # レジーム情報をログ
+                    regime_stats = self.regime_detector.get_regime_statistics()
+                    self.log(f"レジーム統計: {regime_stats}")
+                else:
+                    self.log("市場データ取得失敗、デフォルトパラメータを使用", "WARNING")
+            except Exception as e:
+                self.log(f"レジーム検出エラー: {e}", "WARNING")
+            
+            # 2. リスクチェック
+            is_safe, reason = self.is_safe_to_trade()
+            if not is_safe:
+                self.log(f"⚠️ 取引中止: {reason}", "WARNING")
+                self.notifier.send_line_notify(
+                    f"⚠️ 本日の自動取引は中止されました\n理由: {reason}",
+                    token=self.config.get("notifications", {}).get("line", {}).get("token")
+                )
+                return
+            
+            # 3. 既存ポジション評価
+            self.log("ポジション評価開始...")
+            position_actions = self.evaluate_positions()
+            
+            if position_actions:
+                self.log(f"{len(position_actions)}件のポジション調整")
+                self.execute_signals(position_actions)
+            
+            # 4. 新規シグナルスキャン
+            new_signals = self.scan_market()
+            
+            # 5. 新規シグナル実行
+            if new_signals:
+                self.execute_signals(new_signals)
+            
+            # 6. 日次エクイティ更新
+            self.pt.update_daily_equity()
+            
+            # 7. 日次レポート送信（Phase 30-1のレジーム情報を含む）
+            self.send_daily_report()
+            
+            self.log("自動トレーダー正常終了")
+        
+        except Exception as e:
+            self.log(f"❌ エラー発生: {e}", "ERROR")
+            self.log(traceback.format_exc(), "ERROR")
+            
+            # エラー通知
+            self.notifier.send_line_notify(
+                f"❌ 自動トレーダーでエラーが発生しました\n{str(e)}",
+                token=self.config.get("notifications", {}).get("line", {}).get("token")
+            )
+
+
 def main():
     """メイン関数"""
     # キャッシュ設定
@@ -565,7 +800,10 @@ def main():
     
     # 完全自動トレーダー実行
     trader = FullyAutomatedTrader()
-    trader.daily_routine()
+    
+    # コマンドライン引数で強制実行を確認
+    force_run = "--force" in sys.argv
+    trader.daily_routine(force_run=force_run)
 
 
 if __name__ == "__main__":

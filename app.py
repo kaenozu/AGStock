@@ -1,16 +1,21 @@
-import streamlit as st
+﻿import streamlit as st
 import pandas as pd
+import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
 from src.constants import NIKKEI_225_TICKERS, TICKER_NAMES, MARKETS
 from src.data_loader import fetch_stock_data, get_latest_price
-from src.strategies import SMACrossoverStrategy, RSIStrategy, BollingerBandsStrategy, CombinedStrategy, MLStrategy, LightGBMStrategy, DeepLearningStrategy, EnsembleStrategy, load_custom_strategies
+from src.strategies import (
+    SMACrossoverStrategy, RSIStrategy, BollingerBandsStrategy, CombinedStrategy, 
+    MLStrategy, LightGBMStrategy, DeepLearningStrategy, EnsembleStrategy, 
+    TransformerStrategy, GRUStrategy, AttentionLSTMStrategy, MultiTimeframeStrategy, SentimentStrategy, RLStrategy, load_custom_strategies
+)
 from src.backtester import Backtester
 from src.portfolio import PortfolioManager
 from src.paper_trader import PaperTrader
 from src.live_trading import PaperBroker, LiveTradingEngine
 from src.llm_analyzer import LLMAnalyzer
-from src.agents import TechnicalAnalyst, FundamentalAnalyst, MacroStrategist, RiskManager, PortfolioManager
+from src.agents import TechnicalAnalyst, FundamentalAnalyst, MacroStrategist, RiskManager, PortfolioManager as PortfolioManagerAgent
 from src.cache_config import install_cache
 
 # Design System Imports
@@ -36,9 +41,14 @@ strategies = [
     CombinedStrategy(),
     MLStrategy(),
     LightGBMStrategy(),
-    LightGBMStrategy(),
     DeepLearningStrategy(),
-    EnsembleStrategy()
+    EnsembleStrategy(),
+    TransformerStrategy(),
+    GRUStrategy(),
+    AttentionLSTMStrategy(),
+    MultiTimeframeStrategy(),
+    SentimentStrategy(),
+    RLStrategy()
 ]
 strategies.extend(load_custom_strategies())
 
@@ -70,13 +80,34 @@ pio.templates.default = "plotly_dark"
 # Sidebar
 st.sidebar.header("設定")
 
-# Market Selection
-selected_market = st.sidebar.selectbox("市場選択 (Market)", ["Japan", "US", "Europe", "Crypto", "All"], index=0)
-ticker_group = st.sidebar.selectbox("対象銘柄", [f"{selected_market} 主要銘柄", "カスタム入力"])
+# Asset Class Selection
+asset_class = st.sidebar.selectbox(
+    "資産クラス",
+    ["日本株", "暗号資産", "FX"],
+    index=0
+)
+
+# Market Selection based on Asset Class
+if asset_class == "日本株":
+    from src.data_loader import JP_STOCKS
+    default_tickers = JP_STOCKS
+    market_name = "Japan"
+elif asset_class == "暗号資産":
+    from src.data_loader import CRYPTO_PAIRS
+    default_tickers = CRYPTO_PAIRS
+    market_name = "Crypto"
+else: # FX
+    from src.data_loader import FX_PAIRS
+    default_tickers = FX_PAIRS
+    market_name = "FX"
+
+ticker_group = st.sidebar.selectbox("対象銘柄", [f"{market_name} 主要銘柄", "カスタム入力"])
 
 custom_tickers = []
+custom_tickers = []
 if ticker_group == "カスタム入力":
-    custom_input = st.sidebar.text_area("銘柄コードを入力 (カンマ区切り)", "7203.T, 9984.T")
+    default_input = ", ".join(default_tickers[:5])
+    custom_input = st.sidebar.text_area("銘柄コードを入力 (カンマ区切り)", default_input)
     if custom_input:
         custom_tickers = [t.strip() for t in custom_input.split(",")]
 
@@ -142,221 +173,108 @@ if st.sidebar.checkbox("🔄 自動更新 (Live Mode)", value=False, help="60秒
     st.rerun()
 
 # Create Tabs
-tab_auto, tab_dashboard, tab1, tab2, tab3, tab4, tab5, tab_perf = st.tabs([
-    "🚀 フルオート",
+tab_dashboard, tab_auto, tab_realtime, tab1, tab_risk, tab_ai_report, tab_ai_chat, tab_automation, tab_advanced, tab_monitoring, tab2, tab3, tab4, tab5, tab_perf, tab_export, tab_alerts, tab_social, tab_tax, tab_options, tab_meta = st.tabs([
     "🏠 ダッシュボード", 
+    "🚀 フルオート",
+    "📡 リアルタイム監視",
     "📊 市場スキャン", 
+    "🛡️ リスク管理",
+    "📰 AIレポート",
+    "💬 AIチャット",
+    "🤖 自動化",
+    "📊 高度分析",
+    "📊 監視",
     "💼 ポートフォリオ", 
     "📝 ペーパートレード", 
     "📈 詳細分析", 
     "🕰️ 過去検証",
-    "📊 パフォーマンス分析"
+    "📊 パフォーマンス分析",
+    "📤 エクスポート",
+    "🔔 アラート",
+    "🏆 ソーシャル",
+    "💰 税務",
+    "🎲 オプション",
+    "🤖 AI進化"
 ])
 
-# --- Tab Auto: Fully Automated Trader UI ---
-with tab_auto:
-    from src.auto_trader_ui import create_auto_trader_ui
-    create_auto_trader_ui()
 
 # --- Tab Dashboard: Simple Dashboard ---
 with tab_dashboard:
     from src.simple_dashboard import create_simple_dashboard
     create_simple_dashboard()
 
+# --- Tab Auto: Fully Automated Trader UI ---
+with tab_auto:
+    from src.auto_trader_ui import create_auto_trader_ui
+    create_auto_trader_ui()
+
+# --- Tab Performance: Enhanced Performance Dashboard ---
 # --- Tab Performance: Enhanced Performance Dashboard ---
 with tab_perf:
     from src.enhanced_performance_dashboard import create_performance_dashboard
-    create_performance_dashboard()
+    
+    # Determine currency based on asset class
+    currency = "USD" if asset_class in ["暗号資産", "FX"] else "JPY"
+    
+    create_performance_dashboard(currency=currency)
+
+# --- Tab Realtime: Real-time Monitoring ---
+with tab_realtime:
+    from src.ui_renderers import render_realtime_monitoring_tab
+    render_realtime_monitoring_tab(ticker_group, selected_market, custom_tickers)
 
 
 with tab1:
-    st.header("市場全体スキャン")
-    st.write("指定した銘柄群に対して全戦略をバックテストし、有望なシグナルを検出します。")
+    from src.ui_renderers import render_market_scan_tab
+    render_market_scan_tab(
+        ticker_group=ticker_group,
+        selected_market=selected_market,
+        custom_tickers=custom_tickers,
+        period=period,
+        strategies=strategies,
+        allow_short=allow_short,
+        position_size=position_size,
+        enable_fund_filter=enable_fund_filter,
+        max_per=max_per,
+        max_pbr=max_pbr,
+        min_roe=min_roe,
+        trading_unit=trading_unit
+    )
 
-    # --- Automation Logic ---
-    import json
-    import os
-    import datetime
-    
-    cached_results = None
-    if os.path.exists("scan_results.json"):
-        try:
-            with open("scan_results.json", "r", encoding="utf-8") as f:
-                data = json.load(f)
-                # Check if data is fresh (e.g., from today)
-                scan_date = datetime.datetime.strptime(data['scan_date'], '%Y-%m-%d %H:%M:%S')
-                if scan_date.date() == datetime.date.today():
-                    cached_results = data
-                    st.success(f"✅ 最新のスキャン結果を読み込みました ({data['scan_date']})")
-        except Exception as e:
-            display_error_message(
-                "data",
-                "スキャン結果の読み込みに失敗しました。ファイルが破損している可能性があります。",
-                str(e)
-            )
+# --- Tab Risk: Risk Management ---
+with tab_risk:
+    from src.ui_risk_dashboard import render_risk_dashboard
+    render_risk_dashboard()
 
-    run_fresh = False
-    # Button logic: If cache exists, button says "Re-scan". If not, "Scan".
-    # If button clicked, run_fresh becomes True.
-    if st.button("市場をスキャンして推奨銘柄を探す (再スキャン)" if cached_results else "市場をスキャンして推奨銘柄を探す", type="primary"):
-        run_fresh = True
-        cached_results = None # Force fresh scan logic
+# --- Tab AI Report: AI Market Report ---
+with tab_ai_report:
+    from src.ui_ai_report import render_ai_report_tab
+    render_ai_report_tab()
 
-    if cached_results and not run_fresh:
-        sentiment = cached_results['sentiment']
-        results_data = cached_results['results']
-        
-        # === Display Cached Sentiment ===
-        with st.expander("📰 市場センチメント分析", expanded=True):
-            display_sentiment_gauge(sentiment['score'], sentiment.get('news_count', 0))
+# --- Tab AI Chat: Interactive AI Chat ---
+with tab_ai_chat:
+    from src.ui_ai_chat import render_ai_chat
+    render_ai_chat()
 
-            st.subheader("📰 最新ニュース見出し")
-            if sentiment.get('top_news'):
-                for i, news in enumerate(sentiment['top_news'][:5], 1):
-                     st.markdown(f"{i}. [{news['title']}]({news['link']})")
+# --- Tab Automation: Zero-Touch Trading ---
+with tab_automation:
+    from src.ui_automation import render_automation_tab
+    render_automation_tab()
 
-        # === Display Cached Results ===
-        results_df = pd.DataFrame(results_data)
-        if not results_df.empty:
-            actionable_df = results_df[results_df['Action'] != 'HOLD'].copy()
-            
-            # Apply Fundamental Filters
-            if enable_fund_filter:
-                original_count = len(actionable_df)
-                # Filter logic: Keep if data is missing (NaN) or meets condition?
-                # Usually strict filtering: Must meet condition.
-                # But if data is missing, maybe keep? Let's be strict for "Quality".
-                
-                # PER
-                if 'PER' in actionable_df.columns:
-                    actionable_df = actionable_df[
-                        (actionable_df['PER'].notna()) & (actionable_df['PER'] <= max_per)
-                    ]
-                
-                # PBR
-                if 'PBR' in actionable_df.columns:
-                    actionable_df = actionable_df[
-                        (actionable_df['PBR'].notna()) & (actionable_df['PBR'] <= max_pbr)
-                    ]
-                    
-                # ROE
-                if 'ROE' in actionable_df.columns:
-                    actionable_df = actionable_df[
-                        (actionable_df['ROE'].notna()) & (actionable_df['ROE'] >= min_roe / 100.0) # ROE is usually 0.08 for 8%
-                    ]
-                
-                filtered_count = len(actionable_df)
-                if original_count > filtered_count:
-                    st.info(f"財務フィルタにより {original_count} 件中 {original_count - filtered_count} 件が除外されました。")
+# --- Tab Advanced Analytics ---
+with tab_advanced:
+    from src.ui_advanced_analytics import render_advanced_analytics_tab
+    render_advanced_analytics_tab()
 
-            actionable_df = actionable_df.sort_values(by="Return", ascending=False)
+# --- Tab Monitoring ---
+with tab_monitoring:
+    from src.monitoring_dashboard import render_monitoring_dashboard
+    render_monitoring_dashboard()
 
-            # 1. Today's Best Pick
-            if not actionable_df.empty:
-                best_pick = actionable_df.iloc[0]
-                
-                # リスクレベル判定（統一版）
-                risk_level = get_risk_level(best_pick.get('Max Drawdown', -0.15))
-                
-                # 追加情報の準備
-                additional_info = {}
-                if 'PER' in best_pick and pd.notna(best_pick['PER']):
-                    additional_info['PER'] = best_pick['PER']
-                if 'PBR' in best_pick and pd.notna(best_pick['PBR']):
-                    additional_info['PBR'] = best_pick['PBR']
-                if 'ROE' in best_pick and pd.notna(best_pick['ROE']):
-                    additional_info['ROE'] = best_pick['ROE']
-                
-                # 注文コールバック
-                def handle_best_pick_order(ticker, action, price):
-                    pt = PaperTrader()
-                    trade_action = "BUY" if "BUY" in action else "SELL"
-                    if pt.execute_trade(ticker, trade_action, trading_unit, price, reason=f"Best Pick: {best_pick['Strategy']}"):
-                        st.balloons()
-                        st.success(f"{best_pick['Name']} を {trading_unit}株 {trade_action} しました！")
-                    else:
-                        display_error_message(
-                            "permission",
-                            "注文に失敗しました。資金不足または保有株式が不足しています。",
-                            f"Ticker: {ticker}, Action: {trade_action}, Unit: {trading_unit}"
-                        )
-                
-                # 改善版コンポーネントで表示
-                display_best_pick_card(
-                    ticker=best_pick['Ticker'],
-                    name=best_pick['Name'],
-                    action=best_pick['Action'],
-                    price=best_pick['Last Price'],
-                    explanation=best_pick.get('Explanation', ''),
-                    strategy=best_pick['Strategy'],
-                    risk_level=risk_level,
-                    on_order_click=handle_best_pick_order,
-                    additional_info=additional_info if additional_info else None
-                )
-
-            # 1.5. AI Robo-Advisor Portfolio
-            if 'portfolio' in cached_results and cached_results['portfolio']:
-                portfolio = cached_results['portfolio']
-                st.markdown("---")
-                with st.expander("💰 AIロボアドバイザー・ポートフォリオ", expanded=False):
-                    st.write(f"**推奨銘柄数**: {portfolio['total_assets']}銘柄")
-                    st.write("AIが最適なリスク・リターン比率で配分を計算しました。")
-                    
-                    # Display weights as pie chart
-                    weights_df = pd.DataFrame([
-                        {"銘柄": TICKER_NAMES.get(t, t), "配分比率": w * 100}
-                        for t, w in portfolio['weights'].items()
-                    ])
-                    
-                    fig_pie = px.pie(
-                        weights_df,
-                        values='配分比率',
-                        names='銘柄',
-                        title='推奨ポートフォリオ配分'
-                    )
-                    st.plotly_chart(fig_pie, use_container_width=True)
-                    
-                    # Display as table
-                    st.dataframe(weights_df, use_container_width=True)
-                    
-                    # Apply to Paper Trading button
-                    if st.button("📝 このポートフォリオで一括注文（バーチャル）", key="portfolio_order"):
-                        pt = PaperTrader()
-                        total_capital = 1000000  # 100万円を想定
-                        success_count = 0
-                        
-                        for ticker, weight in portfolio['weights'].items():
-                            # Find the price from results
-                            ticker_result = next((r for r in cached_results['results'] if r['Ticker'] == ticker and r['Action'] == 'BUY'), None)
-                            if ticker_result:
-                                allocated_amount = total_capital * weight
-                                if use_fractional_shares:
-                                    # Fractional shares (1 share unit)
-                                    shares = int(allocated_amount / ticker_result['Last Price'])
-                                else:
-                                    # Standard lot (100 share unit)
-                                    shares = int(allocated_amount / (ticker_result['Last Price'] * 100)) * 100
-                                
-                                if shares > 0:
-                                    if pt.execute_trade(ticker, "BUY", shares, ticker_result['Last Price'], reason="Robo-Advisor Portfolio"):
-                                        success_count += 1
-                        
-                        if success_count > 0:
-                            st.balloons()
-                            st.success(f"✅ {success_count}銘柄の注文が完了しました！")
-
-            # 1.6. High Dividend Strategy
-            if 'high_dividend' in cached_results and cached_results['high_dividend']:
-                st.markdown("---")
-                with st.expander("💰 高配当・積立", expanded=True):
-                    st.write("長期保有・積立投資に適した高配当銘柄です（利回り3%以上、配当性向80%以下）。")
-                    
-                    hd_df = pd.DataFrame(cached_results['high_dividend'])
-                    
-                    # Format columns for display (統一版フォーマット使用)
-                    display_df = hd_df.copy()
-                    display_df['Yield'] = display_df['Yield'].apply(lambda x: format_percentage(x, decimals=2))
-                    display_df['PayoutRatio'] = display_df['PayoutRatio'].apply(lambda x: format_percentage(x, decimals=2))
+# --- Tab 2: Portfolio Analysis ---
+with tab2:
+    st.header("💼 ポートフォリオ分析")
+    st.write("複数銘柄の相関分析と最適配分を計算します。")
     
     # Selection
     if ticker_group == "カスタム入力":
@@ -369,7 +287,12 @@ with tab1:
                                       default=available_tickers[:5] if len(available_tickers) >=5 else available_tickers,
                                       format_func=lambda x: f"{x} - {TICKER_NAMES.get(x, '')}")
     
-    initial_capital = st.number_input("初期投資額 (円)", value=10000000, step=1000000)
+    # Currency symbol
+    currency_symbol = "¥" if asset_class == "日本株" else "$"
+    default_capital = 10000000 if asset_class == "日本株" else 100000
+    step_capital = 1000000 if asset_class == "日本株" else 10000
+    
+    initial_capital = st.number_input(f"初期投資額 ({currency_symbol})", value=default_capital, step=step_capital)
     
     if st.button("ポートフォリオを分析する"):
         if len(selected_portfolio) < 2:
@@ -457,16 +380,187 @@ with tab1:
 with tab3:
     from src.ui_renderers import render_paper_trading_tab
     render_paper_trading_tab()
-    history = pt.get_trade_history()
-    if not history.empty:
-        st.dataframe(history, use_container_width=True)
-    else:
-        st.info("取引履歴はありません。")
 
-# --- Tab 4: Dashboard ---
+# --- Tab 4: Detailed Analysis (XAI) ---
 with tab4:
-    from src.ui_renderers import render_performance_tab
-    render_performance_tab(ticker_group, selected_market, custom_tickers)
+    st.header("📈 詳細分析 & XAI (説明可能AI)")
+    st.write("AIがなぜその予測をしたのか、詳細な根拠を分析します。")
+    
+    # Analysis Target Selection
+    xai_ticker = st.selectbox(
+        "分析対象銘柄を選択",
+        MARKETS[selected_market],
+        format_func=lambda x: f"{x} - {TICKER_NAMES.get(x, '')}",
+        key="xai_ticker_select"
+    )
+    
+    if st.button("🔍 詳細分析を実行", type="primary", key="run_xai"):
+        with st.spinner(f"{xai_ticker} のデータを分析中..."):
+            try:
+                # 1. Fetch Data
+                from src.data_loader import fetch_stock_data
+                from src.features import add_advanced_features
+                
+                df = fetch_stock_data([xai_ticker], period="2y").get(xai_ticker)
+                
+                if df is not None and not df.empty:
+                    # 2. Feature Engineering
+                    df_feat = add_advanced_features(df)
+                    
+                    # 3. Model Training (Quick LightGBM for explanation)
+                    # Note: Ideally we should load a pre-trained model, but for demo we train on the fly
+                    from src.strategies import LightGBMStrategy
+                    from src.ui_renderers import render_xai_section
+                    
+                    lgbm = LightGBMStrategy()
+                    
+                    # Prepare data for training
+                    # We need to split data to train a model to explain it
+                    # For XAI purpose, we want to explain the *latest* prediction
+                    
+                    # Train on past data
+                    train_size = int(len(df_feat) * 0.8)
+                    train_data = df_feat.iloc[:train_size]
+                    test_data = df_feat.iloc[train_size:]
+                    
+                    # Train model (using internal method if available, or just use the strategy)
+                    # LightGBMStrategy doesn't expose the model directly easily, 
+                    # so we might need to access it or train a fresh one using lightgbm directly
+                    
+                    import lightgbm as lgb
+                    
+                    # Simple training for XAI demo
+                    feature_cols = [c for c in df_feat.columns if c not in ['Open', 'High', 'Low', 'Close', 'Volume', 'Target']]
+                    # Remove non-numeric
+                    feature_cols = df_feat[feature_cols].select_dtypes(include=[np.number]).columns.tolist()
+                    
+                    X = df_feat[feature_cols]
+                    y = (df_feat['Close'].shift(-1) > df_feat['Close']).astype(int) # Binary target
+                    
+                    # Drop NaN
+                    valid_idx = ~X.isna().any(axis=1) & ~y.isna()
+                    X = X[valid_idx]
+                    y = y[valid_idx]
+                    
+                    if len(X) > 100:
+                        model = lgb.LGBMClassifier(random_state=42, n_estimators=100)
+                        model.fit(X, y)
+                        
+                        # Get prediction probability for the latest data point
+                        # We need the latest feature vector
+                        latest_X = X.iloc[[-1]]
+                        ai_prob = model.predict_proba(latest_X)[0][1] # Probability of class 1 (Up)
+                        
+                        # 3.5 Render Integrated Signal Analysis
+                        from src.ui_renderers import render_integrated_signal
+                        render_integrated_signal(df, xai_ticker, ai_prediction=ai_prob)
+                        
+                        st.markdown("---")
+                        
+                        # 4. Render XAI Section
+                        render_xai_section(model, X, xai_ticker)
+                        
+                        # 5. Additional Technical Analysis
+                        st.markdown("---")
+                        st.subheader("📊 テクニカル指標詳細")
+                        
+                        # MTF Analysis
+                        from src.multi_timeframe import get_mtf_analyzer
+                        mtf = get_mtf_analyzer()
+                        mtf_res = mtf.analyze(df)
+                        
+                        if mtf_res:
+                            st.markdown("##### ⏳ マルチタイムフレーム分析")
+                            m_col1, m_col2 = st.columns(2)
+                            
+                            with m_col1:
+                                w_trend = mtf_res['weekly_trend']
+                                w_icon = "📈" if w_trend == "UPTREND" else "📉" if w_trend == "DOWNTREND" else "➡️"
+                                st.metric("週足トレンド", f"{w_icon} {w_trend}")
+                                
+                            with m_col2:
+                                m_trend = mtf_res['monthly_trend']
+                                m_icon = "📈" if m_trend == "UPTREND" else "📉" if m_trend == "DOWNTREND" else "➡️"
+                                st.metric("月足トレンド", f"{m_icon} {m_trend}")
+                                
+                            if w_trend == "UPTREND" and m_trend == "UPTREND":
+                                st.success("長期トレンドは非常に強い上昇傾向です。買いエントリーの勝率が高い状態です。")
+                            elif w_trend == "DOWNTREND" and m_trend == "DOWNTREND":
+                                st.error("長期トレンドは非常に強い下落傾向です。買いエントリーは危険です。")
+                        
+                        # Candlestick with MA
+                        fig = go.Figure()
+                        fig.add_trace(go.Candlestick(
+                            x=df_feat.index,
+                            open=df_feat['Open'],
+                            high=df_feat['High'],
+                            low=df_feat['Low'],
+                            close=df_feat['Close'],
+                            name='Price'
+                        ))
+                        
+                        if 'SMA_20' in df_feat.columns:
+                            fig.add_trace(go.Scatter(x=df_feat.index, y=df_feat['SMA_20'], name='SMA 20', line=dict(color='orange')))
+                        if 'SMA_50' in df_feat.columns:
+                            fig.add_trace(go.Scatter(x=df_feat.index, y=df_feat['SMA_50'], name='SMA 50', line=dict(color='blue')))
+                            
+                        fig.update_layout(title=f"{xai_ticker} Price Chart", xaxis_rangeslider_visible=False)
+                        st.plotly_chart(fig, use_container_width=True)
+                        
+                        # 6. AI Trade Reasoning (Phase 31-3)
+                        st.markdown("---")
+                        st.subheader("🤖 AIトレード理由解説")
+                        
+                        from src.trade_explainer import TradeExplainer
+                        from src.regime_detector import MarketRegimeDetector
+                        
+                        explainer = TradeExplainer()
+                        regime_detector = MarketRegimeDetector()
+                        
+                        if explainer.analyst.enabled:
+                            # Get current regime
+                            regime = regime_detector.detect_regime(df)
+                            
+                            # Get latest technical indicators
+                            latest_indicators = {}
+                            if 'RSI' in df_feat.columns:
+                                latest_indicators['RSI'] = df_feat['RSI'].iloc[-1]
+                            if 'MACD' in df_feat.columns:
+                                latest_indicators['MACD'] = df_feat['MACD'].iloc[-1]
+                            if 'SMA_20' in df_feat.columns:
+                                latest_indicators['SMA_20'] = df_feat['SMA_20'].iloc[-1]
+                            if 'SMA_50' in df_feat.columns:
+                                latest_indicators['SMA_50'] = df_feat['SMA_50'].iloc[-1]
+                            
+                            # Determine hypothetical action based on signal
+                            latest_signal = signals.iloc[-1] if not signals.empty else 0
+                            action = "BUY" if latest_signal == 1 else "SELL" if latest_signal == -1 else "HOLD"
+                            
+                            if action != "HOLD":
+                                with st.spinner("AIがトレード理由を分析中..."):
+                                    explanation = explainer.explain_trade(
+                                        ticker=xai_ticker,
+                                        action=action,
+                                        price=df['Close'].iloc[-1],
+                                        technical_indicators=latest_indicators,
+                                        market_regime=regime,
+                                        strategy_name="LightGBM"
+                                    )
+                                    st.markdown(explanation)
+                            else:
+                                st.info("🚦 現在は明確な売買シグナルがありません。様子見モードです。")
+                        else:
+                            st.warning("⚠️ AIアナリストが無効です。`config.json`でOpenAI APIキーを設定してください。")
+                        
+                    else:
+                        st.error("データ不足のためモデルを学習できませんでした。")
+                else:
+                    st.error("データの取得に失敗しました。")
+                    
+            except Exception as e:
+                st.error(f"分析中にエラーが発生しました: {e}")
+                import traceback
+                st.text(traceback.format_exc())
     
     st.divider()
     
@@ -659,7 +753,7 @@ if st.button("🏛️ 投資委員会を召集", type="primary", key="run_commit
         fund_agent = FundamentalAnalyst()
         macro_agent = MacroStrategist()
         risk_agent = RiskManager()
-        pm_agent = PortfolioManager()
+        pm_agent = PortfolioManagerAgent()
         
         # Collect Votes
         votes = []
@@ -674,7 +768,7 @@ if st.button("🏛️ 投資委員会を召集", type="primary", key="run_commit
         # Display Results
         st.markdown("---")
         st.subheader(f"🎯 最終判断: {decision['decision']}")
-        st.metric("Decision Score", f"{decision['score']:.2f}")
+        st.metric("判断スコア (Decision Score)", f"{decision['score']:.2f}")
         
         if decision['decision'] == "BUY":
             st.success("✅ 委員会は「買い」を推奨します。")
@@ -700,7 +794,7 @@ if st.button("🏛️ 投資委員会を召集", type="primary", key="run_commit
 
 # === Broker Control Panel & Emergency Stop ===
 st.markdown("---")
-st.header("🎛️ Broker Control Panel")
+st.header("🎛️ ブローカー制御パネル (Broker Control Panel)")
 
 # Load config
 import json
@@ -713,16 +807,16 @@ except:
 col_broker1, col_broker2 = st.columns([2, 1])
 
 with col_broker1:
-    st.subheader("Broker Selection")
+    st.subheader("ブローカー選択")
     broker_mode = st.radio(
-        "Select Broker Mode",
-        ["Paper (Simulator)", "IBKR Paper", "IBKR Live"],
+        "ブローカーモードを選択",
+        ["Paper (シミュレーター)", "IBKR Paper (デモ)", "IBKR Live (本番)"],
         index=0 if config.get("broker", {}).get("default_mode") == "paper" else 1,
-        help="⚠️ IBKR Live uses REAL MONEY. Only enable after thorough Paper Trading validation."
+        help="⚠️ IBKR Live は実際の資金を使用します。Paper Tradingで十分に検証した後でのみ有効にしてください。"
     )
     
     if broker_mode.startswith("IBKR"):
-        st.warning("⚠️ IBKR mode requires TWS/IB Gateway running and `ib_insync` installed.")
+        st.warning("⚠️ IBKRモードを使用するには、TWSまたはIB Gatewayが起動しており、`ib_insync` がインストールされている必要があります。")
         st.caption(f"Host: {config.get('broker', {}).get('ibkr', {}).get('host', '127.0.0.1')}")
         
         port = config.get('broker', {}).get('ibkr', {}).get('paper_port' if 'Paper' in broker_mode else 'live_port', 7497)
@@ -730,45 +824,978 @@ with col_broker1:
         
         # Connection status (placeholder - would need actual connection check)
         connection_status = st.empty()
-        connection_status.info("🔴 Not Connected")
+        connection_status.info("🔴 未接続")
 
 with col_broker2:
-    st.subheader("Safety Controls")
+    st.subheader("安全制御")
     
     # Emergency Stop Button
-    if st.button("🚨 EMERGENCY STOP", type="primary", help="Immediately halt all trading"):
+    if st.button("🚨 緊急停止 (EMERGENCY STOP)", type="primary", help="すべての取引を直ちに停止します"):
         st.session_state.emergency_stop = True
-        st.error("⛔ EMERGENCY STOP ACTIVATED")
+        st.error("⛔ 緊急停止が作動しました")
         st.balloons()  # Alert sound
     
     # Status display
     if st.session_state.get("emergency_stop", False):
-        st.error("⛔ TRADING HALTED")
-        if st.button("Reset Emergency Stop"):
+        st.error("⛔ 取引停止中")
+        if st.button("緊急停止を解除"):
             st.session_state.emergency_stop = False
-            st.success("✅ Emergency stop reset")
+            st.success("✅ 緊急停止を解除しました")
     else:
-        st.success("✅ Trading Active")
+        st.success("✅ 取引有効")
 
 st.markdown("---")
 
 # RiskGuard Dashboard
-st.subheader("🛡️ Risk Guard Status")
+st.subheader("🛡️ リスクガード状態 (Risk Guard Status)")
 
 risk_config = config.get("risk_guard", {})
 col_risk1, col_risk2, col_risk3 = st.columns(3)
 
 with col_risk1:
-    st.metric("Daily Loss Limit", f"{risk_config.get('daily_loss_limit_pct', -5.0)}%")
+    st.metric("日次損失限度", f"{risk_config.get('daily_loss_limit_pct', -5.0)}%")
 with col_risk2:
-    st.metric("Max Position Size", f"{risk_config.get('max_position_size_pct', 10.0)}%")
+    st.metric("最大ポジションサイズ", f"{risk_config.get('max_position_size_pct', 10.0)}%")
 with col_risk3:
-    st.metric("Max VIX", risk_config.get('max_vix', 40.0))
+    st.metric("最大VIX指数", risk_config.get('max_vix', 40.0))
 
 # Daily P&L Progress (placeholder - would show actual data)
-st.caption("Daily P&L Monitor")
+st.caption("日次損益モニター")
 pnl_pct = 0.0  # Placeholder
-st.progress(max(0, min(1, (pnl_pct + 10) / 20)), text=f"P&L: {pnl_pct:+.2f}%")
+st.progress(max(0, min(1, (pnl_pct + 10) / 20)), text=f"損益率: {pnl_pct:+.2f}%")
 
 if abs(pnl_pct) >= abs(risk_config.get('daily_loss_limit_pct', -5.0)):
-    st.error(f"⚠️ Daily loss limit reached: {pnl_pct:.2f}%")
+    st.error(f"⚠️ 日次損失限度に達しました: {pnl_pct:.2f}%")
+#   A d d   t h i s   t o   t h e   e n d   o f   a p p . p y 
+ 
+ 
+ 
+ #   - - -   T a b   E x p o r t :   E x p o r t   M a n a g e r   - - - 
+ 
+ w i t h   t a b _ e x p o r t : 
+ 
+         f r o m   s r c . u i _ e x p o r t   i m p o r t   r e n d e r _ e x p o r t _ t a b 
+ 
+         r e n d e r _ e x p o r t _ t a b ( ) 
+ 
+ 
+ 
+ #   - - -   T a b   A l e r t s :   A l e r t   M a n a g e m e n t   - - - 
+ 
+ w i t h   t a b _ a l e r t s : 
+ 
+         f r o m   s r c . u i _ a l e r t s   i m p o r t   r e n d e r _ a l e r t s _ t a b 
+ 
+         r e n d e r _ a l e r t s _ t a b ( ) 
+ 
+ 
+ 
+ #   - - -   T a b   S o c i a l :   S o c i a l   T r a d i n g   - - - 
+ 
+ w i t h   t a b _ s o c i a l : 
+ 
+         s t . h e a d e r ( " ^��  g~}�]~|�g~w�]~c�]~k�]~;S�]~|�]~�0E0]~s�g~p�" ) 
+ 
+         
+ 
+         s o c i a l _ t a b 1 ,   s o c i a l _ t a b 2 ,   s o c i a l _ t a b 3   =   s t . t a b s ( [ " ]~j�]~|�]~� ]~|�]~�a�0]~�0,   " g~s�]~�e�0]~;S�]~|�]~�0,   " �f�!�e�]~�i�0g~q�]~�0�0" ] ) 
+ 
+         
+ 
+         w i t h   s o c i a l _ t a b 1 : 
+ 
+                 s t . s u b h e a d e r ( " ^�b  ]~;S�0]~�R�0]~l�]~|�]~� ]~|�" ) 
+ 
+                 
+ 
+                 f r o m   s r c . t r a d e r _ p r o f i l e   i m p o r t   T r a d e r P r o f i l e M a n a g e r 
+ 
+                 m a n a g e r   =   T r a d e r P r o f i l e M a n a g e r ( ) 
+ 
+                 
+ 
+                 #   ]~j�]~|�]~� ]~|�]~�a�0]~Yr�S��0
+ 
+                 l e a d e r b o a r d   =   m a n a g e r . g e t _ l e a d e r b o a r d ( m e t r i c = ' t o t a l _ r e t u r n ' ,   l i m i t = 2 0 ) 
+ 
+                 
+ 
+                 i f   n o t   l e a d e r b o a r d . e m p t y : 
+ 
+                         s t . d a t a f r a m e ( 
+ 
+                                 l e a d e r b o a r d , 
+ 
+                                 c o l u m n _ c o n f i g = { 
+ 
+                                         " t o t a l _ r e t u r n " :   s t . c o l u m n _ c o n f i g . N u m b e r C o l u m n ( " ]~j�g~�]~|�]~s�  ( % ) " ,   f o r m a t = " % . 2 f % % " ) , 
+ 
+                                         " s h a r p e _ r a t i o " :   s t . c o l u m n _ c o n f i g . N u m b e r C o l u m n ( " g~w�]~c�]~|�]~�R�g~w�g~j�" ,   f o r m a t = " % . 2 f " ) , 
+ 
+                                         " m a x _ d r a w d o w n " :   s t . c o l u m n _ c o n f i g . N u m b e r C o l u m n ( " [�� ��g�]~�\�]~|�]~� g~f�]~s�  ( % ) " ,   f o r m a t = " % . 2 f % % " ) , 
+ 
+                                         " w i n _ r a t e " :   s t . c o l u m n _ c o n f i g . N u m b e r C o l u m n ( " 
+�If+}  ( % ) " ,   f o r m a t = " % . 2 f % % " ) , 
+ 
+                                         " f o l l o w e r _ c o u n t " :   s t . c o l u m n _ c o n f i g . N u m b e r C o l u m n ( " ]~�K0]~m�]~o�]~|�(�p�" ) 
+ 
+                                 } , 
+ 
+                                 u s e _ c o n t a i n e r _ w i d t h = T r u e 
+ 
+                         ) 
+ 
+                 e l s e : 
+ 
+                         s t . i n f o ( " ]~;S�]~|�]~� ]~|�]~�0�0g~�:~�_`"g~�*":~^S�2~�0) 
+ 
+         
+ 
+         w i t h   s o c i a l _ t a b 2 : 
+ 
+                 s t . s u b h e a d e r ( " ^�-d  g~s�]~�e�0]~;S�]~|�]~��h�m����0) 
+ 
+                 
+ 
+                 f r o m   s r c . c o p y _ t r a d i n g   i m p o r t   C o p y T r a d i n g E n g i n e 
+ 
+                 e n g i n e   =   C o p y T r a d i n g E n g i n e ( ) 
+ 
+                 
+ 
+                 s t . w r i t e ( " * * g~s�]~�e�0��m����0* " ) 
+ 
+                 
+ 
+                 c o l 1 ,   c o l 2   =   s t . c o l u m n s ( 2 ) 
+ 
+                 
+ 
+                 w i t h   c o l 1 : 
+ 
+                         c o p y _ p e r c e n t a g e   =   s t . s l i d e r ( " g~s�]~�e�0H��v+}  ( % ) " ,   1 ,   1 0 0 ,   1 0 ) 
+ 
+                         m a x _ p e r _ t r a d e   =   s t . n u m b e r _ i n p u t ( " 1 ?���|��`":~�nJ�:~n�s�O^R  ( ��e�) " ,   v a l u e = 5 0 0 0 0 ,   s t e p = 1 0 0 0 0 ) 
+ 
+                 
+ 
+                 w i t h   c o l 2 : 
+ 
+                         m a x _ t o t a l   =   s t . n u m b e r _ i n p u t ( " ��WN\Qɖ�0a�:Xx�O^R  ( ��e�) " ,   v a l u e = 1 0 0 0 0 0 ,   s t e p = 1 0 0 0 0 ) 
+ 
+                         m i n _ c o n f i d e n c e   =   s t . s l i d e r ( " [�� ƇN�a��|��f�" ,   0 . 0 ,   1 . 0 ,   0 . 5 ,   0 . 1 ) 
+ 
+                 
+ 
+                 i f   s t . b u t t o n ( " ��m����XR��Ofm��0,   t y p e = " p r i m a r y " ) : 
+ 
+                         s t . s u c c e s s ( " g~s�]~�e�0��m����XR��Ofm�%P �:~~�:~�R�%" ) 
+ 
+         
+ 
+         w i t h   s o c i a l _ t a b 3 : 
+ 
+                 s t . s u b h e a d e r ( " ^�[  �f�!�e�]~�i�0g~q�]~�0�0]~�R�g~d�g~y�" ) 
+ 
+                 
+ 
+                 f r o m   s r c . s t r a t e g y _ m a r k e t p l a c e   i m p o r t   S t r a t e g y M a r k e t p l a c e 
+ 
+                 m a r k e t p l a c e   =   S t r a t e g y M a r k e t p l a c e ( ) 
+ 
+                 
+ 
+                 #   ���at�b�
+ 
+                 s e a r c h _ q u e r y   =   s t . t e x t _ i n p u t ( " �f�!�e�g~HTd��at�b�" ,   p l a c e h o l d e r = " ��0  S M A ,   R S I ,   M A C D " ) 
+ 
+                 c a t e g o r y   =   s t . s e l e c t b o x ( " g~k�]~�0V0]~j�" ,   [ " :~6T":~f�" ,   " t e c h n i c a l " ,   " f u n d a m e n t a l " ,   " m l " ,   " h y b r i d " ] ) 
+ 
+                 
+ 
+                 #   �f�!�e�s�� ��g�
+ 
+                 s t r a t e g i e s   =   m a r k e t p l a c e . s e a r c h _ s t r a t e g i e s ( 
+ 
+                         q u e r y = s e a r c h _ q u e r y   i f   s e a r c h _ q u e r y   e l s e   N o n e , 
+ 
+                         c a t e g o r y = c a t e g o r y   i f   c a t e g o r y   ! =   " :~6T":~f�"   e l s e   N o n e , 
+ 
+                         l i m i t = 2 0 
+ 
+                 ) 
+ 
+                 
+ 
+                 i f   n o t   s t r a t e g i e s . e m p t y : 
+ 
+                         f o r   _ ,   s t r a t e g y   i n   s t r a t e g i e s . i t e r r o w s ( ) : 
+ 
+                                 w i t h   s t . e x p a n d e r ( f " �{�0{ s t r a t e g y [ ' n a m e ' ] }   -   { s t r a t e g y [ ' a u t h o r ' ] } " ) : 
+ 
+                                         s t . w r i t e ( f " * * ��l�O��0* :   { s t r a t e g y [ ' d e s c r i p t i o n ' ] } " ) 
+ 
+                                         s t . w r i t e ( f " * * g~k�]~�0V0]~j�* * :   { s t r a t e g y [ ' c a t e g o r y ' ] } " ) 
+ 
+                                         s t . w r i t e ( f " * * �a�l�|�* * :   ��e�{ s t r a t e g y [ ' p r i c e ' ] : , . 0 f } " ) 
+ 
+                                         s t . w r i t e ( f " * * ��Bz~�a�* * :   { ' �{�0  *   i n t ( s t r a t e g y [ ' r a t i n g ' ] ) }   ( { s t r a t e g y [ ' r a t i n g ' ] : . 1 f } ) " ) 
+ 
+                                         s t . w r i t e ( f " * * ]~� g~f�]~s�]~m�]~|�]~;uq* * :   { s t r a t e g y [ ' d o w n l o a d s ' ] } " ) 
+ 
+                                         
+ 
+                                         i f   s t . b u t t o n ( f " ]~� g~f�]~s�]~m�]~|�]~�0,   k e y = f " d l _ { s t r a t e g y [ ' i d ' ] } " ) : 
+ 
+                                                 s t . s u c c e s s ( " �f�!�e�g~uP�0g~f�]~s�]~m�]~|�]~�\ �:~~�:~�R�%" ) 
+ 
+                 e l s e : 
+ 
+                         s t . i n f o ( " �f�!�e�:~Ztf�]N�%:~]NJ�:~~�:~^S�:~g�:~�R�%2~�0) 
+ 
+ 
+ 
+ #   - - -   T a b   T a x :   T a x   O p t i m i z a t i o n   - - - 
+ 
+ w i t h   t a b _ t a x : 
+ 
+         s t . h e a d e r ( " ^�x�  ^�;No[�� U�i����0) 
+ 
+         
+ 
+         t a x _ t a b 1 ,   t a x _ t a b 2 ,   t a x _ t a b 3   =   s t . t a b s ( [ " ^�1ga"����n��0,   " N I S A ��a���0,   " R�z���YO{;��0] ) 
+ 
+         
+ 
+         w i t h   t a x _ t a b 1 : 
+ 
+                 s t . s u b h e a d e r ( " ^��  ^�1ga"g~w�]~�n�]~l�]~|�g~w�]~g�]~s�" ) 
+ 
+                 
+ 
+                 f r o m   s r c . t a x _ c a l c u l a t o r   i m p o r t   T a x C a l c u l a t o r 
+ 
+                 c a l c   =   T a x C a l c u l a t o r ( ) 
+ 
+                 
+ 
+                 p r o f i t   =   s t . n u m b e r _ i n p u t ( " ��i�6��0( ��e�) " ,   v a l u e = 1 0 0 0 0 0 0 ,   s t e p = 1 0 0 0 0 0 ) 
+ 
+                 i s _ n i s a   =   s t . c h e c k b o x ( " N I S A ?�c��g�" ,   v a l u e = F a l s e ) 
+ 
+                 
+ 
+                 t a x _ i n f o   =   c a l c . c a l c u l a t e _ c a p i t a l _ g a i n s _ t a x ( p r o f i t ,   i s _ n i s a ) 
+ 
+                 
+ 
+                 c o l 1 ,   c o l 2 ,   c o l 3   =   s t . c o l u m n s ( 3 ) 
+ 
+                 
+ 
+                 w i t h   c o l 1 : 
+ 
+                         s t . m e t r i c ( " ��i�6��0,   f " ��e�{ t a x _ i n f o [ ' p r o f i t ' ] : , . 0 f } " ) 
+ 
+                 w i t h   c o l 2 : 
+ 
+                         s t . m e t r i c ( " ^�1ga"" ,   f " ��e�{ t a x _ i n f o [ ' t o t a l _ t a x ' ] : , . 0 f } " ) 
+ 
+                 w i t h   c o l 3 : 
+ 
+                         s t . m e t r i c ( " ^�;N|��R~��0,   f " ��e�{ t a x _ i n f o [ ' n e t _ p r o f i t ' ] : , . 0 f } " ) 
+ 
+                 
+ 
+                 s t . w r i t e ( f " * * ���n�g^��[+}* * :   { t a x _ i n f o [ ' e f f e c t i v e _ t a x _ r a t e ' ] : . 2 % } " ) 
+ 
+                 
+ 
+                 #   3��id�q�?��[i�k�
+ 
+                 s t . d i v i d e r ( ) 
+ 
+                 s t . s u b h e a d e r ( " ^�`  3��id�q�?��[i�k�[�� U�i����0) 
+ 
+                 
+ 
+                 f r o m   s r c . p a p e r _ t r a d e r   i m p o r t   P a p e r T r a d e r 
+ 
+                 p t   =   P a p e r T r a d e r ( ) 
+ 
+                 p o s i t i o n s   =   p t . g e t _ p o s i t i o n s ( ) 
+ 
+                 
+ 
+                 i f   n o t   p o s i t i o n s . e m p t y : 
+ 
+                         h a r v e s t   =   c a l c . o p t i m i z e _ l o s s _ h a r v e s t i n g ( p o s i t i o n s ) 
+ 
+                         
+ 
+                         i f   h a r v e s t : 
+ 
+                                 s t . w r i t e ( f " * * �h���h���r�
+�t�* * :   { l e n ( h a r v e s t ) } ��v�" ) 
+ 
+                                 
+ 
+                                 f o r   r e c   i n   h a r v e s t : 
+ 
+                                         s t . w r i t e ( f " -   { r e c [ ' t i c k e r ' ] } :   3��id�q���e�{ r e c [ ' u n r e a l i z e d _ l o s s ' ] : , . 0 f } ,   }�� ^��{e�{ r e c [ ' t a x _ b e n e f i t ' ] : , . 0 f } " ) 
+ 
+                         e l s e : 
+ 
+                                 s t . i n f o ( " 3��id�q�?��[i�k�:~n��h���h�:~o�:~�0J�:~~�:~^S�2~�0) 
+ 
+                 e l s e : 
+ 
+                         s t . i n f o ( " ]~4fZ0g~w�]~g�]~s�:~�_`"g~�*":~^S�2~�0) 
+ 
+         
+ 
+         w i t h   t a x _ t a b 2 : 
+ 
+                 s t . s u b h e a d e r ( " ^�X�  N I S A k�����a���0) 
+ 
+                 
+ 
+                 f r o m   s r c . n i s a _ m a n a g e r   i m p o r t   N I S A M a n a g e r ,   N I S A T y p e 
+ 
+                 n i s a _ m g r   =   N I S A M a n a g e r ( ) 
+ 
+                 
+ 
+                 r e m a i n i n g   =   n i s a _ m g r . g e t _ r e m a i n i n g _ l i m i t ( 1 ,   N I S A T y p e . N E W _ N I S A ) 
+ 
+                 
+ 
+                 c o l 1 ,   c o l 2   =   s t . c o l u m n s ( 2 ) 
+ 
+                 
+ 
+                 w i t h   c o l 1 : 
+ 
+                         s t . m e t r i c ( " ��t���x�O^R" ,   f " ��e�{ r e m a i n i n g [ ' t o t a l _ l i m i t ' ] : , . 0 f } " ) 
+ 
+                         s t . m e t r i c ( " ���h���;S)"" ,   f " ��e�{ r e m a i n i n g [ ' t o t a l _ u s e d ' ] : , . 0 f } " ) 
+ 
+                 
+ 
+                 w i t h   c o l 2 : 
+ 
+                         s t . m e t r i c ( " ?�]NJ�k���" ,   f " ��e�{ r e m a i n i n g [ ' t o t a l _ r e m a i n i n g ' ] : , . 0 f } " ) 
+ 
+                         
+ 
+                         p r o g r e s s   =   r e m a i n i n g [ ' t o t a l _ u s e d ' ]   /   r e m a i n i n g [ ' t o t a l _ l i m i t ' ]   i f   r e m a i n i n g [ ' t o t a l _ l i m i t ' ]   >   0   e l s e   0 
+ 
+                         s t . p r o g r e s s ( p r o g r e s s ) 
+ 
+         
+ 
+         w i t h   t a x _ t a b 3 : 
+ 
+                 s t . s u b h e a d e r ( " ^�XX  R�z���YO{;���]��n�0" ) 
+ 
+                 
+ 
+                 f r o m   s r c . t a x _ r e p o r t _ g e n e r a t o r   i m p o r t   T a x R e p o r t G e n e r a t o r 
+ 
+                 g e n e r a t o r   =   T a x R e p o r t G e n e r a t o r ( ) 
+ 
+                 
+ 
+                 y e a r   =   s t . n u m b e r _ i n p u t ( " ��t��f�" ,   v a l u e = 2 0 2 5 ,   s t e p = 1 ) 
+ 
+                 
+ 
+                 i f   s t . b u t t o n ( " ��t��Xp��q�;���]g~$X�Q��0,   t y p e = " p r i m a r y " ) : 
+ 
+                         f r o m   s r c . p a p e r _ t r a d e r   i m p o r t   P a p e r T r a d e r 
+ 
+                         p t   =   P a p e r T r a d e r ( ) 
+ 
+                         
+ 
+                         t r a d e s   =   p t . g e t _ t r a d e _ h i s t o r y ( ) 
+ 
+                         u s e r _ i n f o   =   { 
+ 
+                                 ' n a m e ' :   ' ��q��p���j�[��0, 
+ 
+                                 ' a d d r e s s ' :   ' Z�q���l�[�}�' , 
+ 
+                                 ' b i r t h _ d a t e ' :   ' 1 9 9 0 / 0 1 / 0 1 ' 
+ 
+                         } 
+ 
+                         
+ 
+                         p d f   =   g e n e r a t o r . g e n e r a t e _ a n n u a l _ r e p o r t ( y e a r ,   t r a d e s ,   u s e r _ i n f o ) 
+ 
+                         
+ 
+                         s t . d o w n l o a d _ b u t t o n ( 
+ 
+                                 l a b e l = " ^��  P D F g~uP�0g~f�]~s�]~m�]~|�]~�0, 
+ 
+                                 d a t a = p d f , 
+ 
+                                 f i l e _ n a m e = f " a n n u a l _ r e p o r t _ { y e a r } . p d f " , 
+ 
+                                 m i m e = " a p p l i c a t i o n / p d f " 
+ 
+                         ) 
+ 
+ 
+ 
+ #   - - -   T a b   O p t i o n s :   O p t i o n s   P r i c i n g   - - - 
+ 
+ w i t h   t a b _ o p t i o n s : 
+ 
+         s t . h e a d e r ( " ^���  g~j�]~�RY0]~g�]~s�?���|��0) 
+ 
+         
+ 
+         o p t _ t a b 1 ,   o p t _ t a b 2   =   s t . t a b s ( [ " �a�l�|�����n��0,   " �f�!�e�" ] ) 
+ 
+         
+ 
+         w i t h   o p t _ t a b 1 : 
+ 
+                 s t . s u b h e a d e r ( " ^�b  B l a c k - S c h o l e s ����n��0) 
+ 
+                 
+ 
+                 f r o m   s r c . o p t i o n s _ p r i c i n g   i m p o r t   O p t i o n s C a l c u l a t o r 
+ 
+                 c a l c   =   O p t i o n s C a l c u l a t o r ( ) 
+ 
+                 
+ 
+                 c o l 1 ,   c o l 2   =   s t . c o l u m n s ( 2 ) 
+ 
+                 
+ 
+                 w i t h   c o l 1 : 
+ 
+                         S   =   s t . n u m b e r _ i n p u t ( " �~�h�h��a�l�|�  ( ��e�) " ,   v a l u e = 1 5 0 0 . 0 ,   s t e p = 1 0 . 0 ) 
+ 
+                         K   =   s t . n u m b e r _ i n p u t ( " f��_}���a�l�|�  ( ��e�) " ,   v a l u e = 1 5 5 0 . 0 ,   s t e p = 1 0 . 0 ) 
+ 
+                         T   =   s t . n u m b e r _ i n p u t ( " ��� [��n*":~g�:~n�L�e�(�p�" ,   v a l u e = 3 0 ,   s t e p = 1 )   /   3 6 5 
+ 
+                 
+ 
+                 w i t h   c o l 2 : 
+ 
+                         r   =   s t . n u m b e r _ i n p u t ( " ]~j�g~y�g~o�]~��]~|�]~l�]~|�]~�0( % ) " ,   v a l u e = 1 . 0 ,   s t e p = 0 . 1 )   /   1 0 0 
+ 
+                         s i g m a   =   s t . n u m b e r _ i n p u t ( " ]~�a�]~�0E0]~j�]~�0E0  ( % ) " ,   v a l u e = 2 5 . 0 ,   s t e p = 1 . 0 )   /   1 0 0 
+ 
+                         o p t i o n _ t y p e   =   s t . s e l e c t b o x ( " g~j�]~�RY0]~g�]~s�g~�g~d�]~�0,   [ " c a l l " ,   " p u t " ] ) 
+ 
+                 
+ 
+                 i f   s t . b u t t o n ( " ����n��0,   t y p e = " p r i m a r y " ) : 
+ 
+                         p r i c e   =   c a l c . b l a c k _ s c h o l e s ( S ,   K ,   T ,   r ,   s i g m a ,   o p t i o n _ t y p e ) 
+ 
+                         g r e e k s   =   c a l c . c a l c u l a t e _ g r e e k s ( S ,   K ,   T ,   r ,   s i g m a ,   o p t i o n _ t y p e ) 
+ 
+                         
+ 
+                         s t . s u c c e s s ( f " * * g~j�]~�RY0]~g�]~s��a�l�|�* * :   ��e�{ p r i c e : . 2 f } " ) 
+ 
+                         
+ 
+                         s t . w r i t e ( " * * G r e e k s : * * " ) 
+ 
+                         c o l _ g 1 ,   c o l _ g 2 ,   c o l _ g 3 ,   c o l _ g 4 ,   c o l _ g 5   =   s t . c o l u m n s ( 5 ) 
+ 
+                         
+ 
+                         w i t h   c o l _ g 1 : 
+ 
+                                 s t . m e t r i c ( " D e l t a " ,   f " { g r e e k s [ ' d e l t a ' ] : . 4 f } " ) 
+ 
+                         w i t h   c o l _ g 2 : 
+ 
+                                 s t . m e t r i c ( " G a m m a " ,   f " { g r e e k s [ ' g a m m a ' ] : . 4 f } " ) 
+ 
+                         w i t h   c o l _ g 3 : 
+ 
+                                 s t . m e t r i c ( " T h e t a " ,   f " { g r e e k s [ ' t h e t a ' ] : . 4 f } " ) 
+ 
+                         w i t h   c o l _ g 4 : 
+ 
+                                 s t . m e t r i c ( " V e g a " ,   f " { g r e e k s [ ' v e g a ' ] : . 4 f } " ) 
+ 
+                         w i t h   c o l _ g 5 : 
+ 
+                                 s t . m e t r i c ( " R h o " ,   f " { g r e e k s [ ' r h o ' ] : . 4 f } " ) 
+ 
+         
+ 
+         w i t h   o p t _ t a b 2 : 
+ 
+                 s t . s u b h e a d e r ( " ^�]  g~j�]~�RY0]~g�]~s��f�!�e�" ) 
+ 
+                 
+ 
+                 f r o m   s r c . o p t i o n s _ p r i c i n g   i m p o r t   O p t i o n S t r a t e g y 
+ 
+                 
+ 
+                 s t r a t e g y _ t y p e   =   s t . s e l e c t b o x ( 
+ 
+                         " �f�!�e�" , 
+ 
+                         [ " g~k�]~��0]~�\U0]~|�]~k�" ,   " ]~�R�]~�0Q0]~�0E0]~�`�0]~�0�0" ,   " g~y�]~;S�]~�\�" ] 
+ 
+                 ) 
+ 
+                 
+ 
+                 i f   s t r a t e g y _ t y p e   = =   " g~k�]~��0]~�\U0]~|�]~k�" : 
+ 
+                         s t o c k _ p r i c e   =   s t . n u m b e r _ i n p u t ( " l�j��a�" ,   v a l u e = 1 5 0 0 . 0 ) 
+ 
+                         s t o c k _ q u a n t i t y   =   s t . n u m b e r _ i n p u t ( " �Df`l�j�(�p�" ,   v a l u e = 1 0 0 ) 
+ 
+                         c a l l _ s t r i k e   =   s t . n u m b e r _ i n p u t ( " g~s�]~|�]~k�f��_}���a�l�|�" ,   v a l u e = 1 5 5 0 . 0 ) 
+ 
+                         c a l l _ p r e m i u m   =   s t . n u m b e r _ i n p u t ( " g~s�]~|�]~k�]~�R�]~�nD0]~��" ,   v a l u e = 3 0 . 0 ) 
+ 
+                         
+ 
+                         i f   s t . b u t t o n ( " ���0�h" ) : 
+ 
+                                 r e s u l t   =   O p t i o n S t r a t e g y . c o v e r e d _ c a l l ( 
+ 
+                                         s t o c k _ p r i c e ,   s t o c k _ q u a n t i t y ,   c a l l _ s t r i k e ,   c a l l _ p r e m i u m 
+ 
+                                 ) 
+ 
+                                 
+ 
+                                 s t . w r i t e ( f " * * { r e s u l t [ ' s t r a t e g y ' ] } * * " ) 
+ 
+                                 s t . w r i t e ( f " [�� ��g���i�6��0  ��e�{ r e s u l t [ ' m a x _ p r o f i t ' ] : , . 0 f } " ) 
+ 
+                                 s t . w r i t e ( f " [�� ��g�3��id�q�:   ��e�{ r e s u l t [ ' m a x _ l o s s ' ] : , . 0 f } " ) 
+ 
+                                 s t . w r i t e ( f " 3��T�[���0r�CS[0:   ��e�{ r e s u l t [ ' b r e a k e v e n ' ] : , . 0 f } " ) 
+ 
+                                 s t . i n f o ( r e s u l t [ ' d e s c r i p t i o n ' ] ) 
+ 
+ 
+ 
+ #   - - -   T a b   M e t a :   M e t a   L e a r n i n g   - - - 
+ 
+ w i t h   t a b _ m e t a : 
+ 
+         s t . h e a d e r ( " ^�d��0A I ��j���q�>�r����0) 
+ 
+         
+ 
+         s t . s u b h e a d e r ( " ^�n  ]~a�g~�ćf��uPJ0]~s�g~x�]~s�" ) 
+ 
+         
+ 
+         f r o m   s r c . m e t a _ l e a r n e r   i m p o r t   M e t a L e a r n e r 
+ 
+         
+ 
+         s t . w r i t e ( " * * A u t o M L   -   ��j�
+���]~�0�[�� U�i����0* " ) 
+ 
+         
+ 
+         t i c k e r   =   s t . t e x t _ i n p u t ( " k��Olg~s�]~|�]~�0,   v a l u e = " 7 2 0 3 . T " ) 
+ 
+         n _ t r i a l s   =   s t . s l i d e r ( " [�� U�i����Qi�f�f��`S\(�p�" ,   1 0 ,   1 0 0 ,   2 0 ) 
+ 
+         
+ 
+         i f   s t . b u t t o n ( " �f�!�e�g~�[�0
+�Ua1S���0,   t y p e = " p r i m a r y " ) : 
+ 
+                 w i t h   s t . s p i n n e r ( " [�� U�i���}x�m�. . . " ) : 
+ 
+                         f r o m   s r c . d a t a _ l o a d e r   i m p o r t   f e t c h _ s t o c k _ d a t a 
+ 
+                         
+ 
+                         d a t a _ m a p   =   f e t c h _ s t o c k _ d a t a ( [ t i c k e r ] ,   p e r i o d = " 2 y " ) 
+ 
+                         d a t a   =   d a t a _ m a p . g e t ( t i c k e r ) 
+ 
+                         
+ 
+                         i f   d a t a   i s   n o t   N o n e   a n d   n o t   d a t a . e m p t y : 
+ 
+                                 l e a r n e r   =   M e t a L e a r n e r ( n _ t r i a l s = n _ t r i a l s ) 
+ 
+                                 s t r a t e g i e s   =   l e a r n e r . d i s c o v e r _ s t r a t e g i e s ( d a t a ,   m i n _ s h a r p e = 0 . 5 ) 
+ 
+                                 
+ 
+                                 i f   s t r a t e g i e s : 
+ 
+                                         s t . s u c c e s s ( f " ({�0{ l e n ( s t r a t e g i e s ) } ߆]N�0�f�!�e�g~$X1S��]N �:~~�:~�R�%�0�0) 
+ 
+                                         
+ 
+                                         f o r   s t r a t e g y   i n   s t r a t e g i e s : 
+ 
+                                                 w i t h   s t . e x p a n d e r ( f " �{�0{ s t r a t e g y [ ' n a m e ' ] } " ) : 
+ 
+                                                         c o l 1 ,   c o l 2 ,   c o l 3   =   s t . c o l u m n s ( 3 ) 
+ 
+                                                         
+ 
+                                                         w i t h   c o l 1 : 
+ 
+                                                                 s t . m e t r i c ( " g~w�]~c�]~|�]~�R�g~w�g~j�" ,   f " { s t r a t e g y [ ' s h a r p e _ r a t i o ' ] : . 2 f } " ) 
+ 
+                                                         w i t h   c o l 2 : 
+ 
+                                                                 s t . m e t r i c ( " ��o�h�*��g~�]~|�]~s�" ,   f " { s t r a t e g y [ ' c u m u l a t i v e _ r e t u r n ' ] : . 2 % } " ) 
+ 
+                                                         w i t h   c o l 3 : 
+ 
+                                                                 s t . m e t r i c ( " ��~��f�" ,   f " { s t r a t e g y [ ' a c c u r a c y ' ] : . 2 % } " ) 
+ 
+                                                         
+ 
+                                                         s t . w r i t e ( f " * * ]~�N�]~a�]~|�g~�* * :   { s t r a t e g y [ ' p a r a m s ' ] } " ) 
+ 
+                                 e l s e : 
+ 
+                                         s t . w a r n i n g ( " [�Yr�g:~j��f�!�e�:~Ztf�]N�%:~]NJ�:~~�:~^S�:~g�:~�R�%2~�0) 
+ 
+                         e l s e : 
+ 
+                                 s t . e r r o r ( " ]~�0�0g~�:~n�?���~��R�!��q�(��R �:~~�:~�R�%2~�0) 
+ 
+ 
+ 
+ s t . s i d e b a r . d i v i d e r ( ) 
+ 
+ s t . s i d e b a r . c a p t i o n ( " A G S t o c k   v 3 . 0   -   P h a s e   0 - 4 0   C o m p l e t e " ) 
+ 
+ 
+
+
+# === Phase 0-40 New Features ===
+
+# Add this to the end of app.py
+
+# --- Tab Export: Export Manager ---
+with tab_export:
+    from src.ui_export import render_export_tab
+    render_export_tab()
+
+# --- Tab Alerts: Alert Management ---
+with tab_alerts:
+    from src.ui_alerts import render_alerts_tab
+    render_alerts_tab()
+
+# --- Tab Social: Social Trading ---
+with tab_social:
+    st.header("🏆 ソーシャルトレーディング")
+    
+    social_tab1, social_tab2, social_tab3 = st.tabs(["リーダーボード", "コピートレード", "戦略マーケット"])
+    
+    with social_tab1:
+        st.subheader("📊 トップトレーダー")
+        
+        from src.trader_profile import TraderProfileManager
+        manager = TraderProfileManager()
+        
+        # リーダーボード取得
+        leaderboard = manager.get_leaderboard(metric='total_return', limit=20)
+        
+        if not leaderboard.empty:
+            st.dataframe(
+                leaderboard,
+                column_config={
+                    "total_return": st.column_config.NumberColumn("リターン (%)", format="%.2f%%"),
+                    "sharpe_ratio": st.column_config.NumberColumn("シャープレシオ", format="%.2f"),
+                    "max_drawdown": st.column_config.NumberColumn("最大ドローダウン (%)", format="%.2f%%"),
+                    "win_rate": st.column_config.NumberColumn("勝率 (%)", format="%.2f%%"),
+                    "follower_count": st.column_config.NumberColumn("フォロワー数")
+                },
+                use_container_width=True
+            )
+        else:
+            st.info("トレーダーデータがありません。")
+    
+    with social_tab2:
+        st.subheader("📋 コピートレード設定")
+        
+        from src.copy_trading import CopyTradingEngine
+        engine = CopyTradingEngine()
+        
+        st.write("**コピー設定**")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            copy_percentage = st.slider("コピー比率 (%)", 1, 100, 10)
+            max_per_trade = st.number_input("1取引あたりの上限 (¥)", value=50000, step=10000)
+        
+        with col2:
+            max_total = st.number_input("総投資額上限 (¥)", value=100000, step=10000)
+            min_confidence = st.slider("最小信頼度", 0.0, 1.0, 0.5, 0.1)
+        
+        if st.button("設定を保存", type="primary"):
+            st.success("コピー設定を保存しました")
+    
+    with social_tab3:
+        st.subheader("🏪 戦略マーケットプレイス")
+        
+        from src.strategy_marketplace import StrategyMarketplace
+        marketplace = StrategyMarketplace()
+        
+        # 検索
+        search_query = st.text_input("戦略を検索", placeholder="例: SMA, RSI, MACD")
+        category = st.selectbox("カテゴリ", ["すべて", "technical", "fundamental", "ml", "hybrid"])
+        
+        # 戦略一覧
+        strategies = marketplace.search_strategies(
+            query=search_query if search_query else None,
+            category=category if category != "すべて" else None,
+            limit=20
+        )
+        
+        if not strategies.empty:
+            for _, strategy in strategies.iterrows():
+                with st.expander(f"⭐ {strategy['name']} - {strategy['author']}"):
+                    st.write(f"**説明**: {strategy['description']}")
+                    st.write(f"**カテゴリ**: {strategy['category']}")
+                    st.write(f"**価格**: ¥{strategy['price']:,.0f}")
+                    st.write(f"**評価**: {'⭐' * int(strategy['rating'])} ({strategy['rating']:.1f})")
+                    st.write(f"**ダウンロード数**: {strategy['downloads']}")
+                    
+                    if st.button(f"ダウンロード", key=f"dl_{strategy['id']}"):
+                        st.success("戦略をダウンロードしました")
+        else:
+            st.info("戦略が見つかりませんでした。")
+
+# --- Tab Tax: Tax Optimization ---
+with tab_tax:
+    st.header("💰 税務最適化")
+    
+    tax_tab1, tax_tab2, tax_tab3 = st.tabs(["税金計算", "NISA管理", "確定申告"])
+    
+    with tax_tab1:
+        st.subheader("💵 税金シミュレーション")
+        
+        from src.tax_calculator import TaxCalculator
+        calc = TaxCalculator()
+        
+        profit = st.number_input("利益 (¥)", value=1000000, step=100000)
+        is_nisa = st.checkbox("NISA口座", value=False)
+        
+        tax_info = calc.calculate_capital_gains_tax(profit, is_nisa)
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.metric("利益", f"¥{tax_info['profit']:,.0f}")
+        with col2:
+            st.metric("税金", f"¥{tax_info['total_tax']:,.0f}")
+        with col3:
+            st.metric("税引後", f"¥{tax_info['net_profit']:,.0f}")
+        
+        st.write(f"**実効税率**: {tax_info['effective_tax_rate']:.2%}")
+        
+        # 損失収穫
+        st.divider()
+        st.subheader("📉 損失収穫最適化")
+        
+        from src.paper_trader import PaperTrader
+        pt = PaperTrader()
+        positions = pt.get_positions()
+        
+        if not positions.empty:
+            harvest = calc.optimize_loss_harvesting(positions)
+            
+            if harvest:
+                st.write(f"**推奨売却**: {len(harvest)}件")
+                
+                for rec in harvest:
+                    st.write(f"- {rec['ticker']}: 損失¥{rec['unrealized_loss']:,.0f}, 節税¥{rec['tax_benefit']:,.0f}")
+            else:
+                st.info("損失収穫の推奨はありません。")
+        else:
+            st.info("ポジションがありません。")
+    
+    with tax_tab2:
+        st.subheader("🎯 NISA枠管理")
+        
+        from src.nisa_manager import NISAManager, NISAType
+        nisa_mgr = NISAManager()
+        
+        remaining = nisa_mgr.get_remaining_limit(1, NISAType.NEW_NISA)
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.metric("年間上限", f"¥{remaining['total_limit']:,.0f}")
+            st.metric("使用済み", f"¥{remaining['total_used']:,.0f}")
+        
+        with col2:
+            st.metric("残り枠", f"¥{remaining['total_remaining']:,.0f}")
+            
+            progress = remaining['total_used'] / remaining['total_limit'] if remaining['total_limit'] > 0 else 0
+            st.progress(progress)
+    
+    with tax_tab3:
+        st.subheader("📄 確定申告書生成")
+        
+        from src.tax_report_generator import TaxReportGenerator
+        generator = TaxReportGenerator()
+        
+        year = st.number_input("年度", value=2025, step=1)
+        
+        if st.button("年間報告書を生成", type="primary"):
+            from src.paper_trader import PaperTrader
+            pt = PaperTrader()
+            
+            trades = pt.get_trade_history()
+            user_info = {
+                'name': '山田太郎',
+                'address': '東京都',
+                'birth_date': '1990/01/01'
+            }
+            
+            pdf = generator.generate_annual_report(year, trades, user_info)
+            
+            st.download_button(
+                label="📥 PDFをダウンロード",
+                data=pdf,
+                file_name=f"annual_report_{year}.pdf",
+                mime="application/pdf"
+            )
+
+# --- Tab Options: Options Pricing ---
+with tab_options:
+    st.header("🎲 オプション取引")
+    
+    opt_tab1, opt_tab2 = st.tabs(["価格計算", "戦略"])
+    
+    with opt_tab1:
+        st.subheader("📊 Black-Scholes計算")
+        
+        from src.options_pricing import OptionsCalculator
+        calc = OptionsCalculator()
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            S = st.number_input("現在価格 (¥)", value=1500.0, step=10.0)
+            K = st.number_input("行使価格 (¥)", value=1550.0, step=10.0)
+            T = st.number_input("満期までの日数", value=30, step=1) / 365
+        
+        with col2:
+            r = st.number_input("リスクフリーレート (%)", value=1.0, step=0.1) / 100
+            sigma = st.number_input("ボラティリティ (%)", value=25.0, step=1.0) / 100
+            option_type = st.selectbox("オプションタイプ", ["call", "put"])
+        
+        if st.button("計算", type="primary"):
+            price = calc.black_scholes(S, K, T, r, sigma, option_type)
+            greeks = calc.calculate_greeks(S, K, T, r, sigma, option_type)
+            
+            st.success(f"**オプション価格**: ¥{price:.2f}")
+            
+            st.write("**Greeks:**")
+            col_g1, col_g2, col_g3, col_g4, col_g5 = st.columns(5)
+            
+            with col_g1:
+                st.metric("Delta", f"{greeks['delta']:.4f}")
+            with col_g2:
+                st.metric("Gamma", f"{greeks['gamma']:.4f}")
+            with col_g3:
+                st.metric("Theta", f"{greeks['theta']:.4f}")
+            with col_g4:
+                st.metric("Vega", f"{greeks['vega']:.4f}")
+            with col_g5:
+                st.metric("Rho", f"{greeks['rho']:.4f}")
+    
+    with opt_tab2:
+        st.subheader("📈 オプション戦略")
+        
+        from src.options_pricing import OptionStrategy
+        
+        strategy_type = st.selectbox(
+            "戦略",
+            ["カバードコール", "プロテクティブプット", "ストラドル"]
+        )
+        
+        if strategy_type == "カバードコール":
+            stock_price = st.number_input("株価", value=1500.0)
+            stock_quantity = st.number_input("保有株数", value=100)
+            call_strike = st.number_input("コール行使価格", value=1550.0)
+            call_premium = st.number_input("コールプレミアム", value=30.0)
+            
+            if st.button("分析"):
+                result = OptionStrategy.covered_call(
+                    stock_price, stock_quantity, call_strike, call_premium
+                )
+                
+                st.write(f"**{result['strategy']}**")
+                st.write(f"最大利益: ¥{result['max_profit']:,.0f}")
+                st.write(f"最大損失: ¥{result['max_loss']:,.0f}")
+                st.write(f"損益分岐点: ¥{result['breakeven']:,.0f}")
+                st.info(result['description'])
+
+# --- Tab Meta: Meta Learning ---
+with tab_meta:
+    st.header("🤖 AI自己進化")
+    
+    st.subheader("🔬 メタ学習エンジン")
+    
+    from src.meta_learner import MetaLearner
+    
+    st.write("**AutoML - 自動モデル最適化**")
+    
+    ticker = st.text_input("銘柄コード", value="7203.T")
+    n_trials = st.slider("最適化試行回数", 10, 100, 20)
+    
+    if st.button("戦略を自動発見", type="primary"):
+        with st.spinner("最適化中..."):
+            from src.data_loader import fetch_stock_data
+            
+            data_map = fetch_stock_data([ticker], period="2y")
+            data = data_map.get(ticker)
+            
+            if data is not None and not data.empty:
+                learner = MetaLearner(n_trials=n_trials)
+                strategies = learner.discover_strategies(data, min_sharpe=0.5)
+                
+                if strategies:
+                    st.success(f"✅ {len(strategies)}個の戦略を発見しました！")
+                    
+                    for strategy in strategies:
+                        with st.expander(f"⭐ {strategy['name']}"):
+                            col1, col2, col3 = st.columns(3)
+                            
+                            with col1:
+                                st.metric("シャープレシオ", f"{strategy['sharpe_ratio']:.2f}")
+                            with col2:
+                                st.metric("累積リターン", f"{strategy['cumulative_return']:.2%}")
+                            with col3:
+                                st.metric("精度", f"{strategy['accuracy']:.2%}")
+                            
+                            st.write(f"**パラメータ**: {strategy['params']}")
+                else:
+                    st.warning("有効な戦略が見つかりませんでした。")
+            else:
+                st.error("データの取得に失敗しました。")
+
+st.sidebar.divider()
+st.sidebar.caption("AGStock v3.0 - Phase 0-40 Complete")

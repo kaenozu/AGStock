@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  agstock:
+    build: .
+    container_name: agstock-app
+    ports:
+      - "8503:8503"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - RAKUTEN_API_KEY=${RAKUTEN_API_KEY}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///data/agstock.db}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG:-False}
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./config.json:/app/config.json
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - agstock-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8503/_stcore/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  redis:
+    image: redis:7-alpine
+    container_name: agstock-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    networks:
+      - agstock-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+  # オプション: PostgreSQL（本番環境用）
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: agstock-db
+  #   environment:
+  #     - POSTGRES_USER=agstock
+  #     - POSTGRES_PASSWORD=${DB_PASSWORD}
+  #     - POSTGRES_DB=agstock
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   restart: unless-stopped
+  #   networks:
+  #     - agstock-network
+
+volumes:
+  redis_data:
+    # postgres_data:
+
+networks:
+  agstock-network:
+    driver: bridge
