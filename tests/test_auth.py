@@ -21,7 +21,14 @@ class TestAuthManager:
         yield auth
         
         # クリーンアップ
-        os.unlink(db_path)
+        del auth
+        import gc
+        gc.collect()
+        
+        try:
+            os.unlink(db_path)
+        except PermissionError:
+            pass  # Windowsでのファイルロック問題を回避
     
     def test_password_hashing(self, auth_manager):
         """パスワードハッシュ化のテスト"""

@@ -10,6 +10,7 @@ import time
 
 from src.paper_trader import PaperTrader
 from src.formatters import format_currency
+from src.dashboard_utils import check_and_execute_missed_trades
 
 # ページ設定
 st.set_page_config(
@@ -266,7 +267,7 @@ def show_main_dashboard():
                             time_match = re.search(r'\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\]', line)
                             if time_match:
                                 last_run_time = time_match.group(1)
-            except:
+            except Exception:
                 pass
         
         st.markdown(f"""
@@ -371,7 +372,7 @@ def show_main_dashboard():
                 try:
                     date_obj = datetime.fromisoformat(str(entry_date))
                     formatted_date = date_obj.strftime('%Y/%m/%d')
-                except:
+                except Exception:
                     formatted_date = str(entry_date)
             else:
                 formatted_date = '不明'
@@ -574,7 +575,7 @@ def show_settings_page():
     enable_line = st.checkbox("LINE通知を受け取る", value=False)
     
     if enable_line:
-        line_token = st.text_input("LINEトークン", type="password")
+        st.text_input("LINEトークン", type="password")
         st.caption("トークンの取得方法: https://notify-bot.line.me/")
     
     st.markdown("---")
@@ -584,7 +585,6 @@ def show_settings_page():
         st.success("✅ 設定を保存しました！")
         st.balloons()
 
-from src.dashboard_utils import check_and_execute_missed_trades
 
 def main():
     """メイン処理"""
