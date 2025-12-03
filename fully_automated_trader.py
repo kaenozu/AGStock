@@ -117,7 +117,7 @@ class FullyAutomatedTrader:
         try:
             with open(self.log_file, "a", encoding="utf-8") as f:
                 f.write(log_message + "\n")
-        except:
+        except Exception:
             pass  # ログ書き込み失敗しても続行
     
     def calculate_daily_pnl(self) -> float:
@@ -177,7 +177,7 @@ class FullyAutomatedTrader:
                 current_vix = vix_data['Close'].iloc[-1]
                 if current_vix > self.risk_config.get("max_vix", 40.0):
                     return False, f"市場ボラティリティが高すぎます (VIX: {current_vix:.1f})"
-        except:
+        except Exception:
             pass  # VIXデータ取得失敗時は続行
         
         # 3. 残高チェック
@@ -231,7 +231,7 @@ class FullyAutomatedTrader:
                 f"🚨 緊急停止が発生しました\n理由: {reason}\n\n自動トレードを停止しました。",
                 token=self.config.get("notifications", {}).get("line", {}).get("token")
             )
-        except:
+        except Exception:
             pass  # 通知失敗しても緊急停止は継続
     
     def evaluate_positions(self) -> List[Dict]:
@@ -308,20 +308,18 @@ class FullyAutomatedTrader:
                             actions.append({
                                 'ticker': ticker,
                                 'action': 'SELL',
-                                'reason': f'利確（{pnl_pct:.1%}、閾値{take_profit_threshold:.1%}）',
+                                'reason': f'利確({pnl_pct:.1%}、閾値{take_profit_threshold:.1%})',
                                 'confidence': 1.0,
                                 'price': latest_price
                             })
                             self.log(f"利確判断: {ticker} ({pnl_pct:.1%})")
-                except:
+                except Exception:
                     pass
             
             except Exception as e:
                 self.log(f"ポジション評価エラー ({ticker}): {e}", "WARNING")
         
         return actions
-    
-        return tickers
     
     def get_target_tickers(self) -> List[str]:
         """ポートフォリオバランスに基づいて対象銘柄を返す"""
@@ -654,57 +652,6 @@ class FullyAutomatedTrader:
         else:
             return "✅ 通常運用を継続してください。"
     
-    def daily_routine(self):
-        """毎日の定期実行ルーチン"""
-        self.log("=" * 60)
-        self.log(f"自動トレーダー開始: {datetime.datetime.now()}")
-        self.log("=" * 60)
-        
-        try:
-            # 1. リスクチェック
-            is_safe, reason = self.is_safe_to_trade()
-            if not is_safe:
-                self.log(f"⚠️ 取引中止: {reason}", "WARNING")
-                self.notifier.send_line_notify(
-                    f"⚠️ 本日の自動取引は中止されました\n理由: {reason}",
-                    token=self.config.get("notifications", {}).get("line", {}).get("token")
-                )
-                return
-            
-            # 2. 既存ポジション評価
-            self.log("ポジション評価開始...")
-            position_actions = self.evaluate_positions()
-            
-            if position_actions:
-                self.log(f"{len(position_actions)}件のポジション調整")
-                self.execute_signals(position_actions)
-            
-            # 3. 新規シグナルスキャン
-            new_signals = self.scan_market()
-            
-            # 4. 新規シグナル実行
-            if new_signals:
-                self.execute_signals(new_signals)
-            
-            # 5. 日次エクイティ更新
-            self.pt.update_daily_equity()
-            
-            # 6. 日次レポート送信
-            self.send_daily_report()
-            
-            self.log("自動トレーダー正常終了")
-        
-        except Exception as e:
-            self.log(f"❌ エラー発生: {e}", "ERROR")
-            self.log(traceback.format_exc(), "ERROR")
-            
-            # エラー通知
-            self.notifier.send_line_notify(
-                f"❌ 自動トレーダーでエラーが発生しました\n{str(e)}",
-                token=self.config.get("notifications", {}).get("line", {}).get("token")
-            )
-
-
     def check_market_hours(self) -> bool:
         """
         市場取引時間中（9:00-15:00 JST）かどうかをチェック
