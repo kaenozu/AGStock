@@ -14,7 +14,7 @@ if not exist reports mkdir reports
 
 REM Python実行
 echo [%date% %time%] 実行開始...
-python auto_trader.py
+python fully_automated_trader.py
 
 if %ERRORLEVEL% EQU 0 (
     echo.
