@@ -190,7 +190,7 @@ def main():
     
     try:
         failing_function()
-    except:
+    except Exception:
         print("✅ Retry test completed")
     
     # サーキットブレーカーテスト
