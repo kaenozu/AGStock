@@ -93,9 +93,9 @@ class DynamicStopManager:
         self.stops[ticker] = new_stop
         return new_stop
         
-    def check_exit(self, ticker: str, current_price: float) -> bool:
+    def check_exit(self, ticker: str, current_price: float) -> tuple[bool, str]:
         """Check if stop loss is hit."""
         stop_price = self.stops.get(ticker)
         if stop_price and current_price <= stop_price:
-            return True
-        return False
+            return True, f"Stop Loss Hit (Price: {current_price} <= Stop: {stop_price:.2f})"
+        return False, ""

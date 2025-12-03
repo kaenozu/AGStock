@@ -661,20 +661,33 @@ class FullyAutomatedTrader:
     
     def check_market_hours(self) -> bool:
         """
-        市場取引時間中（9:00-15:00 JST）かどうかをチェック
+        市場取引時間中かどうかをチェック
+        
         Returns:
             bool: 取引時間外ならTrue（実行許可）、取引時間中ならFalse（実行禁止）
         """
         now = datetime.datetime.now()
         current_time = now.time()
         
-        # JST 9:00 - 15:00
-        market_start = datetime.time(9, 0)
-        market_end = datetime.time(15, 0)
+        # JST 9:00 - 15:00 (日本市場)
+        jp_start = datetime.time(9, 0)
+        jp_end = datetime.time(15, 0)
+        
+        # JST 23:30 - 06:00 (米国市場・標準時)
+        # 夏時間は22:30 - 05:00だが、安全のため広めに取る
+        us_start = datetime.time(22, 0)
+        us_end = datetime.time(6, 0)
         
         # 平日のみチェック
         if now.weekday() < 5:  # 0=Mon, 4=Fri
-            if market_start <= current_time <= market_end:
+            # 日本市場チェック
+            if jp_start <= current_time <= jp_end:
+                self.log("日本市場 取引時間中です", "WARNING")
+                return False
+            
+            # 米国市場チェック (日付またぎ対応)
+            if current_time >= us_start or current_time <= us_end:
+                self.log("米国市場 取引時間中です", "WARNING")
                 return False
         
         return True
@@ -687,7 +700,7 @@ class FullyAutomatedTrader:
         
         # 市場時間チェック
         if not force_run and not self.check_market_hours():
-            self.log("⚠️ 現在は市場取引時間中です (9:00-15:00 JST)", "WARNING")
+            self.log("⚠️ 現在は市場取引時間中です (JP: 9:00-15:00 / US: 22:00-06:00)", "WARNING")
             self.log("   不正確なデータによる誤判断を防ぐため、処理を停止します。", "WARNING")
             self.log("   強制実行する場合は force_run=True を指定してください。", "WARNING")
             return
