@@ -110,7 +110,7 @@ def test_error_handler():
     print("🧪 エラーハンドラーテスト")
     print("="*70)
     
-    from src.error_handler import retry_on_error, safe_execute, CircuitBreaker
+    from src.error_handling import retry, RetryableError
     
     # リトライテスト
     print("\nテスト1: リトライ機能")

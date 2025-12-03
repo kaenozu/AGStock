@@ -51,12 +51,20 @@ class FullyAutomatedTrader:
         self.risk_config = self.config.get("auto_trading", {})
         self.max_daily_trades = self.risk_config.get("max_daily_trades", 5)
         
-        # ポートフォリオ配分目標
-        self.target_japan_pct = 40
-        self.target_us_pct = 30
-        self.target_europe_pct = 10
-        self.target_crypto_pct = 10
-        self.target_fx_pct = 10
+        
+        # ポートフォリオ配分目標（config.jsonから読み込み）
+        portfolio_targets = self.config.get("portfolio_targets", {
+            "japan": 40,
+            "us": 30,
+            "europe": 10,
+            "crypto": 10,
+            "fx": 10
+        })
+        self.target_japan_pct = portfolio_targets.get("japan", 40)
+        self.target_us_pct = portfolio_targets.get("us", 30)
+        self.target_europe_pct = portfolio_targets.get("europe", 10)
+        self.target_crypto_pct = portfolio_targets.get("crypto", 10)
+        self.target_fx_pct = portfolio_targets.get("fx", 10)
         
         # 資産クラス設定
         self.asset_config = self.config.get("assets", {

@@ -36,6 +36,27 @@
             "to_address": ""
         }
     },
+    "portfolio_targets": {
+        "japan": 40,
+        "us": 30,
+        "europe": 10,
+        "crypto": 10,
+        "fx": 10
+    },
+    "strategies": {
+        "enabled": [
+            "LightGBM",
+            "ML",
+            "Combined",
+            "Dividend"
+        ],
+        "weights": {
+            "LightGBM": 0.4,
+            "ML": 0.3,
+            "Combined": 0.2,
+            "Dividend": 0.1
+        }
+    },
     "assets": {
         "japan_stocks": true,
         "us_stocks": true,
