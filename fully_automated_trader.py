@@ -51,7 +51,6 @@ class FullyAutomatedTrader:
         self.risk_config = self.config.get("auto_trading", {})
         self.max_daily_trades = self.risk_config.get("max_daily_trades", 5)
         
-        
         # ポートフォリオ配分目標（config.jsonから読み込み）
         portfolio_targets = self.config.get("portfolio_targets", {
             "japan": 40,

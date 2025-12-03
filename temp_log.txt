@@ -1,0 +1,200 @@
+﻿[2025-12-02 15:33:21] [WARNING] シグナル生成エラー (6981.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 15:33:23] [WARNING] シグナル生成エラー (6273.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 15:33:23] [INFO]   6273.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 15:33:24] [WARNING] シグナル生成エラー (7741.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 15:33:24] [INFO]   7741.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 15:33:25] [WARNING] シグナル生成エラー (2914.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 15:33:26] [WARNING] シグナル生成エラー (9020.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 15:33:27] [WARNING] シグナル生成エラー (9022.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 15:33:28] [WARNING] シグナル生成エラー (4452.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 15:33:29] [WARNING] シグナル生成エラー (4661.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 15:33:30] [INFO] 検出シグナル数: 14
+[2025-12-02 15:33:30] [INFO] 3件のシグナルを実行します
+[2025-12-02 15:33:32] [INFO] チャート画像生成完了: logs/images\equity_chart.png
+[2025-12-02 15:33:32] [INFO] 自動トレーダー正常終了
+[2025-12-02 16:05:32] [INFO] Phase 30-1 & 30-3: リアルタイム適応学習・高度リスク管理モジュール初期化完了
+[2025-12-02 16:05:32] [INFO] フル自動トレーダー初期化完了
+[2025-12-02 16:05:32] [INFO] ============================================================
+[2025-12-02 16:05:32] [INFO] 自動トレーダー開始: 2025-12-02 16:05:32.119566
+[2025-12-02 16:05:32] [INFO] ============================================================
+[2025-12-02 16:05:32] [INFO] Phase 30-1: 市場レジーム検出開始...
+[2025-12-02 16:05:32] [INFO] 検出されたレジーム: high_volatility
+[2025-12-02 16:05:32] [INFO] リスクパラメータ更新: 損切り=6.70%, 利確=26.79%, ポジションサイズ=0.45
+[2025-12-02 16:05:32] [INFO] レジーム統計: {'current_regime': 'high_volatility', 'total_observations': 2, 'regime_counts': {'high_volatility': 2}, 'regime_percentages': {'high_volatility': 100.0}, 'most_common_regime': 'high_volatility'}
+[2025-12-02 16:05:38] [INFO] ポジション評価開始...
+[2025-12-02 16:05:38] [WARNING] ポジション評価エラー (7203.T): cannot unpack non-iterable bool object
+[2025-12-02 16:05:39] [WARNING] ポジション評価エラー (6758.T): cannot unpack non-iterable bool object
+[2025-12-02 16:05:39] [WARNING] ポジション評価エラー (4063.T): cannot unpack non-iterable bool object
+[2025-12-02 16:05:39] [INFO] 市場スキャン開始...
+[2025-12-02 16:17:15] [INFO] Phase 30-1 & 30-3: リアルタイム適応学習・高度リスク管理モジュール初期化完了
+[2025-12-02 16:17:15] [INFO] フル自動トレーダー初期化完了
+[2025-12-02 16:17:15] [INFO] ============================================================
+[2025-12-02 16:17:15] [INFO] 自動トレーダー開始: 2025-12-02 16:17:15.692130
+[2025-12-02 16:17:15] [INFO] ============================================================
+[2025-12-02 16:17:15] [INFO] Phase 30-1: 市場レジーム検出開始...
+[2025-12-02 16:17:15] [INFO] 検出されたレジーム: high_volatility
+[2025-12-02 16:17:15] [INFO] リスクパラメータ更新: 損切り=6.70%, 利確=26.79%, ポジションサイズ=0.45
+[2025-12-02 16:17:15] [INFO] レジーム統計: {'current_regime': 'high_volatility', 'total_observations': 2, 'regime_counts': {'high_volatility': 2}, 'regime_percentages': {'high_volatility': 100.0}, 'most_common_regime': 'high_volatility'}
+[2025-12-02 16:17:16] [INFO] ポジション評価開始...
+[2025-12-02 16:17:16] [INFO] 市場スキャン開始...
+[2025-12-02 16:47:43] [INFO] Phase 30-1 & 30-3: リアルタイム適応学習・高度リスク管理モジュール初期化完了
+[2025-12-02 16:47:43] [INFO] フル自動トレーダー初期化完了
+[2025-12-02 16:47:43] [INFO] ============================================================
+[2025-12-02 16:47:43] [INFO] 自動トレーダー開始: 2025-12-02 16:47:43.689391
+[2025-12-02 16:47:43] [INFO] ============================================================
+[2025-12-02 16:47:43] [INFO] Phase 30-1: 市場レジーム検出開始...
+[2025-12-02 16:47:43] [INFO] 検出されたレジーム: high_volatility
+[2025-12-02 16:47:43] [INFO] リスクパラメータ更新: 損切り=6.70%, 利確=26.79%, ポジションサイズ=0.45
+[2025-12-02 16:47:43] [INFO] レジーム統計: {'current_regime': 'high_volatility', 'total_observations': 2, 'regime_counts': {'high_volatility': 2}, 'regime_percentages': {'high_volatility': 100.0}, 'most_common_regime': 'high_volatility'}
+[2025-12-02 16:47:44] [INFO] ポジション評価開始...
+[2025-12-02 16:47:44] [INFO] 市場スキャン開始...
+[2025-12-02 16:49:08] [INFO] 市場センチメント: Negative (-0.28)
+[2025-12-02 16:49:08] [INFO] 現在の資産配分: 日本0.0% 米国0.0% 欧州0.0% Crypto0.0% FX0.0%
+[2025-12-02 16:49:08] [INFO] 対象銘柄数: 30
+[2025-12-02 16:49:08] [INFO] データ取得中... (30銘柄)
+[2025-12-02 16:49:09] [INFO] データ取得完了: 30銘柄
+[2025-12-02 16:49:12] [WARNING] シグナル生成エラー (7203.T, LightGBM): Cannot compare dtypes datetime64[ns, America/Chicago] and datetime64[ns]
+[2025-12-02 16:49:13] [WARNING] シグナル生成エラー (9984.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:14] [WARNING] シグナル生成エラー (6758.T, LightGBM): Cannot compare dtypes datetime64[ns, America/Chicago] and datetime64[ns]
+[2025-12-02 16:49:15] [WARNING] シグナル生成エラー (6861.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:16] [WARNING] シグナル生成エラー (6098.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:17] [WARNING] シグナル生成エラー (8035.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:17] [WARNING] シグナル生成エラー (9983.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:18] [WARNING] シグナル生成エラー (4063.T, LightGBM): Cannot compare dtypes datetime64[ns, America/Chicago] and datetime64[ns]
+[2025-12-02 16:49:19] [WARNING] シグナル生成エラー (9432.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:20] [WARNING] シグナル生成エラー (7974.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:21] [WARNING] シグナル生成エラー (8306.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:21] [WARNING] シグナル生成エラー (8316.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:22] [WARNING] シグナル生成エラー (6501.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:23] [WARNING] シグナル生成エラー (4502.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:24] [WARNING] シグナル生成エラー (7267.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:25] [WARNING] シグナル生成エラー (8058.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:26] [WARNING] シグナル生成エラー (8001.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:27] [WARNING] シグナル生成エラー (8766.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:28] [WARNING] シグナル生成エラー (6902.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:28] [WARNING] シグナル生成エラー (6367.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:29] [WARNING] シグナル生成エラー (4543.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:30] [WARNING] シグナル生成エラー (6954.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:31] [WARNING] シグナル生成エラー (6981.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:32] [WARNING] シグナル生成エラー (6273.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:32] [WARNING] シグナル生成エラー (7741.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:33] [WARNING] シグナル生成エラー (2914.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:34] [WARNING] シグナル生成エラー (9020.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:35] [WARNING] シグナル生成エラー (9022.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:36] [WARNING] シグナル生成エラー (4452.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:37] [WARNING] シグナル生成エラー (4661.T, LightGBM): Cannot compare dtypes datetime64[ns] and datetime64[ns, Asia/Tokyo]
+[2025-12-02 16:49:37] [INFO] 検出シグナル数: 0
+[2025-12-02 16:49:39] [INFO] チャート画像生成完了: logs/images\equity_chart.png
+[2025-12-02 16:49:39] [INFO] 自動トレーダー正常終了
+[2025-12-02 18:08:56] [INFO] Phase 30-1 & 30-3: リアルタイム適応学習・高度リスク管理モジュール初期化完了
+[2025-12-02 18:08:56] [INFO] フル自動トレーダー初期化完了
+[2025-12-02 18:08:56] [INFO] ============================================================
+[2025-12-02 18:08:56] [INFO] 自動トレーダー開始: 2025-12-02 18:08:56.418465
+[2025-12-02 18:08:56] [INFO] ============================================================
+[2025-12-02 18:08:56] [INFO] Phase 30-1: 市場レジーム検出開始...
+[2025-12-02 18:08:56] [INFO] 検出されたレジーム: high_volatility
+[2025-12-02 18:08:56] [INFO] リスクパラメータ更新: 損切り=6.70%, 利確=26.79%, ポジションサイズ=0.45
+[2025-12-02 18:08:56] [INFO] レジーム統計: {'current_regime': 'high_volatility', 'total_observations': 2, 'regime_counts': {'high_volatility': 2}, 'regime_percentages': {'high_volatility': 100.0}, 'most_common_regime': 'high_volatility'}
+[2025-12-02 18:08:57] [INFO] ポジション評価開始...
+[2025-12-02 18:08:57] [INFO] 市場スキャン開始...
+[2025-12-02 18:09:17] [INFO] 市場センチメント: Neutral (-0.10)
+[2025-12-02 18:09:17] [INFO] 現在の資産配分: 日本0.0% 米国0.0% 欧州0.0% Crypto0.0% FX0.0%
+[2025-12-02 18:09:17] [INFO] 対象銘柄数: 30
+[2025-12-02 18:09:17] [INFO] データ取得中... (30銘柄)
+[2025-12-02 18:09:19] [INFO] データ取得完了: 30銘柄
+[2025-12-02 18:09:20] [WARNING] シグナル生成エラー (7203.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:21] [INFO]   7203.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:09:21] [WARNING] シグナル生成エラー (9984.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:22] [INFO]   9984.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:09:22] [WARNING] シグナル生成エラー (6758.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:23] [INFO]   6758.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:09:24] [WARNING] シグナル生成エラー (6861.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:24] [WARNING] シグナル生成エラー (6098.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:25] [WARNING] シグナル生成エラー (8035.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:26] [INFO]   8035.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:09:27] [WARNING] シグナル生成エラー (9983.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:27] [INFO]   9983.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:09:28] [WARNING] シグナル生成エラー (4063.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:28] [INFO]   4063.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:09:29] [WARNING] シグナル生成エラー (9432.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:30] [INFO]   9432.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:09:30] [WARNING] シグナル生成エラー (7974.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:31] [INFO]   7974.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:09:32] [WARNING] シグナル生成エラー (8306.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:32] [INFO]   8306.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:09:33] [WARNING] シグナル生成エラー (8316.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:33] [INFO]   8316.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:09:34] [WARNING] シグナル生成エラー (6501.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:35] [INFO]   6501.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:09:35] [WARNING] シグナル生成エラー (4502.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:37] [WARNING] シグナル生成エラー (7267.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:38] [INFO]   7267.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:09:38] [WARNING] シグナル生成エラー (8058.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:39] [INFO]   8058.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:09:39] [WARNING] シグナル生成エラー (8001.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:40] [INFO]   8001.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:09:41] [WARNING] シグナル生成エラー (8766.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:42] [WARNING] シグナル生成エラー (6902.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:42] [INFO]   6902.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:09:43] [WARNING] シグナル生成エラー (6367.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:43] [INFO]   6367.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:09:44] [WARNING] シグナル生成エラー (4543.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:45] [WARNING] シグナル生成エラー (6954.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:46] [INFO]   6954.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:09:46] [WARNING] シグナル生成エラー (6981.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:47] [INFO]   6981.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:09:48] [WARNING] シグナル生成エラー (6273.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:48] [INFO]   6273.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:09:49] [WARNING] シグナル生成エラー (7741.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:50] [INFO]   7741.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:09:50] [WARNING] シグナル生成エラー (2914.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:52] [WARNING] シグナル生成エラー (9020.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:52] [INFO]   9020.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:09:53] [WARNING] シグナル生成エラー (9022.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:53] [INFO]   9022.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:09:54] [WARNING] シグナル生成エラー (4452.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:55] [WARNING] シグナル生成エラー (4661.T, LightGBM): name 'lgb' is not defined
+[2025-12-02 18:09:55] [INFO] 検出シグナル数: 0
+[2025-12-02 18:09:56] [INFO] チャート画像生成完了: logs/images\equity_chart.png
+[2025-12-02 18:09:56] [INFO] 自動トレーダー正常終了
+[2025-12-02 18:13:21] [INFO] Phase 30-1 & 30-3: リアルタイム適応学習・高度リスク管理モジュール初期化完了
+[2025-12-02 18:13:21] [INFO] フル自動トレーダー初期化完了
+[2025-12-02 18:13:21] [INFO] ============================================================
+[2025-12-02 18:13:21] [INFO] 自動トレーダー開始: 2025-12-02 18:13:21.279973
+[2025-12-02 18:13:21] [INFO] ============================================================
+[2025-12-02 18:13:21] [INFO] Phase 30-1: 市場レジーム検出開始...
+[2025-12-02 18:13:21] [INFO] 検出されたレジーム: high_volatility
+[2025-12-02 18:13:21] [INFO] リスクパラメータ更新: 損切り=6.70%, 利確=26.79%, ポジションサイズ=0.45
+[2025-12-02 18:13:21] [INFO] レジーム統計: {'current_regime': 'high_volatility', 'total_observations': 2, 'regime_counts': {'high_volatility': 2}, 'regime_percentages': {'high_volatility': 100.0}, 'most_common_regime': 'high_volatility'}
+[2025-12-02 18:13:22] [INFO] ポジション評価開始...
+[2025-12-02 18:13:22] [INFO] 市場スキャン開始...
+[2025-12-02 18:14:21] [INFO] 市場センチメント: Neutral (-0.02)
+[2025-12-02 18:14:21] [INFO] 現在の資産配分: 日本0.0% 米国0.0% 欧州0.0% Crypto0.0% FX0.0%
+[2025-12-02 18:14:21] [INFO] 対象銘柄数: 30
+[2025-12-02 18:14:21] [INFO] データ取得中... (30銘柄)
+[2025-12-02 18:14:24] [INFO] データ取得完了: 30銘柄
+[2025-12-02 18:14:28] [INFO]   7203.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:14:38] [INFO]   9984.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:14:43] [INFO]   6758.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:14:47] [INFO]   8035.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:14:49] [INFO]   9983.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:14:51] [INFO]   4063.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:14:52] [INFO]   9432.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:14:54] [INFO]   7974.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:14:55] [INFO]   8306.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:14:57] [INFO]   8316.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:14:59] [INFO]   6501.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:15:02] [INFO]   7267.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:15:04] [INFO]   8058.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:15:06] [INFO]   8001.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:15:09] [INFO]   6902.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:15:11] [INFO]   6367.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:15:14] [INFO]   6954.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:15:16] [INFO]   6981.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:15:18] [INFO]   6273.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:15:20] [INFO]   7741.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:15:23] [INFO]   9020.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:15:25] [INFO]   9022.T: 算出数量が少なすぎるためスキップ (0)
+[2025-12-02 18:15:27] [INFO] 検出シグナル数: 0
+[2025-12-02 18:15:28] [INFO] チャート画像生成完了: logs/images\equity_chart.png
+[2025-12-02 18:15:28] [INFO] 自動トレーダー正常終了
