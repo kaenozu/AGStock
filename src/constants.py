@@ -5,6 +5,39 @@ from typing import List, Dict
 # Adding .T for Yahoo Finance Japan compatibility.
 
 NIKKEI_225_TICKERS: List[str] = [
+    # === 低価格銘柄（10万円資金向け）===
+    # 銀行・金融（200〜400円台）
+    "8411.T", # みずほフィナンシャルグループ
+    "8308.T", # りそなホールディングス
+    "7186.T", # コンコルディア・フィナンシャルグループ
+    "8304.T", # あおぞら銀行
+    
+    # 商社（200〜300円台）
+    "2768.T", # 双日
+    
+    # 通信（400円台）
+    "9433.T", # KDDI
+    
+    # 小売・サービス（100〜300円台）
+    "3382.T", # セブン&アイ・ホールディングス
+    "8267.T", # イオン
+    
+    # 不動産（200〜400円台）
+    "8801.T", # 三井不動産
+    "8802.T", # 三菱地所
+    
+    # 鉄道（200〜300円台）
+    "9001.T", # 東武鉄道
+    "9005.T", # 東急
+    
+    # エネルギー（100〜200円台）
+    "5020.T", # ENEOS Holdings
+    "1605.T", # Inpex
+    
+    # === 既存の大型株 ===
+    "9432.T", # NTT
+    "8306.T", # MUFG
+    "8316.T", # SMFG
     "7203.T", # Toyota
     "9984.T", # Softbank Group
     "6758.T", # Sony
@@ -13,10 +46,7 @@ NIKKEI_225_TICKERS: List[str] = [
     "8035.T", # Tokyo Electron
     "9983.T", # Fast Retailing
     "4063.T", # Shin-Etsu Chemical
-    "9432.T", # NTT
     "7974.T", # Nintendo
-    "8306.T", # MUFG
-    "8316.T", # SMFG
     "6501.T", # Hitachi
     "4502.T", # Takeda
     "7267.T", # Honda
@@ -35,14 +65,11 @@ NIKKEI_225_TICKERS: List[str] = [
     "9022.T", # JR Central
     "4452.T", # Kao
     "4661.T", # Oriental Land
-    # Adding some popular ones for variety
     "5401.T", # Nippon Steel
     "7011.T", # Mitsubishi Heavy
     "9101.T", # NYK Line
     "9104.T", # Mitsui O.S.K.
     "9107.T", # Kawasaki Kisen
-    "1605.T", # Inpex
-    "5020.T", # ENEOS
     "8031.T", # Mitsui & Co
     "8002.T", # Marubeni
     "8591.T", # Orix
@@ -50,6 +77,21 @@ NIKKEI_225_TICKERS: List[str] = [
 
 # Map for human readable names (Optional, but nice to have)
 TICKER_NAMES: Dict[str, str] = {
+    # 低価格銘柄
+    "8411.T": "みずほフィナンシャルグループ",
+    "8308.T": "りそなホールディングス",
+    "7186.T": "コンコルディア・フィナンシャルグループ",
+    "8304.T": "あおぞら銀行",
+    "2768.T": "双日",
+    "9433.T": "KDDI",
+    "3382.T": "セブン&アイ・ホールディングス",
+    "8267.T": "イオン",
+    "8801.T": "三井不動産",
+    "8802.T": "三菱地所",
+    "9001.T": "東武鉄道",
+    "9005.T": "東急",
+    
+    # 既存銘柄
     "7203.T": "Toyota Motor",
     "9984.T": "SoftBank Group",
     "6758.T": "Sony Group",

@@ -7,8 +7,24 @@ from src.strategies import Strategy
 from src.constants import TICKER_NAMES
 
 class PaperTrader:
-    def __init__(self, db_path: str = "paper_trading.db", initial_capital: float = 10000000):
+    def __init__(self, db_path: str = "paper_trading.db", initial_capital: float = None):
         self.db_path = db_path
+        
+        # Load initial capital from config.json if not specified
+        if initial_capital is None:
+            try:
+                import json
+                from pathlib import Path
+                config_path = Path(__file__).parent.parent / 'config.json'
+                if config_path.exists():
+                    with open(config_path, 'r', encoding='utf-8') as f:
+                        config = json.load(f)
+                    initial_capital = config.get('paper_trading', {}).get('initial_capital', 1000000)
+                else:
+                    initial_capital = 1000000  # デフォルト100万円
+            except Exception:
+                initial_capital = 1000000  # エラー時もデフォルト100万円
+        
         self.initial_capital = initial_capital
         self.conn = sqlite3.connect(db_path)
         self._initialize_database()
@@ -153,8 +169,20 @@ class PaperTrader:
         
         self.conn.commit()
     
-    def execute_trade(self, ticker: str, action: str, quantity: int, price: float, reason: str = "Signal"):
-        """Execute a buy or sell trade"""
+    def execute_trade(self, ticker: str, action: str, quantity: int, price: float, reason: str = "Signal") -> bool:
+        """
+        Execute a buy or sell trade.
+        
+        Args:
+            ticker (str): Stock ticker symbol
+            action (str): "BUY" or "SELL"
+            quantity (int): Number of shares
+            price (float): Execution price
+            reason (str): Reason for the trade
+            
+        Returns:
+            bool: True if trade executed successfully, False otherwise
+        """
         cursor = self.conn.cursor()
         today = datetime.date.today().isoformat()
         
@@ -194,6 +222,9 @@ class PaperTrader:
             # Update balance
             cursor.execute('UPDATE balance SET cash = ? WHERE date = (SELECT MAX(date) FROM balance)', (new_cash,))
             
+            # Log successful buy
+            print(f"✅ BUY Executed: {ticker} x {quantity} @ {price}")
+            
         elif action == "SELL":
             # Check if we have the position
             cursor.execute('SELECT quantity, entry_price FROM positions WHERE ticker = ?', (ticker,))
@@ -219,6 +250,9 @@ class PaperTrader:
             
             # Update balance
             cursor.execute('UPDATE balance SET cash = ? WHERE date = (SELECT MAX(date) FROM balance)', (new_cash,))
+            
+            # Log successful sell
+            print(f"✅ SELL Executed: {ticker} x {quantity} @ {price} (PnL: {realized_pnl})")
         
         # Log the trade
         now = datetime.datetime.now().isoformat()
@@ -232,8 +266,13 @@ class PaperTrader:
         self.conn.commit()
         return True
     
-    def update_daily_equity(self):
-        """Calculate and record total equity for the day"""
+    def update_daily_equity(self) -> float:
+        """
+        Calculate and record total equity for the day.
+        
+        Returns:
+            float: Total equity value
+        """
         self.update_positions_prices()
         
         balance = self.get_current_balance()
@@ -257,7 +296,14 @@ class PaperTrader:
         return total_equity
     
     def update_position_stop(self, ticker: str, stop_price: float, highest_price: float):
-        """Update stop price and highest price for a position"""
+        """
+        Update stop price and highest price for a position.
+        
+        Args:
+            ticker (str): Stock ticker symbol
+            stop_price (float): New stop price
+            highest_price (float): New highest price
+        """
         cursor = self.conn.cursor()
         cursor.execute('''
             UPDATE positions 
@@ -267,5 +313,5 @@ class PaperTrader:
         self.conn.commit()
     
     def close(self):
-        """Close database connection"""
+        """Close database connection."""
         self.conn.close()

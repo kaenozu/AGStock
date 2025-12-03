@@ -36,25 +36,36 @@ class AnomalyDetector:
             balance = self.pt.get_current_balance()
             current_equity = balance['total_equity']
             
-            # Get yesterday's equity
-            # This requires equity history, which we should track
-            # For now, use a simplified approach
+            # Get equity history for accurate daily P&L tracking
+            equity_history = self.pt.get_equity_history()
             
-            # TODO: Implement proper equity history tracking
-            # For demonstration, we'll check against initial capital
-            initial_capital = self.pt.initial_capital
-            total_return = (current_equity - initial_capital) / initial_capital
-            
-            # Check if we lost more than threshold today
-            # This is simplified - in production, track daily equity changes
-            if total_return < self.daily_loss_threshold:
-                return {
-                    'type': 'DAILY_LOSS',
-                    'severity': 'CRITICAL',
-                    'message': f'Total portfolio loss: {total_return:.1%}',
-                    'current_equity': current_equity,
-                    'initial_capital': initial_capital
-                }
+            if equity_history.empty or len(equity_history) < 2:
+                # Not enough history, use initial capital as baseline
+                initial_capital = self.pt.initial_capital
+                total_return = (current_equity - initial_capital) / initial_capital
+                
+                if total_return < self.daily_loss_threshold:
+                    return {
+                        'type': 'DAILY_LOSS',
+                        'severity': 'CRITICAL',
+                        'message': f'Total portfolio loss: {total_return:.1%}',
+                        'current_equity': current_equity,
+                        'initial_capital': initial_capital
+                    }
+            else:
+                # Calculate daily P&L from equity history
+                yesterday_equity = equity_history.iloc[-2]['total_equity']
+                daily_return = (current_equity - yesterday_equity) / yesterday_equity
+                
+                if daily_return < self.daily_loss_threshold:
+                    return {
+                        'type': 'DAILY_LOSS',
+                        'severity': 'CRITICAL',
+                        'message': f'Daily loss: {daily_return:.1%} (Threshold: {self.daily_loss_threshold:.1%})',
+                        'current_equity': current_equity,
+                        'yesterday_equity': yesterday_equity,
+                        'daily_pnl': current_equity - yesterday_equity
+                    }
             
             return None
             
@@ -159,19 +170,37 @@ class AnomalyDetector:
         Args:
             anomaly: Anomaly dict to send
         """
-        # TODO: Integrate with SmartNotifier for LINE/Discord
         logger.critical(f"ALERT [{anomaly['severity']}]: {anomaly['message']}")
         
-        # For now, just log
-        # In production, call SmartNotifier
+        # Try to send via SmartNotifier (LINE/Discord)
         try:
             from src.smart_notifier import SmartNotifier
             notifier = SmartNotifier()
             
-            alert_message = f"🚨 **{anomaly['type']}**\n{anomaly['message']}"
+            # Format alert message with emoji
+            severity_emoji = {
+                'CRITICAL': '🚨',
+                'WARNING': '⚠️',
+                'INFO': 'ℹ️'
+            }
+            emoji = severity_emoji.get(anomaly['severity'], '📢')
+            
+            alert_message = f"{emoji} **{anomaly['type']}**\n\n{anomaly['message']}"
+            
+            # Add details if available
+            if 'current_equity' in anomaly:
+                alert_message += f"\n\n現在の資産: ¥{anomaly['current_equity']:,.0f}"
+            if 'daily_pnl' in anomaly:
+                pnl_emoji = '📈' if anomaly['daily_pnl'] >= 0 else '📉'
+                alert_message += f"\n{pnl_emoji} 日次損益: ¥{anomaly['daily_pnl']:+,.0f}"
+            
             notifier.send_notification(alert_message)
+            logger.info("Alert sent via SmartNotifier")
+            
+        except ImportError:
+            logger.warning("SmartNotifier not available, alert logged only")
         except Exception as e:
-            logger.error(f"Failed to send alert: {e}")
+            logger.error(f"Failed to send alert via SmartNotifier: {e}")
 
 if __name__ == "__main__":
     # Test

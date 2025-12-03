@@ -122,19 +122,21 @@ def show_home_page():
     # === クイックアクション ===
     st.subheader("🚀 クイックアクション")
     
-    col_a, col_b, col_c = st.columns(3)
+    st.info("💡 クイックアクションは現在開発中です。ダッシュボードから各機能にアクセスしてください。")
     
-    with col_a:
-        if st.button("🔍 市場をスキャン", use_container_width=True, type="primary"):
-            st.switch_page("pages/analysis.py")
-    
-    with col_b:
-        if st.button("💼 ポートフォリオ", use_container_width=True):
-            st.switch_page("pages/portfolio.py")
-    
-    with col_c:
-        if st.button("📝 取引する", use_container_width=True):
-            st.switch_page("pages/trade.py")
+    # col_a, col_b, col_c = st.columns(3)
+    # 
+    # with col_a:
+    #     if st.button("🔍 市場をスキャン", use_container_width=True, type="primary"):
+    #         st.switch_page("pages/analysis.py")
+    # 
+    # with col_b:
+    #     if st.button("💼 ポートフォリオ", use_container_width=True):
+    #         st.switch_page("pages/portfolio.py")
+    # 
+    # with col_c:
+    #     if st.button("📝 取引する", use_container_width=True):
+    #         st.switch_page("pages/trade.py")
     
     st.markdown("---")
     

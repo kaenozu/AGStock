@@ -214,6 +214,10 @@ def add_macro_features(df: pd.DataFrame, macro_data: dict) -> pd.DataFrame:
     # Macro data might have different trading days (US holidays vs JP holidays)
     # We forward fill macro data to align with stock data
     
+    # Ensure df index is timezone-naive for alignment
+    if df.index.tz is not None:
+        df.index = df.index.tz_localize(None)
+    
     for name, macro_df in macro_data.items():
         # Calculate daily return/change for macro factor
         if name == "US10Y":
@@ -222,6 +226,10 @@ def add_macro_features(df: pd.DataFrame, macro_data: dict) -> pd.DataFrame:
         else:
             # Price return
             macro_feat = macro_df['Close'].pct_change()
+        
+        # Ensure macro_feat index is timezone-naive
+        if macro_feat.index.tz is not None:
+            macro_feat.index = macro_feat.index.tz_localize(None)
             
         # Reindex to match stock df
         # ffill to propagate last known value (e.g. during JP holiday if US open, or vice versa)

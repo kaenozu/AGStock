@@ -82,7 +82,7 @@ class AsyncDataLoader:
             if df is not None and not df.empty:
                 # DBに保存
                 try:
-                    self.db.save_data(ticker, df)
+                    self.db.save_data(df, ticker)
                     logger.info(f"Downloaded and cached data for {ticker}")
                 except Exception as e:
                     logger.error(f"Error saving data for {ticker}: {e}")
@@ -257,7 +257,7 @@ class AsyncDataLoader:
                 # ダウンロード
                 df = self._download_yfinance(ticker, period)
                 if df is not None and not df.empty:
-                    self.db.save_data(ticker, df)
+                    self.db.save_data(df, ticker)
                     data_map[ticker] = df
                     
             except Exception as e:

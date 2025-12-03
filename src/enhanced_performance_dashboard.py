@@ -85,7 +85,7 @@ def create_performance_dashboard(currency="JPY"):
             benchmark_returns = benchmark_data['Close'].pct_change().dropna()
             
             # インデックスを合わせる
-            共通dates = portfolio_returns.index.intersection(benchmark_returns.index)
+            common_dates = portfolio_returns.index.intersection(benchmark_returns.index)
             if len(common_dates) < 5:
                 st.warning("比較可能なデータが不足しています。")
                 return
@@ -175,7 +175,7 @@ def create_performance_dashboard(currency="JPY"):
         )
     
     with col7:
-        アクティブリターン = report['active_return']
+        active_return = report['active_return']
         st.metric(
             "アクティブリターン",
             f"{active_return:+.2f}%",

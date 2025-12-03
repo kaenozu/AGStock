@@ -305,6 +305,13 @@ class LightGBMStrategy(Strategy):
                              'USDJPY_Ret', 'USDJPY_Corr', 'SP500_Ret', 'SP500_Corr', 'US10Y_Ret', 'US10Y_Corr']
 
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+        import lightgbm as lgb
+        
+        # タイムゾーンの不一致を防ぐためにインデックスをtimezone-naiveにする
+        if df.index.tz is not None:
+            df = df.copy()
+            df.index = df.index.tz_localize(None)
+            
         data = add_advanced_features(df)
         macro_data = fetch_macro_data(period="5y")
         data = add_macro_features(data, macro_data)

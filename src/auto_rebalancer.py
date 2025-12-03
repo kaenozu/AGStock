@@ -110,9 +110,53 @@ class AutoRebalancer:
             logger.warning("No replacement candidates available")
             return None
         
-        # For now, return first candidate
-        # TODO: Implement correlation-based selection
-        return candidates[0]
+        # Implement correlation-based selection
+        try:
+            # Fetch data for current holdings and candidates
+            all_tickers = avoid_tickers + candidates[:5]  # Limit to 5 candidates for performance
+            data_map = fetch_stock_data(all_tickers, period="3mo")
+            
+            # Build price dataframe
+            price_df = pd.DataFrame({
+                t: df['Close'] for t, df in data_map.items() 
+                if df is not None and not df.empty
+            })
+            
+            if price_df.empty or len(price_df.columns) < 2:
+                logger.warning("Not enough data for correlation analysis")
+                return candidates[0]
+            
+            # Calculate correlation matrix
+            corr_matrix = price_df.pct_change().corr()
+            
+            # Find candidate with lowest average correlation to current holdings
+            best_candidate = None
+            lowest_avg_corr = float('inf')
+            
+            for candidate in candidates:
+                if candidate not in corr_matrix.columns:
+                    continue
+                    
+                # Calculate average correlation with current holdings
+                current_holdings = [t for t in avoid_tickers if t in corr_matrix.columns]
+                if not current_holdings:
+                    return candidate
+                
+                avg_corr = corr_matrix.loc[candidate, current_holdings].abs().mean()
+                
+                if avg_corr < lowest_avg_corr:
+                    lowest_avg_corr = avg_corr
+                    best_candidate = candidate
+            
+            if best_candidate:
+                logger.info(f"Selected {best_candidate} with avg correlation {lowest_avg_corr:.2f}")
+                return best_candidate
+            else:
+                return candidates[0]
+                
+        except Exception as e:
+            logger.error(f"Error in correlation-based selection: {e}")
+            return candidates[0]
     
     def execute_rebalance(self, dry_run: bool = True) -> List[Dict]:
         """
@@ -187,8 +231,34 @@ class AutoRebalancer:
                     )
                     logger.info(f"Sold {quantity_to_sell} shares of {ticker_to_replace}")
                     
-                    # TODO: Execute buy for replacement
-                    # Need current price for replacement ticker
+                    # Execute buy for replacement
+                    try:
+                        # Fetch current price for replacement ticker
+                        replacement_data = fetch_stock_data([replacement], period="1d")
+                        if replacement in replacement_data and replacement_data[replacement] is not None:
+                            replacement_price = replacement_data[replacement]['Close'].iloc[-1]
+                            
+                            # Calculate quantity based on proceeds from sale
+                            sale_proceeds = quantity_to_sell * price
+                            replacement_quantity = int(sale_proceeds / replacement_price)
+                            
+                            if replacement_quantity > 0:
+                                self.pt.execute_trade(
+                                    replacement,
+                                    "BUY",
+                                    replacement_quantity,
+                                    replacement_price,
+                                    reason=action['buy']['reason']
+                                )
+                                logger.info(f"Bought {replacement_quantity} shares of {replacement} at ¥{replacement_price:.2f}")
+                                action['buy']['quantity'] = replacement_quantity
+                                action['buy']['price'] = replacement_price
+                            else:
+                                logger.warning(f"Not enough proceeds to buy {replacement}")
+                        else:
+                            logger.error(f"Could not fetch price for {replacement}")
+                    except Exception as e:
+                        logger.error(f"Failed to execute buy order for {replacement}: {e}")
                     
                 actions.append(action)
                 processed_tickers.add(ticker_to_replace)

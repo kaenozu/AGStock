@@ -1,37 +1,50 @@
 {
+    "user_profile": {
+        "experience": "beginner",
+        "risk_tolerance": "low",
+        "setup_date": "2025-12-02"
+    },
+    "capital": {
+        "initial_capital": 500000,
+        "currency": "JPY"
+    },
+    "risk": {
+        "max_position_size": 0.1,
+        "stop_loss_pct": 0.03,
+        "take_profit_pct": 0.05
+    },
+    "auto_trading": {
+        "mode": "semi_auto",
+        "require_approval": true,
+        "max_daily_trades": 3,
+        "daily_loss_limit_pct": -3.0,
+        "max_vix": 40.0
+    },
     "notifications": {
+        "enabled": false,
         "line": {
             "enabled": false,
-            "notifications": {
-                "line": {
-                    "enabled": false,
-                    "token": ""
-                },
-                "discord": {
-                    "enabled": false,
-                    "webhook_url": ""
-                }
-            },
-            "rakuten": {
-                "enabled": false,
-                "login_id": "YOUR_LOGIN_ID",
-                "password": "YOUR_PASSWORD",
-                "pin_code": "YOUR_PIN_CODE",
-                "headless": false
-            },
-            "paper_trading": {
-                "enabled": true,
-                "initial_capital": 1000000
-            },
-            "auto_trading": {
-                "enabled": true,
-                "max_daily_trades": 5,
-                "daily_loss_limit_pct": -5.0,
-                "max_vix": 40.0,
-                "risk_per_trade": 0.02
-            },
-            "openai": {
-                "api_key": "YOUR_OPENAI_API_KEY",
-                "model": "gpt-4o"
-            }
+            "token": ""
+        },
+        "discord": {
+            "enabled": false,
+            "webhook_url": ""
+        },
+        "email": {
+            "enabled": false,
+            "smtp_server": "",
+            "to_address": ""
         }
+    },
+    "assets": {
+        "japan_stocks": true,
+        "us_stocks": true,
+        "europe_stocks": false,
+        "crypto": false,
+        "fx": false
+    },
+    "paper_trading": {
+        "initial_capital": 500000,
+        "enabled": true
+    }
+}

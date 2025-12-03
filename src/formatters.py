@@ -6,7 +6,7 @@ from typing import Optional, Union
 import pandas as pd
 
 
-def format_currency(value: Optional[float], symbol: str = "¥", decimals: int = 0) -> str:
+def format_currency(value: Optional[float], symbol: str = "¥", decimals: int = 0, show_sign: bool = False) -> str:
     """
     通貨フォーマット（統一フォーマット）
     
@@ -14,17 +14,23 @@ def format_currency(value: Optional[float], symbol: str = "¥", decimals: int = 
         value: 金額
         symbol: 通貨記号
         decimals: 小数点以下の桁数
+        show_sign: 符号を常に表示するか
         
     Returns:
-        フォーマット済み文字列（例: "¥1,234,567"）
+        フォーマット済み文字列（例: "¥1,234,567" or "+¥1,234,567"）
     """
     if value is None or pd.isna(value):
         return "N/A"
     
     if decimals == 0:
-        return f"{symbol}{value:,.0f}"
+        formatted = f"{value:,.0f}"
     else:
-        return f"{symbol}{value:,.{decimals}f}"
+        formatted = f"{value:,.{decimals}f}"
+    
+    if show_sign and value >= 0:
+        return f"+{symbol}{formatted}"
+    else:
+        return f"{symbol}{formatted}"
 
 
 def format_percentage(value: Optional[float], decimals: int = 2, show_sign: bool = False) -> str:

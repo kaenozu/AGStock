@@ -509,11 +509,30 @@ class FullyAutomatedTrader:
                         # Calculate quantity
                         target_amount = equity * final_size_pct
                         target_amount = min(target_amount, cash) # Cap at cash
-                        quantity = int(target_amount / latest_price / 100) * 100
                         
-                        if quantity < 100:
-                            self.log(f"  {ticker}: 算出数量が少なすぎるためスキップ ({quantity})")
-                            continue
+                        # 米国株かどうか判定（ティッカーにドットがない、または特定のリストに含まれる）
+                        is_us_stock = '.' not in ticker
+                        
+                        if is_us_stock:
+                            # 米国株は1株単位
+                            quantity = int(target_amount / latest_price)
+                            if quantity < 1:
+                                # 資金不足でも最低1株は買えるかチェック（積極的モードの場合）
+                                if cash >= latest_price:
+                                    quantity = 1
+                                else:
+                                    self.log(f"  {ticker}: 資金不足のためスキップ (必要: {latest_price:.2f}, 保有: {cash:.2f})")
+                                    continue
+                        else:
+                            # 日本株は100株単位
+                            quantity = int(target_amount / latest_price / 100) * 100
+                            if quantity < 100:
+                                # 資金不足でも最低100株は買えるかチェック
+                                if cash >= latest_price * 100:
+                                    quantity = 100
+                                else:
+                                    self.log(f"  {ticker}: 算出数量が少なすぎるためスキップ ({quantity})")
+                                    continue
 
                         signals.append({
                             'ticker': ticker,

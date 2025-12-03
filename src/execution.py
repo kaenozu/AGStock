@@ -59,11 +59,15 @@ class ExecutionEngine:
         # 3. Cap at available cash
         target_amount = min(target_amount, cash)
         
-        if target_amount < price * 100: # Minimum unit
+        # Determine unit size based on ticker (US stocks have no dot, Japan stocks have .T)
+        is_us_stock = '.' not in ticker
+        unit_size = 1 if is_us_stock else 100
+        
+        if target_amount < price * unit_size: # Minimum unit
             return 0
             
-        # 4. Calculate shares (round down to nearest 100)
-        shares = int(target_amount / price / 100) * 100
+        # 4. Calculate shares (round down to nearest unit)
+        shares = int(target_amount / price / unit_size) * unit_size
         
         return shares
 
