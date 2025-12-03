@@ -1,4 +1,5 @@
 @echo off
+cd ..
 REM フルオート取引システム - 毎朝自動実行用
 REM Full Auto Trading System - Daily Auto Run
 
@@ -13,7 +14,7 @@ if not exist reports mkdir reports
 
 REM Python実行
 echo [%date% %time%] 実行開始...
-python auto_trader.py
+python fully_automated_trader.py
 
 if %ERRORLEVEL% EQU 0 (
     echo.

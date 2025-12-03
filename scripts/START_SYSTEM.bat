@@ -9,6 +9,7 @@ echo  このウィンドウは最小化して置いておいてください。
 echo.
 
 cd /d %~dp0
+cd ..
 
 REM 仮想環境のアクティベート
 if exist .venv\Scripts\activate.bat (

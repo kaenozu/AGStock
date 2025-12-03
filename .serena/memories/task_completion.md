@@ -1,0 +1,1 @@
+Before submitting changes, ensure `pip install -r requirements-dev.txt` has been run, execute `pytest tests -v` (add `--cov=src` if touching analytics logic), and run `streamlit run app.py` (or `run_app.bat`) to manually smoke-test UI interactions if they are affected. Capture any new instructions in README if commands or workflows change.

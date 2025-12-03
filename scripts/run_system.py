@@ -5,6 +5,12 @@ import sys
 import os
 import webbrowser
 
+# スクリプトの親ディレクトリ（プロジェクトルート）に移動して実行環境を整える
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(script_dir)
+os.chdir(project_root)
+sys.path.append(project_root)
+
 def run_dashboard():
     """ダッシュボードをバックグラウンドで起動"""
     print("📊 シンプルダッシュボードを起動中...")
