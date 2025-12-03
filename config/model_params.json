@@ -1,0 +1,24 @@
+{
+    "random_forest": {
+        "n_estimators": 175,
+        "max_depth": 10,
+        "min_samples_split": 5
+    },
+    "lightgbm": {
+        "lambda_l1": 0.000946604982475306,
+        "lambda_l2": 2.093020509728325e-06,
+        "num_leaves": 11,
+        "feature_fraction": 0.9062405951224679,
+        "bagging_fraction": 0.8348834923943623,
+        "bagging_freq": 4,
+        "min_child_samples": 88
+    },
+    "transformer": {
+        "hidden_size": 32,
+        "num_attention_heads": 4,
+        "num_encoder_layers": 1,
+        "dropout": 0.17392120121788768,
+        "learning_rate": 0.00024490960961164374,
+        "batch_size": 32
+    }
+}

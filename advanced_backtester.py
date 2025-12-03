@@ -5,10 +5,8 @@
 """
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
-from typing import Dict, List, Tuple
+from typing import Dict, List
 import itertools
-from concurrent.futures import ProcessPoolExecutor, as_completed
 
 from src.backtester import Backtester
 from src.strategies import LightGBMStrategy, MLStrategy, CombinedStrategy
@@ -113,7 +111,7 @@ class AdvancedBacktester:
                         best_sharpe = sharpe
                         best_params = param_dict
             
-            except Exception as e:
+            except Exception:
                 continue
             
             # 進捗表示
@@ -200,7 +198,7 @@ class AdvancedBacktester:
             'results': results_df
         }
         
-        print(f"\n=== ウォークフォワード分析結果 ===")
+        print("\n=== ウォークフォワード分析結果 ===")
         print(f"イテレーション数: {summary['iterations']}")
         print(f"平均リターン: {summary['avg_return']:.2f}%")
         print(f"平均シャープレシオ: {summary['avg_sharpe']:.2f}")
@@ -248,7 +246,7 @@ class AdvancedBacktester:
         print(f"中央値: {result['median']:.2f}x")
         print(f"標準偏差: {result['std']:.2f}")
         print(f"利益確率: {result['prob_profit']:.1%}")
-        print(f"パーセンタイル:")
+        print("パーセンタイル:")
         for p, v in result['percentiles'].items():
             print(f"  {p}%: {v:.2f}x")
         

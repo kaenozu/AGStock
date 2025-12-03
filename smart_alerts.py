@@ -4,7 +4,7 @@
 条件ベースで重要度を判定し、必要な時だけ通知
 """
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import List, Dict
 import yfinance as yf
 
@@ -117,7 +117,7 @@ class SmartAlerts:
                         "ticker": ticker,
                         "value": change_pct
                     })
-            except Exception as e:
+            except Exception:
                 continue
         
         return alerts

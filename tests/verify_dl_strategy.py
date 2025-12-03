@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from src.strategies import DeepLearningStrategy
 
 def create_synthetic_data(length=1000):

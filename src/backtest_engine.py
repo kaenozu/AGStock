@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 from typing import Dict, Any, Type
 from src.backtester import Backtester
 from src.data_loader import fetch_long_term_data

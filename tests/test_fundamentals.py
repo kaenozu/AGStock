@@ -1,4 +1,3 @@
-import pytest
 from src.fundamentals import FundamentalFilter
 
 def test_filter_undervalued():

@@ -4,16 +4,13 @@
 前日の結果・今日の推奨・市場状況を1つのメッセージにまとめて配信
 """
 import json
-from datetime import datetime, timedelta, date
-import pandas as pd
-from typing import Dict, List
+from datetime import datetime
+from typing import Dict
 import yfinance as yf
 
 from src.paper_trader import PaperTrader
 from src.sentiment import SentimentAnalyzer
 from src.smart_notifier import SmartNotifier
-from src.data_loader import fetch_stock_data, get_latest_price
-from src.strategies import CombinedStrategy
 
 
 class MorningBrief:

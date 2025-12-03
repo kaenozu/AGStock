@@ -8,7 +8,6 @@ import sys
 import logging
 from pathlib import Path
 from src.sentiment import SentimentAnalyzer
-import datetime
 
 # Configure logging
 log_dir = Path("logs")

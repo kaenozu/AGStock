@@ -1,34 +1,41 @@
+# Environment variables (sensitive data)
+.env
+
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-env/
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
 venv/
 ENV/
-
-# Cache
-yfinance_cache.sqlite
-*.cache
-
-# Logs
-logs/
-*.log
-
-# Data
-paper_trading.db
-best_params.json
-daily_signals.csv
-results.txt
-sentiment_history.db
 
 # IDE
 .vscode/
 .idea/
-*.swp
-*.swo
 
-# OS
-.DS_Store
-Thumbs.db
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Data
+*.db
+*.sqlite
+*.log
+
+# Backups
+backups/
+
+# Reports
+reports/*.pdf
+
+# Temporary files
+*.tmp
+temp_*.png

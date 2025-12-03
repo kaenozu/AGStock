@@ -1,0 +1,27 @@
+{
+    "production_mode": false,
+    "risk_limits": {
+        "max_position_size": 0.2,
+        "max_daily_trades": 10,
+        "max_drawdown": 0.15,
+        "stop_loss_pct": 0.05,
+        "take_profit_pct": 0.15
+    },
+    "monitoring": {
+        "enabled": true,
+        "alert_threshold": 0.03,
+        "daily_report": true,
+        "error_notifications": true
+    },
+    "automation": {
+        "auto_rebalance": true,
+        "rebalance_frequency": "weekly",
+        "execute_signals": false
+    },
+    "logging": {
+        "level": "INFO",
+        "log_trades": true,
+        "log_errors": true,
+        "retention_days": 90
+    }
+}

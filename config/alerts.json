@@ -1,0 +1,38 @@
+{
+    "enabled_conditions": {
+        "price_surge": true,
+        "price_drop": true,
+        "strong_buy_signal": true,
+        "portfolio_large_gain": true,
+        "portfolio_large_loss": true,
+        "max_drawdown_warning": true,
+        "profit_target_reached": true,
+        "stop_loss_approaching": true
+    },
+    "notification_settings": {
+        "line": {
+            "enabled": false,
+            "access_token": "YOUR_LINE_ACCESS_TOKEN"
+        },
+        "discord": {
+            "enabled": false,
+            "webhook_url": "YOUR_DISCORD_WEBHOOK_URL"
+        },
+        "slack": {
+            "enabled": false,
+            "webhook_url": "YOUR_SLACK_WEBHOOK_URL"
+        },
+        "email": {
+            "enabled": false,
+            "smtp_server": "smtp.gmail.com",
+            "smtp_port": 587,
+            "from_email": "your-email@gmail.com",
+            "to_email": "recipient@example.com",
+            "password": "YOUR_EMAIL_PASSWORD"
+        }
+    },
+    "cooldown_minutes": {
+        "default": 60,
+        "critical": 15
+    }
+}

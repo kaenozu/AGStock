@@ -2,8 +2,7 @@ import sqlite3
 import pandas as pd
 import logging
 from datetime import datetime
-from typing import Optional, List, Dict
-import os
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -163,3 +162,13 @@ class DataManager:
             except:
                 return None
         return None
+
+    def vacuum_db(self):
+        """Optimize the database by running VACUUM command."""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            conn.execute("VACUUM")
+            conn.close()
+            logger.info(f"Database {self.db_path} vacuumed successfully.")
+        except Exception as e:
+            logger.error(f"Error vacuuming database: {e}")

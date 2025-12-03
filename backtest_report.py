@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
-import plotly.express as px
 from plotly.subplots import make_subplots
 from src.constants import ALL_STOCKS
 from src.data_loader import fetch_stock_data

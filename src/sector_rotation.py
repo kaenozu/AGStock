@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 from typing import Dict, List, Tuple, Optional
 import logging
 from src.constants import SECTOR_ETFS, SECTOR_NAMES_JA, CYCLE_SECTOR_MAP

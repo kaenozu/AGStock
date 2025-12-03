@@ -5,7 +5,7 @@ import plotly.express as px
 from src.performance import PerformanceAnalyzer
 from src.constants import MARKETS, TICKER_NAMES
 
-def render_performance_tab(ticker_group, selected_market, custom_tickers):
+def render_performance_tab(ticker_group, selected_market, custom_tickers, currency="JPY"):
     """
     パフォーマンス分析タブのレンダリングロジック
     
@@ -13,6 +13,7 @@ def render_performance_tab(ticker_group, selected_market, custom_tickers):
         ticker_group (str): 選択された銘柄グループ
         selected_market (str): 選択された市場
         custom_tickers (list): カスタム銘柄リスト
+        currency (str): 通貨単位 (JPY, USD, etc.)
     """
     st.header("🎯 パフォーマンス・ダッシュボード")
     st.write("全銘柄のパフォーマンスを一目で確認できます。")
@@ -201,7 +202,7 @@ def render_paper_trading_tab():
     ペーパートレーディングタブのレンダリングロジック
     """
     from src.paper_trader import PaperTrader
-    from src.simple_dashboard import format_currency
+    from src.formatters import format_currency
     from src.data_loader import fetch_stock_data
     
     st.header("ペーパートレーディング (仮想売買)")
@@ -352,6 +353,30 @@ def render_market_scan_tab(ticker_group, selected_market, custom_tickers, period
             if sentiment.get('top_news'):
                 for i, news in enumerate(sentiment['top_news'][:5], 1):
                      st.markdown(f"{i}. [{news['title']}]({news['link']})")
+
+        # === Display Macro Indicators ===
+        with st.expander("🌍 マクロ経済指標", expanded=True):
+            try:
+                from src.data_loader import fetch_external_data
+                macro_data = fetch_external_data(period="5d")
+                
+                m_cols = st.columns(len(macro_data))
+                for i, (name, df) in enumerate(macro_data.items()):
+                    if not df.empty:
+                        current = df['Close'].iloc[-1]
+                        prev = df['Close'].iloc[-2]
+                        diff = current - prev
+                        pct = (diff / prev) * 100
+                        
+                        with m_cols[i]:
+                            st.metric(
+                                label=name,
+                                value=f"{current:,.2f}",
+                                delta=f"{diff:+.2f} ({pct:+.2f}%)",
+                                delta_color="inverse" if name == "VIX" else "normal"
+                            )
+            except Exception as e:
+                st.error(f"マクロデータ取得エラー: {e}")
 
         # === Display Cached Results ===
         results_df = pd.DataFrame(results_data)
@@ -553,8 +578,38 @@ def render_market_scan_tab(ticker_group, selected_market, custom_tickers, period
             if sentiment['score'] < -0.2:
                 st.error("⚠️ 市場センチメントが悪化しています。買いシグナルは抑制されます。")
         
+        # === Macro Indicators ===
+        with st.expander("🌍 マクロ経済指標", expanded=True):
+            try:
+                from src.data_loader import fetch_external_data
+                macro_data = fetch_external_data(period="5d")
+                
+                if macro_data:
+                    m_cols = st.columns(len(macro_data))
+                    for i, (name, df) in enumerate(macro_data.items()):
+                        if not df.empty:
+                            current = df['Close'].iloc[-1]
+                            prev = df['Close'].iloc[-2]
+                            diff = current - prev
+                            pct = (diff / prev) * 100
+                            
+                            with m_cols[i]:
+                                st.metric(
+                                    label=name,
+                                    value=f"{current:,.2f}",
+                                    delta=f"{diff:+.2f} ({pct:+.2f}%)",
+                                    delta_color="inverse" if name == "VIX" else "normal"
+                                )
+                else:
+                    st.info("マクロデータが取得できませんでした。")
+            except Exception as e:
+                st.warning(f"マクロデータ表示エラー: {e}")
+        
         with st.spinner("データを取得し、全戦略をバックテスト中..."):
-            # 1. Fetch Data
+            # 1. Fetch Data with performance measurement
+            import time
+            fetch_start = time.time()
+            
             if ticker_group == "カスタム入力":
                 tickers = custom_tickers
             else:
@@ -569,7 +624,20 @@ def render_market_scan_tab(ticker_group, selected_market, custom_tickers, period
                 st.stop()
             
             try:
-                data_map = fetch_stock_data(tickers, period=period)
+                # 非同期ローダーを使用（3銘柄以上の場合）
+                data_map = fetch_stock_data(tickers, period=period, use_async=True)
+                fetch_time = time.time() - fetch_start
+                
+                # パフォーマンスメトリクスを表示
+                perf_col1, perf_col2, perf_col3 = st.columns(3)
+                with perf_col1:
+                    st.metric("データ取得時間", f"{fetch_time:.2f}秒")
+                with perf_col2:
+                    st.metric("取得銘柄数", f"{len(data_map)}/{len(tickers)}")
+                with perf_col3:
+                    avg_time = fetch_time / len(data_map) if data_map else 0
+                    st.metric("平均取得時間", f"{avg_time:.2f}秒/銘柄")
+                
             except Exception as e:
                 display_error_message(
                     "network",
@@ -732,3 +800,245 @@ def render_market_scan_tab(ticker_group, selected_market, custom_tickers, period
                     st.dataframe(display_df, use_container_width=True)
             else:
                 st.warning("現在、有効なシグナルが出ている銘柄はありませんでした。")
+
+def render_realtime_monitoring_tab(ticker_group, selected_market, custom_tickers):
+    """
+    リアルタイム監視タブのレンダリングロジック
+    """
+    import time
+    import pandas as pd
+    from src.streaming_pipeline import get_streaming_pipeline
+    from src.constants import MARKETS
+    
+    st.header("📡 リアルタイム市場監視")
+    st.write("市場データをリアルタイムで監視し、AIが継続的に予測を行います。")
+    
+    # 監視対象の選択
+    if ticker_group == "カスタム入力":
+        target_tickers = custom_tickers
+    else:
+        target_tickers = MARKETS[selected_market][:10] # パフォーマンスのため上位10銘柄に制限
+        
+    st.info(f"監視対象: {len(target_tickers)} 銘柄 ({', '.join(target_tickers[:5])}...)")
+    
+    # コントロール
+    col1, col2 = st.columns(2)
+    with col1:
+        start_btn = st.button("監視を開始", type="primary", key="start_monitoring")
+    with col2:
+        stop_btn = st.button("監視を停止", key="stop_monitoring")
+        
+    # 状態管理
+    if 'monitoring_active' not in st.session_state:
+        st.session_state.monitoring_active = False
+        
+    if start_btn:
+        st.session_state.monitoring_active = True
+    if stop_btn:
+        st.session_state.monitoring_active = False
+        
+    # 監視ループ
+    if st.session_state.monitoring_active:
+        st.success("監視中... (停止するには「監視を停止」を押してください)")
+        
+        # パイプライン初期化（初回のみ）
+        pipeline = get_streaming_pipeline()
+        if not pipeline.is_initialized:
+            with st.spinner("AIパイプラインを初期化中..."):
+                pipeline.initialize(target_tickers)
+        
+        # データローダー初期化
+        # 注意: Streamlitの再実行モデルとスレッドの相性が悪いため、
+        # ここでは簡易的にループ内でデータ取得を行う
+        
+        placeholder = st.empty()
+        log_placeholder = st.empty()
+        
+        logs = []
+        
+        try:
+            # 簡易ループ (実際にはバックグラウンドスレッド推奨だが、UI更新のためメインスレッドで実行)
+            # Streamlitのrerunを使うため、whileループは1回で抜ける構造にするか、
+            # あるいはst.empty()を更新し続けるならsleepを使う
+            
+            # ここではシンプルに1回実行してsleepしてrerunするパターン
+            
+            # 1. データ取得（擬似リアルタイム）
+            from src.data_loader import fetch_stock_data
+            
+            # 最新データ取得
+            current_data = fetch_stock_data(target_tickers, period="1d", interval="1m")
+            
+            # パイプライン更新
+            results = pipeline.process_update(current_data)
+            
+            # UI更新
+            with placeholder.container():
+                # 予測結果のサマリー表示
+                st.subheader(f"最新状況 ({pd.Timestamp.now().strftime('%H:%M:%S')})")
+                
+                # 注目すべきシグナル
+                signals = []
+                for ticker, res in results.items():
+                    if res['final_signal'] != 'HOLD':
+                        # 信頼度取得（安全策）
+                        conf = 0.0
+                        if 'LightGBM' in res['details']:
+                             conf = res['details']['LightGBM']['confidence']
+                        
+                        signals.append({
+                            'Ticker': ticker,
+                            'Signal': res['final_signal'],
+                            'Confidence': f"{conf:.2f}",
+                            'Price': current_data[ticker]['Close'].iloc[-1]
+                        })
+                        
+                if signals:
+                    st.warning(f"⚠️ {len(signals)}件のシグナルを検知！")
+                    st.dataframe(pd.DataFrame(signals))
+                else:
+                    st.info("現在、強いシグナルは検出されていません。")
+                    
+                # 全銘柄の状況
+                with st.expander("全銘柄ステータス"):
+                    status_data = []
+                    for ticker, res in results.items():
+                        status_data.append({
+                            'Ticker': ticker,
+                            'Signal': res['final_signal'],
+                            'Buy Votes': res['buy_votes'],
+                            'Sell Votes': res['sell_votes']
+                        })
+                    st.dataframe(pd.DataFrame(status_data))
+            
+            # 自動リロード
+            time.sleep(10) # 10秒待機
+            st.rerun()
+                
+        except Exception as e:
+            st.error(f"監視中にエラーが発生しました: {e}")
+            st.session_state.monitoring_active = False
+
+def render_xai_section(model, X_test, ticker_name):
+    """
+    XAI（説明可能AI）セクションのレンダリング
+    
+    Args:
+        model: 学習済みモデル
+        X_test: テストデータ（特徴量）
+        ticker_name: 銘柄名
+    """
+    from src.xai import get_xai_manager
+    import streamlit as st
+    
+    st.markdown("---")
+    st.header(f"🔬 AI予測の根拠分析 (XAI) - {ticker_name}")
+    st.write("AIがなぜそのような予測をしたのか、SHAP値を用いて解析します。")
+    
+    if model is None or X_test is None or X_test.empty:
+        st.warning("モデルまたはデータが不足しているため、分析を実行できません。")
+        return
+
+    xai = get_xai_manager()
+    
+    with st.spinner("AIの思考プロセスを解析中..."):
+        # SHAP値計算
+        # 計算コスト削減のため、直近のデータ（例えば最新100件）のみを使用
+        X_sample = X_test.tail(100)
+        shap_values = xai.get_shap_values(model, X_sample)
+        
+        if shap_values is not None:
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # 全体的な特徴量重要度
+                fig_imp = xai.plot_feature_importance(shap_values, X_sample)
+                st.plotly_chart(fig_imp, use_container_width=True)
+                st.caption("モデル全体として、どの指標を重視しているかを示します。")
+                
+            with col2:
+                # 直近の予測理由
+                fig_reason = xai.plot_prediction_reason(shap_values, X_sample, row_index=-1)
+                st.plotly_chart(fig_reason, use_container_width=True)
+                st.caption("最新の予測において、どの指標がプラス/マイナスに働いたかを示します。")
+                
+            # 自然言語による説明
+            explanation = xai.generate_explanation_text(shap_values, X_sample, row_index=-1)
+            st.info(explanation)
+            
+        else:
+            st.error("SHAP値の計算に失敗しました。このモデルタイプはサポートされていない可能性があります。")
+
+
+def render_integrated_signal(df, ticker, ai_prediction=0.0):
+    """
+    統合シグナル分析結果を表示する
+    """
+    from src.integrated_signals import get_signal_integrator
+    
+    st.subheader("🧩 AI総合判断 (Integrated Signal)")
+    
+    integrator = get_signal_integrator()
+    result = integrator.analyze(df, ticker, ai_prediction)
+    
+    # メインシグナル表示
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        action = result['action']
+        score = result['score']
+        confidence = result['confidence']
+        
+        color = "green" if action == "BUY" else "red" if action == "SELL" else "gray"
+        icon = "🚀" if action == "BUY" else "🔻" if action == "SELL" else "⏸️"
+        action_jp = "買い" if action == "BUY" else "売り" if action == "SELL" else "様子見"
+        
+        st.markdown(f"""
+        <div style="text-align: center; padding: 20px; background-color: rgba(255,255,255,0.05); border-radius: 10px; border: 2px solid {color};">
+            <h2 style="color: {color}; margin: 0;">{icon} {action_jp}</h2>
+            <p style="margin: 5px 0;">確信度: {confidence:.0%}</p>
+            <p style="font-size: 0.8em; color: #888;">総合スコア: {score:.2f}</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with col2:
+        st.markdown("**🔍 判断理由:**")
+        for reason in result['reasons']:
+            st.markdown(f"- {reason}")
+            
+        if not result['reasons']:
+            st.info("特筆すべき判断材料はありません。")
+            
+    # 詳細スコア内訳
+    with st.expander("📊 スコア内訳詳細"):
+        details = result['details']
+        
+        # バーチャートで表示
+        fig = go.Figure()
+        
+        categories = ['テクニカル', 'AI予測', '長期トレンド', 'ニュース感情']
+        values = [
+            details.get('technical', 0),
+            details.get('ai', 0),
+            details.get('mtf', 0),
+            details.get('sentiment', 0)
+        ]
+        
+        colors = ['green' if v > 0 else 'red' for v in values]
+        
+        fig.add_trace(go.Bar(
+            x=categories,
+            y=values,
+            marker_color=colors,
+            text=[f"{v:.2f}" for v in values],
+            textposition='auto'
+        ))
+        
+        fig.update_layout(
+            title="要素別貢献度 (-1.0 to 1.0)",
+            yaxis_range=[-1.1, 1.1],
+            height=300,
+            margin=dict(l=20, r=20, t=40, b=20)
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)

@@ -4,7 +4,6 @@
 全機能をワンクリックで実行
 """
 import sys
-import os
 from datetime import datetime
 
 
@@ -72,7 +71,7 @@ def run_performance_tracker():
         report_path = tracker.save_report(report)
         excel_path = tracker.export_to_excel()
         
-        print(f"\n✅ レポート生成完了")
+        print("\n✅ レポート生成完了")
         print(f"   テキスト: {report_path}")
         print(f"   Excel: {excel_path}")
         return True
