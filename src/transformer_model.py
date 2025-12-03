@@ -7,9 +7,8 @@ Temporal Fusion Transformer (TFT) モデル
 
 import numpy as np
 import pandas as pd
-from typing import Tuple, Optional, List
+from typing import Tuple, Optional
 import logging
-from datetime import datetime
 
 # TensorFlow/Kerasのインポート
 try:

@@ -6,7 +6,7 @@ Modern Portfolio Theory (MPT) Optimizer - モダンポートフォリオ理論�
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
-from typing import List, Dict, Tuple, Optional
+from typing import Dict, Tuple
 import logging
 
 

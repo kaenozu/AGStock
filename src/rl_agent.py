@@ -2,7 +2,6 @@ import numpy as np
 import random
 import logging
 from collections import deque
-from typing import Any, Dict
 
 try:
     import torch

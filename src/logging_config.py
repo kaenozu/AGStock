@@ -98,5 +98,5 @@ if __name__ == "__main__":
     
     try:
         1 / 0
-    except Exception as e:
+    except Exception:
         test_logger.exception("An exception occurred")

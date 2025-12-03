@@ -130,7 +130,7 @@ def test_error_handler():
         result = sometimes_fails()
         print(f"✅ 結果: {result}")
     except:
-        print(f"❌ 失敗（リトライ後）")
+        print("❌ 失敗（リトライ後）")
     
     # 安全実行テスト
     print("\nテスト2: 安全実行")

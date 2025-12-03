@@ -3,7 +3,6 @@ import json
 import logging
 import joblib
 import pandas as pd
-import numpy as np
 from datetime import datetime
 from typing import Dict, Any, Optional, Tuple
 

@@ -10,8 +10,6 @@ Run this script once per day (e.g., after market close) to:
 Usage: python daily_routine.py
 """
 
-import sys
-import os
 import json
 import datetime
 from pathlib import Path
@@ -38,8 +36,7 @@ def run_daily_scan():
         # Import and run daily_scan logic
         from src.data_loader import fetch_stock_data
         from src.strategies import (
-            RSIStrategy, CombinedStrategy, MLStrategy, 
-            RLStrategy, TransformerStrategy
+            RSIStrategy, CombinedStrategy, RLStrategy, TransformerStrategy
         )
         from src.constants import NIKKEI_225_TICKERS, TICKER_NAMES
         

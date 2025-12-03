@@ -8,7 +8,6 @@ AGStock 設定ウィザード
 import json
 from pathlib import Path
 from typing import Dict
-import sys
 
 class SetupWizard:
     """設定ウィザード"""
@@ -321,7 +320,7 @@ class SetupWizard:
         
         # リスク管理
         risk = config["risk"]
-        print(f"\n📊 リスク管理:")
+        print("\n📊 リスク管理:")
         print(f"   - 損切りライン: {risk['stop_loss_pct']*100:.0f}%")
         print(f"   - 利確ライン: {risk['take_profit_pct']*100:.0f}%")
         print(f"   - 最大ポジションサイズ: {risk['max_position_size']*100:.0f}%")
@@ -333,7 +332,7 @@ class SetupWizard:
             "semi_auto": "半自動 (推奨確認)",
             "full_auto": "全自動"
         }
-        print(f"\n🤖 自動化:")
+        print("\n🤖 自動化:")
         print(f"   - モード: {mode_label[auto['mode']]}")
         print(f"   - 最大取引数/日: {auto['max_daily_trades']}回")
         print(f"   - 日次損失制限: {auto['daily_loss_limit_pct']}%")
@@ -348,9 +347,9 @@ class SetupWizard:
                 status = "設定済み" if notif["discord"]["webhook_url"] else "未設定 (後で設定可能)"
                 print(f"\n📱 通知: Discord ({status})")
             else:
-                print(f"\n📱 通知: メール (未設定)")
+                print("\n📱 通知: メール (未設定)")
         else:
-            print(f"\n📱 通知: なし")
+            print("\n📱 通知: なし")
         
         # 対象資産
         assets = config["assets"]

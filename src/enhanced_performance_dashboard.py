@@ -5,12 +5,11 @@ Enhanced Performance Dashboard
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-from datetime import datetime, timedelta
 
 from src.paper_trader import PaperTrader
 from src.benchmark_comparator import BenchmarkComparator
 from src.design_tokens import Colors
-from src.formatters import format_currency, format_percentage
+from src.formatters import format_percentage
 
 
 def create_performance_dashboard(currency="JPY"):

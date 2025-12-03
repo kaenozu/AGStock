@@ -1,9 +1,8 @@
 
-import pytest
 import os
 import json
-from datetime import datetime, date, timedelta
-from unittest.mock import patch, MagicMock
+from datetime import datetime, date
+from unittest.mock import patch
 from src.risk_guard import RiskGuard
 
 class TestRiskGuard:

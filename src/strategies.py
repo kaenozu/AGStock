@@ -4,7 +4,7 @@ import sys
 import os
 import logging
 import ta
-from typing import Optional, Dict, Any, List, Union
+from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 from enum import Enum
 from datetime import datetime
@@ -296,7 +296,6 @@ class MLStrategy(Strategy):
 class LightGBMStrategy(Strategy):
     def __init__(self, lookback_days=365, threshold=0.005):
         super().__init__("LightGBM Alpha")
-        import lightgbm as lgb
         self.lookback_days = lookback_days
         self.threshold = threshold
         self.model = None
@@ -367,9 +366,6 @@ class LightGBMStrategy(Strategy):
 class DeepLearningStrategy(Strategy):
     def __init__(self, lookback=60, epochs=5, batch_size=32, trend_period=200, train_window_days=365, predict_window_days=20):
         super().__init__("Deep Learning (LSTM)", trend_period)
-        import tensorflow as tf
-        from tensorflow.keras.models import Sequential
-        from tensorflow.keras.layers import LSTM, Dense, Dropout
         from sklearn.preprocessing import MinMaxScaler
         self.lookback = lookback
         self.epochs = epochs
@@ -669,9 +665,6 @@ class TransformerStrategy(Strategy):
     
     def __init__(self, name: str = "Transformer", trend_period: int = 200):
         super().__init__(name, trend_period)
-        import torch
-        import torch.nn as nn
-        import torch.optim as optim
         self.model = None
         self.is_trained = False
     
@@ -737,7 +730,6 @@ class RLStrategy(Strategy):
     """
     def __init__(self, name: str = "RL_DQN", trend_period: int = 200):
         super().__init__(name, trend_period)
-        import torch
         self.agent = None
         self.is_trained = False
         logger.info(f"RLStrategy initialized: {name}")
@@ -832,9 +824,6 @@ class GRUStrategy(Strategy):
     
     def __init__(self, name: str = "GRU", trend_period: int = 200):
         super().__init__(name, trend_period)
-        import torch
-        import torch.nn as nn
-        import torch.optim as optim
         self.model = None
         self.is_trained = False
         self.sequence_length = 30
@@ -900,9 +889,6 @@ class AttentionLSTMStrategy(Strategy):
     
     def __init__(self, name: str = "AttentionLSTM", trend_period: int = 200):
         super().__init__(name, trend_period)
-        import torch
-        import torch.nn as nn
-        import torch.optim as optim
         self.model = None
         self.is_trained = False
         self.sequence_length = 30

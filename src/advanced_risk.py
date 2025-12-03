@@ -5,7 +5,7 @@ Value at Risk (VaR) と Conditional VaR (CVaR) を計算
 """
 import numpy as np
 import pandas as pd
-from typing import Dict, Tuple
+from typing import Dict
 from scipy import stats
 import logging
 

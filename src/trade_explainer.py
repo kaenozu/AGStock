@@ -2,7 +2,6 @@
 Trade Explainer Module
 Generates natural language explanations for trade decisions.
 """
-import pandas as pd
 from typing import Dict, Any, Optional
 from src.ai_analyst import AIAnalyst
 from src.prompts import TRADE_REASONING_SYSTEM_PROMPT
@@ -49,7 +48,7 @@ class TradeExplainer:
             context += f"- {indicator}: {value:.2f}\n"
         
         if market_regime:
-            context += f"\n## Market Regime\n"
+            context += "\n## Market Regime\n"
             context += f"- Trend: {market_regime.get('trend', 'N/A')}\n"
             context += f"- Volatility: {market_regime.get('volatility', 'N/A')}\n"
             context += f"- ADX: {market_regime.get('adx', 'N/A'):.1f}\n"
@@ -85,7 +84,7 @@ class TradeExplainer:
             context += f"- {indicator}: {value:.2f}\n"
         
         if market_regime:
-            context += f"\n## Market Regime\n"
+            context += "\n## Market Regime\n"
             context += f"- Trend: {market_regime.get('trend', 'N/A')}\n"
             context += f"- Volatility: {market_regime.get('volatility', 'N/A')}\n"
         

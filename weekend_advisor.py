@@ -9,16 +9,11 @@ Weekend Strategy Advisor for Personal Investors
 """
 import streamlit as st
 import pandas as pd
-import numpy as np
 from datetime import datetime, timedelta
-from typing import Dict, List, Tuple
-import json
-from pathlib import Path
+from typing import Dict, List
 
 from src.paper_trader import PaperTrader
-from src.data_loader import fetch_stock_data
-from src.strategies import LightGBMStrategy, CombinedStrategy, MLStrategy
-from src.formatters import format_currency, format_percentage
+from src.formatters import format_currency
 
 # ページ設定は if __name__ == "__main__" ブロックに移動
 
@@ -432,7 +427,7 @@ def main():
                     st.caption(f"理由: {rec['reason']}")
                     
                     if rec['action'] in ['sell', 'take_profit']:
-                        if st.button(f"✅ 実行", key=f"exec_{i}"):
+                        if st.button("✅ 実行", key=f"exec_{i}"):
                             st.success(f"{rec['target']} のアクションを実行しました")
     
     # タブ3: 来週の推奨

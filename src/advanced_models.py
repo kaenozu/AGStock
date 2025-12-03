@@ -4,11 +4,9 @@
 GRU (Gated Recurrent Unit) と Attention-LSTM モデルを提供します。
 """
 
-import tensorflow as tf
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Dense, LSTM, GRU, Dropout, Layer, Concatenate, Bidirectional
+from tensorflow.keras.layers import Input, Dense, LSTM, GRU, Dropout, Layer, Bidirectional
 import tensorflow.keras.backend as K
-import numpy as np
 import logging
 
 logger = logging.getLogger(__name__)

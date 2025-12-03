@@ -5,8 +5,8 @@ Monte Carlo simulation, and realistic cost modeling.
 """
 import pandas as pd
 import numpy as np
-from typing import Dict, List, Tuple, Optional
-from datetime import datetime, timedelta
+from typing import Dict, List
+from datetime import timedelta
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -276,7 +276,7 @@ if __name__ == "__main__":
     
     # Walk-forward analysis
     wf_results = backtester.walk_forward_analysis(prices, simple_strategy)
-    print(f"Walk-Forward Analysis:")
+    print("Walk-Forward Analysis:")
     print(f"  Average Return: {wf_results['avg_return']:.2%}")
     print(f"  Average Sharpe: {wf_results['avg_sharpe']:.2f}")
     print(f"  Consistency: {wf_results['consistency']:.1%}")

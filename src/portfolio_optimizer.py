@@ -5,7 +5,7 @@ Risk Parity, and Black-Litterman models.
 """
 import pandas as pd
 import numpy as np
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, Optional
 import logging
 
 logging.basicConfig(level=logging.INFO)

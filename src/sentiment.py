@@ -1,9 +1,7 @@
 import feedparser
-from textblob import TextBlob
 import datetime
 import sqlite3
-from typing import List, Dict, Optional
-from pathlib import Path
+from typing import List, Dict
 
 from src.bert_sentiment import get_bert_analyzer
 

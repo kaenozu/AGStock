@@ -8,10 +8,9 @@ import os
 from datetime import datetime
 from src.ui_components import (
     display_best_pick_card,
-    display_quick_action_bar,
     display_error_message
 )
-from src.formatters import format_currency, format_percentage, get_risk_level
+from src.formatters import format_currency, get_risk_level
 from src.paper_trader import PaperTrader
 
 

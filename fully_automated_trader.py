@@ -10,12 +10,11 @@ import pandas as pd
 import datetime
 from typing import Dict, List
 import traceback
-import time
 
 # リトライロジック
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from tenacity import retry, stop_after_attempt, wait_exponential
 
-from src.constants import ALL_STOCKS, NIKKEI_225_TICKERS, SP500_TICKERS, STOXX50_TICKERS, MARKETS
+from src.constants import NIKKEI_225_TICKERS, SP500_TICKERS, STOXX50_TICKERS
 from src.data_loader import fetch_stock_data, get_latest_price, fetch_fundamental_data, CRYPTO_PAIRS, FX_PAIRS
 from src.strategies import (
     LightGBMStrategy, MLStrategy, CombinedStrategy, DividendStrategy
@@ -26,13 +25,11 @@ from src.execution import ExecutionEngine
 # 新機能統合
 from src.cache_config import install_cache
 from src.smart_notifier import SmartNotifier
-from src.risk_guard import RiskGuard
 from src.sentiment import SentimentAnalyzer
 
 # Phase 30-1: リアルタイム適応学習
 from src.regime_detector import MarketRegimeDetector
 from src.dynamic_risk_manager import DynamicRiskManager
-from src.online_learning import OnlineLearner
 from src.kelly_criterion import KellyCriterion
 from src.dynamic_stop import DynamicStopManager
 

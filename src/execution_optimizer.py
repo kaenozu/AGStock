@@ -207,7 +207,7 @@ if __name__ == "__main__":
         quantities=[250, 250, 250, 250]
     )
     
-    print(f"実装ショートフォール:")
+    print("実装ショートフォール:")
     print(f"  意思決定価格: ¥{shortfall['decision_price']}")
     print(f"  平均執行価格: ¥{shortfall['average_execution_price']:.2f}")
     print(f"  ショートフォール: {shortfall['shortfall_pct']:.3f}%")

@@ -7,8 +7,6 @@
 - 取引コスト考慮
 """
 
-import numpy as np
-import pandas as pd
 from typing import Dict, List, Optional
 from datetime import datetime, timedelta
 import logging
@@ -239,7 +237,7 @@ if __name__ == "__main__":
     # リバランス注文
     if needs_rebal:
         orders = rebalancer.generate_rebalance_orders(portfolio, target_weights)
-        print(f"\nRebalance Orders:")
+        print("\nRebalance Orders:")
         for order in orders:
             print(f"  {order['action']} {order['quantity']:.2f} shares of {order['ticker']}")
         

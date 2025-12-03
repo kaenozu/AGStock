@@ -4,7 +4,6 @@ import pandas as pd
 import json
 import os
 import time
-import traceback
 from datetime import datetime
 from fully_automated_trader import FullyAutomatedTrader
 from src.paper_trader import PaperTrader

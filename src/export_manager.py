@@ -3,12 +3,11 @@ Export Manager - データのエクスポート機能
 CSV, Excel, PDF形式でのエクスポートをサポート
 """
 import pandas as pd
-import json
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict
 import io
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch

@@ -3,7 +3,7 @@ FullyAutomatedTraderのテスト
 """
 import pytest
 import pandas as pd
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from fully_automated_trader import FullyAutomatedTrader
 
 

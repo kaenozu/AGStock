@@ -3,9 +3,7 @@ Tax Calculator - 税務計算エンジン
 損益通算、NISA枠管理、税金シミュレーション
 """
 import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List
 from dataclasses import dataclass
 
 
@@ -264,7 +262,7 @@ if __name__ == "__main__":
         gains=[500000, 300000],
         losses=[-200000, -100000]
     )
-    print(f"\n損益通算:")
+    print("\n損益通算:")
     print(f"純利益: ¥{offset['net_profit']:,.0f}")
     print(f"税金: ¥{offset['total_tax']:,.0f}")
     

@@ -1,8 +1,8 @@
 import logging
 import json
 import os
-from typing import Dict, Optional, Tuple
-from datetime import datetime, date
+from typing import Optional, Tuple
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 

@@ -4,7 +4,7 @@ e-Tax対応フォーマット、年間取引報告書、損益計算書
 """
 import pandas as pd
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle

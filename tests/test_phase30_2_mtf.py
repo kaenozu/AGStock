@@ -6,7 +6,6 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import pandas as pd
 import numpy as np
 from src.hierarchical_strategy import HierarchicalStrategy
 from src.data_loader import fetch_stock_data

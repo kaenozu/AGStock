@@ -7,8 +7,7 @@ import pandas as pd
 from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Any
 import optuna
 from dataclasses import dataclass
 

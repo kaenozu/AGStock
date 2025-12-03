@@ -74,7 +74,7 @@ class RecoveryManager:
                     self.failure_count[service_name] = 0
                     return result
                     
-                except Exception as e:
+                except Exception:
                     # Increment failure count
                     self.failure_count[service_name] = self.failure_count.get(service_name, 0) + 1
                     

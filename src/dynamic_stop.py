@@ -7,9 +7,8 @@ This module implements advanced trailing stop logic:
 """
 
 import pandas as pd
-import numpy as np
 import ta
-from typing import Optional, Dict
+from typing import Optional
 import logging
 
 logger = logging.getLogger(__name__)

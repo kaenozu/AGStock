@@ -7,12 +7,9 @@ import unittest
 import pandas as pd
 import numpy as np
 import os
-import shutil
 from unittest.mock import MagicMock, patch
 from src.paper_trader import PaperTrader
 from fully_automated_trader import FullyAutomatedTrader
-from src.kelly_criterion import KellyCriterion
-from src.dynamic_stop import DynamicStopManager
 
 class TestPhase30FullIntegration(unittest.TestCase):
     def setUp(self):

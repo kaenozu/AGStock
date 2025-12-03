@@ -1,6 +1,6 @@
 import time
 import json
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options

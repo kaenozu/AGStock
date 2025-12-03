@@ -5,7 +5,7 @@ Improved version with dependency injection, better separation of concerns, and t
 """
 import numpy as np
 import pandas as pd
-from typing import Dict, Any, Optional
+from typing import Any, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
 

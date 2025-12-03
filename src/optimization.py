@@ -5,7 +5,7 @@ import json
 import os
 import logging
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import precision_score, accuracy_score, mean_squared_error
+from sklearn.metrics import precision_score, accuracy_score
 import lightgbm as lgb
 from typing import Dict, Any, Tuple
 from src.features import add_advanced_features

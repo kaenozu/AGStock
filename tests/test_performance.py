@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from src.sector_rotation import SectorRotationEngine
 from src.regime import RegimeDetector
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 class TestPerformance:
     @pytest.fixture
@@ -54,7 +54,7 @@ class TestPerformance:
             engine.calculate_optimal_weights(cycle="expansion")
             weight_time = time.time() - start_time
             
-            print(f"\nSector Rotation Performance:")
+            print("\nSector Rotation Performance:")
             print(f"Fetch Time: {fetch_time:.4f}s")
             print(f"Calc Time: {calc_time:.4f}s")
             print(f"Weight Time: {weight_time:.4f}s")
@@ -75,7 +75,7 @@ class TestPerformance:
         detector.predict_current_regime(mock_macro_data)
         predict_time = time.time() - start_time
         
-        print(f"\nRegime Detection Performance:")
+        print("\nRegime Detection Performance:")
         print(f"Fit Time: {fit_time:.4f}s")
         print(f"Predict Time: {predict_time:.4f}s")
         

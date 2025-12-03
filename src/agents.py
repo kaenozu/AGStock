@@ -1,11 +1,9 @@
 import logging
 from dataclasses import dataclass
-from typing import List, Dict, Any, Optional
-import pandas as pd
+from typing import List, Dict, Any
 import numpy as np
 
 from src.llm_analyzer import LLMAnalyzer
-from src.strategies import Strategy
 from src.data_loader import fetch_macro_data
 
 logger = logging.getLogger(__name__)

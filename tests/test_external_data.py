@@ -2,7 +2,6 @@
 外部データ取得のテスト
 """
 
-import pytest
 from src.data_loader import DataLoader
 
 def test_fetch_external_data():

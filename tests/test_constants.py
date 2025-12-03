@@ -1,4 +1,3 @@
-import pytest
 from src.constants import NIKKEI_225_TICKERS, TICKER_NAMES
 
 

@@ -8,7 +8,6 @@ This strategy uses a hierarchical approach:
 """
 
 import pandas as pd
-import numpy as np
 from src.strategies import Strategy
 from src.multi_timeframe import MultiTimeframeAnalyzer
 import logging

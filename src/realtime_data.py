@@ -8,10 +8,10 @@ WebSocketが使用できないため、ポーリング方式を採用してい�
 import time
 import pandas as pd
 import yfinance as yf
-from datetime import datetime, timedelta
+from datetime import datetime
 import threading
 import logging
-from typing import List, Dict, Callable, Optional, Any
+from typing import List, Dict, Callable
 import pytz
 
 logger = logging.getLogger(__name__)

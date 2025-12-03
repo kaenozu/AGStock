@@ -8,7 +8,7 @@
 
 import numpy as np
 import pandas as pd
-from typing import List, Tuple, Generator, Optional, Dict
+from typing import Tuple, Generator, Optional, Dict
 from sklearn.model_selection import TimeSeriesSplit
 import logging
 

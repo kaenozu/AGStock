@@ -3,9 +3,8 @@ Psychological Guard - 心理的な罠を回避するトレーディングガー�
 
 感情的な取引を防ぎ、厳格なルールベースの売買を実現
 """
-import pandas as pd
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 import logging
 
 

@@ -9,9 +9,7 @@ where:
 - q: Probability of losing (1 - p)
 """
 
-import numpy as np
 import pandas as pd
-from typing import Optional, Dict
 import logging
 
 logger = logging.getLogger(__name__)

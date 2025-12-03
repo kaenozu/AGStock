@@ -2,8 +2,6 @@
 Test Phase 35: Multi-Asset Support
 Verify Crypto and FX data loading and currency formatting.
 """
-import pytest
-import pandas as pd
 from src.data_loader import fetch_stock_data, CRYPTO_PAIRS, FX_PAIRS
 from src.formatters import format_currency
 

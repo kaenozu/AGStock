@@ -2,7 +2,6 @@
 Test Multi-Asset Integration in FullyAutomatedTrader
 Verify that get_target_tickers respects the asset configuration.
 """
-import pytest
 import json
 import os
 import sys

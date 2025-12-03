@@ -231,6 +231,6 @@ if __name__ == "__main__":
     )
     
     print("配当再投資シミュレーション（10年間、利回り4%）:")
-    print(f"  初期: 100万円")
+    print("  初期: 100万円")
     print(f"  10年後: {simulation.iloc[-1]['total_value']:,.0f}円")
     print(f"  成長率: +{simulation.iloc[-1]['growth_rate']:.1f}%")

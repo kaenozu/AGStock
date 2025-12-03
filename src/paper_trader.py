@@ -1,10 +1,8 @@
 import sqlite3
 import pandas as pd
 import datetime
-from typing import Dict, List, Optional
+from typing import Dict
 from src.data_loader import fetch_stock_data
-from src.strategies import Strategy
-from src.constants import TICKER_NAMES
 
 class PaperTrader:
     def __init__(self, db_path: str = "paper_trading.db", initial_capital: float = None):

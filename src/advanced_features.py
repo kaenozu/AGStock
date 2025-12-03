@@ -9,7 +9,7 @@
 
 import pandas as pd
 import numpy as np
-from typing import List, Optional
+from typing import List
 import logging
 import ta
 

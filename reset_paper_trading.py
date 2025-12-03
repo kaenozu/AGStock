@@ -63,10 +63,10 @@ def reset_paper_trading():
         pt.close()
         
         print("\n✅ リセット完了！")
-        print(f"\n新しい資産状況:")
+        print("\n新しい資産状況:")
         print(f"  総資産: ¥{balance['total_equity']:,}")
         print(f"  現金:   ¥{balance['cash']:,}")
-        print(f"  ポジション: 0件")
+        print("  ポジション: 0件")
         
     except Exception as e:
         print(f"\n❌ 初期化エラー: {e}")

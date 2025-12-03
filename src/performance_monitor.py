@@ -7,13 +7,12 @@ Performance Monitor - システムパフォーマンス監視
 - API呼び出し回数の記録
 - パフォーマンスレポート生成
 """
-import os
 import time
 import sqlite3
 import psutil
 import functools
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Callable
+from typing import Dict, Callable
 import logging
 
 
@@ -256,7 +255,7 @@ class PerformanceMonitor:
             try:
                 result = func(*args, **kwargs)
                 return result
-            except Exception as e:
+            except Exception:
                 status = "error"
                 raise
             finally:
@@ -301,15 +300,15 @@ if __name__ == "__main__":
     print("=" * 60)
     print("Performance Report (Last 7 days)")
     print("=" * 60)
-    print(f"\n実行統計:")
+    print("\n実行統計:")
     print(f"  平均実行時間: {report['execution']['avg_duration']:.2f}秒")
     print(f"  最大実行時間: {report['execution']['max_duration']:.2f}秒")
     print(f"  総実行回数: {report['execution']['total_executions']}")
     
-    print(f"\nメモリ使用:")
+    print("\nメモリ使用:")
     print(f"  平均: {report['memory']['avg_mb']:.2f} MB")
     print(f"  ピーク: {report['memory']['peak_mb']:.2f} MB")
     
-    print(f"\nAPI呼び出し:")
+    print("\nAPI呼び出し:")
     print(f"  総呼び出し数: {report['api_calls']['total']}")
     print(f"  成功率: {report['api_calls']['success_rate']:.1f}%")

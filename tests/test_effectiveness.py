@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
+from datetime import datetime
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -89,14 +89,14 @@ try:
         
         baseline_accuracy = (correct_predictions / total_predictions * 100) if total_predictions > 0 else 50
         
-        print(f"\n✅ ベースライン性能:")
+        print("\n✅ ベースライン性能:")
         print(f"   正解率: {baseline_accuracy:.2f}%")
         print(f"   予測数: {total_predictions}")
         print(f"   正解数: {correct_predictions}")
         print(f"   特徴量数: {len(df_features.columns)}")
     else:
         baseline_accuracy = 50
-        print(f"\n⚠️ シグナル生成なし、ベースライン: 50%")
+        print("\n⚠️ シグナル生成なし、ベースライン: 50%")
         
 except Exception as e:
     print(f"❌ エラー: {e}")
@@ -118,7 +118,7 @@ try:
     # Phase 29の高度な特徴量
     df_advanced = generate_phase29_features(df)
     
-    print(f"\n✅ 特徴量生成成功:")
+    print("\n✅ 特徴量生成成功:")
     print(f"   元の特徴量数: {len(df.columns)}")
     print(f"   Phase 29特徴量数: {len(df_advanced.columns)}")
     print(f"   増加数: {len(df_advanced.columns) - len(df.columns)}")
@@ -151,12 +151,12 @@ try:
         
         phase29_1_accuracy = (correct_predictions / total_predictions * 100) if total_predictions > 0 else 50
         
-        print(f"\n✅ Phase 29-1性能:")
+        print("\n✅ Phase 29-1性能:")
         print(f"   正解率: {phase29_1_accuracy:.2f}%")
         print(f"   ベースラインとの差: +{phase29_1_accuracy - baseline_accuracy:.2f}%")
     else:
         phase29_1_accuracy = baseline_accuracy
-        print(f"\n⚠️ シグナル生成なし")
+        print("\n⚠️ シグナル生成なし")
         
 except Exception as e:
     print(f"❌ エラー: {e}")
@@ -184,7 +184,7 @@ try:
     risk_manager = DynamicRiskManager(detector)
     params = risk_manager.update_parameters(df)
     
-    print(f"\n✅ レジーム検出成功:")
+    print("\n✅ レジーム検出成功:")
     print(f"   検出レジーム: {regime}")
     print(f"   損切りライン: {params['stop_loss']*100:.2f}%")
     print(f"   利確ライン: {params['take_profit']*100:.2f}%")
@@ -205,7 +205,7 @@ try:
     phase30_1_multiplier = regime_bonus.get(regime, 1.05)
     phase30_1_accuracy = phase29_1_accuracy * phase30_1_multiplier
     
-    print(f"\n✅ Phase 30-1効果（推定）:")
+    print("\n✅ Phase 30-1効果（推定）:")
     print(f"   レジーム別ボーナス: {(phase30_1_multiplier - 1) * 100:.1f}%")
     print(f"   調整後正解率: {phase30_1_accuracy:.2f}%")
     print(f"   ベースラインとの差: +{phase30_1_accuracy - baseline_accuracy:.2f}%")
@@ -221,14 +221,14 @@ print("\n" + "=" * 80)
 print("総合結果サマリー")
 print("=" * 80)
 
-print(f"\n📊 予測精度の比較:")
+print("\n📊 予測精度の比較:")
 print(f"   ベースライン:                {baseline_accuracy:.2f}%")
 print(f"   + Phase 29-1（特徴量）:      {phase29_1_accuracy:.2f}% (+{phase29_1_accuracy - baseline_accuracy:.2f}%)")
 print(f"   + Phase 30-1（レジーム）:    {phase30_1_accuracy:.2f}% (+{phase30_1_accuracy - baseline_accuracy:.2f}%)")
 
 total_improvement = phase30_1_accuracy - baseline_accuracy
 
-print(f"\n🎯 総合改善:")
+print("\n🎯 総合改善:")
 print(f"   絶対値: +{total_improvement:.2f}%")
 print(f"   相対値: +{(total_improvement / baseline_accuracy * 100):.1f}%")
 
@@ -236,15 +236,15 @@ print(f"   相対値: +{(total_improvement / baseline_accuracy * 100):.1f}%")
 expected_min = 28
 expected_max = 47
 
-print(f"\n📈 期待効果との比較:")
+print("\n📈 期待効果との比較:")
 print(f"   期待範囲: +{expected_min}% ~ +{expected_max}%")
 print(f"   実測値: +{total_improvement:.2f}%")
 
 if total_improvement >= expected_min:
-    print(f"   ✅ 期待値を達成！")
+    print("   ✅ 期待値を達成！")
 else:
-    print(f"   ⚠️ 期待値未達（簡易テストのため）")
-    print(f"   ※ 実データでのバックテストが必要です")
+    print("   ⚠️ 期待値未達（簡易テストのため）")
+    print("   ※ 実データでのバックテストが必要です")
 
 # 5. Sharpe Ratio推定
 print("\n" + "=" * 80)
@@ -256,13 +256,13 @@ baseline_sharpe = 1.5
 phase29_sharpe = baseline_sharpe * 1.3  # +30%
 phase30_sharpe = phase29_sharpe * 1.1   # +10%
 
-print(f"\n📊 Sharpe Ratio:")
+print("\n📊 Sharpe Ratio:")
 print(f"   ベースライン:           {baseline_sharpe:.2f}")
 print(f"   + Phase 29:             {phase29_sharpe:.2f} (+{phase29_sharpe - baseline_sharpe:.2f})")
 print(f"   + Phase 30-1:           {phase30_sharpe:.2f} (+{phase30_sharpe - baseline_sharpe:.2f})")
-print(f"\n   目標: 2.5以上")
+print("\n   目標: 2.5以上")
 if phase30_sharpe >= 2.5:
-    print(f"   ✅ 目標達成！")
+    print("   ✅ 目標達成！")
 else:
     print(f"   ⚠️ 目標まで: {2.5 - phase30_sharpe:.2f}")
 
@@ -271,25 +271,25 @@ print("\n" + "=" * 80)
 print("まとめ")
 print("=" * 80)
 
-print(f"\n✅ 実装完了機能:")
-print(f"   1. Phase 29-1: 高度な特徴量エンジニアリング")
-print(f"   2. Phase 29-2: スタッキングアンサンブル")
-print(f"   3. Phase 29-3: ハイパーパラメータ最適化")
-print(f"   4. Phase 30-1: リアルタイム適応学習")
+print("\n✅ 実装完了機能:")
+print("   1. Phase 29-1: 高度な特徴量エンジニアリング")
+print("   2. Phase 29-2: スタッキングアンサンブル")
+print("   3. Phase 29-3: ハイパーパラメータ最適化")
+print("   4. Phase 30-1: リアルタイム適応学習")
 
-print(f"\n📊 測定結果:")
+print("\n📊 測定結果:")
 print(f"   予測精度向上: +{total_improvement:.2f}%")
 print(f"   Sharpe Ratio: {phase30_sharpe:.2f}")
 
-print(f"\n🎯 次のステップ:")
-print(f"   1. 実データでの詳細バックテスト")
-print(f"   2. Walk-Forward Validation")
-print(f"   3. ペーパートレードでの実運用")
-print(f"   4. 週次でのパフォーマンス測定")
+print("\n🎯 次のステップ:")
+print("   1. 実データでの詳細バックテスト")
+print("   2. Walk-Forward Validation")
+print("   3. ペーパートレードでの実運用")
+print("   4. 週次でのパフォーマンス測定")
 
-print(f"\n💡 重要:")
-print(f"   この結果は簡易テストです。")
-print(f"   実際の効果は、実データでのバックテストと")
-print(f"   実運用で検証する必要があります。")
+print("\n💡 重要:")
+print("   この結果は簡易テストです。")
+print("   実際の効果は、実データでのバックテストと")
+print("   実運用で検証する必要があります。")
 
 print("\n" + "=" * 80)

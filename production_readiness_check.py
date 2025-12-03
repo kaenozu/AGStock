@@ -8,12 +8,10 @@ Production Readiness Check
   python production_readiness_check.py
 """
 import sys
-import os
 from pathlib import Path
 import json
 import sqlite3
 from datetime import datetime
-import importlib.util
 
 class ProductionReadinessCheck:
     """実運用準備チェック"""

@@ -2,9 +2,7 @@
 UI Alerts - アラート管理のUI
 """
 import streamlit as st
-import pandas as pd
 from src.alert_manager import AlertManager, Alert, AlertType, AlertCondition
-from src.data_loader import get_latest_price, fetch_stock_data
 
 
 def render_alerts_tab():

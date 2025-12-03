@@ -3,7 +3,6 @@ Auto Rebalancer Module
 Monitors portfolio correlation and automatically rebalances when needed.
 """
 import pandas as pd
-import numpy as np
 from typing import List, Dict, Tuple, Optional
 import logging
 from src.paper_trader import PaperTrader

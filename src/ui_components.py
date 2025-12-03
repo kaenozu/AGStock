@@ -4,7 +4,7 @@
 """
 import streamlit as st
 from typing import Optional, Dict, Any, List
-from src.design_tokens import Colors, RISK_LEVELS, ACTION_TYPES, SENTIMENT_LABELS
+from src.design_tokens import Colors, RISK_LEVELS, ACTION_TYPES
 from src.formatters import format_currency, format_percentage
 
 

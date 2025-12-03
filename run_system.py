@@ -4,7 +4,6 @@ import datetime
 import sys
 import os
 import webbrowser
-from threading import Thread
 
 def run_dashboard():
     """ダッシュボードをバックグラウンドで起動"""

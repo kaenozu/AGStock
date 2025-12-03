@@ -318,7 +318,7 @@ if __name__ == "__main__":
     data = fetch_stock_data_async(test_tickers, period="1y", max_concurrent=5)
     elapsed = time.time() - start
     
-    print(f"\nResults:")
+    print("\nResults:")
     print(f"  Fetched: {len(data)}/{len(test_tickers)} tickers")
     print(f"  Time: {elapsed:.2f} seconds")
     print(f"  Average: {elapsed/len(test_tickers):.2f} sec/ticker")

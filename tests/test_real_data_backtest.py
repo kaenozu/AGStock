@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
+from datetime import datetime
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -27,7 +27,7 @@ test_tickers = [
 ]
 
 print(f"\nテスト対象銘柄: {', '.join(test_tickers)}")
-print(f"期間: 過去2年間")
+print("期間: 過去2年間")
 
 # 1. データ取得
 print("\n" + "=" * 80)
@@ -40,7 +40,7 @@ try:
     print("実データ取得中...")
     data_map = fetch_stock_data(test_tickers, period="2y")
     
-    print(f"\n✅ データ取得成功:")
+    print("\n✅ データ取得成功:")
     for ticker in test_tickers:
         if ticker in data_map and not data_map[ticker].empty:
             print(f"   {ticker}: {len(data_map[ticker])} 日分")
@@ -148,7 +148,7 @@ if baseline_results:
     print(f"\n✅ ベースライン平均正解率: {baseline_avg:.2f}%")
 else:
     baseline_avg = 50
-    print(f"\n⚠️ ベースライン測定失敗、デフォルト: 50%")
+    print("\n⚠️ ベースライン測定失敗、デフォルト: 50%")
 
 # 3. Phase 29-1: 高度な特徴量エンジニアリング
 print("\n" + "=" * 80)
@@ -233,7 +233,7 @@ for ticker in test_tickers:
             print(f"      予測数: {total}")
             print(f"      正解数: {correct}")
         else:
-            print(f"      シグナル不足")
+            print("      シグナル不足")
             
     except Exception as e:
         print(f"   {ticker}: エラー - {e}")
@@ -247,7 +247,7 @@ if phase29_results:
     print(f"   ベースラインとの差: +{phase29_avg - baseline_avg:.2f}%")
 else:
     phase29_avg = baseline_avg
-    print(f"\n⚠️ Phase 29-1測定失敗")
+    print("\n⚠️ Phase 29-1測定失敗")
 
 # 4. Phase 30-1: 市場レジーム検出
 print("\n" + "=" * 80)
@@ -313,21 +313,21 @@ if phase30_results:
     print(f"   ベースラインとの差: +{phase30_avg - baseline_avg:.2f}%")
 else:
     phase30_avg = phase29_avg
-    print(f"\n⚠️ Phase 30-1測定失敗")
+    print("\n⚠️ Phase 30-1測定失敗")
 
 # 5. 総合結果
 print("\n" + "=" * 80)
 print("総合結果")
 print("=" * 80)
 
-print(f"\n📊 予測精度の推移:")
+print("\n📊 予測精度の推移:")
 print(f"   ベースライン:                {baseline_avg:.2f}%")
 print(f"   + Phase 29-1（特徴量）:      {phase29_avg:.2f}% (+{phase29_avg - baseline_avg:.2f}%)")
 print(f"   + Phase 30-1（レジーム）:    {phase30_avg:.2f}% (+{phase30_avg - baseline_avg:.2f}%)")
 
 total_improvement = phase30_avg - baseline_avg
 
-print(f"\n🎯 総合改善:")
+print("\n🎯 総合改善:")
 print(f"   絶対値: +{total_improvement:.2f}%")
 print(f"   相対値: +{(total_improvement / baseline_avg * 100):.1f}%")
 
@@ -335,18 +335,18 @@ print(f"   相対値: +{(total_improvement / baseline_avg * 100):.1f}%")
 expected_min = 28
 expected_max = 47
 
-print(f"\n📈 期待効果との比較:")
+print("\n📈 期待効果との比較:")
 print(f"   期待範囲: +{expected_min}% ~ +{expected_max}%（相対値）")
 print(f"   実測値: +{(total_improvement / baseline_avg * 100):.1f}%（相対値）")
 
 if (total_improvement / baseline_avg * 100) >= expected_min:
-    print(f"   ✅ 期待値を達成！")
+    print("   ✅ 期待値を達成！")
 else:
-    print(f"   ⚠️ 期待値未達")
-    print(f"   ※ より長期間のデータと最適化が必要です")
+    print("   ⚠️ 期待値未達")
+    print("   ※ より長期間のデータと最適化が必要です")
 
 # Sharpe Ratio推定
-print(f"\n📊 Sharpe Ratio推定:")
+print("\n📊 Sharpe Ratio推定:")
 
 # 簡易的な推定（実際のリターンデータから計算すべき）
 baseline_sharpe = 1.5
@@ -355,38 +355,38 @@ estimated_sharpe = baseline_sharpe * improvement_ratio
 
 print(f"   ベースライン: {baseline_sharpe:.2f}")
 print(f"   推定値: {estimated_sharpe:.2f}")
-print(f"   目標: 2.5以上")
+print("   目標: 2.5以上")
 
 if estimated_sharpe >= 2.5:
-    print(f"   ✅ 目標達成！")
+    print("   ✅ 目標達成！")
 else:
     print(f"   ⚠️ 目標まで: {2.5 - estimated_sharpe:.2f}")
 
 # まとめ
-print(f"\n" + "=" * 80)
+print("\n" + "=" * 80)
 print("まとめ")
 print("=" * 80)
 
-print(f"\n✅ テスト完了:")
+print("\n✅ テスト完了:")
 print(f"   対象銘柄: {len(test_tickers)}銘柄")
-print(f"   期間: 過去2年間")
-print(f"   測定指標: 予測正解率、Sharpe Ratio")
+print("   期間: 過去2年間")
+print("   測定指標: 予測正解率、Sharpe Ratio")
 
-print(f"\n📊 主要結果:")
+print("\n📊 主要結果:")
 print(f"   予測精度向上: +{total_improvement:.2f}%（絶対値）")
 print(f"   予測精度向上: +{(total_improvement / baseline_avg * 100):.1f}%（相対値）")
 print(f"   Sharpe Ratio: {estimated_sharpe:.2f}")
 
-print(f"\n🎯 次のステップ:")
-print(f"   1. より多くの銘柄でテスト（50~100銘柄）")
-print(f"   2. より長期間のデータ（3~5年）")
-print(f"   3. ハイパーパラメータ最適化の適用")
-print(f"   4. ペーパートレードでの実運用")
+print("\n🎯 次のステップ:")
+print("   1. より多くの銘柄でテスト（50~100銘柄）")
+print("   2. より長期間のデータ（3~5年）")
+print("   3. ハイパーパラメータ最適化の適用")
+print("   4. ペーパートレードでの実運用")
 
-print(f"\n💡 重要:")
-print(f"   実データでのテストにより、Phase 29/30-1の")
-print(f"   実装が正常に動作することを確認しました。")
-print(f"   さらなる精度向上には、最適化と実運用が必要です。")
+print("\n💡 重要:")
+print("   実データでのテストにより、Phase 29/30-1の")
+print("   実装が正常に動作することを確認しました。")
+print("   さらなる精度向上には、最適化と実運用が必要です。")
 
 print(f"\n終了時刻: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 print("=" * 80)

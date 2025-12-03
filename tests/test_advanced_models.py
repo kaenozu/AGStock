@@ -2,8 +2,6 @@
 高度なモデルのテスト
 """
 
-import pytest
-import numpy as np
 from src.advanced_models import AdvancedModels
 
 def test_build_gru_model():

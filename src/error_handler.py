@@ -6,7 +6,7 @@ API制限、ネットワークエラー、データエラーに対する堅牢�
 import time
 import functools
 import logging
-from typing import Callable, Any, Optional
+from typing import Callable, Any
 import requests
 
 

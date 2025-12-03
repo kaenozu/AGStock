@@ -41,7 +41,7 @@ def test_online_learning():
         # 性能評価
         result = learner.evaluate_and_update(X_new, y_new)
         
-        print(f"✅ Online learning test passed")
+        print("✅ Online learning test passed")
         print(f"   Performance: {result['performance']}")
         print(f"   Needs update: {result['needs_update']}")
         
@@ -80,7 +80,7 @@ def test_regime_detector():
         # 戦略パラメータ
         strategy = detector.get_regime_strategy()
         
-        print(f"✅ Regime detector test passed")
+        print("✅ Regime detector test passed")
         print(f"   Detected regime: {regime}")
         print(f"   Strategy: {strategy['strategy']}")
         print(f"   Stop loss: {strategy['stop_loss']*100:.2f}%")
@@ -131,7 +131,7 @@ def test_dynamic_risk_manager():
         stop_loss = risk_manager.calculate_stop_loss(100, 'long')
         take_profit = risk_manager.calculate_take_profit(100, 'long')
         
-        print(f"✅ Dynamic risk manager test passed")
+        print("✅ Dynamic risk manager test passed")
         print(f"   Regime: {params['regime']}")
         print(f"   Position size: {position_size:.2f}")
         print(f"   Stop loss: {stop_loss:.2f}")
@@ -184,8 +184,8 @@ def test_integration():
         learner = OnlineLearner(base_model)
         learner.incremental_fit(X[80:], y[80:])
         
-        print(f"✅ Integration test passed")
-        print(f"   Workflow: Regime Detection → Risk Management → Model Update")
+        print("✅ Integration test passed")
+        print("   Workflow: Regime Detection → Risk Management → Model Update")
         print(f"   Current regime: {regime}")
         print(f"   Risk parameters: Stop loss={params['stop_loss']*100:.2f}%, "
               f"Take profit={params['take_profit']*100:.2f}%")

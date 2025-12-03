@@ -1,4 +1,3 @@
-import pytest
 import pandas as pd
 from unittest.mock import patch, MagicMock
 from src.data_loader import fetch_stock_data, fetch_macro_data, get_latest_price, process_downloaded_data

@@ -3,10 +3,8 @@ Parallel Backtester - マルチプロセス対応バックテスト
 複数銘柄・複数戦略を並列実行して高速化
 """
 import pandas as pd
-import numpy as np
 from typing import List, Dict
 from multiprocessing import Pool, cpu_count
-from functools import partial
 import time
 
 

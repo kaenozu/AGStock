@@ -5,7 +5,7 @@ Wraps OpenAI API to provide market analysis and trade reasoning.
 import os
 import json
 import logging
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 import openai
 
 # Configure logging

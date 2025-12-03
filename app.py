@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 import time
 
 from src.paper_trader import PaperTrader
-from src.formatters import format_currency, format_percentage
+from src.formatters import format_currency
 
 # ページ設定
 st.set_page_config(

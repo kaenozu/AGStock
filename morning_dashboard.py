@@ -8,18 +8,14 @@ Morning Dashboard for Personal Investors
   python morning_dashboard.py --auto
 """
 import streamlit as st
-import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime
 import json
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from src.paper_trader import PaperTrader
-from src.data_loader import fetch_stock_data, get_latest_price
-from src.strategies import LightGBMStrategy, CombinedStrategy, DividendStrategy
 from src.formatters import format_currency, format_percentage
 from src.anomaly_detector import AnomalyDetector
-from src.smart_notifier import SmartNotifier
 
 # ページ設定はmainブロックに移動しました
 
@@ -368,11 +364,11 @@ def render_dashboard(pt: PaperTrader = None):
                     col_approve, col_reject = st.columns(2)
                     
                     with col_approve:
-                        if st.button(f"✅ 承認", key=f"morning_approve_{i}"):
+                        if st.button("✅ 承認", key=f"morning_approve_{i}"):
                             execute_recommended_action(action, pt)
                     
                     with col_reject:
-                        if st.button(f"❌ 却下", key=f"morning_reject_{i}"):
+                        if st.button("❌ 却下", key=f"morning_reject_{i}"):
                             st.info("却下しました")
     
     # セクション4: 注目銘柄

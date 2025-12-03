@@ -1,11 +1,10 @@
 import unittest
 import os
-import json
 import pandas as pd
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 from src.live_trading import PaperBroker, LiveTradingEngine, Position
-from src.strategies import Strategy, Order, OrderType
+from src.strategies import Order, OrderType
 
 class TestPaperBroker(unittest.TestCase):
     def setUp(self):

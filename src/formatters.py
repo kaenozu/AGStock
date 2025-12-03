@@ -2,7 +2,7 @@
 フォーマッターユーティリティ
 数値、通貨、パーセンテージなどの統一されたフォーマット関数
 """
-from typing import Optional, Union
+from typing import Optional
 import pandas as pd
 
 

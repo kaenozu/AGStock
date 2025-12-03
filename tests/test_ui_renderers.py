@@ -1,6 +1,6 @@
 import pytest
 import pandas as pd
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch
 from src.ui_renderers import render_performance_tab
 
 class TestUIRenderers:

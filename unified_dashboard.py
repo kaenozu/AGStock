@@ -8,8 +8,7 @@
   run_unified_dashboard.bat
 """
 import streamlit as st
-import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime
 import json
 from pathlib import Path
 
@@ -129,7 +128,20 @@ def show_quick_stats():
             win_rate = 0
         
         st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">勝率</div>
+            <div class="metric-value">{format_percentage(win_rate)}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+def check_and_execute_missed_trades():
+    """前日の取引漏れをチェック"""
+    pass
+
+def main():
+    """メイン関数"""
     check_and_execute_missed_trades()
+    
     
     # サイドバー
     with st.sidebar:

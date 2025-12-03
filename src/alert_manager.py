@@ -4,10 +4,8 @@ Alert Manager - アラート管理システム
 """
 import sqlite3
 import pandas as pd
-from datetime import datetime
-from typing import Dict, List, Optional, Callable
-import json
-from dataclasses import dataclass, asdict
+from typing import List, Optional
+from dataclasses import dataclass
 from enum import Enum
 
 

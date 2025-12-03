@@ -4,10 +4,7 @@ Streamlit UI for advanced backtesting, portfolio optimization, and performance a
 """
 import streamlit as st
 import pandas as pd
-import numpy as np
 import plotly.graph_objects as go
-import plotly.express as px
-from datetime import datetime, timedelta
 from src.advanced_backtest import AdvancedBacktester
 from src.portfolio_optimizer import PortfolioOptimizer
 from src.performance_attribution import PerformanceAttribution

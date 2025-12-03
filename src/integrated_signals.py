@@ -5,8 +5,7 @@ Combines multiple analysis signals (Technical, AI, MTF, Sentiment) to generate a
 """
 
 import pandas as pd
-import numpy as np
-from typing import Dict, List, Optional, Tuple
+from typing import Dict
 import logging
 
 from src.multi_timeframe import get_mtf_analyzer

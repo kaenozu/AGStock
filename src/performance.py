@@ -1,6 +1,6 @@
 import sqlite3
 import pandas as pd
-from typing import Dict, List
+from typing import Dict
 import yfinance as yf
 from datetime import datetime, timedelta
 

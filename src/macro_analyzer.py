@@ -4,7 +4,6 @@ Macro Analyzer - マクロ経済分析
 経済指標を分析して市場環境を判定
 """
 import yfinance as yf
-import pandas as pd
 from typing import Dict
 from enum import Enum
 import logging

@@ -5,7 +5,7 @@ Factor Analyzer - ファクター分析
 """
 import pandas as pd
 import numpy as np
-from typing import Dict, List
+from typing import Dict
 import logging
 
 

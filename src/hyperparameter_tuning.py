@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 import lightgbm as lgb
 from sklearn.model_selection import TimeSeriesSplit
-from typing import Dict, Any, Callable
+from typing import Dict, Any
 import logging
 import json
 import os
@@ -219,7 +219,7 @@ class HyperparameterTuner:
         
         self.best_params = self.study.best_params
         
-        logger.info(f"Optimization completed!")
+        logger.info("Optimization completed!")
         logger.info(f"Best Sharpe Ratio: {self.study.best_value:.4f}")
         logger.info(f"Best params: {self.best_params}")
         

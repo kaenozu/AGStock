@@ -5,7 +5,7 @@ UI Customizer - カスタマイズ可能なダッシュボード
 import streamlit as st
 import json
 import os
-from typing import Dict, List, Any
+from typing import Dict, List
 
 
 class UICustomizer:

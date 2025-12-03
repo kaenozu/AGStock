@@ -10,7 +10,6 @@ This module provides functions to:
 import pandas as pd
 import numpy as np
 import ta
-from typing import Dict, List, Optional
 import logging
 
 logger = logging.getLogger(__name__)

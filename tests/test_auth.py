@@ -4,7 +4,7 @@ Test Suite for Authentication System
 import pytest
 import os
 import tempfile
-from src.auth import AuthManager, User
+from src.auth import AuthManager
 
 
 class TestAuthManager:

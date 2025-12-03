@@ -2,8 +2,7 @@ import sqlite3
 import pandas as pd
 import logging
 from datetime import datetime
-from typing import Optional, List, Dict
-import os
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 

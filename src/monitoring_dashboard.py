@@ -4,8 +4,7 @@ Real-time system monitoring and health visualization.
 """
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
-from datetime import datetime, timedelta
+from datetime import datetime
 import psutil
 from src.metrics_collector import MetricsCollector
 from src.anomaly_detector import AnomalyDetector

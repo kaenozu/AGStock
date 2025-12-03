@@ -1,7 +1,4 @@
 import pytest
-import os
-import sqlite3
-import pandas as pd
 from src.paper_trader import PaperTrader
 
 @pytest.fixture

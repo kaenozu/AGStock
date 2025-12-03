@@ -4,7 +4,6 @@ Copy Trading - コピートレードシステム
 """
 import sqlite3
 import pandas as pd
-from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
 import json
@@ -291,7 +290,7 @@ class CopyTradingEngine:
             conn.close()
             return True
             
-        except Exception as e:
+        except Exception:
             # エラー時
             cursor.execute('''
                 UPDATE copy_trades

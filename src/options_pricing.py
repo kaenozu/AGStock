@@ -4,7 +4,7 @@ Black-Scholesモデル、Greeks計算
 """
 import numpy as np
 from scipy.stats import norm
-from typing import Dict, Tuple
+from typing import Dict
 from dataclasses import dataclass
 
 
@@ -259,6 +259,6 @@ if __name__ == "__main__":
     
     # カバードコール
     strategy = OptionStrategy.covered_call(1500, 100, 1550, 30)
-    print(f"\nカバードコール:")
+    print("\nカバードコール:")
     print(f"最大利益: ¥{strategy['max_profit']:,.0f}")
     print(f"損益分岐点: ¥{strategy['breakeven']:,.0f}")

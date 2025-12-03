@@ -295,7 +295,7 @@ if __name__ == "__main__":
         print(f"Result: {result}")
     except Exception as e:
         error_msg = get_user_friendly_message(e, "test_function")
-        print(f"\nUser-friendly error message:")
+        print("\nUser-friendly error message:")
         print(f"Title: {error_msg['title']}")
         print(f"Message: {error_msg['message']}")
         print(f"Suggestion:\n{error_msg['suggestion']}")

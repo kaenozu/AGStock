@@ -61,7 +61,7 @@ def _build_context() -> str:
     positions = pt.get_positions()
     
     context = "## Current System State\n\n"
-    context += f"### Portfolio\n"
+    context += "### Portfolio\n"
     context += f"- Total Equity: ¥{balance['total_equity']:,.0f}\n"
     context += f"- Cash: ¥{balance['cash']:,.0f}\n"
     context += f"- Number of Positions: {len(positions)}\n\n"

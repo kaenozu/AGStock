@@ -1,7 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, patch
 from src.rakuten_broker import RakutenBroker
-from selenium.webdriver.common.by import By
 
 class TestRakutenBroker:
     @pytest.fixture

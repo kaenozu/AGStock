@@ -8,7 +8,6 @@
   python cleanup_system.py --dry-run  # 削除対象を確認
   python cleanup_system.py            # 実際に削除
 """
-import os
 import sys
 from pathlib import Path
 import shutil
@@ -126,7 +125,7 @@ class SystemCleanup:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_dir = Path(f"../AGStock_backup_{timestamp}")
         
-        print(f"\n📦 バックアップ作成中...")
+        print("\n📦 バックアップ作成中...")
         print(f"   保存先: {backup_dir}")
         
         if not self.dry_run:
@@ -134,13 +133,13 @@ class SystemCleanup:
                 shutil.copytree(".", backup_dir, ignore=shutil.ignore_patterns(
                     '.git', '.venv', '__pycache__', '*.pyc', 'node_modules'
                 ))
-                print(f"✅ バックアップ完了")
+                print("✅ バックアップ完了")
                 return str(backup_dir)
             except Exception as e:
                 print(f"❌ バックアップ失敗: {e}")
                 return None
         else:
-            print(f"   (ドライラン: 実際には作成しません)")
+            print("   (ドライラン: 実際には作成しません)")
             return "dry_run"
     
     def delete_file(self, filepath: Path):
@@ -218,19 +217,19 @@ class SystemCleanup:
         print("=" * 60)
         
         if self.dry_run:
-            print(f"\n削除予定:")
+            print("\n削除予定:")
         else:
-            print(f"\n削除完了:")
+            print("\n削除完了:")
         
         print(f"  ファイル/ディレクトリ数: {self.deleted_count}")
         print(f"  解放容量: {self.freed_space / 1024 / 1024:.2f} MB")
         
         if not self.dry_run:
             print(f"\n💾 バックアップ: {backup_path}")
-            print(f"\n✅ クリーンアップ完了!")
-            print(f"\n次のステップ:")
-            print(f"  1. 動作確認: run_unified_dashboard.bat")
-            print(f"  2. 問題なければバックアップを削除")
+            print("\n✅ クリーンアップ完了!")
+            print("\n次のステップ:")
+            print("  1. 動作確認: run_unified_dashboard.bat")
+            print("  2. 問題なければバックアップを削除")
 
 def main():
     """メイン処理"""

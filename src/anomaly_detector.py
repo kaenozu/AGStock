@@ -2,11 +2,8 @@
 Anomaly Detector Module
 Detects abnormal portfolio behavior and system errors.
 """
-import pandas as pd
-import numpy as np
 from typing import Dict, List, Optional
 import logging
-from datetime import datetime, timedelta
 from src.paper_trader import PaperTrader
 
 logging.basicConfig(level=logging.INFO)

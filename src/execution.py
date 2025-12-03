@@ -1,6 +1,4 @@
-import pandas as pd
-import numpy as np
-from typing import Dict, List, Optional
+from typing import Dict, List
 from src.paper_trader import PaperTrader
 
 class ExecutionEngine:

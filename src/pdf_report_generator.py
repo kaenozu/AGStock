@@ -6,13 +6,10 @@ import pandas as pd
 import matplotlib
 matplotlib.use('Agg')  # Non-interactive backend
 import matplotlib.pyplot as plt
-import seaborn as sns
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from datetime import datetime
 import logging
 from src.paper_trader import PaperTrader
 from src.ai_analyst import AIAnalyst
-from src.data_loader import fetch_stock_data
 
 # For PDF generation
 try:

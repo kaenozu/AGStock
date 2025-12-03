@@ -807,7 +807,6 @@ def render_realtime_monitoring_tab(ticker_group, selected_market, custom_tickers
     """
     import time
     import pandas as pd
-    from src.realtime_data import RealtimeDataLoader
     from src.streaming_pipeline import get_streaming_pipeline
     from src.constants import MARKETS
     
@@ -976,7 +975,6 @@ def render_integrated_signal(df, ticker, ai_prediction=0.0):
     統合シグナル分析結果を表示する
     """
     from src.integrated_signals import get_signal_integrator
-    from src.ui_components import display_risk_badge
     
     st.subheader("🧩 AI総合判断 (Integrated Signal)")
     

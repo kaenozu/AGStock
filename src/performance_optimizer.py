@@ -10,11 +10,10 @@ Performance Optimization for AGStock
 """
 import functools
 import time
-from typing import Any, Callable
+from typing import Callable
 import logging
 from pathlib import Path
 import pickle
-from datetime import datetime, timedelta
 import hashlib
 
 logger = logging.getLogger(__name__)
@@ -133,7 +132,6 @@ class MemoryOptimizer:
     def optimize_dataframe(df):
         """DataFrameのメモリ使用量を最適化"""
         import pandas as pd
-        import numpy as np
         
         if df is None or df.empty:
             return df
@@ -176,7 +174,7 @@ if __name__ == "__main__":
     
     # キャッシュ統計
     stats = optimizer.get_stats()
-    print(f"\nキャッシュ統計:")
+    print("\nキャッシュ統計:")
     print(f"  ヒット数: {stats['cache_hits']}")
     print(f"  ミス数: {stats['cache_misses']}")
     print(f"  ヒット率: {stats['hit_rate']:.1%}")

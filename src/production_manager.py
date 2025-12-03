@@ -13,7 +13,6 @@ import json
 import os
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
-import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +77,7 @@ class ProductionManager:
         except Exception as e:
             logger.error(f"Error saving config: {e}")
     
-   def enable_production_mode(self):
+    def enable_production_mode(self):
         """本番モードを有効化"""
         self.is_production = True
         self.config['production_mode'] = True
@@ -150,7 +149,7 @@ class ProductionManager:
         for trade in trades:
             report += f"- {trade.get('action')} {trade.get('quantity')} shares of {trade.get('ticker')} @ ¥{trade.get('price'):.2f}\n"
         
-        report += f"\n## Risk Metrics\n"
+        report += "\n## Risk Metrics\n"
         report += f"- Max Position Size: {self.config.get('max_position_size', 0.2):.1%}\n"
         report += f"- Stop Loss: {self.config.get('stop_loss_pct', 0.05):.1%}\n"
         

@@ -7,7 +7,6 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pandas as pd
-import numpy as np
 from src.portfolio_manager import PortfolioManager
 from src.kelly_criterion import KellyCriterion
 from src.dynamic_stop import DynamicStopManager

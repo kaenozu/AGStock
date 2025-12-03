@@ -2,11 +2,10 @@
 Metrics Collector Module
 Collects and tracks system metrics for monitoring.
 """
-import time
 import psutil
 import sqlite3
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Optional
 import logging
 
 logging.basicConfig(level=logging.INFO)

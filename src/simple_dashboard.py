@@ -6,15 +6,13 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-from datetime import datetime, timedelta
 from typing import Dict, List
 
 from src.paper_trader import PaperTrader
-from src.design_tokens import Colors
 from src.formatters import format_currency_jp
 
 # AI戦略のインポート
-from src.strategies import LightGBMStrategy, GRUStrategy
+from src.strategies import LightGBMStrategy
 from src.data_loader import fetch_stock_data, fetch_external_data
 
 @st.cache_data(ttl=3600, show_spinner=False)

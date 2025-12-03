@@ -149,7 +149,7 @@ class TestSentimentFeatures:
             pytest.skip("Sentiment features not implemented")
 
 
-class TestFeatureEngineering Integration:
+class TestFeatureEngineeringIntegration:
     """特徴量エンジニアリング統合テスト"""
     
     def test_full_feature_pipeline(self):

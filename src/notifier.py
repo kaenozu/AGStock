@@ -1,9 +1,5 @@
 import os
 import json
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from typing import List, Dict, Optional
 import requests
 import logging
 
@@ -115,7 +111,7 @@ class DiscordWebhookService(NotificationService):
             return False
 
 
-class Slack WebhookService(NotificationService):
+class SlackWebhookService(NotificationService):
     """Slack Webhook通知サービス"""
     
     def __init__(self, webhook_url: str):

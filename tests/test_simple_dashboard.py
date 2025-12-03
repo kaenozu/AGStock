@@ -3,7 +3,7 @@ SimpleDashboardのテスト
 """
 import pytest
 import pandas as pd
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from src.simple_dashboard import SimpleDashboard
 
 

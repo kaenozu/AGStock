@@ -1,5 +1,4 @@
 import optuna
-import pandas as pd
 from src.backtester import Backtester
 from src.strategies import SMACrossoverStrategy, RSIStrategy, BollingerBandsStrategy, CombinedStrategy
 

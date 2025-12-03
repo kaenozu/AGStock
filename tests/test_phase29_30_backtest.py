@@ -8,9 +8,7 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
+from datetime import datetime
 
 print("=" * 70)
 print("Phase 29 + Phase 30-1 簡易バックテスト")
@@ -40,7 +38,7 @@ try:
         
         # 推奨戦略
         strategy = detector.get_regime_strategy(regime)
-        print(f"\n推奨戦略パラメータ:")
+        print("\n推奨戦略パラメータ:")
         print(f"  - 損切りライン: {strategy['stop_loss']*100:.2f}%")
         print(f"  - 利確ライン: {strategy['take_profit']*100:.2f}%")
         print(f"  - ポジションサイズ: {strategy['position_size']:.2f}倍")
@@ -48,7 +46,7 @@ try:
         
         # レジーム統計
         stats = detector.get_regime_statistics()
-        print(f"\nレジーム統計:")
+        print("\nレジーム統計:")
         print(f"  - 観測回数: {stats['total_observations']}")
         print(f"  - 最頻レジーム: {stats.get('most_common_regime', 'N/A')}")
         
@@ -74,8 +72,8 @@ try:
         risk_manager = DynamicRiskManager()
         params = risk_manager.update_parameters(df)
         
-        print(f"✅ リスクパラメータ更新完了")
-        print(f"\n現在のパラメータ:")
+        print("✅ リスクパラメータ更新完了")
+        print("\n現在のパラメータ:")
         print(f"  - レジーム: {params['regime']}")
         print(f"  - 損切り: {params['stop_loss']*100:.2f}%")
         print(f"  - 利確: {params['take_profit']*100:.2f}%")
@@ -113,7 +111,6 @@ print("\n\n3. ハイパーパラメータ最適化テスト")
 print("-" * 70)
 
 try:
-    from src.hyperparameter_tuning import HyperparameterTuner
     
     print("✅ HyperparameterTuner インポート成功")
     print("   実際の最適化は時間がかかるため、スキップします。")
@@ -149,8 +146,8 @@ try:
     
     monitor.record_daily_performance(today, sample_performance)
     
-    print(f"✅ 日次パフォーマンス記録成功")
-    print(f"\n記録内容:")
+    print("✅ 日次パフォーマンス記録成功")
+    print("\n記録内容:")
     print(f"  - 日付: {today}")
     print(f"  - 総資産: {sample_performance['total_assets']:,}円")
     print(f"  - 日次リターン: {sample_performance['daily_return']*100:.2f}%")
@@ -161,7 +158,7 @@ try:
     daily_report = monitor.generate_daily_report(today)
     
     if daily_report:
-        print(f"\n✅ 日次レポート生成成功")
+        print("\n✅ 日次レポート生成成功")
         print(f"   レポート内容: {len(daily_report)} 項目")
     
 except Exception as e:
@@ -181,8 +178,8 @@ try:
     # 初期化テスト
     trader = FullyAutomatedTrader()
     
-    print(f"✅ フルオートシステム初期化成功")
-    print(f"\nシステム構成:")
+    print("✅ フルオートシステム初期化成功")
+    print("\nシステム構成:")
     print(f"  - レジーム検出器: {type(trader.regime_detector).__name__}")
     print(f"  - リスク管理: {type(trader.risk_manager).__name__}")
     print(f"  - ペーパートレーダー: {type(trader.pt).__name__}")
@@ -190,7 +187,7 @@ try:
     
     # 現在の残高確認
     balance = trader.pt.get_current_balance()
-    print(f"\nペーパートレード残高:")
+    print("\nペーパートレード残高:")
     print(f"  - 現金: {balance['cash']:,}円")
     print(f"  - 総資産: {balance['total_equity']:,}円")
     

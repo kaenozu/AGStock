@@ -4,7 +4,7 @@ Analyzes portfolio performance and attributes returns to various factors.
 """
 import pandas as pd
 import numpy as np
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 import logging
 
 logging.basicConfig(level=logging.INFO)

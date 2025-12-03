@@ -99,7 +99,7 @@ def test_stacking_ensemble():
             print(f"❌ 失敗: 予測数が一致しません（期待: {len(X)}, 実際: {len(predictions)}）")
             return False
         
-        print(f"✅ 成功: アンサンブル予測を生成")
+        print("✅ 成功: アンサンブル予測を生成")
         print(f"   ベースモデル数: {len(ensemble.base_models)}")
         print(f"   予測サンプル: {predictions[:5]}")
         return True
@@ -137,7 +137,7 @@ def test_hyperparameter_tuning():
             print("❌ 失敗: 最適パラメータが取得できませんでした")
             return False
         
-        print(f"✅ 成功: ハイパーパラメータ最適化完了")
+        print("✅ 成功: ハイパーパラメータ最適化完了")
         print(f"   最適パラメータ: {best_params}")
         print(f"   最良Sharpe Ratio: {tuner.study.best_value:.4f}")
         return True
@@ -191,9 +191,9 @@ def test_performance_monitor():
                 print("❌ 失敗: レポートに期待される内容が含まれていません")
                 return False
             
-            print(f"✅ 成功: パフォーマンス監視システムが正常動作")
-            print(f"   日次レポート生成: OK")
-            print(f"   取引記録: OK")
+            print("✅ 成功: パフォーマンス監視システムが正常動作")
+            print("   日次レポート生成: OK")
+            print("   取引記録: OK")
             return True
             
         finally:

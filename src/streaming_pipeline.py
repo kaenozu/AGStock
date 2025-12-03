@@ -5,16 +5,12 @@
 """
 
 import pandas as pd
-import numpy as np
-import joblib
-import os
 import logging
-from typing import Dict, Any, List, Optional
-from datetime import datetime
+from typing import Dict, Any, List
 
 from src.features import add_advanced_features
 from src.strategies import LightGBMStrategy, GRUStrategy, AttentionLSTMStrategy
-from src.realtime_alerts import get_alert_manager, AlertCondition, AlertType, AlertPriority
+from src.realtime_alerts import get_alert_manager
 
 logger = logging.getLogger(__name__)
 

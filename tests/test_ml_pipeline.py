@@ -1,11 +1,10 @@
 import unittest
 import os
 import shutil
-import joblib
 import pandas as pd
 import numpy as np
 from src.ml_pipeline import ModelRegistry, ContinuousLearner
-from src.strategies import DeepLearningStrategy, LightGBMStrategy
+from src.strategies import DeepLearningStrategy
 
 class TestMLPipeline(unittest.TestCase):
     def setUp(self):

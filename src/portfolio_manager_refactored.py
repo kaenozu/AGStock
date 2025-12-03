@@ -8,7 +8,7 @@ import numpy as np
 from typing import Dict, List, Optional
 from dataclasses import dataclass
 
-from .base import BaseManager, RiskMetrics
+from .base import BaseManager
 from .logging_config import get_logger
 
 logger = get_logger(__name__)

@@ -8,7 +8,6 @@ import pytest
 import pandas as pd
 from datetime import datetime, timedelta
 from src.async_data_loader import AsyncDataLoader, fetch_stock_data_async
-import asyncio
 
 
 class TestAsyncDataLoader:

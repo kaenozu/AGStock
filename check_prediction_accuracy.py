@@ -1,7 +1,6 @@
 import pandas as pd
-import numpy as np
 import yfinance as yf
-from datetime import datetime, timedelta
+from datetime import datetime
 import logging
 import sys
 import warnings
@@ -167,7 +166,7 @@ def main():
     best_strategy = strategy_stats.index[0]
     best_acc = strategy_stats.iloc[0]['accuracy']
     
-    print(f"\n💡 結論:")
+    print("\n💡 結論:")
     print(f"最も精度が高いのは **{best_strategy}** で、平均正解率は **{best_acc:.1%}** です。")
     
     if best_acc > 0.55:

@@ -2,7 +2,6 @@
 AGStock Quick Start - ワンクリック起動スクリプト
 個人投資家向けの簡単セットアップと起動
 """
-import os
 import sys
 import subprocess
 import json

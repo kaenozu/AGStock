@@ -2,7 +2,6 @@
 AI Market Report UI Renderer
 """
 import streamlit as st
-import pandas as pd
 from src.ai_analyst import AIAnalyst
 from src.data_loader import fetch_stock_data
 from src.regime_detector import MarketRegimeDetector

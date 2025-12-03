@@ -4,10 +4,8 @@ Trader Profile - トレーダープロファイル管理
 """
 import sqlite3
 import pandas as pd
-from datetime import datetime
-from typing import Dict, List, Optional
-from dataclasses import dataclass, asdict
-import hashlib
+from typing import Dict, Optional
+from dataclasses import dataclass
 
 
 @dataclass
