@@ -806,10 +806,14 @@ class FullyAutomatedTrader:
             self.log(traceback.format_exc(), "ERROR")
             
             # エラー通知
-            self.notifier.send_line_notify(
-                f"❌ 自動トレーダーでエラーが発生しました\n{str(e)}",
-                token=self.config.get("notifications", {}).get("line", {}).get("token")
-            )
+            try:
+                if self.notifier:
+                    self.notifier.send_line_notify(
+                        f"❌ 自動トレーダーでエラーが発生しました\n{str(e)}",
+                        token=self.config.get("notifications", {}).get("line", {}).get("token")
+                    )
+            except Exception as notify_error:
+                self.log(f"エラー通知の送信に失敗しました: {notify_error}", "ERROR")
 
 
 def main():
