@@ -1,4 +1,5 @@
 @echo off
+cd ..
 echo AGStock デイリー自動運用
 echo ========================
 

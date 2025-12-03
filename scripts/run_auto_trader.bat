@@ -1,4 +1,5 @@
 @echo off
+cd ..
 REM フルオート取引システム - 毎朝自動実行用
 REM Full Auto Trading System - Daily Auto Run
 

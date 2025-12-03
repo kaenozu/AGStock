@@ -1,4 +1,5 @@
 @echo off
+cd ..
 title AGStock Simple Dashboard
 echo ========================================================
 echo   AGStock シンプルダッシュボード起動

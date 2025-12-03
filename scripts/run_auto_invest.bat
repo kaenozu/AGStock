@@ -1,5 +1,6 @@
 @echo off
-cd /d "c:\gemini-thinkpad\AGStock"
+cd /d %~dp0
+cd ..
 if not exist logs mkdir logs
 echo ======================================================== >> logs\scheduler.log
 echo Starting Auto Invest at %date% %time% >> logs\scheduler.log
