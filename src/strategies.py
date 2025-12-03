@@ -399,7 +399,7 @@ class DeepLearningStrategy(Strategy):
             return pd.Series(dtype=int)
 
         data = df.copy()
-        data['Volume'] = data['Volume'].replace(0, np.nan).fillna(method='ffill')
+        data['Volume'] = data['Volume'].replace(0, np.nan).ffill()
         data['Volatility'] = data['Close'].rolling(window=20).std() / data['Close']
         data.dropna(inplace=True)
         
@@ -539,10 +539,14 @@ class EnsembleStrategy(Strategy):
 
 
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
-        # EnsembleVoter usually works on a single point in time or iterates.
-        # But our strategies return full Series of signals.
-        # We can implement a vectorized voting mechanism here.
+        """Generate ensemble signals by combining multiple strategies with weighted voting.
         
+        Args:
+            df: DataFrame with OHLCV data
+            
+        Returns:
+            Series of signals: 1 for BUY, -1 for SELL, 0 for HOLD
+        """
         # 0. Regime Detection & Weight Adjustment
         if self.enable_regime_detection and self.regime_detector:
             try:
@@ -567,6 +571,63 @@ class EnsembleStrategy(Strategy):
             except Exception as e:
                 logger.error(f"Error in regime detection: {e}")
                 self.weights = self.base_weights.copy()
+        
+        # 1. Generate signals from each strategy
+        signals_dict = {}
+        for strategy in self.strategies:
+            try:
+                strategy_signals = strategy.generate_signals(df)
+                if strategy_signals is not None and not strategy_signals.empty:
+                    signals_dict[strategy.name] = strategy_signals
+            except Exception as e:
+                logger.error(f"Error generating signals from {strategy.name}: {e}")
+        
+        if not signals_dict:
+            logger.warning("No valid signals from any strategy")
+            return pd.Series(0, index=df.index)
+        
+        # 2. Align all signals to the same index
+        aligned_signals = pd.DataFrame(signals_dict, index=df.index)
+        aligned_signals = aligned_signals.fillna(0)
+        
+        # 3. Weighted voting for each timestamp
+        ensemble_signals = pd.Series(0, index=df.index, dtype=int)
+        
+        for idx in df.index:
+            weighted_sum = 0.0
+            total_weight = 0.0
+            
+            for strategy_name, signal_series in signals_dict.items():
+                if idx in signal_series.index:
+                    signal = signal_series.loc[idx]
+                    weight = self.weights.get(strategy_name, 1.0)
+                    weighted_sum += signal * weight
+                    total_weight += weight
+            
+            # Convert weighted sum to final signal
+            # Threshold: if weighted average > 0.3, BUY; if < -0.3, SELL; else HOLD
+            if total_weight > 0:
+                weighted_avg = weighted_sum / total_weight
+                if weighted_avg > 0.3:
+                    ensemble_signals.loc[idx] = 1
+                elif weighted_avg < -0.3:
+                    ensemble_signals.loc[idx] = -1
+                else:
+                    ensemble_signals.loc[idx] = 0
+        
+        return ensemble_signals
+    
+    def get_signal_explanation(self, signal: int) -> str:
+        """Get explanation for the ensemble signal."""
+        if signal == 1:
+            regime_info = f" (市場環境: {self.current_regime['label']})" if self.current_regime else ""
+            return f"複数のAI戦略が総合的に「買い」を推奨しています{regime_info}。"
+        elif signal == -1:
+            regime_info = f" (市場環境: {self.current_regime['label']})" if self.current_regime else ""
+            return f"複数のAI戦略が総合的に「売り」を推奨しています{regime_info}。"
+        return "アンサンブル戦略では明確なコンセンサスが得られていません。"
+
+
 def load_custom_strategies() -> list:
     custom_strategies = []
     custom_dir = os.path.join(os.path.dirname(__file__), "custom")
