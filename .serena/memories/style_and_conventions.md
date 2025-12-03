@@ -1,0 +1,3 @@
+- Codebase is standard Python 3 with type hints on function/method signatures (`def generate_signals(self, df: pd.DataFrame) -> pd.Series`). Classes encapsulate functionality (e.g., Strategy subclasses) with meaningful camel-cased names.
+- Inline comments (sometimes bilingual JP/EN) are used to clarify algorithm steps. Docstrings exist for key public methods (e.g., `Strategy.generate_signals` explains contract) but otherwise style follows PEP8 (4-space indents, snake_case functions/vars).
+- Uses pandas Series/DataFrames heavily; expect return values to be pandas objects. Tests rely on pytest fixtures; mocking done via pytest-mock. Keep imports ordered (stdlib, third-party, typing) as seen in files.

@@ -1,0 +1,3 @@
+- AGStock is a Streamlit web app that analyzes Nikkei 225 stocks and surfaces statistically favorable buy/sell signals. It aggregates multiple technical analysis strategies (SMA crossover, RSI reversal, Bollinger Bands) and can backtest them as well as show current recommendations.
+- Core code lives in `src/`: `strategies.py` defines the indicator-based strategies, `backtester.py` runs strategies across historical data, `data_loader.py` fetches and caches OHLCV data (yfinance), and `constants.py` stores ticker lists. `app.py` wires these pieces into the Streamlit UI. Tests live under `tests/` mirroring the modules.
+- Requirements are pure-Python libraries (Streamlit, yfinance, pandas, numpy, ta, plotly, requests-cache). Dev dependencies add pytest + coverage plugins.
