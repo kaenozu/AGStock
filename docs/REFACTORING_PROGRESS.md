@@ -1,4 +1,4 @@
-# リファクタリング進捗レポート
+# リファクタリング進捗レポート (更新)
 
 ## 完了したリファクタリング
 
@@ -12,34 +12,46 @@
 
 #### 2. 設定の外部化
 - ✅ `config.json` にポートフォリオ目標比率を追加
-  ```json
-  "portfolio_targets": {
-    "japan": 40,
-    "us": 30,
-    "europe": 10,
-    "crypto": 10,
-    "fx": 10
-  }
-  ```
 - ✅ 戦略設定を追加
-  ```json
-  "strategies": {
-    "enabled": ["LightGBM", "ML", "Combined", "Dividend"],
-    "weights": {
-      "LightGBM": 0.4,
-      "ML": 0.3,
-      "Combined": 0.2,
-      "Dividend": 0.1
-    }
-  }
-  ```
+- ✅ `fully_automated_trader.py` のハードコードを削除
 
-#### 3. コード改善
-- ✅ `fully_automated_trader.py` のハードコードされたポートフォリオ比率を削除
-- ✅ `config.json` から設定を読み込むように変更
-- ✅ テストファイルのインポートを更新
+### フェーズ2: strategies.py の分割（進行中） 🔄
 
-## 削減された重複コード
+#### 完了した作業
+- ✅ `src/strategies/` パッケージ構造を作成
+- ✅ 基底クラス `Strategy` を `strategies/base.py` に抽出
+- ✅ `strategies.py` を `strategies_legacy.py` にリネーム
+- ✅ 後方互換性のための `__init__.py` を作成
+- ✅ サブディレクトリ作成: `technical/`, `ml/`, `fundamental/`, `ensemble/`
+
+#### 次のステップ
+1. **テクニカル戦略の分割**
+   - `SMACrossoverStrategy` → `technical/sma_crossover.py`
+   - `RSIStrategy` → `technical/rsi.py`
+   - `BollingerBandsStrategy` → `technical/bollinger_bands.py`
+
+2. **ML戦略の分割**
+   - `MLStrategy` → `ml/random_forest.py`
+   - `LightGBMStrategy` → `ml/lightgbm.py`
+   - `DeepLearningStrategy` → `ml/lstm.py`
+   - `TransformerStrategy` → `ml/transformer.py`
+   - `RLStrategy` → `ml/reinforcement_learning.py`
+   - `GRUStrategy` → `ml/gru.py`
+   - `AttentionLSTMStrategy` → `ml/attention_lstm.py`
+
+3. **その他の戦略**
+   - `DividendStrategy` → `fundamental/dividend.py`
+   - `CombinedStrategy` → `ensemble/combined.py`
+   - `EnsembleStrategy` → `ensemble/ensemble.py`
+   - `MultiTimeframeStrategy` → `ensemble/multi_timeframe.py`
+   - `SentimentStrategy` → `ensemble/sentiment.py`
+
+4. **最終ステップ**
+   - `strategies_legacy.py` を削除
+   - `__init__.py` を更新して新しいモジュールからインポート
+   - 全てのテストが通ることを確認
+
+## 削減された重複コード（累計）
 
 | ファイル | 行数 | サイズ | 状態 |
 |---------|------|--------|------|
@@ -49,53 +61,11 @@
 | error_handler.py | 216行 | 6.8KB | 削除済み |
 | **合計** | **約1,366行** | **約48KB** | **削除済み** |
 
-## 次のステップ
+## 作成されたPR
 
-### フェーズ2: アーキテクチャ再構成（予定）
-
-#### 優先度: 高
-1. **src/ ディレクトリの再構成**
-   ```
-   src/
-   ├── core/           # コア機能
-   ├── strategies/     # 全ての戦略クラス
-   ├── trading/        # 取引実行関連
-   ├── risk/           # リスク管理
-   ├── ml/             # 機械学習
-   ├── ui/             # UI関連
-   ├── notifications/  # 通知システム
-   ├── analytics/      # 分析・レポート
-   └── utils/          # ユーティリティ
-   ```
-
-2. **strategies.py の分割** (1138行 → 複数の小さなファイル)
-   - technical/ (SMA, RSI, Bollinger Bands等)
-   - ml/ (LightGBM, RandomForest等)
-   - fundamental/ (Dividend Strategy等)
-   - ensemble/ (Combined Strategy等)
-
-3. **fully_automated_trader.py の分割** (778行 → 複数のモジュール)
-   - trader_core.py
-   - market_scanner.py
-   - position_manager.py
-   - risk_checker.py
-   - reporter.py
-
-#### 優先度: 中
-4. **エラーハンドリングの改善**
-   - 具体的な例外クラスの使用
-   - ログレベルの適切な使用
-   - クリティカルなエラーの再送出
-
-5. **型ヒントの追加**
-   - 全関数に型ヒントを追加
-   - mypy による型チェック導入
-
-#### 優先度: 低
-6. **ドキュメント整理**
-   - 22個のマークダウンファイルを統合
-   - 古い情報の削除
-   - README.mdの改善
+- **PR #23**: プロジェクト構造の整理
+- **PR #24**: 重複削除と設定外部化
+- **進行中**: strategies.py の分割
 
 ## 影響分析
 
@@ -103,28 +73,33 @@
 - ✅ コードベースが約1,366行削減
 - ✅ 設定変更が容易に
 - ✅ 保守性の向上
-- ✅ 重複によるバグのリスク削減
+- ✅ 戦略モジュールの構造化開始
+- ✅ 後方互換性を維持
 
-### 潜在的なリスク
-- ⚠️ インポートパスの変更によるテスト失敗の可能性
-- ⚠️ 既存の動作への影響（最小限に抑えられている）
+### 技術的な改善
+- モジュール化により、各戦略の責任が明確に
+- テストが書きやすくなる
+- 新しい戦略の追加が容易に
+- インポートパスが整理される
 
 ## 推奨事項
 
-1. **即座に実行**
-   - PR #24 をマージ
-   - CI/CDパイプラインでテスト実行
+### 即座に実行
+- PR #24 をマージ
+- strategies分割の続行
 
-2. **短期（1週間以内）**
-   - strategies.py の分割開始
-   - テストカバレッジの測定
+### 短期（1週間以内）
+- テクニカル戦略の分割完了
+- ML戦略の分割完了
+- テストの実行と確認
 
-3. **中期（1ヶ月以内）**
-   - アーキテクチャ再構成の実施
-   - 型ヒントの追加
+### 中期（1ヶ月以内）
+- `strategies_legacy.py` の完全削除
+- ドキュメント更新
+- 型ヒントの追加
 
 ---
 
 **作成日**: 2025-12-03  
-**最終更新**: 2025-12-03  
+**最終更新**: 2025-12-03 17:25  
 **担当**: Antigravity AI
