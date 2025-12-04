@@ -348,8 +348,9 @@ class LightGBMStrategy(Strategy):
             if not X_test.empty:
                 preds = self.model.predict(X_test)
                 chunk_signals = pd.Series(0, index=X_test.index)
-                chunk_signals[preds > 0.55] = 1
-                chunk_signals[preds < 0.45] = -1
+                # Tighter thresholds for higher confidence signals
+                chunk_signals[preds > 0.60] = 1  # Changed from 0.55
+                chunk_signals[preds < 0.40] = -1  # Changed from 0.45
                 signals.loc[chunk_signals.index] = chunk_signals
             
             current_idx += retrain_period

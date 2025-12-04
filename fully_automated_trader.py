@@ -436,6 +436,15 @@ class FullyAutomatedTrader:
         # データ取得（リトライ付き）
         data_map = self._fetch_data_with_retry(tickers)
         
+        # データの鮮度を確認・ログ出力
+        if data_map:
+            sample_ticker = list(data_map.keys())[0]
+            sample_df = data_map[sample_ticker]
+            if not sample_df.empty:
+                data_date = sample_df.index[-1].strftime('%Y-%m-%d %H:%M') if hasattr(sample_df.index[-1], 'strftime') else str(sample_df.index[-1])
+                self.log(f"📅 データ基準日時: {data_date} (最新の市場データ)")
+                self.log(f"⏰ 判断実行日時: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        
         # 戦略初期化
         strategies = [
             ("LightGBM", LightGBMStrategy(lookback_days=365, threshold=0.005)),
@@ -492,17 +501,47 @@ class FullyAutomatedTrader:
                             region = '欧州'
                         
                         # Phase 30-3: Kelly Criterion for Position Sizing
-                        # Calculate optimal size
+                        # Calculate optimal size based on actual trading history
                         balance = self.pt.get_current_balance()
                         equity = balance['total_equity']
                         cash = balance['cash']
                         
-                        # Use default win rate/ratio if no history, or use actual history
-                        # For now, use conservative defaults or fetch from history
-                        # history = self.pt.get_trade_history()
-                        # ... calculate win rate ...
-                        # For simplicity, assume 55% win rate, 1.5 ratio for new signals
-                        kelly_pct = self.kelly_criterion.calculate_size(win_rate=0.55, win_loss_ratio=1.5)
+                        # Calculate actual win rate and win/loss ratio from history
+                        try:
+                            history = self.pt.get_trade_history()
+                            if not history.empty and 'realized_pnl' in history.columns:
+                                # Filter out trades with zero PnL (still open or just closed at breakeven)
+                                closed_trades = history[history['realized_pnl'] != 0]
+                                
+                                if len(closed_trades) >= 10:  # Need at least 10 trades for meaningful stats
+                                    wins = closed_trades[closed_trades['realized_pnl'] > 0]
+                                    losses = closed_trades[closed_trades['realized_pnl'] < 0]
+                                    
+                                    win_rate = len(wins) / len(closed_trades)
+                                    
+                                    if len(wins) > 0 and len(losses) > 0:
+                                        avg_win = wins['realized_pnl'].mean()
+                                        avg_loss = abs(losses['realized_pnl'].mean())
+                                        win_loss_ratio = avg_win / avg_loss if avg_loss > 0 else 1.5
+                                    else:
+                                        win_loss_ratio = 1.5  # Default if no losses yet
+                                    
+                                    self.log(f"📊 実績ベース Kelly: 勝率={win_rate:.1%}, 損益比={win_loss_ratio:.2f} (過去{len(closed_trades)}件)")
+                                else:
+                                    # Not enough history, use conservative defaults
+                                    win_rate = 0.50  # More conservative than 55%
+                                    win_loss_ratio = 1.5
+                                    self.log(f"📊 デフォルト Kelly: 勝率={win_rate:.1%}, 損益比={win_loss_ratio:.2f} (履歴不足)")
+                            else:
+                                win_rate = 0.50
+                                win_loss_ratio = 1.5
+                                self.log(f"📊 デフォルト Kelly: 勝率={win_rate:.1%}, 損益比={win_loss_ratio:.2f} (履歴なし)")
+                        except Exception as e:
+                            self.log(f"Kelly計算エラー: {e}", "WARNING")
+                            win_rate = 0.50
+                            win_loss_ratio = 1.5
+                        
+                        kelly_pct = self.kelly_criterion.calculate_size(win_rate=win_rate, win_loss_ratio=win_loss_ratio)
                         
                         # Adjust by Regime (DynamicRiskManager)
                         regime_multiplier = self.risk_manager.current_params.get('position_size', 1.0)
@@ -631,7 +670,9 @@ class FullyAutomatedTrader:
             'win_rate': win_rate,
             'signals': signals_info,
             'top_performer': '計算中',
-            'advice': self.get_advice(daily_pnl, balance['total_equity'])
+            'advice': self.get_advice(daily_pnl, balance['total_equity']),
+            'regime': self._get_regime_info(),
+            'trade_details': self._get_trade_details(today_trades)
         }
         
         # チャート画像生成
@@ -658,6 +699,42 @@ class FullyAutomatedTrader:
             return "🎉 素晴らしい成績です！このまま継続しましょう。"
         else:
             return "✅ 通常運用を継続してください。"
+    
+    def _get_regime_info(self) -> dict:
+        """市場レジーム情報を取得"""
+        try:
+            regime_stats = self.regime_detector.get_regime_statistics()
+            current_regime = regime_stats.get('most_common_regime', 'unknown')
+            return {
+                'current': current_regime,
+                'description': self._regime_description(current_regime)
+            }
+        except Exception:
+            return {'current': 'unknown', 'description': '情報なし'}
+    
+    def _regime_description(self, regime: str) -> str:
+        """レジームの説明を返す"""
+        descriptions = {
+            'high_volatility': '高ボラティリティ（慎重な運用）',
+            'stable_bull': '安定上昇（積極運用）',
+            'bear_market': '下落相場（防御的運用）',
+            'sideways': 'レンジ相場（様子見）'
+        }
+        return descriptions.get(regime, '不明')
+    
+    def _get_trade_details(self, today_trades: pd.DataFrame) -> list:
+        """本日の取引詳細を取得"""
+        details = []
+        for _, trade in today_trades.iterrows():
+            detail = {
+                'ticker': trade['ticker'],
+                'action': trade['action'],
+                'price': trade.get('price', 0),
+                'quantity': trade.get('quantity', 0),
+                'reason': trade.get('reason', '自動取引')
+            }
+            details.append(detail)
+        return details
     
     def check_market_hours(self) -> bool:
         """
