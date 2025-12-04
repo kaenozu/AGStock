@@ -11,6 +11,7 @@ import time
 from src.paper_trader import PaperTrader
 from src.formatters import format_currency
 from src.dashboard_utils import check_and_execute_missed_trades
+from src.auto_trader_ui import create_auto_trader_ui
 
 # ページ設定
 st.set_page_config(
@@ -410,7 +411,7 @@ def show_main_dashboard():
     st.markdown("---")
     
     # アクションボタン
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
     
     with col1:
         if st.button("🚀 今すぐ取引", use_container_width=True, type="primary"):
@@ -429,20 +430,27 @@ def show_main_dashboard():
                         st.success("✅ 取引完了！ページを更新して結果を確認してください。")
                         st.balloons()
                         time.sleep(2)
-                        st.experimental_rerun()
+                        st.rerun()
                     else:
                         st.error(f"❌ エラーが発生しました: {result.stderr}")
                 except subprocess.TimeoutExpired:
                     st.warning("⏱️ 処理に時間がかかっています。バックグラウンドで実行中です。")
                 except Exception as e:
                     st.error(f"❌ エラー: {e}")
-    
+
     with col2:
+        if st.button("🤖 フルオートシステム", use_container_width=True):
+            st.session_state.page = "auto_trader"
+            st.rerun()
+            
+    col3, col4 = st.columns(2)
+    
+    with col3:
         if st.button("📈 詳細を見る", use_container_width=True):
             st.session_state.page = "detail"
             st.rerun()
     
-    with col3:
+    with col4:
         if st.button("⚙️ 設定", use_container_width=True):
             st.session_state.page = "settings"
             st.rerun()
@@ -586,6 +594,14 @@ def show_settings_page():
         st.balloons()
 
 
+def show_auto_trader_page():
+    """フルオート取引システムページ"""
+    if st.button("← 戻る"):
+        st.session_state.page = "main"
+        st.rerun()
+        
+    create_auto_trader_ui()
+
 def main():
     """メイン処理"""
     
@@ -603,6 +619,8 @@ def main():
         show_detail_page()
     elif st.session_state.page == "settings":
         show_settings_page()
+    elif st.session_state.page == "auto_trader":
+        show_auto_trader_page()
 
 if __name__ == "__main__":
     main()
