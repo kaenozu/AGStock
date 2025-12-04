@@ -14,8 +14,7 @@ Write-Host ""
 # 日本市場用タスク (平日 16:00)
 $taskName1 = "AGStock_JP_Market"
 $action1 = New-ScheduledTaskAction -Execute $pythonPath -Argument $traderScript -WorkingDirectory $scriptPath
-$trigger1 = New-ScheduledTaskTrigger -Daily -At "16:00"
-$trigger1.DaysOfWeek = "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"
+$trigger1 = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Tuesday,Wednesday,Thursday,Friday -At "16:00"
 $settings1 = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
 
 try {
@@ -29,8 +28,7 @@ try {
 # 米国市場用タスク (平日 07:00)
 $taskName2 = "AGStock_US_Market"
 $action2 = New-ScheduledTaskAction -Execute $pythonPath -Argument $traderScript -WorkingDirectory $scriptPath
-$trigger2 = New-ScheduledTaskTrigger -Daily -At "07:00"
-$trigger2.DaysOfWeek = "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"  # 米国時間の月-金 = 日本時間の火-土
+$trigger2 = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Tuesday,Wednesday,Thursday,Friday,Saturday -At "07:00"
 $settings2 = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
 
 try {
