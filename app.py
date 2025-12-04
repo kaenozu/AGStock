@@ -417,14 +417,14 @@ def show_main_dashboard():
                 if st.button(f"🔮 未来予測\n({ticker})", key=f"pred_{ticker}", use_container_width=True):
                     with st.spinner("AIが未来を計算中..."):
                         try:
-                            from src.future_predictor import FuturePredictor
+                            from src.ensemble_predictor import EnsemblePredictor
                             from src.data_loader import fetch_stock_data
                             
                             # データ取得
                             data_map = fetch_stock_data([ticker], period="2y")
                             df = data_map.get(ticker)
                             
-                            predictor = FuturePredictor()
+                            predictor = EnsemblePredictor()
                             result = predictor.predict_trajectory(df, days_ahead=5)
                             
                             if "error" in result:

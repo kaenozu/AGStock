@@ -199,13 +199,13 @@ class AdvancedRiskManager:
         sell_signals = []
         
         try:
-            from src.future_predictor import FuturePredictor
+            from src.ensemble_predictor import EnsemblePredictor
             
             positions = paper_trader.get_positions()
             if positions.empty:
                 return []
             
-            predictor = FuturePredictor()
+            predictor = EnsemblePredictor()
             
             for ticker in positions.index:
                 try:
