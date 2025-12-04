@@ -32,6 +32,7 @@ from src.regime_detector import MarketRegimeDetector
 from src.dynamic_risk_manager import DynamicRiskManager
 from src.kelly_criterion import KellyCriterion
 from src.dynamic_stop import DynamicStopManager
+from src.advanced_risk import AdvancedRiskManager
 
 
 class FullyAutomatedTrader:
@@ -94,6 +95,7 @@ class FullyAutomatedTrader:
         self.risk_manager = DynamicRiskManager(self.regime_detector)
         self.kelly_criterion = KellyCriterion()
         self.dynamic_stop_manager = DynamicStopManager()
+        self.advanced_risk = AdvancedRiskManager(self.config)
         self.log("Phase 30-1 & 30-3: リアルタイム適応学習・高度リスク管理モジュール初期化完了")
         
         self.log("フル自動トレーダー初期化完了")
@@ -424,6 +426,11 @@ class FullyAutomatedTrader:
         """市場をスキャンして新規シグナルを検出（グローバル分散対応）"""
         self.log("市場スキャン開始...")
         
+        # 🚨 市場急落チェック
+        allow_buy_market, market_reason = self.advanced_risk.check_market_crash(self.log)
+        if not allow_buy_market:
+            self.log(f"⚠️ 市場急落のため新規BUY停止: {market_reason}", "WARNING")
+        
         # センチメント分析
         try:
             sa = SentimentAnalyzer()
@@ -483,6 +490,14 @@ class FullyAutomatedTrader:
                     
                     # BUYシグナル
                     if last_signal == 1 and not is_held and allow_buy:
+                        
+                        # 📊 銘柄相関チェック
+                        positions = self.pt.get_positions()
+                        existing_tickers = list(positions.index) if not positions.empty else []
+                        allow_corr, corr_reason = self.advanced_risk.check_correlation(ticker, existing_tickers, self.log)
+                        if not allow_corr:
+                            self.log(f"  {ticker}: {corr_reason}")
+                            continue
                         # ファンダメンタルチェック
                         fundamentals = fetch_fundamental_data(ticker)
                         
@@ -910,6 +925,14 @@ class FullyAutomatedTrader:
             self.log("   強制実行する場合は force_run=True を指定してください。", "WARNING")
             return
 
+        # 🛡️ ドローダウン保護チェック
+        is_safe_dd, dd_reason, emergency_signals = self.advanced_risk.check_drawdown_protection(self.pt, self.log)
+        if not is_safe_dd:
+            self.log(f"⚠️ {dd_reason}", "WARNING")
+            if emergency_signals:
+                self.execute_signals(emergency_signals)
+            return
+        
         try:
             # 1. Phase 30-1: 市場レジーム検出とリスクパラメータ更新
             self.log("Phase 30-1: 市場レジーム検出開始...")
