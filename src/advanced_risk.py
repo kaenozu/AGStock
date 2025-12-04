@@ -185,3 +185,75 @@ class AdvancedRiskManager:
             logger(f"  相関チェックエラー ({new_ticker}): {e}", "WARNING")
             # エラー時は保守的に許可
             return True, "相関チェックエラー（継続）"
+    
+    def check_prediction_deterioration(self, paper_trader, logger) -> List[dict]:
+        """
+        予測悪化チェック: 購入後に予測が悪化した銘柄を早期売却
+        
+        購入時は+3%の上昇予測だったのに、今日-2%以下になった場合
+        → 即座に売却して損失を最小限に
+        
+        Returns:
+            list: 売却シグナルのリスト
+        """
+        sell_signals = []
+        
+        try:
+            from src.future_predictor import FuturePredictor
+            
+            positions = paper_trader.get_positions()
+            if positions.empty:
+                return []
+            
+            predictor = FuturePredictor()
+            
+            for ticker in positions.index:
+                try:
+                    # データ取得
+                    data_map = fetch_stock_data([ticker], period="2y")
+                    df = data_map.get(ticker)
+                    
+                    if df is None or df.empty:
+                        continue
+                    
+                    # 予測実行
+                    result = predictor.predict_trajectory(df, days_ahead=5)
+                    
+                    if "error" in result:
+                        logger(f"  {ticker}: 予測エラー - {result['error']}")
+                        continue
+                    
+                    predicted_change = result['change_pct']
+                    trend = result['trend']
+                    
+                    # 予測が悪化している場合（-2%以下）
+                    if predicted_change < -2.0:
+                        pos = positions.loc[ticker]
+                        current_price = pos.get('current_price', 0)
+                        quantity = pos.get('quantity', 0)
+                        entry_price = pos.get('average_price', current_price)
+                        unrealized_pnl_pct = ((current_price - entry_price) / entry_price) * 100 if entry_price > 0 else 0
+                        
+                        logger(f"⚠️ {ticker}: 予測悪化 ({predicted_change:+.1f}%) - 早期売却推奨", "WARNING")
+                        
+                        sell_signals.append({
+                            'ticker': ticker,
+                            'action': 'SELL',
+                            'confidence': 0.8,
+                            'price': current_price,
+                            'quantity': quantity,
+                            'strategy': 'Prediction Deterioration',
+                            'reason': f'予測悪化（{predicted_change:+.1f}%）、含み損益: {unrealized_pnl_pct:+.1f}%'
+                        })
+                    else:
+                        logger(f"  {ticker}: 予測 {predicted_change:+.1f}% ({trend}) - 保持")
+                        
+                except Exception as e:
+                    logger(f"  {ticker}: 予測チェックエラー - {e}", "WARNING")
+                    continue
+            
+            return sell_signals
+            
+        except Exception as e:
+            logger(f"予測悪化チェック全体エラー: {e}", "WARNING")
+            return []

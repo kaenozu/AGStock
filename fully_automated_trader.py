@@ -970,13 +970,21 @@ class FullyAutomatedTrader:
                 )
                 return
             
-            # 3. 既存ポジション評価
+            # 3. 既存ポジション評価（ストップロス・利確）
             self.log("ポジション評価開始...")
             position_actions = self.evaluate_positions()
             
             if position_actions:
                 self.log(f"{len(position_actions)}件のポジション調整")
                 self.execute_signals(position_actions)
+            
+            # 3.5. 🔮 予測悪化チェック（早期売却）
+            self.log("予測悪化チェック開始...")
+            deterioration_signals = self.advanced_risk.check_prediction_deterioration(self.pt, self.log)
+            
+            if deterioration_signals:
+                self.log(f"⚠️ {len(deterioration_signals)}件の予測悪化銘柄を検出", "WARNING")
+                self.execute_signals(deterioration_signals)
             
             # 4. 新規シグナルスキャン
             new_signals = self.scan_market()
