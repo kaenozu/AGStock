@@ -499,6 +499,28 @@ class FullyAutomatedTrader:
                         
                         latest_price = get_latest_price(df)
                         
+                        # 🔮 中期予測フィルター（新機能）
+                        # 短期だけでなく、5日後も上昇が見込める銘柄のみBUY
+                        try:
+                            from src.future_predictor import FuturePredictor
+                            predictor = FuturePredictor()
+                            future_result = predictor.predict_trajectory(df, days_ahead=5)
+                            
+                            if "error" not in future_result:
+                                predicted_change_pct = future_result['change_pct']
+                                
+                                # 5日後に+2%以上の上昇が見込めない場合はスキップ
+                                if predicted_change_pct < 2.0:
+                                    self.log(f"  {ticker}: 中期予測が弱い({predicted_change_pct:+.1f}%)ためスキップ")
+                                    continue
+                                else:
+                                    self.log(f"  {ticker}: 中期予測OK({predicted_change_pct:+.1f}%) ✅")
+                            else:
+                                # 予測エラー時は従来通りBUY（保守的に通す）
+                                self.log(f"  {ticker}: 中期予測エラー、従来ロジックで判断", "WARNING")
+                        except Exception as e:
+                            self.log(f"  {ticker}: 中期予測失敗 ({e})、従来ロジックで判断", "WARNING")
+                        
                         # 地域を判定
                         if ticker in NIKKEI_225_TICKERS:
                             region = '日本'
