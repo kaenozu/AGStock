@@ -13,6 +13,7 @@ from src.formatters import format_currency
 from src.dashboard_utils import check_and_execute_missed_trades
 from src.auto_trader_ui import create_auto_trader_ui
 from src.performance_dashboard import create_performance_dashboard
+from src.prediction_dashboard import create_prediction_analysis_dashboard
 
 # ページ設定
 st.set_page_config(
@@ -490,7 +491,7 @@ def show_main_dashboard():
             st.session_state.page = "auto_trader"
             st.experimental_rerun()
             
-    col3, col4, col5 = st.columns(3)
+    col3, col4, col5, col6 = st.columns(4)
     
     with col3:
         if st.button("📈 詳細を見る", use_container_width=True):
@@ -501,8 +502,13 @@ def show_main_dashboard():
         if st.button("📊 パフォーマンス", use_container_width=True):
             st.session_state.page = "performance"
             st.experimental_rerun()
-            
+    
     with col5:
+        if st.button("🎯 予測精度", use_container_width=True):
+            st.session_state.page = "prediction_analysis"
+            st.experimental_rerun()
+            
+    with col6:
         if st.button("⚙️ 設定", use_container_width=True):
             st.session_state.page = "settings"
             st.experimental_rerun()
@@ -683,6 +689,16 @@ def main():
         show_auto_trader_page()
     elif st.session_state.page == "performance":
         show_performance_page()
+    elif st.session_state.page == "prediction_analysis":
+        show_prediction_analysis_page()
+
+def show_prediction_analysis_page():
+    """予測精度分析ページ"""
+    if st.button("← 戻る"):
+        st.session_state.page = "main"
+        st.experimental_rerun()
+    
+    create_prediction_analysis_dashboard()
 
 if __name__ == "__main__":
     main()
