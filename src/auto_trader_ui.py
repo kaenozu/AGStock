@@ -72,7 +72,7 @@ def render_control_center(config, config_path):
         else:
             st.warning("システムを停止しました")
         time.sleep(1)
-        st.rerun()
+        st.experimental_rerun()
     
     if on:
         st.success("🟢 システム稼働中")
@@ -85,7 +85,7 @@ def render_control_center(config, config_path):
                     status.update(label="✅ 完了", state="complete", expanded=False)
                     st.success("実行完了")
                     time.sleep(2)
-                    st.rerun()
+                    st.experimental_rerun()
                 except Exception as e:
                     status.update(label="❌ エラー", state="error")
                     st.error(f"エラー: {e}")
@@ -126,7 +126,7 @@ def render_control_center(config, config_path):
         config["assets"] = new_assets
         save_config(config, config_path)
         st.success("資産クラス設定を更新しました")
-        st.rerun()
+        st.experimental_rerun()
 
 
 def render_todays_summary():

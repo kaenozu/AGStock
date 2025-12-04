@@ -426,11 +426,6 @@ class FullyAutomatedTrader:
         """市場をスキャンして新規シグナルを検出（グローバル分散対応）"""
         self.log("市場スキャン開始...")
         
-        # 🚨 市場急落チェック
-        allow_buy_market, market_reason = self.advanced_risk.check_market_crash(self.log)
-        if not allow_buy_market:
-            self.log(f"⚠️ 市場急落のため新規BUY停止: {market_reason}", "WARNING")
-        
         # センチメント分析
         try:
             sa = SentimentAnalyzer()
@@ -490,14 +485,6 @@ class FullyAutomatedTrader:
                     
                     # BUYシグナル
                     if last_signal == 1 and not is_held and allow_buy:
-                        
-                        # 📊 銘柄相関チェック
-                        positions = self.pt.get_positions()
-                        existing_tickers = list(positions.index) if not positions.empty else []
-                        allow_corr, corr_reason = self.advanced_risk.check_correlation(ticker, existing_tickers, self.log)
-                        if not allow_corr:
-                            self.log(f"  {ticker}: {corr_reason}")
-                            continue
                         # ファンダメンタルチェック
                         fundamentals = fetch_fundamental_data(ticker)
                         
@@ -517,8 +504,8 @@ class FullyAutomatedTrader:
                         # 🔮 中期予測フィルター（新機能）
                         # 短期だけでなく、5日後も上昇が見込める銘柄のみBUY
                         try:
-                            from src.ensemble_predictor import EnsemblePredictor
-                            predictor = EnsemblePredictor()
+                            from src.future_predictor import FuturePredictor
+                            predictor = FuturePredictor()
                             future_result = predictor.predict_trajectory(df, days_ahead=5)
                             
                             if "error" not in future_result:
@@ -925,14 +912,6 @@ class FullyAutomatedTrader:
             self.log("   強制実行する場合は force_run=True を指定してください。", "WARNING")
             return
 
-        # 🛡️ ドローダウン保護チェック
-        is_safe_dd, dd_reason, emergency_signals = self.advanced_risk.check_drawdown_protection(self.pt, self.log)
-        if not is_safe_dd:
-            self.log(f"⚠️ {dd_reason}", "WARNING")
-            if emergency_signals:
-                self.execute_signals(emergency_signals)
-            return
-        
         try:
             # 1. Phase 30-1: 市場レジーム検出とリスクパラメータ更新
             self.log("Phase 30-1: 市場レジーム検出開始...")
@@ -970,21 +949,13 @@ class FullyAutomatedTrader:
                 )
                 return
             
-            # 3. 既存ポジション評価（ストップロス・利確）
+            # 3. 既存ポジション評価
             self.log("ポジション評価開始...")
             position_actions = self.evaluate_positions()
             
             if position_actions:
                 self.log(f"{len(position_actions)}件のポジション調整")
                 self.execute_signals(position_actions)
-            
-            # 3.5. 🔮 予測悪化チェック（早期売却）
-            self.log("予測悪化チェック開始...")
-            deterioration_signals = self.advanced_risk.check_prediction_deterioration(self.pt, self.log)
-            
-            if deterioration_signals:
-                self.log(f"⚠️ {len(deterioration_signals)}件の予測悪化銘柄を検出", "WARNING")
-                self.execute_signals(deterioration_signals)
             
             # 4. 新規シグナルスキャン
             new_signals = self.scan_market()
