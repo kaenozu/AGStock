@@ -12,6 +12,7 @@ from src.paper_trader import PaperTrader
 from src.formatters import format_currency
 from src.dashboard_utils import check_and_execute_missed_trades
 from src.auto_trader_ui import create_auto_trader_ui
+from src.performance_dashboard import create_performance_dashboard
 
 # ページ設定
 st.set_page_config(
@@ -489,7 +490,7 @@ def show_main_dashboard():
             st.session_state.page = "auto_trader"
             st.experimental_rerun()
             
-    col3, col4 = st.columns(2)
+    col3, col4, col5 = st.columns(3)
     
     with col3:
         if st.button("📈 詳細を見る", use_container_width=True):
@@ -497,6 +498,11 @@ def show_main_dashboard():
             st.experimental_rerun()
     
     with col4:
+        if st.button("📊 パフォーマンス", use_container_width=True):
+            st.session_state.page = "performance"
+            st.experimental_rerun()
+            
+    with col5:
         if st.button("⚙️ 設定", use_container_width=True):
             st.session_state.page = "settings"
             st.experimental_rerun()
@@ -644,9 +650,17 @@ def show_auto_trader_page():
     """フルオート取引システムページ"""
     if st.button("← 戻る"):
         st.session_state.page = "main"
-        st.rerun()
+        st.experimental_rerun()
         
     create_auto_trader_ui()
+
+def show_performance_page():
+    """パフォーマンス分析ページ"""
+    if st.button("← 戻る"):
+        st.session_state.page = "main"
+        st.experimental_rerun()
+    
+    create_performance_dashboard()
 
 def main():
     """メイン処理"""
@@ -667,6 +681,8 @@ def main():
         show_settings_page()
     elif st.session_state.page == "auto_trader":
         show_auto_trader_page()
+    elif st.session_state.page == "performance":
+        show_performance_page()
 
 if __name__ == "__main__":
     main()
