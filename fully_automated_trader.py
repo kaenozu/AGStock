@@ -119,7 +119,14 @@ class FullyAutomatedTrader:
         """ログ出力"""
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_message = f"[{timestamp}] [{level}] {message}"
-        print(log_message)
+        
+        # Windows console (cp932) safe output
+        try:
+            print(log_message)
+        except UnicodeEncodeError:
+            # Remove emoji and special characters for console
+            safe_message = log_message.encode('cp932', errors='ignore').decode('cp932')
+            print(safe_message)
         
         try:
             with open(self.log_file, "a", encoding="utf-8") as f:
