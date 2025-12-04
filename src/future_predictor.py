@@ -19,30 +19,44 @@ class FuturePredictor:
         指定された銘柄の向こう数日間の価格推移を予測する
         """
         try:
-            if df is None or df.empty or len(df) < 100:
-                return {"error": "データ不足"}
+            if df is None or df.empty or len(df) < 20:
+                return {"error": f"データ不足 (データ数: {len(df) if df is not None else 0})"}
 
             # 1. Prepare Data
             data = df.copy()
             data['Volume'] = data['Volume'].replace(0, np.nan).ffill()
-            data['Volatility'] = data['Close'].rolling(window=20).std() / data['Close']
+            
+            # データ数に応じてボラティリティ計算を調整
+            vol_window = 20
+            if len(data) < 40:
+                vol_window = 5
+            
+            data['Volatility'] = data['Close'].rolling(window=vol_window).std() / data['Close']
             data.dropna(inplace=True)
             
+            if len(data) < 5:
+                 return {"error": f"有効データ不足 (前処理後: {len(data)}件)"}
+
             feature_cols = ['Close', 'Volume', 'Volatility']
             dataset = data[feature_cols].values
             
+            # データ数に応じてLookbackを調整
+            adjusted_lookback = min(self.lookback, len(dataset) // 2)
+            if adjusted_lookback < 5:
+                return {"error": "データが少なすぎて予測できません"}
+
             # 2. Train Model (Simplified)
             scaled_data = self.scaler.fit_transform(dataset)
             
             X, y = [], []
-            for i in range(self.lookback, len(scaled_data)):
-                X.append(scaled_data[i-self.lookback:i])
+            for i in range(adjusted_lookback, len(scaled_data)):
+                X.append(scaled_data[i-adjusted_lookback:i])
                 y.append(scaled_data[i, 0])
                 
             X, y = np.array(X), np.array(y)
             
             if len(X) == 0:
-                return {"error": "学習データ不足"}
+                return {"error": "学習データ不足 (Lookback期間不足)"}
             
             model = Sequential()
             model.add(LSTM(units=50, return_sequences=False, input_shape=(X.shape[1], X.shape[2])))
@@ -54,7 +68,7 @@ class FuturePredictor:
             model.fit(X, y, epochs=5, batch_size=32, verbose=0)
             
             # 3. Predict Future
-            last_sequence = scaled_data[-lookback:]
+            last_sequence = scaled_data[-adjusted_lookback:]
             current_sequence = last_sequence.copy()
             future_predictions = []
             

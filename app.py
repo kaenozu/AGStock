@@ -438,7 +438,7 @@ def show_main_dashboard():
                                 trend_emoji = "📈" if trend == "UP" else "📉" if trend == "DOWN" else "➡️"
                                 trend_text = "上昇トレンド" if trend == "UP" else "下落トレンド" if trend == "DOWN" else "横ばい"
                                 
-                                st.toast(f"予測完了: {ticker}", icon="✅")
+                                st.success(f"予測完了: {ticker}")
                                 
                                 st.markdown(f"""
                                 <div style="background: #f0f9ff; padding: 10px; border-radius: 8px; border: 1px solid #bae6fd; font-size: 0.9rem;">
