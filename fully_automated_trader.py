@@ -635,6 +635,105 @@ class FullyAutomatedTrader:
         self.log(f"検出シグナル数: {len(signals)}")
         return signals
     
+    def evaluate_positions(self) -> List[Dict]:
+        """
+        保有ポジションを評価し、損切り・利確のシグナルを生成
+        - 動的ストップロス（ATRベース）
+        - トレーリングストップ（利益確定の自動化）
+        """
+        positions = self.pt.get_positions()
+        
+        if positions.empty:
+            return []
+        
+        signals = []
+        
+        for ticker in positions.index:
+            try:
+                pos = positions.loc[ticker]
+                entry_price = pos.get('entry_price', 0)
+                current_price = pos.get('current_price', 0)
+                quantity = pos.get('quantity', 0)
+                unrealized_pnl_pct = pos.get('unrealized_pnl_pct', 0)
+                
+                if entry_price == 0 or current_price == 0:
+                    continue
+                
+                # データ取得
+                data_map = self._fetch_data_with_retry([ticker])
+                df = data_map.get(ticker)
+                
+                if df is None or df.empty or len(df) < 20:
+                    continue
+                
+                # ATR計算（Average True Range）
+                high = df['High']
+                low = df['Low']
+                close = df['Close']
+                
+                tr1 = high - low
+                tr2 = abs(high - close.shift())
+                tr3 = abs(low - close.shift())
+                tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
+                atr = tr.rolling(window=14).mean().iloc[-1]
+                
+                # 1. 動的ストップロス（ATRベース）
+                # ストップロス = 購入価格 - (ATR × 2)
+                stop_loss_price = entry_price - (atr * 2)
+                stop_loss_pct = ((stop_loss_price - entry_price) / entry_price) * 100
+                
+                if current_price <= stop_loss_price:
+                    self.log(f"🛑 {ticker}: 動的ストップロス発動 ({stop_loss_pct:.1f}%)")
+                    signals.append({
+                        'ticker': ticker,
+                        'action': 'SELL',
+                        'confidence': 1.0,
+                        'price': current_price,
+                        'quantity': quantity,
+                        'strategy': 'Dynamic Stop-Loss',
+                        'reason': f'ATRベース損切り ({unrealized_pnl_pct:.1f}%)'
+                    })
+                    continue
+                
+                # 2. トレーリングストップ（利益が出ている場合）
+                # +5%以上の利益が出たら、最高値から-3%で自動売却
+                if unrealized_pnl_pct >= 5.0:
+                    # 過去20日間の最高値を取得
+                    recent_high = df['High'].tail(20).max()
+                    trailing_stop_price = recent_high * 0.97  # 最高値から3%下
+                    
+                    if current_price <= trailing_stop_price:
+                        self.log(f"📈 {ticker}: トレーリングストップ発動 (利益確定 +{unrealized_pnl_pct:.1f}%)")
+                        signals.append({
+                            'ticker': ticker,
+                            'action': 'SELL',
+                            'confidence': 1.0,
+                            'price': current_price,
+                            'quantity': quantity,
+                            'strategy': 'Trailing Stop',
+                            'reason': f'利益確定 (+{unrealized_pnl_pct:.1f}%)'
+                        })
+                        continue
+                
+                # 3. 固定利確（+20%で自動売却）
+                if unrealized_pnl_pct >= 20.0:
+                    self.log(f"🎯 {ticker}: 目標利益達成 (+{unrealized_pnl_pct:.1f}%)")
+                    signals.append({
+                        'ticker': ticker,
+                        'action': 'SELL',
+                        'confidence': 1.0,
+                        'price': current_price,
+                        'quantity': quantity,
+                        'strategy': 'Target Profit',
+                        'reason': f'目標利益達成 (+{unrealized_pnl_pct:.1f}%)'
+                    })
+                    continue
+                    
+            except Exception as e:
+                self.log(f"ポジション評価エラー ({ticker}): {e}", "WARNING")
+        
+        return signals
+    
     def execute_signals(self, signals: List[Dict]):
         """シグナルを実行"""
         if not signals:
