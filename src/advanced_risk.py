@@ -1,234 +1,187 @@
 """
-Advanced Risk Manager - VaR/CVaRを含む高度なリスク管理
-
-Value at Risk (VaR) と Conditional VaR (CVaR) を計算
+高度なリスク管理機能
+- ドローダウン保護
+- 市場急落時の緊急停止
+- 銘柄相関チェック
 """
-import numpy as np
 import pandas as pd
-from typing import Dict
-from scipy import stats
-import logging
+import numpy as np
+from typing import Tuple, List
+import yfinance as yf
+from src.data_loader import fetch_stock_data
 
 
 class AdvancedRiskManager:
     """高度なリスク管理クラス"""
     
-    def __init__(self, confidence_level: float = 0.95):
-        """
-        Args:
-            confidence_level: 信頼水準（デフォルト95%）
-        """
-        self.confidence_level = confidence_level
-        self.logger = logging.getLogger(__name__)
+    def __init__(self, config: dict):
+        self.config = config
+        self.max_daily_loss_pct = config.get("auto_trading", {}).get("max_daily_loss_pct", -3.0)
+        self.market_crash_threshold = config.get("auto_trading", {}).get("market_crash_threshold", -3.0)
+        self.max_correlation = config.get("auto_trading", {}).get("max_correlation", 0.7)
     
-    def calculate_var(self, returns: pd.Series, method: str = 'historical') -> float:
+    def check_drawdown_protection(self, paper_trader, logger) -> Tuple[bool, str, List[dict]]:
         """
-        VaR（Value at Risk）を計算
+        ドローダウン保護: 1日の最大損失を制限
         
-        Args:
-            returns: リターンの系列
-            method: 計算方法（'historical', 'parametric', 'monte_carlo'）
-            
         Returns:
-            VaR値（負の値）
+            (is_safe, reason, emergency_signals): 
+            - is_safe: 取引継続可能ならTrue
+            - reason: 理由
+            - emergency_signals: 緊急決済が必要な場合のシグナルリスト
         """
-        if returns.empty:
-            return 0.0
-        
-        if method == 'historical':
-            # 歴史的シミュレーション法
-            var = returns.quantile(1 - self.confidence_level)
+        try:
+            # 資産履歴から本日の損益を計算
+            equity_history = paper_trader.get_equity_history()
             
-        elif method == 'parametric':
-            # パラメトリック法（正規分布を仮定）
-            mean = returns.mean()
-            std = returns.std()
-            z_score = stats.norm.ppf(1 - self.confidence_level)
-            var = mean + z_score * std
+            if equity_history.empty or len(equity_history) < 2:
+                return True, "履歴不足（初日）", []
             
-        elif method == 'monte_carlo':
-            # モンテカルロシミュレーション
-            mean = returns.mean()
-            std = returns.std()
-            simulated = np.random.normal(mean, std, 10000)
-            var = np.percentile(simulated, (1 - self.confidence_level) * 100)
+            # 今日と昨日の資産を比較
+            today_equity = equity_history.iloc[-1]['total_equity']
+            yesterday_equity = equity_history.iloc[-2]['total_equity']
+            initial_capital = paper_trader.initial_capital
             
-        else:
-            var = returns.quantile(1 - self.confidence_level)
-        
-        return var
+            # 本日の損失率
+            daily_pnl = today_equity - yesterday_equity
+            daily_loss_pct = (daily_pnl / initial_capital) * 100
+            
+            logger(f"本日の損益: {daily_pnl:,.0f}円 ({daily_loss_pct:+.2f}%)")
+            
+            # 制限値チェック
+            if daily_loss_pct < self.max_daily_loss_pct:
+                logger(f"🚨 ドローダウン保護発動: {daily_loss_pct:.2f}% < {self.max_daily_loss_pct}%", "WARNING")
+                
+                # 全ポジション緊急決済
+                positions = paper_trader.get_positions()
+                emergency_signals = []
+                
+                if not positions.empty:
+                    for ticker in positions.index:
+                        pos = positions.loc[ticker]
+                        emergency_signals.append({
+                            'ticker': ticker,
+                            'action': 'SELL',
+                            'confidence': 1.0,
+                            'price': pos.get('current_price', 0),
+                            'quantity': pos.get('quantity', 0),
+                            'strategy': 'Drawdown Protection',
+                            'reason': f'緊急損切り（本日損失: {daily_loss_pct:.2f}%）'
+                        })
+                
+                return False, f"本日の損失が制限値を超過 ({daily_loss_pct:.2f}%)", emergency_signals
+            
+            return True, "ドローダウン保護: OK", []
+            
+        except Exception as e:
+            logger(f"ドローダウン保護チェックエラー: {e}", "WARNING")
+            return True, "チェックエラー（継続）", []
     
-    def calculate_cvar(self, returns: pd.Series) -> float:
+    def check_market_crash(self, logger) -> Tuple[bool, str]:
         """
-        CVaR（Conditional VaR / Expected Shortfall）を計算
+        市場急落時の緊急停止
+        日経平均またはS&P500が大幅下落している場合、新規BUYを停止
         
-        VaRを超える損失の期待値
+        Returns:
+            (allow_buy, reason): BUY可能ならTrue
+        """
+        try:
+            # 日経平均の当日変動率をチェック
+            nikkei = yf.Ticker("^N225")
+            nikkei_data = nikkei.history(period="5d")
+            
+            if not nikkei_data.empty and len(nikkei_data) >= 2:
+                today_close = nikkei_data['Close'].iloc[-1]
+                yesterday_close = nikkei_data['Close'].iloc[-2]
+                nikkei_change_pct = ((today_close - yesterday_close) / yesterday_close) * 100
+                
+                logger(f"日経平均変動率: {nikkei_change_pct:+.2f}%")
+                
+                if nikkei_change_pct < self.market_crash_threshold:
+                    return False, f"日経平均が急落中 ({nikkei_change_pct:.2f}%)"
+            
+            # S&P500の当日変動率をチェック
+            sp500 = yf.Ticker("^GSPC")
+            sp500_data = sp500.history(period="5d")
+            
+            if not sp500_data.empty and len(sp500_data) >= 2:
+                today_close = sp500_data['Close'].iloc[-1]
+                yesterday_close = sp500_data['Close'].iloc[-2]
+                sp500_change_pct = ((today_close - yesterday_close) / yesterday_close) * 100
+                
+                logger(f"S&P500変動率: {sp500_change_pct:+.2f}%")
+                
+                if sp500_change_pct < self.market_crash_threshold:
+                    return False, f"S&P500が急落中 ({sp500_change_pct:.2f}%)"
+            
+            return True, "市場環境: 正常"
+            
+        except Exception as e:
+            logger(f"市場急落チェックエラー: {e}", "WARNING")
+            # エラー時は保守的に取引を許可
+            return True, "市場チェックエラー（継続）"
+    
+    def check_correlation(self, new_ticker: str, existing_tickers: List[str], logger) -> Tuple[bool, str]:
+        """
+        銘柄相関チェック: 既存ポジションと相関が高すぎる銘柄を避ける
         
         Args:
-            returns: リターンの系列
-            
+            new_ticker: 新規購入候補の銘柄
+            existing_tickers: 既存保有銘柄のリスト
+            logger: ログ関数
+        
         Returns:
-            CVaR値（負の値）
+            (allow_buy, reason): 購入可能ならTrue
         """
-        if returns.empty:
-            return 0.0
+        if not existing_tickers:
+            return True, "既存ポジションなし"
         
-        var = self.calculate_var(returns, method='historical')
-        
-        # VaRを下回るリターンの平均
-        cvar = returns[returns <= var].mean()
-        
-        return cvar
-    
-    def calculate_portfolio_var(self, positions: pd.DataFrame, 
-                               returns_data: Dict[str, pd.Series],
-                               total_value: float) -> Dict:
-        """
-        ポートフォリオ全体のVaRを計算
-        
-        Args:
-            positions: ポジション情報
-            returns_data: 各銘柄のリターンデータ
-            total_value: ポートフォリオ総額
+        try:
+            # 新規銘柄と既存銘柄のデータを取得
+            all_tickers = [new_ticker] + existing_tickers
+            data_map = fetch_stock_data(all_tickers, period="3mo")
             
-        Returns:
-            VaR情報
-        """
-        if positions.empty:
-            return {'var': 0, 'cvar': 0, 'var_pct': 0, 'cvar_pct': 0}
-        
-        # ポートフォリオリターンを計算
-        portfolio_returns = pd.Series(0.0, index=list(returns_data.values())[0].index)
-        
-        for _, pos in positions.iterrows():
-            ticker = pos['ticker']
-            if ticker not in returns_data:
-                continue
+            if new_ticker not in data_map:
+                logger(f"  {new_ticker}: データ取得失敗（相関チェックスキップ）", "WARNING")
+                return True, "データ不足"
             
-            # ウェイト
-            weight = pos.get('market_value', 0) / total_value if total_value > 0 else 0
+            # 新規銘柄のリターンを計算
+            new_df = data_map[new_ticker]
+            if new_df.empty or len(new_df) < 20:
+                return True, "データ不足"
             
-            # 加重リターン
-            portfolio_returns += returns_data[ticker] * weight
-        
-        # VaRとCVaRを計算
-        var = self.calculate_var(portfolio_returns)
-        cvar = self.calculate_cvar(portfolio_returns)
-        
-        # 金額換算
-        var_amount = var * total_value
-        cvar_amount = cvar * total_value
-        
-        return {
-            'var': var_amount,
-            'cvar': cvar_amount,
-            'var_pct': var * 100,
-            'cvar_pct': cvar * 100,
-            'interpretation': self._interpret_var(var * 100)
-        }
-    
-    def _interpret_var(self, var_pct: float) -> str:
-        """
-        VaRの解釈を返す
-        
-        Args:
-            var_pct: VaR（%）
+            new_returns = new_df['Close'].pct_change().dropna()
             
-        Returns:
-            解釈文
-        """
-        if var_pct > -1:
-            return "🟢 非常に低リスク"
-        elif var_pct > -3:
-            return "🟡 低リスク"
-        elif var_pct > -5:
-            return "🟠 中リスク"
-        else:
-            return "🔴 高リスク"
-    
-    def stress_test(self, returns: pd.Series, 
-                   scenarios: Dict[str, float]) -> Dict:
-        """
-        ストレステスト - 極端なシナリオでの損失を推定
-        
-        Args:
-            returns: リターン系列
-            scenarios: シナリオ辞書 {"名前": 下落率}
+            # 既存銘柄との相関を計算
+            for existing_ticker in existing_tickers:
+                if existing_ticker not in data_map:
+                    continue
+                
+                existing_df = data_map[existing_ticker]
+                if existing_df.empty or len(existing_df) < 20:
+                    continue
+                
+                existing_returns = existing_df['Close'].pct_change().dropna()
+                
+                # 共通の日付でアライン
+                aligned = pd.concat([new_returns, existing_returns], axis=1, join='inner')
+                aligned.columns = ['new', 'existing']
+                
+                if len(aligned) < 20:
+                    continue
+                
+                # 相関係数を計算
+                correlation = aligned['new'].corr(aligned['existing'])
+                
+                logger(f"  相関チェック: {new_ticker} vs {existing_ticker} = {correlation:.2f}")
+                
+                # 相関が高すぎる場合は拒否
+                if abs(correlation) > self.max_correlation:
+                    return False, f"{existing_ticker}と相関が高すぎる ({correlation:.2f})"
             
-        Returns:
-            各シナリオでの損失
-        """
-        results = {}
-        
-        mean = returns.mean()
-        std = returns.std()
-        
-        for name, shock in scenarios.items():
-            # ショックを適用
-            stressed_return = mean + shock * std
-            results[name] = stressed_return
-        
-        return results
-    
-    def calculate_risk_parity_weights(self, returns_data: Dict[str, pd.Series]) -> Dict[str, float]:
-        """
-        リスクパリティウェイトを計算
-        
-        各資産のリスク寄与度を均等にする
-        
-        Args:
-            returns_data: 各銘柄のリターンデータ
+            return True, "相関チェック: OK"
             
-        Returns:
-            最適ウェイト
-        """
-        tickers = list(returns_data.keys())
-        
-        # 各銘柄のボラティリティ
-        volatilities = {t: returns_data[t].std() for t in tickers}
-        
-        # 逆ボラティリティウェイト（リスクパリティの簡易版）
-        total_inv_vol = sum(1/v for v in volatilities.values() if v > 0)
-        
-        weights = {}
-        for ticker, vol in volatilities.items():
-            if vol > 0:
-                weights[ticker] = (1/vol) / total_inv_vol
-            else:
-                weights[ticker] = 0
-        
-        return weights
-
-
-if __name__ == "__main__":
-    # テスト実行
-    logging.basicConfig(level=logging.INFO)
-    
-    # ダミーデータ
-    np.random.seed(42)
-    returns = pd.Series(np.random.randn(252) * 0.02)
-    
-    rm = AdvancedRiskManager(confidence_level=0.95)
-    
-    print("=== Advanced Risk Manager Test ===\n")
-    
-    # VaR計算
-    var = rm.calculate_var(returns, method='historical')
-    print(f"VaR (95%): {var*100:.2f}%")
-    
-    # CVaR計算
-    cvar = rm.calculate_cvar(returns)
-    print(f"CVaR (95%): {cvar*100:.2f}%")
-    print(f"解釈: {rm._interpret_var(var*100)}\n")
-    
-    # ストレステスト
-    scenarios = {
-        "軽度の調整": -1,      # -1標準偏差
-        "中程度の下落": -2,    # -2標準偏差
-        "市場暴落": -3         # -3標準偏差
-    }
-    
-    stress_results = rm.stress_test(returns, scenarios)
-    print("ストレステスト結果:")
-    for name, result in stress_results.items():
-        print(f"  {name}: {result*100:.2f}%")
+        except Exception as e:
+            logger(f"  相関チェックエラー ({new_ticker}): {e}", "WARNING")
+            # エラー時は保守的に許可
+            return True, "相関チェックエラー（継続）"
