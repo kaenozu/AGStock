@@ -1,51 +1,31 @@
-# AGStock 自動実行スケジューラー設定スクリプト
-# 管理者権限で実行してください
+# AGStock 自動起動タスク登録スクリプト
+# ※ 管理者権限で実行してください
 
-$scriptPath = $PSScriptRoot
-$pythonPath = (Get-Command python).Source
-$traderScript = Join-Path $scriptPath "fully_automated_trader.py"
+$TaskName = "AGStock_AutoTrader"
+$WorkDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ScriptPath = Join-Path $WorkDir "start_daemon.bat"
 
-Write-Host "=== AGStock 自動実行スケジューラー設定 ===" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "Python: $pythonPath"
-Write-Host "Script: $traderScript"
-Write-Host ""
+Write-Host "Setting up Task Scheduler for: $TaskName"
+Write-Host "Working Directory: $WorkDir"
+Write-Host "Script Path: $ScriptPath"
 
-# 日本市場用タスク (平日 16:00)
-$taskName1 = "AGStock_JP_Market"
-$action1 = New-ScheduledTaskAction -Execute $pythonPath -Argument $traderScript -WorkingDirectory $scriptPath
-$trigger1 = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Tuesday,Wednesday,Thursday,Friday -At "16:00"
-$settings1 = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+# アクション作成
+$Action = New-ScheduledTaskAction -Execute $ScriptPath -WorkingDirectory $WorkDir
 
+# トリガー作成（ログオン時）
+$Trigger = New-ScheduledTaskTrigger -AtLogOn
+
+# 設定作成（電源接続時のみ実行しない、など）
+$Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 0
+
+# タスク登録
 try {
-    Unregister-ScheduledTask -TaskName $taskName1 -Confirm:$false -ErrorAction SilentlyContinue
-    Register-ScheduledTask -TaskName $taskName1 -Action $action1 -Trigger $trigger1 -Settings $settings1 -Description "AGStock 日本市場クローズ後の自動取引 (16:00)"
-    Write-Host "✓ 日本市場タスク登録完了: 平日 16:00" -ForegroundColor Green
+    Register-ScheduledTask -Action $Action -Trigger $Trigger -Settings $Settings -TaskName $TaskName -Description "AGStock Automated Trading Daemon" -Force
+    Write-Host "✅ タスク登録成功！次回ログオン時に自動起動します。" -ForegroundColor Green
+    Write-Host "すぐに開始するには、以下のコマンドを実行してください："
+    Write-Host "Start-ScheduledTask -TaskName `"$TaskName`""
 } catch {
-    Write-Host "✗ 日本市場タスク登録失敗: $_" -ForegroundColor Red
+    Write-Host "❌ エラー: タスク登録に失敗しました。" -ForegroundColor Red
+    Write-Host "管理者権限でPowerShellを実行しているか確認してください。"
+    Write-Host $_.Exception.Message
 }
-
-# 米国市場用タスク (平日 07:00)
-$taskName2 = "AGStock_US_Market"
-$action2 = New-ScheduledTaskAction -Execute $pythonPath -Argument $traderScript -WorkingDirectory $scriptPath
-$trigger2 = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Tuesday,Wednesday,Thursday,Friday,Saturday -At "07:00"
-$settings2 = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
-
-try {
-    Unregister-ScheduledTask -TaskName $taskName2 -Confirm:$false -ErrorAction SilentlyContinue
-    Register-ScheduledTask -TaskName $taskName2 -Action $action2 -Trigger $trigger2 -Settings $settings2 -Description "AGStock 米国市場クローズ後の自動取引 (07:00)"
-    Write-Host "✓ 米国市場タスク登録完了: 火-土 07:00" -ForegroundColor Green
-} catch {
-    Write-Host "✗ 米国市場タスク登録失敗: $_" -ForegroundColor Red
-}
-
-Write-Host ""
-Write-Host "=== 設定完了 ===" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "確認方法: タスクスケジューラを開いて以下を確認してください"
-Write-Host "  - $taskName1"
-Write-Host "  - $taskName2"
-Write-Host ""
-Write-Host "手動テスト実行:"
-Write-Host "  Start-ScheduledTask -TaskName '$taskName1'" -ForegroundColor Yellow
-Write-Host ""
