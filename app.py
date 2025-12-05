@@ -638,18 +638,49 @@ def show_settings_page():
     # 通知設定
     st.subheader("🔔 通知設定")
     
-    enable_line = st.checkbox("LINE通知を受け取る", value=False)
+    # 現在の設定を読み込む
+    import json
+    config_path = "config.json"
+    current_config = {}
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            current_config = json.load(f)
+    except FileNotFoundError:
+        pass
+        
+    notifications = current_config.get("notifications", {})
+    line_config = notifications.get("line", {})
     
-    if enable_line:
-        st.text_input("LINEトークン", type="password")
-        st.caption("トークンの取得方法: https://notify-bot.line.me/")
+    enable_line = st.checkbox("LINE通知を受け取る", value=line_config.get("enabled", False))
+    
+    line_token = st.text_input(
+        "LINEトークン", 
+        value=line_config.get("token", ""), 
+        type="password",
+        disabled=not enable_line
+    )
+    st.caption("トークンの取得方法: https://notify-bot.line.me/")
     
     st.markdown("---")
     
     # 保存ボタン
     if st.button("💾 設定を保存", type="primary", use_container_width=True):
-        st.success("✅ 設定を保存しました！")
-        st.balloons()
+        # 設定更新
+        if "notifications" not in current_config:
+            current_config["notifications"] = {}
+            
+        current_config["notifications"]["line"] = {
+            "enabled": enable_line,
+            "token": line_token
+        }
+        
+        try:
+            with open(config_path, "w", encoding="utf-8") as f:
+                json.dump(current_config, f, indent=4, ensure_ascii=False)
+            st.success("✅ 設定を保存しました！")
+            st.balloons()
+        except Exception as e:
+            st.error(f"保存エラー: {e}")
 
 
 def show_auto_trader_page():

@@ -69,19 +69,22 @@ class ExecutionEngine:
         
         return shares
 
-    def execute_orders(self, signals: List[Dict], prices: Dict[str, float]):
+    def execute_orders(self, signals: List[Dict], prices: Dict[str, float]) -> List[Dict]:
         """
         Executes a list of trade signals.
-        signals: List of dicts {'ticker': str, 'action': 'BUY'/'SELL', 'confidence': float}
+        Returns a list of executed trades.
         """
+        executed_trades = []
+        
         if not self.check_risk():
-            return
+            return executed_trades
             
         for signal in signals:
             ticker = signal['ticker']
             action = signal['action']
             confidence = signal.get('confidence', 1.0)
             price = prices.get(ticker)
+            reason = signal.get('reason', 'Auto-Trade')
             
             if not price:
                 print(f"Skipping {ticker}: No price data.")
@@ -101,11 +104,17 @@ class ExecutionEngine:
                         if success:
                             # PaperTraderにも記録して同期
                             self.pt.execute_trade(ticker, "BUY", qty, price, reason=f"Real Trade Sync (Conf: {confidence:.2f})")
+                            executed_trades.append({
+                                'ticker': ticker, 'action': 'BUY', 'quantity': qty, 'price': price, 'reason': reason
+                            })
                     else:
                         # ペーパートレード
-                        success = self.pt.execute_trade(ticker, "BUY", qty, price, reason=f"Auto-Trade (Conf: {confidence:.2f})")
+                        success = self.pt.execute_trade(ticker, "BUY", qty, price, reason=f"{reason} (Conf: {confidence:.2f})")
                         if success:
                             print(f"EXECUTED: BUY {qty} {ticker} @ {price}")
+                            executed_trades.append({
+                                'ticker': ticker, 'action': 'BUY', 'quantity': qty, 'price': price, 'reason': reason
+                            })
                         else:
                             print(f"FAILED: BUY {ticker} (Insufficient funds?)")
             
@@ -119,10 +128,14 @@ class ExecutionEngine:
                     if self.real_broker:
                         print(f"🚀 REAL TRADE: SELL {qty} {ticker} @ {price}")
                         # sell_orderはまだ実装していないが、buy_orderと同様のインターフェースを想定
-                        # success = self.real_broker.sell_order(ticker, qty, price, order_type="指値")
                         print("⚠️ 実取引の売り注文は未実装のためスキップします（安全のため）")
                         success = False 
                     else:
-                        success = self.pt.execute_trade(ticker, "SELL", qty, price, reason="Auto-Trade Exit")
+                        success = self.pt.execute_trade(ticker, "SELL", qty, price, reason=reason)
                         if success:
                             print(f"EXECUTED: SELL {qty} {ticker} @ {price}")
+                            executed_trades.append({
+                                'ticker': ticker, 'action': 'SELL', 'quantity': qty, 'price': price, 'reason': reason
+                            })
+                            
+        return executed_trades
