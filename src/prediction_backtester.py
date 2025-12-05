@@ -116,6 +116,12 @@ class PredictionBacktester:
             # 精度指標の計算
             metrics = self._calculate_metrics(predictions)
             
+            # 株価データを辞書リストに変換
+            historical_prices = df[['Open', 'High', 'Low', 'Close']].reset_index()
+            historical_prices.columns = ['date', 'open', 'high', 'low', 'close']
+            historical_prices['date'] = historical_prices['date'].dt.strftime('%Y-%m-%d')
+            historical_data = historical_prices.to_dict('records')
+
             return {
                 "ticker": ticker,
                 "start_date": start_date,
@@ -123,7 +129,8 @@ class PredictionBacktester:
                 "prediction_days": prediction_days,
                 "total_predictions": len(predictions),
                 "predictions": predictions,
-                "metrics": metrics
+                "metrics": metrics,
+                "historical_data": historical_data
             }
             
         except Exception as e:
