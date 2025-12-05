@@ -764,7 +764,20 @@ class FullyAutomatedTrader:
         prices = {s['ticker']: s['price'] for s in signals}
         
         # 注文実行
-        self.engine.execute_orders(signals, prices)
+        executed_trades = self.engine.execute_orders(signals, prices)
+        
+        # 通知送信
+        for trade in executed_trades:
+            emoji = "🚀" if trade['action'] == "BUY" else "💰"
+            msg = (
+                f"\n{emoji} {trade['action']} Executed!\n"
+                f"銘柄: {trade['ticker']}\n"
+                f"価格: ¥{trade['price']:,.0f}\n"
+                f"数量: {trade['quantity']}株\n"
+                f"理由: {trade['reason']}"
+            )
+            self.notifier.send_line_notify(msg)
+            self.log(f"通知送信完了: {trade['ticker']} {trade['action']}")
     
     def send_daily_report(self):
         """日次レポートを送信"""
