@@ -524,8 +524,8 @@ class FullyAutomatedTrader:
                             if "error" not in future_result:
                                 predicted_change_pct = future_result['change_pct']
                                 
-                                # 5日後に+2%以上の上昇が見込めない場合はスキップ
-                                if predicted_change_pct < 2.0:
+                                # 5日後に+0.5%以上の上昇が見込めない場合はスキップ（閾値を緩和）
+                                if predicted_change_pct < 0.5:
                                     self.log(f"  {ticker}: 中期予測が弱い({predicted_change_pct:+.1f}%)ためスキップ")
                                     continue
                                 else:
