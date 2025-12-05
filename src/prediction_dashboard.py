@@ -98,36 +98,63 @@ def create_prediction_analysis_dashboard():
         
         predictions_df = pd.DataFrame(result['predictions'])
         
-        # 1. 予測 vs 実際の変動率
-        fig1 = go.Figure()
+        # 1. 予測 vs 実際の変動率 (ローソク足チャート + 予測ポイント)
+        st.markdown("### 🕯️ 株価チャートと予測ポイント")
         
-        fig1.add_trace(go.Scatter(
-            x=predictions_df['date'],
-            y=predictions_df['predicted_change_pct'],
-            mode='lines+markers',
-            name='予測変動率',
-            line=dict(color='blue', width=2)
-        ))
-        
-        fig1.add_trace(go.Scatter(
-            x=predictions_df['date'],
-            y=predictions_df['actual_change_pct'],
-            mode='lines+markers',
-            name='実際の変動率',
-            line=dict(color='green', width=2)
-        ))
-        
-        fig1.update_layout(
-            title="予測変動率 vs 実際の変動率",
-            xaxis_title="日付",
-            yaxis_title="変動率 (%)",
-            hovermode='x unified',
-            height=400
-        )
-        
-        st.plotly_chart(fig1, use_container_width=True)
-        
+        hist_df = pd.DataFrame(result.get('historical_data', []))
+        if not hist_df.empty:
+            hist_df['date'] = pd.to_datetime(hist_df['date'])
+            
+            # ローソク足
+            fig1 = go.Figure(data=[go.Candlestick(
+                x=hist_df['date'],
+                open=hist_df['open'],
+                high=hist_df['high'],
+                low=hist_df['low'],
+                close=hist_df['close'],
+                name='株価'
+            )])
+            
+            # 予測ポイント（成功/失敗で色分け）
+            correct_preds = predictions_df[predictions_df['predicted_trend'] == predictions_df['actual_trend']]
+            wrong_preds = predictions_df[predictions_df['predicted_trend'] != predictions_df['actual_trend']]
+            
+            # 予測価格のプロット（予測日の5日後などにプロットするのが正確だが、ここでは予測実行日にプロットし、矢印などで示すのが理想。
+            # 簡易的に、予測実行日の価格に予測変動率を加味した点をプロットする）
+            
+            # 正解（緑）
+            fig1.add_trace(go.Scatter(
+                x=pd.to_datetime(correct_preds['date']),
+                y=correct_preds['predicted_price'],
+                mode='markers',
+                marker=dict(color='green', size=10, symbol='triangle-up'),
+                name='予測成功'
+            ))
+            
+            # 不正解（赤）
+            fig1.add_trace(go.Scatter(
+                x=pd.to_datetime(wrong_preds['date']),
+                y=wrong_preds['predicted_price'],
+                mode='markers',
+                marker=dict(color='red', size=10, symbol='x'),
+                name='予測失敗'
+            ))
+            
+            fig1.update_layout(
+                title=f"{result['ticker']} 株価と予測精度",
+                xaxis_title="日付",
+                yaxis_title="価格 (円)",
+                xaxis_rangeslider_visible=False,
+                height=500,
+                hovermode='x unified'
+            )
+            
+            st.plotly_chart(fig1, use_container_width=True)
+        else:
+            st.warning("株価データの描画に失敗しました")
+            
         # 2. 誤差の分布
+        st.markdown("### 📊 予測誤差の分布")
         fig2 = go.Figure()
         
         errors = predictions_df['predicted_change_pct'] - predictions_df['actual_change_pct']
@@ -136,14 +163,15 @@ def create_prediction_analysis_dashboard():
             x=errors,
             nbinsx=30,
             name='誤差分布',
-            marker_color='lightblue'
+            marker_color='lightblue',
+            opacity=0.75
         ))
         
         fig2.update_layout(
-            title="予測誤差の分布",
             xaxis_title="誤差 (%)",
             yaxis_title="頻度",
-            height=300
+            height=300,
+            margin=dict(l=20, r=20, t=30, b=20)
         )
         
         st.plotly_chart(fig2, use_container_width=True)
