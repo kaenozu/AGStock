@@ -12,6 +12,8 @@ from src.paper_trader import PaperTrader
 from src.formatters import format_currency
 from src.dashboard_utils import check_and_execute_missed_trades
 from src.auto_trader_ui import create_auto_trader_ui
+from src.performance_dashboard import create_performance_dashboard
+from src.prediction_dashboard import create_prediction_analysis_dashboard
 
 # ページ設定
 st.set_page_config(
@@ -160,7 +162,7 @@ def show_main_dashboard():
             </style>
             """, unsafe_allow_html=True)
             time.sleep(3)
-            st.rerun() # 処理中は自動更新
+            st.experimental_rerun() # 処理中は自動更新
         else:
             st.markdown('<div class="status-ok">✅ システム正常稼働中</div>', unsafe_allow_html=True)
     
@@ -386,27 +388,73 @@ def show_main_dashboard():
                 card_class = "stock-loss"
                 emoji = "🔴"
             
-            st.markdown(f"""
-            <div class="stock-item {card_class}">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <div style="font-size: 1.3rem; font-weight: bold;">{emoji} {company_name}</div>
-                        <div style="color: #888; font-size: 0.9rem; margin-top: 0.2rem;">{ticker}</div>
-                        <div style="color: #666; margin-top: 0.5rem;">{quantity}株 | 現在価格: {format_currency(current_price)}</div>
-                        <div style="color: #888; font-size: 0.85rem; margin-top: 0.3rem;">購入日: {formatted_date} | 購入価格: {format_currency(entry_price)}</div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 0.9rem; color: #555; margin-bottom: 0.2rem;">評価損益</div>
-                        <div style="font-size: 1.5rem; font-weight: bold;">
-                            {format_currency(unrealized_pnl, show_sign=True)}
+            # AI予測ボタン
+            col_info, col_pred = st.columns([3, 1])
+            
+            with col_info:
+                st.markdown(f"""
+                <div class="stock-item {card_class}">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 1.3rem; font-weight: bold;">{emoji} {company_name}</div>
+                            <div style="color: #888; font-size: 0.9rem; margin-top: 0.2rem;">{ticker}</div>
+                            <div style="color: #666; margin-top: 0.5rem;">{quantity}株 | 現在価格: {format_currency(current_price)}</div>
+                            <div style="color: #888; font-size: 0.85rem; margin-top: 0.3rem;">購入日: {formatted_date} | 購入価格: {format_currency(entry_price)}</div>
                         </div>
-                        <div style="font-size: 1.2rem; margin-top: 0.3rem;">
-                            ({unrealized_pnl_pct:+.1f}%)
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.9rem; color: #555; margin-bottom: 0.2rem;">評価損益</div>
+                            <div style="font-size: 1.5rem; font-weight: bold;">
+                                {format_currency(unrealized_pnl, show_sign=True)}
+                            </div>
+                            <div style="font-size: 1.2rem; margin-top: 0.3rem;">
+                                ({unrealized_pnl_pct:+.1f}%)
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
+            
+            with col_pred:
+                if st.button(f"🔮 未来予測\n({ticker})", key=f"pred_{ticker}", use_container_width=True):
+                    with st.spinner("AIが未来を計算中..."):
+                        try:
+                            from src.ensemble_predictor import EnsemblePredictor
+                            from src.data_loader import fetch_stock_data
+                            
+                            # データ取得
+                            data_map = fetch_stock_data([ticker], period="2y")
+                            df = data_map.get(ticker)
+                            
+                            predictor = EnsemblePredictor()
+                            result = predictor.predict_trajectory(df, days_ahead=5)
+                            
+                            if "error" in result:
+                                st.error(f"予測エラー: {result['error']}")
+                            else:
+                                trend = result['trend']
+                                peak_day = result['peak_day']
+                                peak_price = result['peak_price']
+                                change_pct = result['change_pct']
+                                
+                                trend_emoji = "📈" if trend == "UP" else "📉" if trend == "DOWN" else "➡️"
+                                trend_text = "上昇トレンド" if trend == "UP" else "下落トレンド" if trend == "DOWN" else "横ばい"
+                                
+                                st.success(f"予測完了: {ticker}")
+                                
+                                st.markdown(f"""
+                                <div style="background: #f0f9ff; padding: 10px; border-radius: 8px; border: 1px solid #bae6fd; font-size: 0.9rem;">
+                                    <div style="font-weight: bold; color: #0369a1; margin-bottom: 5px;">🤖 AI未来予測 (5日間)</div>
+                                    <div>方向感: <strong>{trend_emoji} {trend_text}</strong></div>
+                                    <div>予想変動: <strong>{change_pct:+.1f}%</strong></div>
+                                    <div style="margin-top: 5px; font-size: 0.85rem; color: #666;">
+                                        ピーク予想: {peak_day}日後<br>
+                                        (@ {format_currency(peak_price)})
+                                    </div>
+                                </div>
+                                """, unsafe_allow_html=True)
+                                
+                        except Exception as e:
+                            st.error(f"エラー: {e}")
     
     st.markdown("---")
     
@@ -430,7 +478,7 @@ def show_main_dashboard():
                         st.success("✅ 取引完了！ページを更新して結果を確認してください。")
                         st.balloons()
                         time.sleep(2)
-                        st.rerun()
+                        st.experimental_rerun()
                     else:
                         st.error(f"❌ エラーが発生しました: {result.stderr}")
                 except subprocess.TimeoutExpired:
@@ -441,19 +489,29 @@ def show_main_dashboard():
     with col2:
         if st.button("🤖 フルオートシステム", use_container_width=True):
             st.session_state.page = "auto_trader"
-            st.rerun()
+            st.experimental_rerun()
             
-    col3, col4 = st.columns(2)
+    col3, col4, col5, col6 = st.columns(4)
     
     with col3:
         if st.button("📈 詳細を見る", use_container_width=True):
             st.session_state.page = "detail"
-            st.rerun()
+            st.experimental_rerun()
     
     with col4:
+        if st.button("📊 パフォーマンス", use_container_width=True):
+            st.session_state.page = "performance"
+            st.experimental_rerun()
+    
+    with col5:
+        if st.button("🎯 予測精度", use_container_width=True):
+            st.session_state.page = "prediction_analysis"
+            st.experimental_rerun()
+            
+    with col6:
         if st.button("⚙️ 設定", use_container_width=True):
             st.session_state.page = "settings"
-            st.rerun()
+            st.experimental_rerun()
 
 def show_detail_page():
     """詳細ページ"""
@@ -580,27 +638,66 @@ def show_settings_page():
     # 通知設定
     st.subheader("🔔 通知設定")
     
-    enable_line = st.checkbox("LINE通知を受け取る", value=False)
+    # 現在の設定を読み込む
+    import json
+    config_path = "config.json"
+    current_config = {}
+    try:
+        with open(config_path, "r", encoding="utf-8") as f:
+            current_config = json.load(f)
+    except FileNotFoundError:
+        pass
+        
+    notifications = current_config.get("notifications", {})
+    line_config = notifications.get("line", {})
     
-    if enable_line:
-        st.text_input("LINEトークン", type="password")
-        st.caption("トークンの取得方法: https://notify-bot.line.me/")
+    enable_line = st.checkbox("LINE通知を受け取る", value=line_config.get("enabled", False))
+    
+    line_token = st.text_input(
+        "LINEトークン", 
+        value=line_config.get("token", ""), 
+        type="password",
+        disabled=not enable_line
+    )
+    st.caption("トークンの取得方法: https://notify-bot.line.me/")
     
     st.markdown("---")
     
     # 保存ボタン
     if st.button("💾 設定を保存", type="primary", use_container_width=True):
-        st.success("✅ 設定を保存しました！")
-        st.balloons()
+        # 設定更新
+        if "notifications" not in current_config:
+            current_config["notifications"] = {}
+            
+        current_config["notifications"]["line"] = {
+            "enabled": enable_line,
+            "token": line_token
+        }
+        
+        try:
+            with open(config_path, "w", encoding="utf-8") as f:
+                json.dump(current_config, f, indent=4, ensure_ascii=False)
+            st.success("✅ 設定を保存しました！")
+            st.balloons()
+        except Exception as e:
+            st.error(f"保存エラー: {e}")
 
 
 def show_auto_trader_page():
     """フルオート取引システムページ"""
     if st.button("← 戻る"):
         st.session_state.page = "main"
-        st.rerun()
+        st.experimental_rerun()
         
     create_auto_trader_ui()
+
+def show_performance_page():
+    """パフォーマンス分析ページ"""
+    if st.button("← 戻る"):
+        st.session_state.page = "main"
+        st.experimental_rerun()
+    
+    create_performance_dashboard()
 
 def main():
     """メイン処理"""
@@ -610,7 +707,7 @@ def main():
         st.session_state.page = "main"
     
     # 起動時の自動取引チェック
-    check_and_execute_missed_trades()
+    # check_and_execute_missed_trades()
     
     # ページ表示
     if st.session_state.page == "main":
@@ -621,6 +718,18 @@ def main():
         show_settings_page()
     elif st.session_state.page == "auto_trader":
         show_auto_trader_page()
+    elif st.session_state.page == "performance":
+        show_performance_page()
+    elif st.session_state.page == "prediction_analysis":
+        show_prediction_analysis_page()
+
+def show_prediction_analysis_page():
+    """予測精度分析ページ"""
+    if st.button("← 戻る"):
+        st.session_state.page = "main"
+        st.experimental_rerun()
+    
+    create_prediction_analysis_dashboard()
 
 if __name__ == "__main__":
     main()

@@ -133,11 +133,16 @@ def fetch_stock_data(
         
         if not cached_df.empty:
             latest_date = cached_df.index[-1]
-            if latest_date >= datetime.now() - timedelta(days=2):
+            # データが新鮮で、かつ十分な量があるかチェック
+            is_fresh = latest_date >= datetime.now() - timedelta(days=2)
+            has_enough_data = len(cached_df) > 50  # 少なくとも50件はあるべき
+            
+            if is_fresh and has_enough_data:
                 result[ticker] = cached_df
             else:
                 need_download.append(ticker)
-                result[ticker] = cached_df  # Keep cached data as fallback
+                # フォールバックとして保持するが、ダウンロード成功時に上書きされる
+                result[ticker] = cached_df
         else:
             need_download.append(ticker)
     
@@ -145,12 +150,15 @@ def fetch_stock_data(
     if need_download:
         try:
             logger.info(f"Downloading data for {len(need_download)} tickers: {need_download}")
+            # キャッシュを回避するために ignore_tz=True などを検討したが、まずはログ出力
             raw = yf.download(need_download, period=period, group_by='ticker', auto_adjust=True, threads=True)
             
             if not raw.empty:
+                logger.info(f"Downloaded raw data shape: {raw.shape}")
                 processed = process_downloaded_data(raw, need_download)
                 
                 for ticker, df in processed.items():
+                    logger.info(f"Processed {ticker}: {len(df)} rows")
                     if not df.empty:
                         db.save_data(df, ticker)
                         result[ticker] = db.load_data(ticker, start_date=start_date)
