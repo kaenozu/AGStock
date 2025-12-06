@@ -129,6 +129,7 @@ class TestPhase30FullIntegration(unittest.TestCase):
             'Volume': 1000000
         }, index=dates)
         
+        # fully_automated_trader モジュール内の fetch_stock_data をパッチ
         with patch('fully_automated_trader.fetch_stock_data', return_value={"7203.T": df_up}):
             # Run evaluate_positions
             self.trader.evaluate_positions()
@@ -184,7 +185,7 @@ class TestPhase30FullIntegration(unittest.TestCase):
             print(f"Actions generated: {actions}")
             self.assertTrue(len(actions) > 0)
             self.assertEqual(actions[0]['action'], 'SELL')
-            self.assertIn('Trailing Stop', actions[0]['reason'])
+            self.assertIn('Stop Loss Hit', actions[0]['reason'])
 
 if __name__ == '__main__':
     unittest.main()

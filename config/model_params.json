@@ -1,17 +1,17 @@
 {
     "random_forest": {
-        "n_estimators": 175,
-        "max_depth": 10,
-        "min_samples_split": 5
+        "n_estimators": 122,
+        "max_depth": 7,
+        "min_samples_split": 8
     },
     "lightgbm": {
-        "lambda_l1": 0.000946604982475306,
-        "lambda_l2": 2.093020509728325e-06,
-        "num_leaves": 11,
-        "feature_fraction": 0.9062405951224679,
-        "bagging_fraction": 0.8348834923943623,
-        "bagging_freq": 4,
-        "min_child_samples": 88
+        "lambda_l1": 0.003038470791524662,
+        "lambda_l2": 1.180682210724e-06,
+        "num_leaves": 239,
+        "feature_fraction": 0.9382462446524139,
+        "bagging_fraction": 0.48177861771331953,
+        "bagging_freq": 3,
+        "min_child_samples": 32
     },
     "transformer": {
         "hidden_size": 32,

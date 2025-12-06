@@ -2,11 +2,12 @@ import pandas as pd
 import numpy as np
 import time
 import logging
+import json
 from datetime import datetime
 from typing import Dict, List, Any, Optional
+from pathlib import Path
 
 from src.strategies import Strategy, Order, OrderType
-from src.cloud_storage import CloudStorageManager
 from src.broker import Broker, Position as BrokerPosition
 
 # Configure logging
@@ -20,7 +21,7 @@ class PaperBroker(Broker):
     """
     Simulates a brokerage account for paper trading.
     Manages cash, positions, and order execution.
-    Persists state to a JSON file.
+    Persists state to a JSON file (local storage).
     """
     def __init__(self, initial_capital: float = 100_000.0, state_file: str = "paper_trading_state.json"):
         self.initial_capital = initial_capital
@@ -28,15 +29,16 @@ class PaperBroker(Broker):
         self.cash = initial_capital
         self.positions: Dict[str, Position] = {}
         self.trade_history: List[Dict[str, Any]] = []
-        self.orders: List[Dict[str, Any]] = [] # Active orders (limit/stop) - for now simplified to immediate execution or tracking
-        self.storage = CloudStorageManager()
+        self.orders: List[Dict[str, Any]] = []
         
         self.load_state()
 
     def load_state(self):
-        data = self.storage.load_json(self.state_file)
-        if data:
+        if Path(self.state_file).exists():
             try:
+                with open(self.state_file, 'r') as f:
+                    data = json.load(f)
+                    
                 self.cash = data.get("cash", self.initial_capital)
                 self.trade_history = data.get("trade_history", [])
                 positions_data = data.get("positions", {})
@@ -57,7 +59,8 @@ class PaperBroker(Broker):
                 "trade_history": self.trade_history,
                 "last_updated": datetime.now().isoformat()
             }
-            self.storage.save_json(data, self.state_file)
+            with open(self.state_file, 'w') as f:
+                json.dump(data, f, indent=2)
         except Exception as e:
             logger.error(f"Failed to save state: {e}")
     
