@@ -1,0 +1,238 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-7.4.2, pluggy-1.6.0 -- C:\Users\neoen\AppData\Local\Programs\Python\Python311\python.exe
+cachedir: .pytest_cache
+benchmark: 5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: C:\gemini-desktop\AGStock
+configfile: pytest.ini
+plugins: anyio-4.9.0, dash-3.1.1, Faker-37.5.3, logfire-4.0.0, asyncio-0.23.7, benchmark-5.1.0, cov-4.1.0, mock-3.14.1, timeout-2.4.0, xdist-3.8.0, requests-mock-1.12.1, respx-0.22.0, typeguard-4.4.4
+asyncio: mode=Mode.STRICT
+collecting ... collected 38 items
+
+tests/test_backup_manager.py::TestBackupManager::test_initialization PASSED [  2%]
+tests/test_backup_manager.py::TestBackupManager::test_auto_backup_success PASSED [  5%]
+tests/test_backup_manager.py::TestBackupManager::test_auto_backup_creates_valid_db PASSED [  7%]
+tests/test_backup_manager.py::TestBackupManager::test_auto_backup_nonexistent_source PASSED [ 10%]
+tests/test_backup_manager.py::TestBackupManager::test_list_backups FAILED [ 13%]
+tests/test_backup_manager.py::TestBackupManager::test_cleanup_old_backups PASSED [ 15%]
+tests/test_backup_manager.py::TestBackupManager::test_restore_backup_success PASSED [ 18%]
+tests/test_backup_manager.py::TestBackupManager::test_restore_backup_without_confirmation PASSED [ 21%]
+tests/test_backup_manager.py::TestBackupManager::test_restore_backup_nonexistent_file PASSED [ 23%]
+tests/test_backup_manager.py::TestBackupManager::test_get_latest_backup PASSED [ 26%]
+tests/test_logging_config.py::test_json_formatter_basic PASSED           [ 28%]
+tests/test_logging_config.py::test_json_formatter_with_user_id PASSED    [ 31%]
+tests/test_logging_config.py::test_json_formatter_with_request_id PASSED [ 34%]
+tests/test_logging_config.py::test_json_formatter_with_exception PASSED  [ 36%]
+tests/test_logging_config.py::test_setup_logging_creates_directory PASSED [ 39%]
+tests/test_logging_config.py::test_setup_logging_returns_logger PASSED   [ 42%]
+tests/test_logging_config.py::test_setup_logging_log_level PASSED        [ 44%]
+tests/test_logging_config.py::test_get_logger PASSED                     [ 47%]
+tests/test_logging_config.py::test_get_logger_different_names PASSED     [ 50%]
+tests/test_fully_automated_trader.py::TestFullyAutomatedTrader::test_initialization PASSED [ 52%]
+tests/test_fully_automated_trader.py::TestFullyAutomatedTrader::test_calculate_daily_pnl FAILED [ 55%]
+tests/test_fully_automated_trader.py::TestFullyAutomatedTrader::test_is_safe_to_trade_daily_loss_limit PASSED [ 57%]
+tests/test_fully_automated_trader.py::TestFullyAutomatedTrader::test_is_safe_to_trade_vix_check PASSED [ 60%]
+tests/test_fully_automated_trader.py::TestFullyAutomatedTrader::test_get_target_tickers PASSED [ 63%]
+tests/test_fully_automated_trader.py::TestFullyAutomatedTrader::test_filter_by_market_cap PASSED [ 65%]
+tests/test_fully_automated_trader.py::TestFullyAutomatedTrader::test_fetch_data_with_retry_success PASSED [ 68%]
+tests/test_fully_automated_trader.py::TestFullyAutomatedTrader::test_fetch_data_with_retry_failure PASSED [ 71%]
+tests/test_fully_automated_trader.py::TestFullyAutomatedTrader::test_emergency_stop PASSED [ 73%]
+tests/test_phase30_full_integration.py::TestPhase30FullIntegration::test_dynamic_stop_update FAILED [ 76%]
+tests/test_phase30_full_integration.py::TestPhase30FullIntegration::test_kelly_position_sizing_integration PASSED [ 78%]
+tests/test_strategies_base.py::test_order_dataclass PASSED               [ 81%]
+tests/test_strategies_base.py::test_strategy_init PASSED                 [ 84%]
+tests/test_strategies_base.py::test_apply_trend_filter PASSED            [ 86%]
+tests/test_strategies_base.py::test_apply_trend_filter_disabled PASSED   [ 89%]
+tests/test_strategies_base.py::test_generate_signals_not_implemented PASSED [ 92%]
+tests/test_strategies_base.py::test_analyze PASSED                       [ 94%]
+tests/test_strategies_base.py::test_analyze_empty PASSED                 [ 97%]
+tests/test_strategies_base.py::test_get_signal_explanation PASSED        [100%]
+
+================================== FAILURES ===================================
+_____________________ TestBackupManager.test_list_backups _____________________
+tests\test_backup_manager.py:96: in test_list_backups
+    assert len(backups) == 2
+E   AssertionError: assert 1 == 2
+E    +  where 1 = len([{'created': datetime.datetime(2025, 12, 5, 14, 3, 13, 796576), 'filename': 'paper_trading_20251205_140313.db', 'path': 'C:\\Users\\neoen\\AppData\\Local\\Temp\\tmph4315h4i\\paper_trading_20251205_140313.db', 'size_mb': 0.0078125}])
+---------------------------- Captured stderr call -----------------------------
+2025-12-05 14:03:13,803 - src.backup_manager - INFO - Backup created successfully: C:\Users\neoen\AppData\Local\Temp\tmph4315h4i\paper_trading_20251205_140313.db
+2025-12-05 14:03:13,906 - src.backup_manager - INFO - Backup created successfully: C:\Users\neoen\AppData\Local\Temp\tmph4315h4i\paper_trading_20251205_140313.db
+------------------------------ Captured log call ------------------------------
+INFO     src.backup_manager:backup_manager.py:63 Backup created successfully: C:\Users\neoen\AppData\Local\Temp\tmph4315h4i\paper_trading_20251205_140313.db
+INFO     src.backup_manager:backup_manager.py:63 Backup created successfully: C:\Users\neoen\AppData\Local\Temp\tmph4315h4i\paper_trading_20251205_140313.db
+______________ TestFullyAutomatedTrader.test_calculate_daily_pnl ______________
+tests\test_fully_automated_trader.py:70: in test_calculate_daily_pnl
+    with patch('src.fully_automated_trader.datetime') as mock_datetime:
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1411: in __enter__
+    self.target = self.getter()
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\pkgutil.py:715: in resolve_name
+    result = getattr(result, p)
+E   AttributeError: module 'src' has no attribute 'fully_automated_trader'
+---------------------------- Captured stdout setup ----------------------------
+[2025-12-05 14:03:14] [INFO] Phase 30-1 & 30-3: リアルタイム適応学習・高度リスク管理モジュール初期化完了
+[2025-12-05 14:03:14] [INFO] フル自動トレーダー初期化完了
+_____________ TestPhase30FullIntegration.test_dynamic_stop_update _____________
+tests\test_phase30_full_integration.py:134: in test_dynamic_stop_update
+    with patch('src.fully_automated_trader.fetch_stock_data', return_value={"7203.T": df_up}):
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1411: in __enter__
+    self.target = self.getter()
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\pkgutil.py:715: in resolve_name
+    result = getattr(result, p)
+E   AttributeError: module 'src' has no attribute 'fully_automated_trader'
+---------------------------- Captured stdout call -----------------------------
+[2025-12-05 14:03:18] [INFO] Phase 30-1 & 30-3: \u30ea\u30a2\u30eb\u30bf\u30a4\u30e0\u9069\u5fdc\u5b66\u7fd2\u30fb\u9ad8\u5ea6\u30ea\u30b9\u30af\u7ba1\u7406\u30e2\u30b8\u30e5\u30fc\u30eb\u521d\u671f\u5316\u5b8c\u4e86\n[2025-12-05 14:03:18] [INFO] \u30d5\u30eb\u81ea\u52d5\u30c8\u30ec\u30fc\u30c0\u30fc\u521d\u671f\u5316\u5b8c\u4e86\n\nTesting Dynamic Stop Update...\n\u2705 BUY Executed: 7203.T x 100 @ 1000.0
+============================== warnings summary ===============================
+..\..\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\elements\image.py:22
+  C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\elements\image.py:22: DeprecationWarning: 'imghdr' is deprecated and slated for removal in Python 3.13
+    import imghdr
+
+tests/test_phase30_full_integration.py::TestPhase30FullIntegration::test_kelly_position_sizing_integration
+tests/test_phase30_full_integration.py::TestPhase30FullIntegration::test_kelly_position_sizing_integration
+  C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\tensorflow\lite\python\util.py:51: DeprecationWarning: jax.xla_computation is deprecated. Please use the AOT APIs.
+    from jax import xla_computation as _xla_computation
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+---------- coverage: platform win32, python 3.11.0-final-0 -----------
+Name                                     Stmts   Miss  Cover   Missing
+----------------------------------------------------------------------
+src\advanced_backtest.py                   101    101     0%   6-282
+src\advanced_features.py                   124    124     0%   10-349
+src\advanced_models.py                      41     41     0%   7-93
+src\advanced_risk.py                        89     89     0%   6-234
+src\agents.py                              173    173     0%   1-251
+src\ai_analyst.py                           46     46     0%   5-97
+src\alert_manager.py                       126    126     0%   5-270
+src\alert_system.py                        125    125     0%   9-344
+src\anomaly_detector.py                     90     90     0%   5-208
+src\async_data_loader.py                   143    120    16%   28, 48-96, 100-131, 135-148, 169-193, 215-229, 237-267, 276-278, 304-305, 310-328
+src\auth.py                                152    152     0%   5-317
+src\auto_rebalancer.py                     132    132     0%   5-278
+src\auto_trader_ui.py                      107    107     0%   2-159
+src\backtest_engine.py                      45     45     0%   1-86
+src\backtest_visualizer.py                  81     81     0%   6-314
+src\backtester.py                          232    232     0%   1-416
+src\backup_manager.py                      115     31    73%   70-78, 104-106, 128, 144-145, 161, 177-178, 205-206, 220-222, 239-254
+src\base.py                                120    120     0%   6-196
+src\benchmark_comparator.py                 99     99     0%   6-269
+src\bert_sentiment.py                       72     27    62%   39-42, 55, 98-100, 104-128
+src\broker.py                               42     42     0%   1-70
+src\cache_config.py                          8      6    25%   9-20
+src\cloud_storage.py                        79     79     0%   1-106
+src\config.py                               46     46     0%   1-72
+src\config_manager.py                       47     47     0%   4-93
+src\constants.py                            10      0   100%
+src\copy_trading.py                        149    149     0%   5-382
+src\cost_optimizer.py                      125    125     0%   6-347
+src\cross_validation.py                     43     43     0%   9-145
+src\dashboard_utils.py                      36     36     0%   4-71
+src\data_loader.py                         120     94    22%   33-35, 46-75, 80-91, 104-161, 168-190, 196, 203, 210-224
+src\data_manager.py                         84     71    15%   11-12, 16-37, 44-114, 121-146, 150-164, 168-174
+src\db_maintenance.py                       86     86     0%   5-144
+src\design_tokens.py                        52     52     0%   7-128
+src\dividend_strategy.py                    71     71     0%   6-236
+src\dynamic_ensemble.py                     77     63    18%   24-33, 46-60, 64-100, 109-131, 135-143, 147-154
+src\dynamic_risk_manager.py                 89     66    26%   48-78, 91-115, 132-157, 170-180, 193-203, 218-232, 241, 260, 266-299
+src\dynamic_risk_manager_refactored.py     121    121     0%   6-337
+src\dynamic_stop.py                         52     37    29%   26-33, 47-94, 98-101
+src\encryption.py                           74     74     0%   5-188
+src\enhanced_performance_dashboard.py      144    144     0%   5-323
+src\ensemble.py                             27     27     0%   1-65
+src\error_handler.py                       109    109     0%   6-215
+src\error_handling.py                       88     88     0%   8-301
+src\execution.py                            78     45    42%   21-33, 38-39, 47-70, 78, 87-88, 95, 99-103, 110-128
+src\execution_optimizer.py                  69     69     0%   6-213
+src\export_manager.py                       80     80     0%   5-175
+src\factor_analyzer.py                      85     85     0%   6-269
+src\features.py                            122    113     7%   11-31, 38-70, 76-113, 120-202, 208-245
+src\formatters.py                           83     83     0%   5-243
+src\fundamentals.py                         26     26     0%   1-50
+src\hierarchical_strategy.py                42     42     0%   10-85
+src\hyperparameter_tuning.py               111    111     0%   8-349
+src\ibkr_broker.py                          88     88     0%   1-154
+src\integrated_signals.py                   69     69     0%   7-160
+src\kelly_criterion.py                      35     17    51%   34, 43, 61-82
+src\liquidity_analyzer.py                   74     74     0%   6-233
+src\live_trading.py                        151    151     0%   1-260
+src\llm_analyzer.py                         69     69     0%   1-125
+src\logging_config.py                       45      8    82%   93-102
+src\macro_analyzer.py                       89     89     0%   6-208
+src\meta_learner.py                        107    107     0%   5-264
+src\metrics_collector.py                    87     87     0%   5-197
+src\ml_pipeline.py                          89     89     0%   1-148
+src\monitoring_dashboard.py                 96     96     0%   5-174
+src\mpt_optimizer.py                       102    102     0%   6-302
+src\multi_timeframe.py                      77     63    18%   19, 32-54, 67-85, 99-127, 134-143, 154-182, 188-190
+src\nisa_manager.py                        115    115     0%   5-342
+src\notifier.py                             81     81     0%   1-203
+src\online_learning.py                     113    113     0%   7-315
+src\optimization.py                        204    204     0%   1-430
+src\optimizer.py                            47     47     0%   1-73
+src\options_pricing.py                      89     89     0%   5-264
+src\paper_trader.py                        144     72    50%   13-24, 60-66, 105-106, 115, 144, 148-168, 192-193, 204-207, 226-253, 274-294, 305-311
+src\parallel_backtester.py                  76     76     0%   5-228
+src\patterns.py                             91     91     0%   1-181
+src\pdf_report_generator.py                 94     94     0%   5-187
+src\performance.py                         167    167     0%   1-320
+src\performance_attribution.py              95     95     0%   5-232
+src\performance_metrics.py                  97     97     0%   10-213
+src\performance_monitor.py                 111    111     0%   10-314
+src\performance_optimizer.py               113    113     0%   11-184
+src\personal_features.py                   195    195     0%   6-345
+src\portfolio.py                           131    131     0%   1-243
+src\portfolio_manager.py                    42     42     0%   10-81
+src\portfolio_manager_refactored.py        109    109     0%   6-263
+src\portfolio_optimizer.py                 111    111     0%   6-269
+src\production_manager.py                  101    101     0%   11-219
+src\prompts.py                               3      3     0%   5-33
+src\psychological_guard.py                  84     84     0%   6-294
+src\pytest_cov_optional.py                  13      5    62%   14-15, 25-33
+src\rakuten_broker.py                      153    153     0%   1-259
+src\realtime_alerts.py                     129    129     0%   8-309
+src\realtime_data.py                        96     96     0%   8-182
+src\rebalancer.py                           84     84     0%   10-246
+src\recovery_manager.py                    107    107     0%   5-217
+src\regime.py                              100    100     0%   1-250
+src\regime_detector.py                     110     88    20%   49-68, 83-109, 123-133, 148-176, 190-200, 214-225, 237-282, 294, 303-318, 330-352
+src\rich_notifier.py                       106    106     0%   5-291
+src\risk_guard.py                          102    102     0%   1-198
+src\risk_limiter.py                        135    135     0%   6-225
+src\rl_agent.py                             74     74     0%   1-106
+src\rl_environment.py                       65     65     0%   1-145
+src\sector_rotation.py                      83     83     0%   1-205
+src\sentiment.py                            74     24    68%   42-43, 61, 77, 79, 121-129, 144-157, 168-173
+src\simple_dashboard.py                    113    113     0%   6-257
+src\smart_notifier.py                       63     44    30%   34-35, 39-63, 67-87, 91-110
+src\stacking_ensemble.py                   107    107     0%   15-293
+src\strategies\__init__.py                   7      0   100%
+src\strategies\base.py                      50      0   100%
+src\strategies\custom\__init__.py            0      0   100%
+src\strategies_legacy.py                   725    602    17%   15-20, 24-26, 53-68, 71, 78-85, 91-95, 99-101, 104-117, 120-124, 128-131, 134-151, 154-158, 162-164, 167-181, 184-188, 198-217, 220-224, 233-287, 290-294, 307-358, 361-365, 369-377, 380-384, 387-392, 395-467, 470-474, 483-486, 489-491, 495-535, 548-615, 619-625, 629-658, 668-670, 673-698, 701-725, 733-736, 742-798, 802-820, 827-830, 833-858, 861-885, 892-895, 898-922, 925-949, 958-970, 973-992, 1003, 1007-1016, 1040-1042, 1045-1095, 1098-1103, 1115-1116, 1119-1131, 1134-1138
+src\strategy_marketplace.py                134    134     0%   5-381
+src\streaming_pipeline.py                   84     84     0%   7-202
+src\tax_calculator.py                       82     82     0%   5-280
+src\tax_report_generator.py                 85     85     0%   5-268
+src\trade_explainer.py                      32     32     0%   5-99
+src\trader_profile.py                      123    123     0%   5-397
+src\trading_performance_monitor.py          98     98     0%   7-360
+src\transformer_model.py                   107    107     0%   8-339
+src\ui_advanced_analytics.py               157    157     0%   5-291
+src\ui_ai_chat.py                           46     46     0%   4-76
+src\ui_ai_report.py                         48     48     0%   4-80
+src\ui_alerts.py                            79     79     0%   4-158
+src\ui_automation.py                        77     77     0%   5-132
+src\ui_components.py                       130    130     0%   5-327
+src\ui_customizer.py                        82     82     0%   5-240
+src\ui_export.py                            83     83     0%   4-162
+src\ui_renderers.py                        560    560     0%   1-1044
+src\ui_risk_dashboard.py                   118    118     0%   5-232
+src\visualizer.py                           75     75     0%   2-157
+src\xai.py                                  78     78     0%   8-227
+----------------------------------------------------------------------
+TOTAL                                    13053  12336     5%
+Coverage HTML written to dir htmlcov
+
+=========================== short test summary info ===========================
+FAILED tests/test_backup_manager.py::TestBackupManager::test_list_backups - A...
+FAILED tests/test_fully_automated_trader.py::TestFullyAutomatedTrader::test_calculate_daily_pnl
+FAILED tests/test_phase30_full_integration.py::TestPhase30FullIntegration::test_dynamic_stop_update
+================== 3 failed, 35 passed, 3 warnings in 47.01s ==================

@@ -221,7 +221,7 @@ class PaperTrader:
             cursor.execute('UPDATE balance SET cash = ? WHERE date = (SELECT MAX(date) FROM balance)', (new_cash,))
             
             # Log successful buy
-            print(f"✅ BUY Executed: {ticker} x {quantity} @ {price}")
+            print(f"[BUY] Executed: {ticker} x {quantity} @ {price}")
             
         elif action == "SELL":
             # Check if we have the position
@@ -250,7 +250,7 @@ class PaperTrader:
             cursor.execute('UPDATE balance SET cash = ? WHERE date = (SELECT MAX(date) FROM balance)', (new_cash,))
             
             # Log successful sell
-            print(f"✅ SELL Executed: {ticker} x {quantity} @ {price} (PnL: {realized_pnl})")
+            print(f"[SELL] Executed: {ticker} x {quantity} @ {price} (PnL: {realized_pnl})")
         
         # Log the trade
         now = datetime.datetime.now().isoformat()

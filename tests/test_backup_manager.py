@@ -81,10 +81,14 @@ class TestBackupManager:
     
     def test_list_backups(self, backup_manager):
         """バックアップリスト取得テスト"""
+        # 既存のバックアップを削除
+        for f in os.listdir(backup_manager.backup_dir):
+            os.remove(os.path.join(backup_manager.backup_dir, f))
+            
         # バックアップを2つ作成
         backup_manager.auto_backup()
         import time
-        time.sleep(0.1)  # タイムスタンプを変えるため
+        time.sleep(1.1)  # タイムスタンプを変えるため(秒単位の可能性がある)
         backup_manager.auto_backup()
         
         backups = backup_manager.list_backups()

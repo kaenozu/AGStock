@@ -136,8 +136,55 @@ class MultiTimeframeAnalyzer:
         df = self.merge_mtf_features(df, weekly_df, 'W_')
         
         # Monthly
-        monthly_df = self.resample_data(df, 'ME')
+        monthly_df = self.resample_data(df, 'M')
         monthly_df = self.calculate_mtf_indicators(monthly_df, 'M_')
         df = self.merge_mtf_features(df, monthly_df, 'M_')
         
         return df
+    def analyze(self, df: pd.DataFrame) -> dict:
+        """
+        Analyze trends across timeframes.
+        
+        Args:
+            df: Daily dataframe
+            
+        Returns:
+            Dictionary with trend analysis
+        """
+        if df is None or df.empty:
+            return {}
+            
+        # Add MTF features if not present
+        if 'W_Trend' not in df.columns:
+            df = self.add_mtf_features(df)
+            
+        latest = df.iloc[-1]
+        
+        result = {
+            'weekly_trend': 'NEUTRAL',
+            'monthly_trend': 'NEUTRAL'
+        }
+        
+        if 'W_Trend' in df.columns:
+            w_trend = latest['W_Trend']
+            if w_trend > 0:
+                result['weekly_trend'] = 'UPTREND'
+            elif w_trend < 0:
+                result['weekly_trend'] = 'DOWNTREND'
+                
+        if 'M_Trend' in df.columns:
+            m_trend = latest['M_Trend']
+            if m_trend > 0:
+                result['monthly_trend'] = 'UPTREND'
+            elif m_trend < 0:
+                result['monthly_trend'] = 'DOWNTREND'
+                
+        return result
+
+_analyzer = None
+
+def get_mtf_analyzer():
+    global _analyzer
+    if _analyzer is None:
+        _analyzer = MultiTimeframeAnalyzer()
+    return _analyzer

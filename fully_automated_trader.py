@@ -286,6 +286,7 @@ class FullyAutomatedTrader:
                 
                 # Update DSM state
                 self.dynamic_stop_manager.highest_prices[ticker] = highest_price
+                self.dynamic_stop_manager.entry_prices[ticker] = entry_price
                 
                 # Update stop based on latest data
                 new_stop = self.dynamic_stop_manager.update_stop(ticker, latest_price, data[ticker])
