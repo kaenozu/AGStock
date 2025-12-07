@@ -1,7 +1,9 @@
 import streamlit as st
 import pandas as pd
+import json
 import plotly.graph_objects as go
 import plotly.express as px
+import plotly.io as pio
 from src.constants import NIKKEI_225_TICKERS, TICKER_NAMES, MARKETS
 from src.data_loader import fetch_stock_data, get_latest_price, fetch_news
 from src.strategies import SMACrossoverStrategy, RSIStrategy, BollingerBandsStrategy, CombinedStrategy, MLStrategy, LightGBMStrategy, DeepLearningStrategy, EnsembleStrategy, load_custom_strategies
@@ -60,7 +62,6 @@ except FileNotFoundError:
     pass  # モバイルCSSはオプション
 
 # Set Default Plotly Template
-import plotly.io as pio
 pio.templates.default = "plotly_dark"
 
 # Sidebar
@@ -90,7 +91,6 @@ with st.sidebar.expander("📢 通知設定"):
     st.write("スキャン完了後に自動通知を送信します。")
 
     # Load current config
-    import json
     try:
         with open("config.json", "r", encoding="utf-8") as f:
             config = json.load(f)
@@ -1213,8 +1213,8 @@ with tab4:
                 'equity': ['first', 'last']
             })
             monthly_returns['return'] = (
-                (monthly_returns[('equity', 'last')] - monthly_returns[('equity', 'first')])
-                / monthly_returns[('equity', 'first')]
+                (monthly_returns[('equity', 'last')] - monthly_returns[('equity', 'first')]) /
+                monthly_returns[('equity', 'first')]
             )
 
             if len(monthly_returns) > 0:
@@ -1392,7 +1392,6 @@ st.markdown("---")
 st.header("🎛️ Broker Control Panel")
 
 # Load config
-import json
 try:
     with open("config.json", "r") as f:
         config = json.load(f)

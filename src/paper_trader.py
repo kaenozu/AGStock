@@ -161,7 +161,7 @@ class PaperTrader:
                 unrealized_pnl = (current_price - pos['entry_price']) * pos['quantity']
 
                 cursor.execute('''
-                    UPDATE positions 
+                    UPDATE positions
                     SET current_price = ?, unrealized_pnl = ?
                     WHERE ticker = ?
                 ''', (current_price, unrealized_pnl, ticker))
@@ -206,7 +206,7 @@ class PaperTrader:
                 new_qty = old_qty + quantity
                 new_avg_price = ((old_qty * old_price) + (quantity * price)) / new_qty
                 cursor.execute('''
-                    UPDATE positions 
+                    UPDATE positions
                     SET quantity = ?, entry_price = ?, current_price = ?
                     WHERE ticker = ?
                 ''', (new_qty, new_avg_price, price, ticker))
@@ -305,7 +305,7 @@ class PaperTrader:
         """
         cursor = self.conn.cursor()
         cursor.execute('''
-            UPDATE positions 
+            UPDATE positions
             SET stop_price = ?, highest_price = ?
             WHERE ticker = ?
         ''', (stop_price, highest_price, ticker))
