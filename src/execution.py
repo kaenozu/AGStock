@@ -1,13 +1,44 @@
 from typing import Dict, List
+import json
 from src.paper_trader import PaperTrader
 
 
 class ExecutionEngine:
-    def __init__(self, paper_trader: PaperTrader, real_broker=None):
+    def __init__(self, paper_trader: PaperTrader, real_broker=None, config_path: str = "config.json"):
         self.pt = paper_trader
         self.real_broker = real_broker
         self.max_position_size_pct = 0.20  # Max 20% of equity per stock
         self.max_drawdown_limit = 0.15  # Stop trading if DD > 15%
+        
+        # ミニ株設定を読み込み
+        self.config = self._load_config(config_path)
+        self.mini_stock_config = self.config.get("mini_stock", {})
+        self.mini_stock_enabled = self.mini_stock_config.get("enabled", False)
+        
+    def _load_config(self, config_path: str) -> dict:
+        """設定ファイルを読み込み"""
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    
+    def get_japan_unit_size(self) -> int:
+        """日本株の売買単位を取得（ミニ株対応）"""
+        if self.mini_stock_enabled:
+            return self.mini_stock_config.get("unit_size", 1)
+        return 100  # 通常の単元株
+    
+    def calculate_trading_fee(self, amount: float, is_mini_stock: bool = False) -> float:
+        """取引手数料を計算"""
+        if is_mini_stock and self.mini_stock_enabled:
+            # ミニ株: スプレッド + 手数料
+            fee_rate = self.mini_stock_config.get("fee_rate", 0.0022)
+            spread_rate = self.mini_stock_config.get("spread_rate", 0.005)
+            return amount * (fee_rate + spread_rate)
+        else:
+            # 単元株: 楽天証券の無料化（2023年10月〜）
+            return 0
 
     def check_risk(self) -> bool:
         """
@@ -44,6 +75,7 @@ class ExecutionEngine:
     def calculate_position_size(self, ticker: str, price: float, confidence: float = 1.0) -> int:
         """
         Calculates the number of shares to buy based on risk management.
+        ミニ株対応: 日本株は設定に基づき1株または100株単位
         """
         balance = self.pt.get_current_balance()
         equity = balance['total_equity']
@@ -58,15 +90,34 @@ class ExecutionEngine:
         # 3. Cap at available cash
         target_amount = min(target_amount, cash)
 
-        # Determine unit size based on ticker (US stocks have no dot, Japan stocks have .T)
+        # Determine unit size based on ticker
+        # US stocks (no dot in ticker) = 1 share units
+        # Japan stocks (.T suffix) = configurable (1 for mini, 100 for standard)
         is_us_stock = '.' not in ticker
-        unit_size = 1 if is_us_stock else 100
+        is_japan_stock = ticker.endswith('.T')
+        
+        if is_us_stock:
+            unit_size = 1
+        elif is_japan_stock:
+            unit_size = self.get_japan_unit_size()
+        else:
+            unit_size = 1  # その他 (欧州株など)
+        
+        # ミニ株の最小注文金額チェック
+        min_order = self.mini_stock_config.get("min_order_amount", 500)
+        if self.mini_stock_enabled and target_amount < min_order:
+            return 0
 
         if target_amount < price * unit_size:  # Minimum unit
             return 0
 
         # 4. Calculate shares (round down to nearest unit)
         shares = int(target_amount / price / unit_size) * unit_size
+        
+        # ミニ株の場合、手数料を考慮した実質投資額をログ
+        if self.mini_stock_enabled and is_japan_stock:
+            fee = self.calculate_trading_fee(shares * price, is_mini_stock=True)
+            print(f"📊 ミニ株計算: {shares}株 x ¥{price:,.0f} = ¥{shares*price:,.0f} (手数料: ¥{fee:,.0f})")
 
         return shares
 
