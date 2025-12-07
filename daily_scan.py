@@ -1,4 +1,3 @@
-import sys
 import os
 import json
 import pandas as pd
@@ -105,7 +104,7 @@ def main():
             # Generate signals
             try:
                 sig_series = strategy.generate_signals(df)
-            except Exception as e:
+            except Exception:
                 # print(f"Error generating signals for {ticker} with {strat_name}: {e}")
                 continue
             

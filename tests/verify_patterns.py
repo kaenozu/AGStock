@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from src.patterns import detect_double_bottom, detect_head_and_shoulders_bottom, detect_triangle
+from src.patterns import detect_double_bottom, detect_head_and_shoulders_bottom
 
 def create_double_bottom_data():
     """Creates synthetic data for Double Bottom."""

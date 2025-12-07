@@ -1,4 +1,3 @@
-import os
 import shutil
 import datetime
 from pathlib import Path
@@ -41,14 +40,14 @@ def backup_data():
     # Create backup info
     info_path = backup_dir / "backup_info.txt"
     with open(info_path, 'w') as f:
-        f.write(f"AGStock Backup\n")
+        f.write("AGStock Backup\n")
         f.write(f"Created: {datetime.datetime.now()}\n")
         f.write(f"Backup ID: {timestamp}\n")
     
     print(f"\n✓ Backup complete: {backup_dir}")
-    print(f"\nTo restore:")
-    print(f"  1. Copy paper_trade.db back to project root")
-    print(f"  2. Copy reports/ back to project root")
+    print("\nTo restore:")
+    print("  1. Copy paper_trade.db back to project root")
+    print("  2. Copy reports/ back to project root")
     
     # Cleanup old backups (keep last 10)
     cleanup_old_backups()

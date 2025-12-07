@@ -3,31 +3,24 @@
 
 安全策を含む完全自動運用システム
 """
-import sys
 import os
 import json
 import pandas as pd
 import datetime
 from typing import Dict, List
 import traceback
-import time
 
 # リトライロジック
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from tenacity import retry, stop_after_attempt, wait_exponential
 
-from src.constants import ALL_STOCKS, NIKKEI_225_TICKERS, SP500_TICKERS, STOXX50_TICKERS, MARKETS
+from src.constants import NIKKEI_225_TICKERS, SP500_TICKERS, STOXX50_TICKERS
 from src.data_loader import fetch_stock_data, get_latest_price, fetch_fundamental_data
 from src.strategies import LightGBMStrategy, MLStrategy, CombinedStrategy
 from src.paper_trader import PaperTrader
 from src.execution import ExecutionEngine
 
-# 新機能統合
-from src.psychological_guard import PsychologicalGuard
-from src.macro_analyzer import MacroAnalyzer
-from src.liquidity_analyzer import LiquidityAnalyzer
 from src.cache_config import install_cache
 from src.smart_notifier import SmartNotifier
-from src.risk_guard import RiskGuard
 from src.sentiment import SentimentAnalyzer
 from src.backup_manager import BackupManager
 

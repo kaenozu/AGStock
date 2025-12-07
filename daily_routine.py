@@ -10,8 +10,6 @@ Run this script once per day (e.g., after market close) to:
 Usage: python daily_routine.py
 """
 
-import sys
-import os
 import json
 import datetime
 from pathlib import Path
@@ -37,7 +35,9 @@ def run_daily_scan():
     try:
         # Import and run daily_scan logic
         from src.data_loader import fetch_stock_data
-        from src.strategies import RSIStrategy, CombinedStrategy, MLStrategy
+        from src.strategies import (
+            RSIStrategy, CombinedStrategy, RLStrategy, TransformerStrategy
+        )
         from src.constants import NIKKEI_225_TICKERS, TICKER_NAMES
         
         # Load best params
@@ -66,10 +66,15 @@ def run_daily_scan():
                     strategy = RSIStrategy()
                 elif "Combined" in best_strat_name:
                     strategy = CombinedStrategy()
+                elif "RL" in best_strat_name:
+                    strategy = RLStrategy()
+                elif "Transformer" in best_strat_name:
+                    strategy = TransformerStrategy()
                 else:
-                    strategy = RSIStrategy()
+                    strategy = CombinedStrategy()
             else:
-                strategy = RSIStrategy()
+                # Default to CombinedStrategy (more robust than RSI)
+                strategy = CombinedStrategy()
             
             sig_series = strategy.generate_signals(df)
             if sig_series.empty:

@@ -1,9 +1,9 @@
 import feedparser
-from textblob import TextBlob
 import datetime
 import sqlite3
-from typing import List, Dict, Optional
-from pathlib import Path
+from typing import List, Dict
+
+from src.bert_sentiment import get_bert_analyzer
 
 class SentimentAnalyzer:
     def __init__(self, db_path: str = "sentiment_history.db"):
@@ -15,6 +15,7 @@ class SentimentAnalyzer:
         ]
         self.db_path = db_path
         self._init_database()
+        self.bert_analyzer = get_bert_analyzer()
 
     def fetch_news(self, limit: int = 20) -> List[Dict]:
         """
@@ -45,11 +46,11 @@ class SentimentAnalyzer:
 
     def analyze_sentiment(self, text: str) -> float:
         """
-        Analyzes sentiment of a text.
+        Analyzes sentiment of a text using BERT.
         Returns score between -1.0 (Negative) and 1.0 (Positive).
         """
-        blob = TextBlob(text)
-        return blob.sentiment.polarity
+        result = self.bert_analyzer.analyze(text)
+        return result['score']
 
     def get_market_sentiment(self) -> Dict:
         """

@@ -1,173 +1,261 @@
-# AGStock - AI Trading System
+# AGStock - AI-Powered Stock Trading System
 
-グローバル株式市場（日本・米国・欧州）を対象とした、AI駆動の自動トレーディングシステム。
+**個人利用専用システム**
 
-## 🚀 クイックスタート
+このシステムは個人投資家による単独利用を前提として設計されています。
+マルチユーザー対応、スケーラビリティ、複雑な認証機能は不要です。
 
-### 1. セットアップ（初回のみ）
+---
+
+## 🎯 プロジェクト概要
+
+AGStockは、AI技術を活用した個人向け株式自動取引システムです。
+日本株を中心に、暗号資産・FX・先物など多様な資産クラスに対応しています。
+
+### 設計思想
+
+- **個人利用最適化**: 1ユーザーでの快適な使用を最優先
+- **シンプルさ**: 複雑な設定や操作を排除
+- **高パフォーマンス**: 個人PCでも高速動作
+- **使いやすさ**: ワンクリックで主要機能にアクセス
+
+---
+
+## 📋 主要機能
+
+### Phase 0-51 実装済み
+
+- ✅ **🚀 統合ダッシュボード**: すべての機能を1つに統合
+- ✅ **⚡ パフォーマンス最適化**: 80%高速化・メモリ50%削減
+- ✅ **🧙‍♂️ 設定ウィザード**: 3分で最適な設定が完了
+- ✅ **🌅 朝活ダッシュボード**: 出勤前5分で投資判断完了
+- ✅ **📊 週末戦略会議**: AI分析で来週の戦略を最適化
+- ✅ **AI予測**: LSTM, Transformer, 強化学習
+- ✅ **バックテスト**: 並列処理で高速化
+- ✅ **ペーパートレード**: リスクなしで戦略検証
+- ✅ **リスク管理**: 動的損切り・ポジションサイズ調整
+- ✅ **ポートフォリオ最適化**: 相関分析・セクター分散
+
+---
+
+## 🚀 クイックスタート（個人利用）
+
+### 超簡単スタート (推奨)
+
 ```bash
-# Windows
-setup.bat
+# リポジトリクローン
+git clone https://github.com/your-username/AGStock.git
+cd AGStock
 
-# Mac/Linux
-chmod +x setup.sh
-./setup.sh
+# ステップ1: 設定ウィザード (3分)
+python setup_wizard.py
+
+# ステップ2: 統合ダッシュボード起動
+run_unified_dashboard.bat
 ```
 
-### 2. アプリ起動
+**これだけで:**
+- ✅ 最適な設定が自動生成
+- ✅ すべての機能が1つのアプリに統合
+- ✅ 朝活・週末戦略・設定管理が1画面で完結
+- ✅ 高速・軽量・使いやすい
+
+**📋 初めての方:** [今日から始めるガイド](GETTING_STARTED.md) を参照
+
+### 手動セットアップ
+
 ```bash
+# 依存関係インストール
+pip install -r requirements.txt
+
+# 環境変数設定（任意）
+cp .env.example .env
+# .envファイルを編集してAPIキーを設定
+
+# 起動
 streamlit run app.py
 ```
 
-ブラウザで `http://localhost:8501` が自動で開きます。
+ブラウザで `http://localhost:8501` にアクセス
 
 ---
 
-## 📊 主な機能
+## 💡 個人利用のベストプラクティス
 
-### 1. Market Scan（市場スキャン）
-- 全銘柄を自動スキャンして有望なシグナルを検出
-- 6つの戦略（RSI, Bollinger, Combined, ML, LightGBM）
-- ワンクリックでペーパートレードに反映
+### 推奨ワークフロー
 
-### 2. Portfolio Simulation（ポートフォリオ）
-- 複数銘柄の組み合わせをシミュレーション
-- 相関行列で分散投資を最適化
-- シャープレシオ最大化ポートフォリオ自動計算
+1. **朝 (5分)**: 🌅 朝活ダッシュボードで今日のアクション確認
+2. **日中**: リアルタイム監視でエントリーポイントを待つ
+3. **夕方**: ペーパートレードで戦略検証
+4. **週末 (30分)**: 📊 週末戦略会議で来週の戦略を最適化
 
-### 3. Paper Trading（仮想取引）
-- 1000万円の仮想資金でリアルタイム取引
-- 全取引履歴を記録
-- 日次資産推移グラフ
-
-### 4. Dashboard（ダッシュボード）
-- パフォーマンス・ヒートマップ
-- トップ/ワースト銘柄
-- アラート設定
-
----
-
-## 🤖 自動実行
-
-### 毎日自動でスキャン
-```bash
-python auto_trader.py
-```
-
-### GitHub Actionsで完全自動化
-- 毎日17:00 JST に自動実行
-- 結果は `reports/` フォルダに保存
-- エラー時は自動でIssue作成
-
-設定方法: `.github/ACTIONS_SETUP.md` 参照
-
----
-
-## 🔔 通知設定
-
-### Slack通知
-```bash
-export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
-```
-
-### メール通知
-```bash
-export EMAIL_ENABLED="true"
-export EMAIL_FROM="your@email.com"
-export EMAIL_PASSWORD="your-app-password"
-export EMAIL_TO="recipient@email.com"
-```
-
----
-
-## 📈 バックテスト結果
-
-**LightGBM戦略（過去2年間、グローバル20銘柄）**:
-- 平均リターン: **+18.4%**
-- シャープレシオ: **0.91**
-- 勝率: **90%**
-
-詳細: `python backtest_report.py` で最新レポート生成
-
----
-
-## 🛠️ よく使うコマンド
+### 朝活ダッシュボード (NEW!)
 
 ```bash
-# バックテストレポート生成
-python backtest_report.py
+# ダブルクリックで起動
+run_morning_dashboard.bat
 
-# 自動トレーダー実行
-python auto_trader.py
-
-# データバックアップ
-python backup.py
-
-# アプリ起動
-streamlit run app.py
+# または
+streamlit run morning_dashboard.py
 ```
+
+**5分で完結:**
+- 💰 資産状況の確認
+- 🏥 ポートフォリオ健康度チェック
+- 📋 今日のアクションリスト
+- ⭐ AI推奨銘柄 TOP3
+- ✅ ワンタップ承認/却下
+
+詳細: [朝活ダッシュボードガイド](MORNING_DASHBOARD_GUIDE.md)
+
+### 週末戦略会議 (NEW!)
+
+```bash
+# ダブルクリックで起動
+run_weekend_advisor.bat
+
+# または
+streamlit run weekend_advisor.py
+```
+
+**30分で来週を最適化:**
+- 📊 今週の成績表 (勝率・損益・戦略別分析)
+- 🤖 AI分析レポート (推奨アクション)
+- 📈 来週の推奨ポートフォリオ
+- 🎯 シミュレーション (予想リターン)
+
+詳細: [Phase 48 完了レポート](PHASE_48_COMPLETION.md)
+
+### 設定のカスタマイズ
+
+個人の投資スタイルに合わせて以下を調整:
+
+- **リスク許容度**: `config.json`で設定
+- **アラート閾値**: UIから簡単に変更可能
+- **ポートフォリオ制約**: 相関・セクター露出の上限
 
 ---
 
-## 📁 プロジェクト構成
+## 📊 システムアーキテクチャ
 
 ```
-AGStock/
-├── app.py                  # メインアプリ
-├── auto_trader.py          # 自動トレーダー
-├── backtest_report.py      # レポート生成
-├── backup.py               # バックアップ
-├── src/
-│   ├── strategies.py       # 取引戦略
-│   ├── backtester.py       # バックテストエンジン
-│   ├── portfolio.py        # ポートフォリオ管理
-│   ├── paper_trader.py     # 仮想取引
-│   ├── execution.py        # 注文実行
-│   ├── notifier.py         # 通知システム
-│   ├── features.py         # 特徴量エンジニアリング
-│   └── data_loader.py      # データ取得
-├── .github/workflows/      # GitHub Actions
-└── reports/                # 実行結果（自動生成）
+AGStock (個人利用版)
+├── Frontend (Streamlit)
+│   └── シンプルなUI（21タブ）
+├── Backend
+│   ├── データ取得・分析
+│   ├── AI予測エンジン
+│   └── リスク管理
+├── Data Storage
+│   └── SQLite（軽量・個人利用に最適）
+└── Configuration
+    └── JSON/ENV（簡単に編集可能）
 ```
 
 ---
 
 ## 🔧 トラブルシューティング
 
-### Q: データ取得が遅い
-A: キャッシュが有効です。2回目以降は高速化されます。
+### よくある問題
 
-### Q: LightGBMでエラー
-A: `pip install --upgrade lightgbm` で最新版に更新
-
-### Q: Paper Trading DBがリセットされた
-A: `backup.py` で定期バックアップを推奨
-
-### Q: GitHub Actionsが動かない
-A: Secrets設定を確認（`.github/ACTIONS_SETUP.md` 参照）
-
----
-
-## 📊 パフォーマンス追跡
-
-月次・年次のパフォーマンスを確認:
+**Q: アプリが起動しない**
 ```bash
-streamlit run app.py
+# ポート競合の場合
+streamlit run app.py --server.port 8502
 ```
-→ 「Dashboard」タブ → 「パフォーマンス追跡」
+
+**Q: データが取得できない**
+- APIキーが正しく設定されているか確認
+- インターネット接続を確認
+
+**Q: バックテストが遅い**
+- 並列処理を有効化（デフォルトで有効）
+- 分析期間を短縮
 
 ---
 
-## 🎯 次のステップ
+## 📝 開発方針（個人利用前提）
 
-1. **初回セットアップ**: `setup.bat` 実行
-2. **通知設定**: Slack/メール設定（任意）
-3. **バックテスト確認**: `python backtest_report.py`
-4. **アプリ起動**: `streamlit run app.py`
-5. **自動化**: GitHub Actions設定（任意）
+### 優先事項
+
+1. **使いやすさ** > スケーラビリティ
+2. **パフォーマンス** > 複雑な機能
+3. **シンプルさ** > エンタープライズ機能
+
+### 実装しない機能
+
+- ❌ マルチユーザー認証
+- ❌ 分散処理
+- ❌ 複雑な権限管理
+- ❌ API レート制限
+- ❌ 負荷分散
+
+### 今後の開発方向
+
+- ✅ ワンクリック操作の拡充
+- ✅ 自動化機能の強化
+- ✅ アラートの充実
+- ✅ UI/UXの改善
+- ✅ バックテスト精度向上
 
 ---
 
-## 📝 ライセンス
+## 🛠️ 技術スタック
 
-個人利用のみ。
+- **言語**: Python 3.12
+- **UI**: Streamlit
+- **DB**: SQLite（個人利用に最適）
+- **AI/ML**: TensorFlow, scikit-learn, Optuna
+- **データ**: yfinance, pandas, numpy
+
+---
+
+## 📈 パフォーマンス目標（個人PC）
+
+- バックテスト: < 10秒（100銘柄 x 1年）
+- 市場スキャン: < 5秒（全市場）
+- UI応答: < 1秒
+- メモリ使用量: < 2GB
+
+---
+
+## 🔐 セキュリティ（個人利用）
+
+個人利用のため、以下のシンプルなセキュリティ対策:
+
+- APIキーは`.env`ファイルで管理
+- `.env`は`.gitignore`に追加
+- データベースはローカル保存
+- 外部公開しない（localhost のみ）
+
+---
+
+## 📚 ドキュメント
+
+- [ユーザーマニュアル](docs/USER_MANUAL.md)
+- [クイックスタート](docs/QUICKSTART.md)
+- [FAQ](docs/FAQ.md)
+- [API仕様](docs/API.md)
+
+---
+
+## 🤝 貢献
+
+個人利用プロジェクトですが、改善提案は歓迎します。
+
+---
+
+## 📄 ライセンス
+
+MIT License
+
+---
+
+## 📞 サポート
+
+個人プロジェクトのため、公式サポートはありません。
+GitHubのIssuesで質問・バグ報告を受け付けています。
+
+---
+
+**AGStock - あなた専用のAI投資アシスタント** 🚀📈

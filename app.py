@@ -8,21 +8,17 @@ from src.strategies import SMACrossoverStrategy, RSIStrategy, BollingerBandsStra
 from src.backtester import Backtester
 from src.portfolio import PortfolioManager
 from src.paper_trader import PaperTrader
-from src.live_trading import PaperBroker, LiveTradingEngine
-from src.llm_analyzer import LLMAnalyzer
-from src.agents import TechnicalAnalyst, FundamentalAnalyst, MacroStrategist, RiskManager, PortfolioManager
+from src.agents import TechnicalAnalyst, FundamentalAnalyst, MacroStrategist, RiskManager
 from src.cache_config import install_cache
 
 # Design System Imports
-from src.design_tokens import Colors, RISK_LEVELS, ACTION_TYPES
 from src.formatters import (
-    format_currency, format_percentage, format_number, 
-    get_risk_level, get_sentiment_label
+    format_currency, format_percentage,
+    get_risk_level
 )
 from src.ui_components import (
-    display_risk_badge, display_action_badge, display_sentiment_gauge,
-    display_stock_card, display_best_pick_card, display_error_message,
-    display_loading_skeleton
+    display_sentiment_gauge,
+    display_stock_card, display_best_pick_card, display_error_message
 )
 
 # Install cache

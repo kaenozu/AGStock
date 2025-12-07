@@ -1,8 +1,5 @@
 import pytest
 import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
-import os
 from src.data_manager import DataManager
 from src.backtester import Backtester
 from src.strategies import Strategy

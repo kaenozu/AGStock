@@ -1,18 +1,38 @@
-streamlit
-yfinance
-pandas
-streamlit
-yfinance
-pandas
-numpy
-ta
-plotly
-requests-cache
-optuna
-scikit-learn
-matplotlib
-lightgbm
-reportlab
-feedparser
-textblob
-tensorflow
+streamlit>=1.29.0
+yfinance>=0.2.0
+pandas>=2.0.0
+
+# Phase 0: Quick Wins
+reportlab>=4.0.0
+openpyxl>=3.1.0
+
+# Phase 36: Social Trading (future)
+# social-auth-app-django==5.0.0
+
+# Phase 39: Derivatives (future)
+# py_vollib==1.0.1
+# quantlib==1.30
+
+# Phase 40: AI Evolution (future)
+# tpot==0.12.0
+# auto-sklearn==0.15.0
+# shap==0.43.0
+scipy>=1.11.0
+cvxpy>=1.4.0
+prometheus-client>=0.19.0
+redis>=5.0.0
+celery>=5.3.0
+ta>=0.10.0
+scikit-learn>=1.3.0
+lightgbm>=4.0.0
+schedule>=1.2.0
+psutil>=5.9.0
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+plotly>=5.15.0
+feedparser>=6.0.0
+optuna>=3.0.0
+tensorflow>=2.13.0
+pyjwt>=2.8.0
+bcrypt>=4.0.0

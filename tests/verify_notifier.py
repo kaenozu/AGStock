@@ -1,5 +1,4 @@
 from src.notifier import Notifier
-import inspect
 
 n = Notifier()
 print(f"Has notify_slack: {hasattr(n, 'notify_slack')}")

@@ -1,0 +1,1356 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-7.4.2, pluggy-1.6.0 -- C:\Users\neoen\AppData\Local\Programs\Python\Python311\python.exe
+cachedir: .pytest_cache
+benchmark: 5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: C:\gemini-desktop\AGStock
+configfile: pytest.ini
+plugins: anyio-4.9.0, dash-3.1.1, Faker-37.5.3, logfire-4.0.0, asyncio-0.23.7, benchmark-5.1.0, cov-4.1.0, mock-3.14.1, timeout-2.4.0, xdist-3.8.0, requests-mock-1.12.1, respx-0.22.0, typeguard-4.4.4
+asyncio: mode=Mode.STRICT
+collecting ... collected 615 items
+
+tests/test_advanced_features.py::test_add_trend_features PASSED          [  0%]
+tests/test_advanced_features.py::test_generate_all_advanced_features PASSED [  0%]
+tests/test_advanced_models.py::test_build_gru_model PASSED               [  0%]
+tests/test_advanced_models.py::test_build_attention_lstm_model PASSED    [  0%]
+tests/test_advanced_orders.py::test_limit_buy_order PASSED               [  0%]
+tests/test_advanced_orders.py::test_stop_buy_order PASSED                [  0%]
+tests/test_advanced_orders.py::test_trailing_stop PASSED                 [  1%]
+tests/test_advanced_orders.py::test_ticker_injection PASSED              [  1%]
+tests/test_agents.py::TestAgents::test_fundamental_analyst PASSED        [  1%]
+tests/test_agents.py::TestAgents::test_macro_strategist PASSED           [  1%]
+tests/test_agents.py::TestAgents::test_portfolio_manager_buy_consensus PASSED [  1%]
+tests/test_agents.py::TestAgents::test_portfolio_manager_risk_veto PASSED [  1%]
+tests/test_agents.py::TestAgents::test_portfolio_manager_sell_consensus PASSED [  2%]
+tests/test_agents.py::TestAgents::test_risk_manager PASSED               [  2%]
+tests/test_agents.py::TestAgents::test_technical_analyst PASSED          [  2%]
+tests/test_async_data_loader.py::TestAsyncDataLoader::test_parse_period PASSED [  2%]
+tests/test_async_data_loader.py::TestAsyncDataLoader::test_download_yfinance_valid_ticker PASSED [  2%]
+tests/test_async_data_loader.py::TestAsyncDataLoader::test_download_yfinance_invalid_ticker PASSED [  2%]
+tests/test_async_data_loader.py::TestAsyncDataLoader::test_fetch_ticker_async PASSED [  3%]
+tests/test_async_data_loader.py::TestAsyncDataLoader::test_fetch_multiple_sync_small PASSED [  3%]
+tests/test_async_data_loader.py::TestAsyncDataLoader::test_fetch_multiple_sync_empty_list PASSED [  3%]
+tests/test_async_data_loader.py::TestAsyncDataLoader::test_fetch_stock_data_async_function PASSED [  3%]
+tests/test_async_data_loader.py::TestAsyncPerformance::test_async_vs_sync_performance PASSED [  3%]
+tests/test_auth.py::TestAuthManager::test_password_hashing PASSED        [  3%]
+tests/test_auth.py::TestAuthManager::test_password_strength_check PASSED [  4%]
+tests/test_auth.py::TestAuthManager::test_create_user PASSED             [  4%]
+tests/test_auth.py::TestAuthManager::test_weak_password_rejection PASSED [  4%]
+tests/test_auth.py::TestAuthManager::test_login_success PASSED           [  4%]
+tests/test_auth.py::TestAuthManager::test_login_failure PASSED           [  4%]
+tests/test_auth.py::TestAuthManager::test_account_lockout PASSED         [  4%]
+tests/test_auth.py::TestAuthManager::test_logout PASSED                  [  5%]
+tests/test_auth.py::TestAuthManager::test_session_cleanup PASSED         [  5%]
+tests/test_auto_rebalancer_comprehensive.py::test_init PASSED            [  5%]
+tests/test_auto_rebalancer_comprehensive.py::test_check_rebalance_needed_no_positions PASSED [  5%]
+tests/test_auto_rebalancer_comprehensive.py::test_check_rebalance_needed_high_correlation PASSED [  5%]
+tests/test_auto_rebalancer_comprehensive.py::test_suggest_replacement PASSED [  5%]
+tests/test_auto_rebalancer_comprehensive.py::test_execute_rebalance_dry_run PASSED [  6%]
+tests/test_auto_rebalancer_comprehensive.py::test_execute_rebalance_real PASSED [  6%]
+tests/test_auto_trader_assets.py::test_get_target_tickers_with_crypto_fx PASSED [  6%]
+tests/test_auto_trader_ui.py::test_render_todays_summary_no_data PASSED  [  6%]
+tests/test_auto_trader_ui.py::test_render_todays_summary_with_data PASSED [  6%]
+tests/test_auto_trader_ui.py::test_render_todays_summary_missing_timestamp PASSED [  6%]
+tests/test_backtester.py::TestBacktester::test_initialization PASSED     [  6%]
+tests/test_backtester.py::TestBacktester::test_default_initial_capital PASSED [  7%]
+tests/test_backtester.py::TestBacktester::test_run_returns_dict FAILED   [  7%]
+tests/test_backtester.py::TestBacktester::test_run_result_contains_required_keys FAILED [  7%]
+tests/test_backtester.py::TestBacktester::test_run_with_empty_dataframe PASSED [  7%]
+tests/test_backtester.py::TestBacktester::test_run_with_none_dataframe PASSED [  7%]
+tests/test_backtester.py::TestBacktester::test_total_return_is_numeric FAILED [  7%]
+tests/test_backtester.py::TestBacktester::test_final_value_calculation FAILED [  8%]
+tests/test_backtester.py::TestBacktester::test_signals_length_matches_data FAILED [  8%]
+tests/test_backtester.py::TestBacktester::test_positions_length_matches_data FAILED [  8%]
+tests/test_backtester.py::TestBacktester::test_positions_are_binary FAILED [  8%]
+tests/test_backtester.py::TestBacktester::test_equity_curve_is_series FAILED [  8%]
+tests/test_backtester.py::TestBacktester::test_equity_curve_starts_at_one FAILED [  8%]
+tests/test_backtester.py::TestBacktester::test_buy_and_hold_strategy FAILED [  9%]
+tests/test_backtester.py::TestBacktester::test_no_trading_strategy PASSED [  9%]
+tests/test_backtester.py::TestBacktester::test_multiple_strategies_same_data FAILED [  9%]
+tests/test_backtester_comprehensive.py::test_init PASSED                 [  9%]
+tests/test_backtester_comprehensive.py::test_run_basic_long PASSED       [  9%]
+tests/test_backtester_comprehensive.py::test_run_basic_short PASSED      [  9%]
+tests/test_backtester_comprehensive.py::test_stop_loss PASSED            [ 10%]
+tests/test_backtester_comprehensive.py::test_take_profit PASSED          [ 10%]
+tests/test_backtester_comprehensive.py::test_trailing_stop PASSED        [ 10%]
+tests/test_backtester_comprehensive.py::test_multi_asset PASSED          [ 10%]
+tests/test_backtester_comprehensive.py::test_empty_data PASSED           [ 10%]
+tests/test_backtester_comprehensive.py::test_order_object_market PASSED  [ 10%]
+tests/test_backtester_comprehensive.py::test_order_object_limit_buy PASSED [ 11%]
+tests/test_backtester_comprehensive.py::test_position_sizing_dict PASSED [ 11%]
+tests/test_backtester_risk.py::TestBacktesterRisk::test_position_size PASSED [ 11%]
+tests/test_backtester_short.py::TestBacktesterShort::test_no_short_selling PASSED [ 11%]
+tests/test_backtester_short.py::TestBacktesterShort::test_short_selling_profit PASSED [ 11%]
+tests/test_backup_manager.py::TestBackupManager::test_initialization PASSED [ 11%]
+tests/test_backup_manager.py::TestBackupManager::test_auto_backup_success PASSED [ 12%]
+tests/test_backup_manager.py::TestBackupManager::test_auto_backup_creates_valid_db PASSED [ 12%]
+tests/test_backup_manager.py::TestBackupManager::test_auto_backup_nonexistent_source PASSED [ 12%]
+tests/test_backup_manager.py::TestBackupManager::test_list_backups FAILED [ 12%]
+tests/test_backup_manager.py::TestBackupManager::test_cleanup_old_backups PASSED [ 12%]
+tests/test_backup_manager.py::TestBackupManager::test_restore_backup_success PASSED [ 12%]
+tests/test_backup_manager.py::TestBackupManager::test_restore_backup_without_confirmation PASSED [ 13%]
+tests/test_backup_manager.py::TestBackupManager::test_restore_backup_nonexistent_file PASSED [ 13%]
+tests/test_backup_manager.py::TestBackupManager::test_get_latest_backup FAILED [ 13%]
+tests/test_broker.py::test_position_creation PASSED                      [ 13%]
+tests/test_broker.py::test_position_to_dict PASSED                       [ 13%]
+tests/test_broker.py::test_order_creation PASSED                         [ 13%]
+tests/test_broker.py::test_order_with_price PASSED                       [ 13%]
+tests/test_broker.py::test_broker_is_abstract PASSED                     [ 14%]
+tests/test_broker.py::test_broker_concrete_implementation PASSED         [ 14%]
+tests/test_cache_config.py::test_install_cache_success FAILED            [ 14%]
+tests/test_cache_config.py::test_install_cache_import_error FAILED       [ 14%]
+tests/test_config.py::test_config_singleton PASSED                       [ 14%]
+tests/test_config.py::test_config_load_from_yaml PASSED                  [ 14%]
+tests/test_config.py::test_config_fallback_defaults PASSED               [ 15%]
+tests/test_config.py::test_config_get_nested_value PASSED                [ 15%]
+tests/test_config.py::test_config_get_nonexistent_key PASSED             [ 15%]
+tests/test_config.py::test_config_get_with_default PASSED                [ 15%]
+tests/test_config.py::test_config_env_override_slack PASSED              [ 15%]
+tests/test_config.py::test_config_env_override_discord PASSED            [ 15%]
+tests/test_config.py::test_config_env_override_pushover PASSED           [ 16%]
+tests/test_config.py::test_config_env_override_email PASSED              [ 16%]
+tests/test_config.py::test_config_env_email_enabled_false PASSED         [ 16%]
+tests/test_config.py::test_global_config_instance PASSED                 [ 16%]
+tests/test_config_manager.py::test_config_defaults PASSED                [ 16%]
+tests/test_config_manager.py::test_config_debug_parsing PASSED           [ 16%]
+tests/test_config_manager.py::test_config_paper_trading_parsing PASSED   [ 17%]
+tests/test_config_manager.py::test_config_cache_ttl_parsing PASSED       [ 17%]
+tests/test_config_manager.py::test_config_max_workers_parsing PASSED     [ 17%]
+tests/test_config_manager.py::test_config_validate_development PASSED    [ 17%]
+tests/test_config_manager.py::test_config_validate_production_missing_secret PASSED [ 17%]
+tests/test_config_manager.py::test_config_validate_production_missing_jwt PASSED [ 17%]
+tests/test_config_manager.py::test_config_validate_production_missing_openai PASSED [ 18%]
+tests/test_config_manager.py::test_config_validate_production_all_set PASSED [ 18%]
+tests/test_config_manager.py::test_config_to_dict PASSED                 [ 18%]
+tests/test_config_manager.py::test_config_to_dict_types PASSED           [ 18%]
+tests/test_constants.py::TestNikkei225Tickers::test_tickers_not_empty PASSED [ 18%]
+tests/test_constants.py::TestNikkei225Tickers::test_tickers_are_strings PASSED [ 18%]
+tests/test_constants.py::TestNikkei225Tickers::test_tickers_have_tokyo_suffix PASSED [ 19%]
+tests/test_constants.py::TestNikkei225Tickers::test_tickers_are_unique PASSED [ 19%]
+tests/test_constants.py::TestNikkei225Tickers::test_ticker_format PASSED [ 19%]
+tests/test_constants.py::TestNikkei225Tickers::test_contains_major_stocks PASSED [ 19%]
+tests/test_constants.py::TestTickerNames::test_ticker_names_not_empty PASSED [ 19%]
+tests/test_constants.py::TestTickerNames::test_all_keys_are_valid_tickers PASSED [ 19%]
+tests/test_constants.py::TestTickerNames::test_all_values_are_strings PASSED [ 20%]
+tests/test_constants.py::TestTickerNames::test_all_values_not_empty PASSED [ 20%]
+tests/test_constants.py::TestTickerNames::test_all_tickers_have_names PASSED [ 20%]
+tests/test_constants.py::TestTickerNames::test_major_company_names PASSED [ 20%]
+tests/test_constants.py::TestTickerNames::test_no_duplicate_names PASSED [ 20%]
+tests/test_constants.py::TestConstantsConsistency::test_tickers_and_names_same_length PASSED [ 20%]
+tests/test_constants.py::TestConstantsConsistency::test_all_tickers_mapped PASSED [ 20%]
+tests/test_constants.py::TestConstantsConsistency::test_no_extra_mappings PASSED [ 21%]
+tests/test_core_enhancements.py::test_data_manager_save_load PASSED      [ 21%]
+tests/test_core_enhancements.py::test_unified_backtester_single_asset PASSED [ 21%]
+tests/test_core_enhancements.py::test_unified_backtester_multi_asset PASSED [ 21%]
+tests/test_core_enhancements.py::test_portfolio_manager_integration PASSED [ 21%]
+tests/test_cost_optimizer.py::TestCostOptimizer::test_initialization PASSED [ 21%]
+tests/test_cost_optimizer.py::TestCostOptimizer::test_calculate_fee_sbi PASSED [ 22%]
+tests/test_cost_optimizer.py::TestCostOptimizer::test_calculate_fee_rakuten PASSED [ 22%]
+tests/test_cost_optimizer.py::TestCostOptimizer::test_calculate_break_even PASSED [ 22%]
+tests/test_cost_optimizer.py::TestCostOptimizer::test_optimize_order_size PASSED [ 22%]
+tests/test_cost_optimizer.py::TestCostOptimizer::test_compare_brokers PASSED [ 22%]
+tests/test_cost_optimizer.py::TestCostOptimizer::test_should_take_profit PASSED [ 22%]
+tests/test_cross_validation.py::test_timeseries_cv PASSED                [ 23%]
+tests/test_cross_validation.py::test_walk_forward_validation PASSED      [ 23%]
+tests/test_dashboard_utils.py::test_check_and_execute_missed_trades_already_checked PASSED [ 23%]
+tests/test_dashboard_utils.py::test_check_and_execute_missed_trades_no_history PASSED [ 23%]
+tests/test_dashboard_utils.py::test_check_and_execute_missed_trades_executed_today PASSED [ 23%]
+tests/test_dashboard_utils.py::test_check_and_execute_missed_trades_missed PASSED [ 23%]
+tests/test_dashboard_utils.py::test_check_and_execute_missed_trades_error PASSED [ 24%]
+tests/test_dashboard_utils.py::test_check_and_execute_missed_trades_exception PASSED [ 24%]
+tests/test_data_loader.py::TestFetchStockData::test_fetch_single_ticker PASSED [ 24%]
+tests/test_data_loader.py::TestFetchStockData::test_fetch_multiple_tickers FAILED [ 24%]
+tests/test_data_loader.py::TestFetchStockData::test_fetch_empty_ticker_list PASSED [ 24%]
+tests/test_data_loader.py::TestFetchStockData::test_fetch_with_nan_values PASSED [ 24%]
+tests/test_data_loader.py::TestFetchStockData::test_fetch_with_exception PASSED [ 25%]
+tests/test_data_loader.py::TestProcessDownloadedData::test_process_single_ticker_dataframe PASSED [ 25%]
+tests/test_data_loader.py::TestProcessDownloadedData::test_process_multi_ticker_dataframe PASSED [ 25%]
+tests/test_data_loader.py::TestProcessDownloadedData::test_process_missing_ticker PASSED [ 25%]
+tests/test_data_loader.py::TestFetchMacroData::test_fetch_macro_data_success PASSED [ 25%]
+tests/test_data_loader.py::TestFetchMacroData::test_fetch_macro_data_missing_symbol PASSED [ 25%]
+tests/test_data_loader.py::TestFetchMacroData::test_fetch_macro_data_exception PASSED [ 26%]
+tests/test_data_loader.py::TestGetLatestPrice::test_get_latest_price_normal PASSED [ 26%]
+tests/test_data_loader.py::TestGetLatestPrice::test_get_latest_price_single_row PASSED [ 26%]
+tests/test_data_loader.py::TestGetLatestPrice::test_get_latest_price_empty_dataframe PASSED [ 26%]
+tests/test_data_loader.py::TestGetLatestPrice::test_get_latest_price_none PASSED [ 26%]
+tests/test_data_loader.py::TestGetLatestPrice::test_get_latest_price_with_float PASSED [ 26%]
+tests/test_data_loader.py::TestGetLatestPrice::test_get_latest_price_with_index PASSED [ 26%]
+tests/test_data_loader_comprehensive.py::test_constants PASSED           [ 27%]
+tests/test_data_loader_comprehensive.py::test_process_downloaded_data_multi_index PASSED [ 27%]
+tests/test_data_loader_comprehensive.py::test_process_downloaded_data_single_ticker PASSED [ 27%]
+tests/test_data_loader_comprehensive.py::test_process_downloaded_data_empty PASSED [ 27%]
+tests/test_data_loader_comprehensive.py::test_parse_period FAILED        [ 27%]
+tests/test_data_loader_comprehensive.py::test_fetch_stock_data_cached PASSED [ 27%]
+tests/test_data_loader_comprehensive.py::test_fetch_stock_data_download_needed PASSED [ 28%]
+tests/test_data_loader_comprehensive.py::test_fetch_external_data PASSED [ 28%]
+tests/test_data_loader_comprehensive.py::test_get_latest_price PASSED    [ 28%]
+tests/test_data_loader_comprehensive.py::test_fetch_fundamental_data PASSED [ 28%]
+tests/test_data_loader_comprehensive.py::test_fetch_fundamental_data_error PASSED [ 28%]
+tests/test_data_loader_comprehensive.py::test_fetch_stock_data_async PASSED [ 28%]
+tests/test_data_manager.py::test_init_creates_database PASSED            [ 29%]
+tests/test_data_manager.py::test_save_data PASSED                        [ 29%]
+tests/test_data_manager.py::test_save_empty_data PASSED                  [ 29%]
+tests/test_data_manager.py::test_save_none_data PASSED                   [ 29%]
+tests/test_data_manager.py::test_load_data PASSED                        [ 29%]
+tests/test_data_manager.py::test_load_data_with_date_range PASSED        [ 29%]
+tests/test_data_manager.py::test_load_nonexistent_ticker PASSED          [ 30%]
+tests/test_data_manager.py::test_get_latest_date PASSED                  [ 30%]
+tests/test_data_manager.py::test_get_latest_date_nonexistent PASSED      [ 30%]
+tests/test_data_manager.py::test_upsert_data PASSED                      [ 30%]
+tests/test_data_manager.py::test_vacuum_db PASSED                        [ 30%]
+tests/test_data_manager.py::test_multiple_tickers PASSED                 [ 30%]
+tests/test_db_maintenance_comprehensive.py::test_init PASSED             [ 31%]
+tests/test_db_maintenance_comprehensive.py::test_create_indexes PASSED   [ 31%]
+tests/test_db_maintenance_comprehensive.py::test_create_indexes_error PASSED [ 31%]
+tests/test_db_maintenance_comprehensive.py::test_backup_database PASSED  [ 31%]
+tests/test_db_maintenance_comprehensive.py::test_backup_database_error PASSED [ 31%]
+tests/test_db_maintenance_comprehensive.py::test_cleanup_old_backups PASSED [ 31%]
+tests/test_db_maintenance_comprehensive.py::test_vacuum_database PASSED  [ 32%]
+tests/test_db_maintenance_comprehensive.py::test_get_database_stats PASSED [ 32%]
+tests/test_dl_strategy.py::test_dl_strategy PASSED                       [ 32%]
+tests/test_dynamic_ensemble.py::test_dynamic_ensemble_initialization PASSED [ 32%]
+tests/test_dynamic_ensemble.py::test_prediction_integration PASSED       [ 32%]
+tests/test_dynamic_ensemble.py::test_weight_update PASSED                [ 32%]
+tests/test_dynamic_ensemble.py::test_weight_update_down_market PASSED    [ 33%]
+tests/test_dynamic_stop.py::test_init PASSED                             [ 33%]
+tests/test_dynamic_stop.py::test_register_entry_with_initial_stop PASSED [ 33%]
+tests/test_dynamic_stop.py::test_register_entry_without_initial_stop PASSED [ 33%]
+tests/test_dynamic_stop.py::test_update_stop_price_increase PASSED       [ 33%]
+tests/test_dynamic_stop.py::test_update_stop_price_decrease PASSED       [ 33%]
+tests/test_dynamic_stop.py::test_update_stop_profit_locking PASSED       [ 33%]
+tests/test_dynamic_stop.py::test_update_stop_no_entry PASSED             [ 34%]
+tests/test_dynamic_stop.py::test_update_stop_with_atr_column PASSED      [ 34%]
+tests/test_dynamic_stop.py::test_update_stop_insufficient_data PASSED    [ 34%]
+tests/test_dynamic_stop.py::test_update_stop_none_dataframe PASSED       [ 34%]
+tests/test_dynamic_stop.py::test_check_exit_hit PASSED                   [ 34%]
+tests/test_dynamic_stop.py::test_check_exit_not_hit PASSED               [ 34%]
+tests/test_dynamic_stop.py::test_check_exit_no_stop PASSED               [ 35%]
+tests/test_dynamic_stop.py::test_multiple_positions PASSED               [ 35%]
+tests/test_dynamic_stop.py::test_trailing_stop_behavior PASSED           [ 35%]
+tests/test_execution.py::test_init PASSED                                [ 35%]
+tests/test_execution.py::test_init_with_real_broker PASSED               [ 35%]
+tests/test_execution.py::test_check_risk_safe PASSED                     [ 35%]
+tests/test_execution.py::test_check_risk_max_drawdown_exceeded PASSED    [ 36%]
+tests/test_execution.py::test_check_risk_with_real_broker PASSED         [ 36%]
+tests/test_execution.py::test_check_risk_with_real_broker_divergence PASSED [ 36%]
+tests/test_execution.py::test_check_risk_with_real_broker_error PASSED   [ 36%]
+tests/test_execution.py::test_calculate_position_size_us_stock PASSED    [ 36%]
+tests/test_execution.py::test_calculate_position_size_japan_stock PASSED [ 36%]
+tests/test_execution.py::test_calculate_position_size_with_confidence PASSED [ 37%]
+tests/test_execution.py::test_calculate_position_size_insufficient_cash PASSED [ 37%]
+tests/test_execution.py::test_calculate_position_size_too_expensive PASSED [ 37%]
+tests/test_execution.py::test_execute_orders_buy_success PASSED          [ 37%]
+tests/test_execution.py::test_execute_orders_buy_with_quantity PASSED    [ 37%]
+tests/test_execution.py::test_execute_orders_buy_failed PASSED           [ 37%]
+tests/test_execution.py::test_execute_orders_no_price PASSED             [ 38%]
+tests/test_execution.py::test_execute_orders_sell PASSED                 [ 38%]
+tests/test_execution.py::test_execute_orders_risk_check_failed PASSED    [ 38%]
+tests/test_execution.py::test_execute_orders_with_real_broker PASSED     [ 38%]
+tests/test_execution_real.py::TestExecutionEngineReal::test_execute_orders_real_buy PASSED [ 38%]
+tests/test_execution_real.py::TestExecutionEngineReal::test_execute_orders_real_sell_skipped PASSED [ 38%]
+tests/test_execution_real.py::TestExecutionEngineReal::test_check_risk_divergence PASSED [ 39%]
+tests/test_features_comprehensive.py::test_add_technical_indicators PASSED [ 39%]
+tests/test_features_comprehensive.py::test_add_frequency_features PASSED [ 39%]
+tests/test_features_comprehensive.py::test_add_sentiment_features PASSED [ 39%]
+tests/test_features_comprehensive.py::test_add_sentiment_features_no_history PASSED [ 39%]
+tests/test_features_comprehensive.py::test_add_sentiment_features_error PASSED [ 39%]
+tests/test_features_comprehensive.py::test_add_advanced_features PASSED  [ 40%]
+tests/test_features_comprehensive.py::test_add_advanced_features_short_data PASSED [ 40%]
+tests/test_features_comprehensive.py::test_add_macro_features PASSED     [ 40%]
+tests/test_features_comprehensive.py::test_add_macro_features_empty PASSED [ 40%]
+tests/test_features_comprehensive.py::test_add_macro_features_alignment PASSED [ 40%]
+tests/test_formatters.py::test_format_currency_basic PASSED              [ 40%]
+tests/test_formatters.py::test_format_currency_with_symbol PASSED        [ 40%]
+tests/test_formatters.py::test_format_currency_with_sign PASSED          [ 41%]
+tests/test_formatters.py::test_format_currency_none PASSED               [ 41%]
+tests/test_formatters.py::test_format_currency_nan PASSED                [ 41%]
+tests/test_formatters.py::test_format_percentage_basic PASSED            [ 41%]
+tests/test_formatters.py::test_format_percentage_with_sign PASSED        [ 41%]
+tests/test_formatters.py::test_format_percentage_none PASSED             [ 41%]
+tests/test_formatters.py::test_format_number_basic PASSED                [ 42%]
+tests/test_formatters.py::test_format_number_with_suffix PASSED          [ 42%]
+tests/test_formatters.py::test_format_number_none PASSED                 [ 42%]
+tests/test_formatters.py::test_format_large_number_thousands PASSED      [ 42%]
+tests/test_formatters.py::test_format_large_number_millions PASSED       [ 42%]
+tests/test_formatters.py::test_format_large_number_billions PASSED       [ 42%]
+tests/test_formatters.py::test_format_large_number_negative PASSED       [ 43%]
+tests/test_formatters.py::test_format_large_number_none PASSED           [ 43%]
+tests/test_formatters.py::test_format_date_basic PASSED                  [ 43%]
+tests/test_formatters.py::test_format_date_custom_format PASSED          [ 43%]
+tests/test_formatters.py::test_format_date_string_input PASSED           [ 43%]
+tests/test_formatters.py::test_format_date_none PASSED                   [ 43%]
+tests/test_formatters.py::test_get_risk_level_low PASSED                 [ 44%]
+tests/test_formatters.py::test_get_risk_level_medium PASSED              [ 44%]
+tests/test_formatters.py::test_get_risk_level_high PASSED                [ 44%]
+tests/test_formatters.py::test_get_sentiment_label_positive PASSED       [ 44%]
+tests/test_formatters.py::test_get_sentiment_label_negative PASSED       [ 44%]
+tests/test_formatters.py::test_get_sentiment_label_neutral PASSED        [ 44%]
+tests/test_formatters.py::test_truncate_text_short PASSED                [ 45%]
+tests/test_formatters.py::test_truncate_text_long PASSED                 [ 45%]
+tests/test_formatters.py::test_truncate_text_custom_suffix PASSED        [ 45%]
+tests/test_formatters.py::test_truncate_text_none PASSED                 [ 45%]
+tests/test_formatters.py::test_style_dataframe_currency PASSED           [ 45%]
+tests/test_formatters.py::test_style_dataframe_currency_missing_column PASSED [ 45%]
+tests/test_formatters.py::test_style_dataframe_percentage PASSED         [ 46%]
+tests/test_formatters.py::test_format_currency_jp_small PASSED           [ 46%]
+tests/test_formatters.py::test_format_currency_jp_man PASSED             [ 46%]
+tests/test_formatters.py::test_format_currency_jp_oku PASSED             [ 46%]
+tests/test_formatters.py::test_format_currency_jp_none PASSED            [ 46%]
+tests/test_formatters.py::test_format_currency_jp_nan PASSED             [ 46%]
+tests/test_fully_automated_trader.py::TestFullyAutomatedTrader::test_initialization FAILED [ 46%]
+tests/test_fully_automated_trader.py::TestFullyAutomatedTrader::test_calculate_daily_pnl FAILED [ 47%]
+tests/test_fully_automated_trader.py::TestFullyAutomatedTrader::test_is_safe_to_trade_daily_loss_limit PASSED [ 47%]
+tests/test_fully_automated_trader.py::TestFullyAutomatedTrader::test_is_safe_to_trade_vix_check PASSED [ 47%]
+tests/test_fully_automated_trader.py::TestFullyAutomatedTrader::test_get_target_tickers PASSED [ 47%]
+tests/test_fully_automated_trader.py::TestFullyAutomatedTrader::test_filter_by_market_cap PASSED [ 47%]
+tests/test_fully_automated_trader.py::TestFullyAutomatedTrader::test_fetch_data_with_retry_success PASSED [ 47%]
+tests/test_fully_automated_trader.py::TestFullyAutomatedTrader::test_fetch_data_with_retry_failure PASSED [ 48%]
+tests/test_fully_automated_trader.py::TestFullyAutomatedTrader::test_emergency_stop PASSED [ 48%]
+tests/test_fundamentals.py::test_init PASSED                             [ 48%]
+tests/test_fundamentals.py::test_filter_undervalued_pass PASSED          [ 48%]
+tests/test_fundamentals.py::test_filter_undervalued_high_pe PASSED       [ 48%]
+tests/test_fundamentals.py::test_filter_undervalued_high_pbr PASSED      [ 48%]
+tests/test_fundamentals.py::test_filter_undervalued_missing_pe PASSED    [ 49%]
+tests/test_fundamentals.py::test_filter_undervalued_missing_pbr PASSED   [ 49%]
+tests/test_fundamentals.py::test_filter_undervalued_empty PASSED         [ 49%]
+tests/test_fundamentals.py::test_filter_undervalued_none PASSED          [ 49%]
+tests/test_fundamentals.py::test_filter_undervalued_custom_thresholds PASSED [ 49%]
+tests/test_fundamentals.py::test_filter_quality_pass PASSED              [ 49%]
+tests/test_fundamentals.py::test_filter_quality_fail PASSED              [ 50%]
+tests/test_fundamentals.py::test_filter_quality_missing_roe PASSED       [ 50%]
+tests/test_fundamentals.py::test_filter_quality_none PASSED              [ 50%]
+tests/test_fundamentals.py::test_filter_quality_custom_threshold PASSED  [ 50%]
+tests/test_fundamentals.py::test_filter_large_cap_pass PASSED            [ 50%]
+tests/test_fundamentals.py::test_filter_large_cap_fail PASSED            [ 50%]
+tests/test_fundamentals.py::test_filter_large_cap_missing PASSED         [ 51%]
+tests/test_fundamentals.py::test_filter_large_cap_none PASSED            [ 51%]
+tests/test_fundamentals.py::test_filter_large_cap_custom_threshold PASSED [ 51%]
+tests/test_fundamentals.py::test_combined_filters PASSED                 [ 51%]
+tests/test_hierarchical_strategy.py::test_init PASSED                    [ 51%]
+tests/test_hierarchical_strategy.py::test_generate_signals_empty_dataframe PASSED [ 51%]
+tests/test_hierarchical_strategy.py::test_generate_signals_none PASSED   [ 52%]
+tests/test_hierarchical_strategy.py::test_generate_signals_missing_close PASSED [ 52%]
+tests/test_hierarchical_strategy.py::test_generate_signals_basic PASSED  [ 52%]
+tests/test_hierarchical_strategy.py::test_generate_signals_mtf_error PASSED [ 52%]
+tests/test_hierarchical_strategy.py::test_generate_signals_insufficient_data PASSED [ 52%]
+tests/test_hierarchical_strategy.py::test_get_signal_explanation_buy PASSED [ 52%]
+tests/test_hierarchical_strategy.py::test_get_signal_explanation_sell PASSED [ 53%]
+tests/test_hierarchical_strategy.py::test_get_signal_explanation_hold PASSED [ 53%]
+tests/test_hierarchical_strategy.py::test_analyze_method PASSED          [ 53%]
+tests/test_hierarchical_strategy.py::test_signals_with_bullish_trend PASSED [ 53%]
+tests/test_hierarchical_strategy.py::test_signals_with_bearish_trend PASSED [ 53%]
+tests/test_hierarchical_strategy.py::test_signals_consistency PASSED     [ 53%]
+tests/test_hierarchical_strategy.py::test_integration_with_mtf_analyzer PASSED [ 53%]
+tests/test_kelly_criterion.py::test_init PASSED                          [ 54%]
+tests/test_kelly_criterion.py::test_calculate_size_positive_edge PASSED  [ 54%]
+tests/test_kelly_criterion.py::test_calculate_size_half_kelly PASSED     [ 54%]
+tests/test_kelly_criterion.py::test_calculate_size_negative_edge PASSED  [ 54%]
+tests/test_kelly_criterion.py::test_calculate_size_zero_win_loss_ratio PASSED [ 54%]
+tests/test_kelly_criterion.py::test_calculate_size_negative_win_loss_ratio PASSED [ 54%]
+tests/test_kelly_criterion.py::test_calculate_size_max_cap PASSED        [ 55%]
+tests/test_kelly_criterion.py::test_calculate_from_history_positive_returns PASSED [ 55%]
+tests/test_kelly_criterion.py::test_calculate_from_history_all_wins PASSED [ 55%]
+tests/test_kelly_criterion.py::test_calculate_from_history_all_losses PASSED [ 55%]
+tests/test_kelly_criterion.py::test_calculate_from_history_empty_series PASSED [ 55%]
+tests/test_kelly_criterion.py::test_calculate_from_history_none PASSED   [ 55%]
+tests/test_kelly_criterion.py::test_calculate_from_history_zero_avg_loss PASSED [ 56%]
+tests/test_kelly_criterion.py::test_calculate_from_history_realistic_scenario PASSED [ 56%]
+tests/test_kelly_criterion.py::test_calculate_from_history_breakeven PASSED [ 56%]
+tests/test_kelly_criterion.py::test_different_max_position_sizes PASSED  [ 56%]
+tests/test_lightgbm.py::TestLightGBMStrategy::test_generate_signals FAILED [ 56%]
+tests/test_live_trading.py::TestPaperBroker::test_buy_order PASSED       [ 56%]
+tests/test_live_trading.py::TestPaperBroker::test_initial_state PASSED   [ 57%]
+tests/test_live_trading.py::TestPaperBroker::test_persistence PASSED     [ 57%]
+tests/test_live_trading.py::TestPaperBroker::test_sell_order PASSED      [ 57%]
+tests/test_live_trading.py::TestLiveTradingEngine::test_run_cycle PASSED [ 57%]
+tests/test_llm_analyzer.py::TestLLMAnalyzer::test_empty_news PASSED      [ 57%]
+tests/test_llm_analyzer.py::TestLLMAnalyzer::test_gemini_analysis PASSED [ 57%]
+tests/test_llm_analyzer.py::TestLLMAnalyzer::test_mock_analysis PASSED   [ 58%]
+tests/test_logging_config.py::test_json_formatter_basic PASSED           [ 58%]
+tests/test_logging_config.py::test_json_formatter_with_user_id PASSED    [ 58%]
+tests/test_logging_config.py::test_json_formatter_with_request_id PASSED [ 58%]
+tests/test_logging_config.py::test_json_formatter_with_exception PASSED  [ 58%]
+tests/test_logging_config.py::test_setup_logging_creates_directory FAILED [ 58%]
+tests/test_logging_config.py::test_setup_logging_returns_logger PASSED   [ 59%]
+tests/test_logging_config.py::test_setup_logging_log_level PASSED        [ 59%]
+tests/test_logging_config.py::test_get_logger PASSED                     [ 59%]
+tests/test_logging_config.py::test_get_logger_different_names PASSED     [ 59%]
+tests/test_meta_learner.py::test_meta_learner_flow FAILED                [ 59%]
+tests/test_ml_pipeline.py::test_registry_init PASSED                     [ 59%]
+tests/test_ml_pipeline.py::test_register_model PASSED                    [ 60%]
+tests/test_ml_pipeline.py::test_get_latest_model PASSED                  [ 60%]
+tests/test_ml_pipeline.py::test_get_best_model PASSED                    [ 60%]
+tests/test_ml_pipeline.py::test_continuous_learner PASSED                [ 60%]
+tests/test_ml_pipeline.py::test_continuous_learner_failure PASSED        [ 60%]
+tests/test_ml_strategy.py::TestMLStrategy::test_generate_signals PASSED  [ 60%]
+tests/test_ml_strategy.py::TestMLStrategy::test_initialization PASSED    [ 60%]
+tests/test_ml_strategy.py::TestMLStrategy::test_insufficient_data PASSED [ 61%]
+tests/test_morning_brief.py::TestMorningBrief::test_initialization PASSED [ 61%]
+tests/test_morning_brief.py::TestMorningBrief::test_get_market_overview PASSED [ 61%]
+tests/test_morning_brief.py::TestMorningBrief::test_get_market_sentiment PASSED [ 61%]
+tests/test_morning_brief.py::TestMorningBrief::test_get_trading_strategy FAILED [ 61%]
+tests/test_morning_brief.py::TestMorningBrief::test_generate_brief FAILED [ 61%]
+tests/test_morning_brief.py::TestMorningBrief::test_send_brief PASSED    [ 62%]
+tests/test_multi_timeframe.py::test_init PASSED                          [ 62%]
+tests/test_multi_timeframe.py::test_resample_data_weekly PASSED          [ 62%]
+tests/test_multi_timeframe.py::test_resample_data_monthly FAILED         [ 62%]
+tests/test_multi_timeframe.py::test_resample_data_empty PASSED           [ 62%]
+tests/test_multi_timeframe.py::test_resample_data_none PASSED            [ 62%]
+tests/test_multi_timeframe.py::test_resample_data_with_adj_close PASSED  [ 63%]
+tests/test_multi_timeframe.py::test_resample_data_non_datetime_index PASSED [ 63%]
+tests/test_multi_timeframe.py::test_calculate_mtf_indicators PASSED      [ 63%]
+tests/test_multi_timeframe.py::test_calculate_mtf_indicators_trend_values PASSED [ 63%]
+tests/test_multi_timeframe.py::test_merge_mtf_features PASSED            [ 63%]
+tests/test_multi_timeframe.py::test_merge_mtf_features_empty_daily PASSED [ 63%]
+tests/test_multi_timeframe.py::test_merge_mtf_features_empty_mtf PASSED  [ 64%]
+tests/test_multi_timeframe.py::test_merge_mtf_features_none PASSED       [ 64%]
+tests/test_multi_timeframe.py::test_merge_mtf_features_no_prefix_columns PASSED [ 64%]
+tests/test_multi_timeframe.py::test_add_mtf_features FAILED              [ 64%]
+tests/test_multi_timeframe.py::test_add_mtf_features_integration FAILED  [ 64%]
+tests/test_notifier_comprehensive.py::test_line_notify_service PASSED    [ 64%]
+tests/test_notifier_comprehensive.py::test_discord_webhook_service PASSED [ 65%]
+tests/test_notifier_comprehensive.py::test_slack_webhook_service PASSED  [ 65%]
+tests/test_notifier_comprehensive.py::test_legacy_notifier PASSED        [ 65%]
+tests/test_notifier_comprehensive.py::test_legacy_notifier_no_webhook PASSED [ 65%]
+tests/test_optimization.py::TestHyperparameterOptimizer::test_optimizer_initialization PASSED [ 65%]
+tests/test_optimization.py::TestHyperparameterOptimizer::test_optimize_random_forest_small_trials PASSED [ 65%]
+tests/test_optimization.py::TestHyperparameterOptimizer::test_optimize_lightgbm_small_trials PASSED [ 66%]
+tests/test_optimization.py::TestHyperparameterOptimizer::test_save_and_load_params PASSED [ 66%]
+tests/test_optimization_transformer.py::test_optimize_transformer PASSED [ 66%]
+tests/test_optimizer.py::TestOptimizer::test_optimize_combined FAILED    [ 66%]
+tests/test_optimizer.py::TestOptimizer::test_optimize_rsi FAILED         [ 66%]
+tests/test_optimizer_new.py::test_optimizer_init PASSED                  [ 66%]
+tests/test_optimizer_new.py::test_objective_sma_crossover PASSED         [ 66%]
+tests/test_optimizer_new.py::test_objective_invalid_sma_windows PASSED   [ 67%]
+tests/test_optimizer_new.py::test_objective_rsi_strategy PASSED          [ 67%]
+tests/test_optimizer_new.py::test_objective_bollinger_bands_strategy PASSED [ 67%]
+tests/test_optimizer_new.py::test_objective_combined_strategy PASSED     [ 67%]
+tests/test_optimizer_new.py::test_objective_unknown_strategy PASSED      [ 67%]
+tests/test_optimizer_new.py::test_objective_insufficient_trades PASSED   [ 67%]
+tests/test_optimizer_new.py::test_objective_no_result PASSED             [ 68%]
+tests/test_optimizer_new.py::test_optimize PASSED                        [ 68%]
+tests/test_optimizer_new.py::test_optimize_logging_suppression PASSED    [ 68%]
+tests/test_paper_trade.py::test_initial_balance PASSED                   [ 68%]
+tests/test_paper_trade.py::test_execute_trade_buy PASSED                 [ 68%]
+tests/test_paper_trade.py::test_execute_trade_sell PASSED                [ 68%]
+tests/test_paper_trade.py::test_insufficient_funds PASSED                [ 69%]
+tests/test_paper_trade.py::test_insufficient_shares PASSED               [ 69%]
+tests/test_paper_trade.py::test_trade_history PASSED                     [ 69%]
+tests/test_performance.py::TestPerformance::test_sector_rotation_performance PASSED [ 69%]
+tests/test_performance.py::TestPerformance::test_regime_detection_performance PASSED [ 69%]
+tests/test_phase29_integration.py::test_advanced_features PASSED         [ 69%]
+tests/test_phase29_integration.py::test_stacking_ensemble PASSED         [ 70%]
+tests/test_phase29_integration.py::test_hyperparameter_tuning PASSED     [ 70%]
+tests/test_phase29_integration.py::test_performance_monitor PASSED       [ 70%]
+tests/test_phase30_1_integration.py::test_online_learning PASSED         [ 70%]
+tests/test_phase30_1_integration.py::test_regime_detector PASSED         [ 70%]
+tests/test_phase30_1_integration.py::test_dynamic_risk_manager PASSED    [ 70%]
+tests/test_phase30_1_integration.py::test_integration PASSED             [ 71%]
+tests/test_phase30_2_mtf.py::test_mtf_strategy PASSED                    [ 71%]
+tests/test_phase30_3_risk.py::test_risk_management PASSED                [ 71%]
+tests/test_phase30_full_integration.py::TestPhase30FullIntegration::test_dynamic_stop_update FAILED [ 71%]
+tests/test_phase30_full_integration.py::TestPhase30FullIntegration::test_kelly_position_sizing_integration PASSED [ 71%]
+tests/test_phase35_crypto.py::test_crypto_data_loading FAILED            [ 71%]
+tests/test_phase35_crypto.py::test_fx_data_loading FAILED                [ 72%]
+tests/test_phase35_crypto.py::test_currency_formatting PASSED            [ 72%]
+tests/test_phase35_crypto.py::test_asset_class_constants PASSED          [ 72%]
+tests/test_portfolio.py::TestPortfolio::test_correlation_calculation PASSED [ 72%]
+tests/test_portfolio.py::TestPortfolio::test_portfolio_simulation PASSED [ 72%]
+tests/test_portfolio_manager.py::test_init PASSED                        [ 72%]
+tests/test_portfolio_manager.py::test_set_sector_map PASSED              [ 73%]
+tests/test_portfolio_manager.py::test_check_new_position_empty_portfolio PASSED [ 73%]
+tests/test_portfolio_manager.py::test_check_new_position_low_correlation PASSED [ 73%]
+tests/test_portfolio_manager.py::test_check_new_position_high_correlation PASSED [ 73%]
+tests/test_portfolio_manager.py::test_check_new_position_sector_limit PASSED [ 73%]
+tests/test_portfolio_manager.py::test_check_new_position_sector_ok PASSED [ 73%]
+tests/test_portfolio_manager.py::test_check_new_position_no_correlation_matrix PASSED [ 73%]
+tests/test_portfolio_manager.py::test_check_new_position_empty_correlation_matrix PASSED [ 74%]
+tests/test_portfolio_manager.py::test_check_new_position_ticker_not_in_matrix PASSED [ 74%]
+tests/test_portfolio_manager.py::test_calculate_portfolio_volatility PASSED [ 74%]
+tests/test_portfolio_manager.py::test_calculate_portfolio_volatility_empty_weights PASSED [ 74%]
+tests/test_portfolio_manager.py::test_calculate_portfolio_volatility_no_cov_matrix PASSED [ 74%]
+tests/test_portfolio_manager.py::test_calculate_portfolio_volatility_empty_cov_matrix PASSED [ 74%]
+tests/test_portfolio_manager.py::test_calculate_portfolio_volatility_missing_ticker PASSED [ 75%]
+tests/test_portfolio_manager.py::test_calculate_portfolio_volatility_single_asset PASSED [ 75%]
+tests/test_portfolio_optimization.py::TestPortfolioOptimization::test_optimize_portfolio PASSED [ 75%]
+tests/test_portfolio_optimizer.py::TestPortfolioOptimizer::test_optimizer_initialization FAILED [ 75%]
+tests/test_portfolio_optimizer.py::TestPortfolioOptimizer::test_calculate_portfolio_metrics FAILED [ 75%]
+tests/test_portfolio_optimizer.py::TestPortfolioOptimizer::test_find_efficient_frontier FAILED [ 75%]
+tests/test_portfolio_optimizer.py::TestPortfolioOptimizer::test_maximize_sharpe_ratio FAILED [ 76%]
+tests/test_portfolio_optimizer.py::TestPortfolioOptimizer::test_minimize_variance FAILED [ 76%]
+tests/test_portfolio_optimizer.py::TestPortfolioOptimizer::test_risk_parity FAILED [ 76%]
+tests/test_portfolio_optimizer.py::TestDynamicRebalancer::test_rebalancer_initialization PASSED [ 76%]
+tests/test_portfolio_optimizer.py::TestDynamicRebalancer::test_calculate_current_weights PASSED [ 76%]
+tests/test_portfolio_optimizer.py::TestDynamicRebalancer::test_needs_rebalancing PASSED [ 76%]
+tests/test_portfolio_optimizer.py::TestDynamicRebalancer::test_generate_rebalance_orders PASSED [ 77%]
+tests/test_portfolio_optimizer.py::TestBlackLitterman::test_black_litterman_basic PASSED [ 77%]
+tests/test_pytest_cov_optional.py::test_registers_cov_options_when_plugin_missing PASSED [ 77%]
+tests/test_pytest_cov_optional.py::test_defers_when_plugin_present PASSED [ 77%]
+tests/test_rakuten_broker.py::TestRakutenBroker::test_login_success PASSED [ 77%]
+tests/test_rakuten_broker.py::TestRakutenBroker::test_get_balance_success PASSED [ 77%]
+tests/test_rakuten_broker.py::TestRakutenBroker::test_buy_order_success PASSED [ 78%]
+tests/test_rakuten_broker.py::TestRakutenBroker::test_parse_currency PASSED [ 78%]
+tests/test_regime.py::test_regime_detector_initialization PASSED         [ 78%]
+tests/test_regime.py::test_regime_detector_fit PASSED                    [ 78%]
+tests/test_regime.py::test_regime_detector_predict PASSED                [ 78%]
+tests/test_regime.py::test_regime_detector_history PASSED                [ 78%]
+tests/test_regime.py::test_calculate_features PASSED                     [ 79%]
+tests/test_regime.py::test_regime_detector_with_missing_data PASSED      [ 79%]
+tests/test_regime_detector.py::test_init PASSED                          [ 79%]
+tests/test_regime_detector.py::test_detect_regime PASSED                 [ 79%]
+tests/test_regime_detector.py::test_detect_trend_fallback PASSED         [ 79%]
+tests/test_regime_detector.py::test_detect_volatility_fallback PASSED    [ 79%]
+tests/test_regime_detector.py::test_classify_regime_high_volatility PASSED [ 80%]
+tests/test_regime_detector.py::test_classify_regime_low_volatility PASSED [ 80%]
+tests/test_regime_detector.py::test_classify_regime_trending_up PASSED   [ 80%]
+tests/test_regime_detector.py::test_classify_regime_trending_down PASSED [ 80%]
+tests/test_regime_detector.py::test_classify_regime_ranging PASSED       [ 80%]
+tests/test_regime_detector.py::test_get_regime_strategy_trending_up PASSED [ 80%]
+tests/test_regime_detector.py::test_get_regime_strategy_trending_down PASSED [ 80%]
+tests/test_regime_detector.py::test_get_regime_strategy_ranging PASSED   [ 81%]
+tests/test_regime_detector.py::test_get_regime_strategy_high_volatility PASSED [ 81%]
+tests/test_regime_detector.py::test_get_regime_strategy_low_volatility PASSED [ 81%]
+tests/test_regime_detector.py::test_get_regime_strategy_none PASSED      [ 81%]
+tests/test_regime_detector.py::test_get_regime_strategy_no_regime PASSED [ 81%]
+tests/test_regime_detector.py::test_get_regime_history PASSED            [ 81%]
+tests/test_regime_detector.py::test_get_regime_history_all PASSED        [ 82%]
+tests/test_regime_detector.py::test_get_regime_statistics_empty PASSED   [ 82%]
+tests/test_regime_detector.py::test_get_regime_statistics PASSED         [ 82%]
+tests/test_regime_detector.py::test_multiple_regime_detections PASSED    [ 82%]
+tests/test_regime_detector.py::test_regime_history_structure PASSED      [ 82%]
+tests/test_risk_guard.py::TestRiskGuard::test_initialization PASSED      [ 82%]
+tests/test_risk_guard.py::TestRiskGuard::test_daily_loss_limit_breach PASSED [ 83%]
+tests/test_risk_guard.py::TestRiskGuard::test_drawdown_limit PASSED      [ 83%]
+tests/test_risk_guard.py::TestRiskGuard::test_persistence PASSED         [ 83%]
+tests/test_risk_guard.py::TestRiskGuard::test_daily_reset_logic PASSED   [ 83%]
+tests/test_risk_guard.py::TestRiskGuard::test_position_size_check PASSED [ 83%]
+tests/test_risk_guard.py::TestRiskGuard::test_volatility_check PASSED    [ 83%]
+tests/test_risk_limiter.py::test_init_defaults PASSED                    [ 84%]
+tests/test_risk_limiter.py::test_check_position_size PASSED              [ 84%]
+tests/test_risk_limiter.py::test_check_daily_trades PASSED               [ 84%]
+tests/test_risk_limiter.py::test_check_daily_loss PASSED                 [ 84%]
+tests/test_risk_limiter.py::test_check_total_exposure PASSED             [ 84%]
+tests/test_risk_limiter.py::test_check_cash_reserve PASSED               [ 84%]
+tests/test_risk_limiter.py::test_check_emergency_stop PASSED             [ 85%]
+tests/test_risk_limiter.py::test_validate_trade_success PASSED           [ 85%]
+tests/test_risk_limiter.py::test_validate_trade_failure PASSED           [ 85%]
+tests/test_risk_limiter.py::test_get_risk_report PASSED                  [ 85%]
+tests/test_sector_rotation.py::test_sector_rotation_initialization PASSED [ 85%]
+tests/test_sector_rotation.py::test_calculate_sector_performance PASSED  [ 85%]
+tests/test_sector_rotation.py::test_get_top_sectors PASSED               [ 86%]
+tests/test_sector_rotation.py::test_recommend_sectors_by_cycle PASSED    [ 86%]
+tests/test_sector_rotation.py::test_calculate_optimal_weights PASSED     [ 86%]
+tests/test_sector_rotation.py::test_analyze_cycle_from_regime PASSED     [ 86%]
+tests/test_sector_rotation.py::test_get_sector_heatmap_data PASSED       [ 86%]
+tests/test_sentiment.py::test_init PASSED                                [ 86%]
+tests/test_sentiment.py::test_fetch_news PASSED                          [ 86%]
+tests/test_sentiment.py::test_analyze_sentiment PASSED                   [ 87%]
+tests/test_sentiment.py::test_get_market_sentiment PASSED                [ 87%]
+tests/test_sentiment.py::test_save_sentiment_history PASSED              [ 87%]
+tests/test_sentiment.py::test_save_sentiment_history_missing_keys PASSED [ 87%]
+tests/test_sentiment.py::test_get_sentiment_history PASSED               [ 87%]
+tests/test_small_modules.py::test_pytest_cov_optional_import PASSED      [ 87%]
+tests/test_small_modules.py::test_constants_import PASSED                [ 88%]
+tests/test_small_modules.py::test_constants_has_values PASSED            [ 88%]
+tests/test_small_modules.py::test_dashboard_utils_import PASSED          [ 88%]
+tests/test_small_modules.py::test_design_tokens_import PASSED            [ 88%]
+tests/test_small_modules.py::test_prompts_import PASSED                  [ 88%]
+tests/test_small_modules.py::test_visualizer_import PASSED               [ 88%]
+tests/test_small_modules.py::test_patterns_import PASSED                 [ 89%]
+tests/test_small_modules.py::test_ensemble_import PASSED                 [ 89%]
+tests/test_small_modules.py::test_backtest_engine_import SKIPPED (ba...) [ 89%]
+tests/test_small_modules.py::test_base_import PASSED                     [ 89%]
+tests/test_smart_notifier.py::TestSmartNotifier::test_initialization FAILED [ 89%]
+tests/test_smart_notifier.py::TestSmartNotifier::test_filter_signals_by_confidence FAILED [ 89%]
+tests/test_smart_notifier.py::TestSmartNotifier::test_filter_signals_by_expected_return FAILED [ 90%]
+tests/test_smart_notifier.py::TestSmartNotifier::test_filter_signals_empty FAILED [ 90%]
+tests/test_smart_notifier.py::TestSmartNotifier::test_generate_chart FAILED [ 90%]
+tests/test_smart_notifier.py::TestSmartNotifier::test_is_quiet_hours FAILED [ 90%]
+tests/test_smart_notifier.py::TestSmartNotifier::test_send_line_notify_success PASSED [ 90%]
+tests/test_smart_notifier.py::TestSmartNotifier::test_send_line_notify_failure PASSED [ 90%]
+tests/test_smart_notifier.py::TestSmartNotifier::test_format_signal_message FAILED [ 91%]
+tests/test_smart_notifier_comprehensive.py::test_init PASSED             [ 91%]
+tests/test_smart_notifier_comprehensive.py::test_init_no_config PASSED   [ 91%]
+tests/test_smart_notifier_comprehensive.py::test_send_line_notify PASSED [ 91%]
+tests/test_smart_notifier_comprehensive.py::test_send_line_notify_no_token PASSED [ 91%]
+tests/test_smart_notifier_comprehensive.py::test_send_line_notify_with_image PASSED [ 91%]
+tests/test_smart_notifier_comprehensive.py::test_send_discord_webhook PASSED [ 92%]
+tests/test_smart_notifier_comprehensive.py::test_send_discord_webhook_with_image PASSED [ 92%]
+tests/test_smart_notifier_comprehensive.py::test_send_daily_summary_rich PASSED [ 92%]
+tests/test_strategies.py::TestStrategy::test_strategy_initialization PASSED [ 92%]
+tests/test_strategies.py::TestStrategy::test_generate_signals_not_implemented PASSED [ 92%]
+tests/test_strategies.py::TestSMACrossoverStrategy::test_initialization PASSED [ 92%]
+tests/test_strategies.py::TestSMACrossoverStrategy::test_generate_signals_returns_series PASSED [ 93%]
+tests/test_strategies.py::TestSMACrossoverStrategy::test_signals_are_valid_values PASSED [ 93%]
+tests/test_strategies.py::TestSMACrossoverStrategy::test_golden_cross_generates_buy_signal PASSED [ 93%]
+tests/test_strategies.py::TestSMACrossoverStrategy::test_dead_cross_generates_sell_signal PASSED [ 93%]
+tests/test_strategies.py::TestRSIStrategy::test_initialization PASSED    [ 93%]
+tests/test_strategies.py::TestRSIStrategy::test_generate_signals_returns_series PASSED [ 93%]
+tests/test_strategies.py::TestRSIStrategy::test_signals_are_valid_values PASSED [ 93%]
+tests/test_strategies.py::TestRSIStrategy::test_oversold_recovery_generates_buy_signal PASSED [ 94%]
+tests/test_strategies.py::TestBollingerBandsStrategy::test_initialization PASSED [ 94%]
+tests/test_strategies.py::TestBollingerBandsStrategy::test_generate_signals_returns_series PASSED [ 94%]
+tests/test_strategies.py::TestBollingerBandsStrategy::test_signals_are_valid_values PASSED [ 94%]
+tests/test_strategies.py::TestBollingerBandsStrategy::test_lower_band_touch_generates_buy_signal PASSED [ 94%]
+tests/test_strategies_base.py::test_order_dataclass PASSED               [ 94%]
+tests/test_strategies_base.py::test_strategy_init PASSED                 [ 95%]
+tests/test_strategies_base.py::test_apply_trend_filter PASSED            [ 95%]
+tests/test_strategies_base.py::test_apply_trend_filter_disabled PASSED   [ 95%]
+tests/test_strategies_base.py::test_generate_signals_not_implemented PASSED [ 95%]
+tests/test_strategies_base.py::test_analyze PASSED                       [ 95%]
+tests/test_strategies_base.py::test_analyze_empty FAILED                 [ 95%]
+tests/test_strategies_base.py::test_get_signal_explanation PASSED        [ 96%]
+tests/test_transformer_model.py::TestTemporalFusionTransformer::test_model_initialization PASSED [ 96%]
+tests/test_transformer_model.py::TestTemporalFusionTransformer::test_prepare_sequences PASSED [ 96%]
+tests/test_transformer_model.py::TestTemporalFusionTransformer::test_model_training PASSED [ 96%]
+tests/test_transformer_model.py::TestTemporalFusionTransformer::test_model_prediction PASSED [ 96%]
+tests/test_transformer_model.py::TestTemporalFusionTransformer::test_attention_weights FAILED [ 96%]
+tests/test_transformer_model.py::TestTemporalFusionTransformer::test_model_save_and_load PASSED [ 97%]
+tests/test_transformer_model.py::TestTransformerStrategy::test_strategy_initialization PASSED [ 97%]
+tests/test_transformer_model.py::TestTransformerStrategy::test_strategy_generate_signal PASSED [ 97%]
+tests/test_transformer_model.py::TestTransformerStrategy::test_strategy_train_and_predict PASSED [ 97%]
+tests/test_transformer_model.py::TestTransformerStrategy::test_strategy_confidence_score FAILED [ 97%]
+tests/test_transformer_model.py::TestTransformerIntegration::test_ensemble_with_transformer FAILED [ 97%]
+tests/test_transformer_model.py::TestTransformerIntegration::test_transformer_performance_metrics PASSED [ 98%]
+tests/test_ui_renderers.py::TestUIRenderers::test_render_performance_tab_empty PASSED [ 98%]
+tests/test_ui_renderers.py::TestUIRenderers::test_render_performance_tab_with_data PASSED [ 98%]
+tests/test_ui_renderers.py::TestUIRenderers::test_render_performance_tab_error_handling PASSED [ 98%]
+tests/test_ui_renderers.py::TestUIRenderers::test_render_paper_trading_tab PASSED [ 98%]
+tests/test_ui_renderers.py::TestUIRenderers::test_render_market_scan_tab PASSED [ 98%]
+tests/test_visualizer.py::test_init PASSED                               [ 99%]
+tests/test_visualizer.py::test_generate_equity_chart PASSED              [ 99%]
+tests/test_visualizer.py::test_generate_equity_chart_empty PASSED        [ 99%]
+tests/test_visualizer.py::test_generate_equity_chart_missing_columns PASSED [ 99%]
+tests/test_visualizer.py::test_generate_pnl_bar_chart PASSED             [ 99%]
+tests/test_visualizer.py::test_generate_pnl_bar_chart_negative PASSED    [ 99%]
+tests/test_visualizer.py::test_generate_equity_chart_timestamp_col PASSED [100%]
+
+================================== FAILURES ===================================
+____________________ TestBacktester.test_run_returns_dict _____________________
+tests\test_backtester.py:22: in test_run_returns_dict
+    result = backtester.run(sample_stock_data, sma_strategy)
+src\backtester.py:90: in run
+    strat = strategy_map.get(ticker)
+E   AttributeError: 'SMACrossoverStrategy' object has no attribute 'get'
+____________ TestBacktester.test_run_result_contains_required_keys ____________
+tests\test_backtester.py:27: in test_run_result_contains_required_keys
+    result = backtester.run(sample_stock_data, sma_strategy)
+src\backtester.py:90: in run
+    strat = strategy_map.get(ticker)
+E   AttributeError: 'SMACrossoverStrategy' object has no attribute 'get'
+_________________ TestBacktester.test_total_return_is_numeric _________________
+tests\test_backtester.py:45: in test_total_return_is_numeric
+    result = backtester.run(sample_stock_data, sma_strategy)
+src\backtester.py:90: in run
+    strat = strategy_map.get(ticker)
+E   AttributeError: 'SMACrossoverStrategy' object has no attribute 'get'
+_________________ TestBacktester.test_final_value_calculation _________________
+tests\test_backtester.py:50: in test_final_value_calculation
+    result = backtester.run(sample_stock_data, sma_strategy)
+src\backtester.py:90: in run
+    strat = strategy_map.get(ticker)
+E   AttributeError: 'SMACrossoverStrategy' object has no attribute 'get'
+_______________ TestBacktester.test_signals_length_matches_data _______________
+tests\test_backtester.py:57: in test_signals_length_matches_data
+    result = backtester.run(sample_stock_data, sma_strategy)
+src\backtester.py:90: in run
+    strat = strategy_map.get(ticker)
+E   AttributeError: 'SMACrossoverStrategy' object has no attribute 'get'
+______________ TestBacktester.test_positions_length_matches_data ______________
+tests\test_backtester.py:62: in test_positions_length_matches_data
+    result = backtester.run(sample_stock_data, sma_strategy)
+src\backtester.py:90: in run
+    strat = strategy_map.get(ticker)
+E   AttributeError: 'SMACrossoverStrategy' object has no attribute 'get'
+__________________ TestBacktester.test_positions_are_binary ___________________
+tests\test_backtester.py:67: in test_positions_are_binary
+    result = backtester.run(sample_stock_data, sma_strategy)
+src\backtester.py:90: in run
+    strat = strategy_map.get(ticker)
+E   AttributeError: 'SMACrossoverStrategy' object has no attribute 'get'
+_________________ TestBacktester.test_equity_curve_is_series __________________
+tests\test_backtester.py:73: in test_equity_curve_is_series
+    result = backtester.run(sample_stock_data, sma_strategy)
+src\backtester.py:90: in run
+    strat = strategy_map.get(ticker)
+E   AttributeError: 'SMACrossoverStrategy' object has no attribute 'get'
+_______________ TestBacktester.test_equity_curve_starts_at_one ________________
+tests\test_backtester.py:78: in test_equity_curve_starts_at_one
+    result = backtester.run(sample_stock_data, sma_strategy)
+src\backtester.py:90: in run
+    strat = strategy_map.get(ticker)
+E   AttributeError: 'SMACrossoverStrategy' object has no attribute 'get'
+__________________ TestBacktester.test_buy_and_hold_strategy __________________
+tests\test_backtester.py:104: in test_buy_and_hold_strategy
+    result = backtester.run(df, strategy)
+src\backtester.py:90: in run
+    strat = strategy_map.get(ticker)
+E   AttributeError: 'SMACrossoverStrategy' object has no attribute 'get'
+______________ TestBacktester.test_multiple_strategies_same_data ______________
+tests\test_backtester.py:137: in test_multiple_strategies_same_data
+    result1 = backtester.run(sample_stock_data, sma_strategy)
+src\backtester.py:90: in run
+    strat = strategy_map.get(ticker)
+E   AttributeError: 'SMACrossoverStrategy' object has no attribute 'get'
+_____________________ TestBackupManager.test_list_backups _____________________
+tests\test_backup_manager.py:92: in test_list_backups
+    assert len(backups) == 2
+E   AssertionError: assert 1 == 2
+E    +  where 1 = len([{'created': datetime.datetime(2025, 12, 4, 16, 18, 6, 690204), 'filename': 'paper_trading_20251204_161806.db', 'path': 'C:\\Users\\neoen\\AppData\\Local\\Temp\\tmphr9lsi5p\\paper_trading_20251204_161806.db', 'size_mb': 0.0078125}])
+---------------------------- Captured stderr call -----------------------------
+2025-12-04 16:18:06,697 - src.backup_manager - INFO - Backup created successfully: C:\Users\neoen\AppData\Local\Temp\tmphr9lsi5p\paper_trading_20251204_161806.db
+2025-12-04 16:18:06,802 - src.backup_manager - INFO - Backup created successfully: C:\Users\neoen\AppData\Local\Temp\tmphr9lsi5p\paper_trading_20251204_161806.db
+------------------------------ Captured log call ------------------------------
+INFO     src.backup_manager:backup_manager.py:63 Backup created successfully: C:\Users\neoen\AppData\Local\Temp\tmphr9lsi5p\paper_trading_20251204_161806.db
+INFO     src.backup_manager:backup_manager.py:63 Backup created successfully: C:\Users\neoen\AppData\Local\Temp\tmphr9lsi5p\paper_trading_20251204_161806.db
+__________________ TestBackupManager.test_get_latest_backup ___________________
+tests\test_backup_manager.py:172: in test_get_latest_backup
+    assert latest == backup_path2
+E   AssertionError: assert 'C:\\Users\\n...204_161806.db' == 'C:\\Users\\n...204_161807.db'
+E     - C:\Users\neoen\AppData\Local\Temp\tmp116okcn6\paper_trading_20251204_161807.db
+E     ?                                                                           ^
+E     + C:\Users\neoen\AppData\Local\Temp\tmp116okcn6\paper_trading_20251204_161806.db
+E     ?                                                                           ^
+---------------------------- Captured stderr call -----------------------------
+2025-12-04 16:18:06,919 - src.backup_manager - INFO - Backup created successfully: C:\Users\neoen\AppData\Local\Temp\tmp116okcn6\paper_trading_20251204_161806.db
+2025-12-04 16:18:07,023 - src.backup_manager - INFO - Backup created successfully: C:\Users\neoen\AppData\Local\Temp\tmp116okcn6\paper_trading_20251204_161807.db
+------------------------------ Captured log call ------------------------------
+INFO     src.backup_manager:backup_manager.py:63 Backup created successfully: C:\Users\neoen\AppData\Local\Temp\tmp116okcn6\paper_trading_20251204_161806.db
+INFO     src.backup_manager:backup_manager.py:63 Backup created successfully: C:\Users\neoen\AppData\Local\Temp\tmp116okcn6\paper_trading_20251204_161807.db
+_________________________ test_install_cache_success __________________________
+tests\test_cache_config.py:11: in test_install_cache_success
+    with patch('src.cache_config.requests_cache') as mock_requests_cache:
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1427: in __enter__
+    original, local = self.get_original()
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1400: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'src.cache_config' from 'C:\\gemini-desktop\\AGStock\\src\\cache_config.py'> does not have the attribute 'requests_cache'
+_______________________ test_install_cache_import_error _______________________
+tests\test_cache_config.py:26: in test_install_cache_import_error
+    with patch('src.cache_config.requests_cache', side_effect=ImportError):
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1427: in __enter__
+    original, local = self.get_original()
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1400: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'src.cache_config' from 'C:\\gemini-desktop\\AGStock\\src\\cache_config.py'> does not have the attribute 'requests_cache'
+_______________ TestFetchStockData.test_fetch_multiple_tickers ________________
+tests\test_data_loader.py:94: in test_fetch_multiple_tickers
+    assert '7203.T' in result
+E   AssertionError: assert '7203.T' in {}
+---------------------------- Captured stdout call -----------------------------
+7203.T: No data found for this date range, symbol may be delisted
+9984.T: No data found for this date range, symbol may be delisted
+---------------------------- Captured stderr call -----------------------------
+2025-12-04 16:18:11,713 - src.async_data_loader - WARNING - Empty DataFrame for 7203.T
+2025-12-04 16:18:11,726 - src.async_data_loader - WARNING - Empty DataFrame for 9984.T
+2025-12-04 16:18:11,729 - src.async_data_loader - INFO - Successfully fetched 0/2 tickers
+------------------------------ Captured log call ------------------------------
+WARNING  src.async_data_loader:async_data_loader.py:110 Empty DataFrame for 7203.T
+WARNING  src.async_data_loader:async_data_loader.py:110 Empty DataFrame for 9984.T
+INFO     src.async_data_loader:async_data_loader.py:192 Successfully fetched 0/2 tickers
+______________________________ test_parse_period ______________________________
+tests\test_data_loader_comprehensive.py:103: in test_parse_period
+    d_invalid = parse_period('invalid')
+src\data_loader.py:88: in parse_period
+    days = int(period[:-1])
+E   ValueError: invalid literal for int() with base 10: 'invali'
+________________ TestFullyAutomatedTrader.test_initialization _________________
+tests\test_fully_automated_trader.py:55: in test_initialization
+    assert trader.target_japan_pct == 60.0
+E   assert 40 == 60.0
+E    +  where 40 = <fully_automated_trader.FullyAutomatedTrader object at 0x000002030D8FB9D0>.target_japan_pct
+---------------------------- Captured stdout setup ----------------------------
+[2025-12-04 16:18:12] [INFO] Phase 30-1 & 30-3: リアルタイム適応学習・高度リスク管理モジュール初期化完了
+[2025-12-04 16:18:12] [INFO] フル自動トレーダー初期化完了
+---------------------------- Captured stderr setup ----------------------------
+2025-12-04 16:18:12,674 - src.regime_detector - INFO - MarketRegimeDetector initialized
+2025-12-04 16:18:12,675 - src.dynamic_risk_manager - INFO - DynamicRiskManager initialized
+----------------------------- Captured log setup ------------------------------
+INFO     src.regime_detector:regime_detector.py:35 MarketRegimeDetector initialized
+INFO     src.dynamic_risk_manager:dynamic_risk_manager.py:34 DynamicRiskManager initialized
+______________ TestFullyAutomatedTrader.test_calculate_daily_pnl ______________
+tests\test_fully_automated_trader.py:70: in test_calculate_daily_pnl
+    assert pnl == 1000  # 今日の取引のみ
+E   assert 0.0 == 1000
+---------------------------- Captured stdout setup ----------------------------
+[2025-12-04 16:18:12] [INFO] Phase 30-1 & 30-3: リアルタイム適応学習・高度リスク管理モジュール初期化完了
+[2025-12-04 16:18:12] [INFO] フル自動トレーダー初期化完了
+---------------------------- Captured stderr setup ----------------------------
+2025-12-04 16:18:12,698 - src.regime_detector - INFO - MarketRegimeDetector initialized
+2025-12-04 16:18:12,699 - src.dynamic_risk_manager - INFO - DynamicRiskManager initialized
+----------------------------- Captured log setup ------------------------------
+INFO     src.regime_detector:regime_detector.py:35 MarketRegimeDetector initialized
+INFO     src.dynamic_risk_manager:dynamic_risk_manager.py:34 DynamicRiskManager initialized
+_________________ TestLightGBMStrategy.test_generate_signals __________________
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1356: in patched
+    with self.decoration_helper(patched,
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1338: in decoration_helper
+    arg = exit_stack.enter_context(patching)
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\contextlib.py:502: in enter_context
+    result = _enter(cm)
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1427: in __enter__
+    original, local = self.get_original()
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1400: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'src.strategies' from 'C:\\gemini-desktop\\AGStock\\src\\strategies\\__init__.py'> does not have the attribute 'fetch_macro_data'
+____________________ test_setup_logging_creates_directory _____________________
+tests\test_logging_config.py:107: in test_setup_logging_creates_directory
+    setup_logging(log_dir=str(log_dir))
+src\logging_config.py:57: in setup_logging
+    file_handler = logging.handlers.RotatingFileHandler(
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\logging\handlers.py:155: in __init__
+    BaseRotatingHandler.__init__(self, filename, mode, encoding=encoding,
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\logging\handlers.py:58: in __init__
+    logging.FileHandler.__init__(self, filename, mode=mode,
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\logging\__init__.py:1181: in __init__
+    StreamHandler.__init__(self, self._open())
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\logging\__init__.py:1213: in _open
+    return open_func(self.baseFilename, self.mode,
+E   FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\neoen\\AppData\\Local\\Temp\\pytest-of-neoen\\pytest-241\\test_setup_logging_creates_dir0\\test_logs\\agstock.log'
+___________________________ test_meta_learner_flow ____________________________
+tests\test_meta_learner.py:50: in test_meta_learner_flow
+    learner = MetaLearner(model_path="models/test_meta.txt")
+E   TypeError: MetaLearner.__init__() got an unexpected keyword argument 'model_path'
+_________________ TestMorningBrief.test_get_trading_strategy __________________
+tests\test_morning_brief.py:60: in test_get_trading_strategy
+    strategy = morning_brief.get_trading_strategy()
+E   AttributeError: 'MorningBrief' object has no attribute 'get_trading_strategy'
+____________________ TestMorningBrief.test_generate_brief _____________________
+tests\test_morning_brief.py:70: in test_generate_brief
+    with patch.object(morning_brief, 'get_trading_strategy', return_value="買い優勢"):
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1427: in __enter__
+    original, local = self.get_original()
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1400: in get_original
+    raise AttributeError(
+E   AttributeError: <morning_brief.MorningBrief object at 0x000002030DA318D0> does not have the attribute 'get_trading_strategy'
+_________________________ test_resample_data_monthly __________________________
+pandas\_libs\tslibs\offsets.pyx:4089: in pandas._libs.tslibs.offsets._get_offset
+    ???
+E   KeyError: 'ME'
+
+The above exception was the direct cause of the following exception:
+pandas\_libs\tslibs\offsets.pyx:4190: in pandas._libs.tslibs.offsets.to_offset
+    ???
+pandas\_libs\tslibs\offsets.pyx:4095: in pandas._libs.tslibs.offsets._get_offset
+    ???
+E   ValueError: Invalid frequency: ME
+
+The above exception was the direct cause of the following exception:
+tests\test_multi_timeframe.py:56: in test_resample_data_monthly
+    monthly = analyzer.resample_data(daily_data, 'ME')
+src\multi_timeframe.py:51: in resample_data
+    resampled = df.resample(rule).agg(agg_dict)
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\core\frame.py:10994: in resample
+    return super().resample(
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\core\generic.py:8888: in resample
+    return get_resampler(
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\core\resample.py:1522: in get_resampler
+    tg = TimeGrouper(**kwds)
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\core\resample.py:1599: in __init__
+    freq = to_offset(freq)
+pandas\_libs\tslibs\offsets.pyx:4102: in pandas._libs.tslibs.offsets.to_offset
+    ???
+pandas\_libs\tslibs\offsets.pyx:4198: in pandas._libs.tslibs.offsets.to_offset
+    ???
+E   ValueError: Invalid frequency: ME
+____________________________ test_add_mtf_features ____________________________
+pandas\_libs\tslibs\offsets.pyx:4089: in pandas._libs.tslibs.offsets._get_offset
+    ???
+E   KeyError: 'ME'
+
+The above exception was the direct cause of the following exception:
+pandas\_libs\tslibs\offsets.pyx:4190: in pandas._libs.tslibs.offsets.to_offset
+    ???
+pandas\_libs\tslibs\offsets.pyx:4095: in pandas._libs.tslibs.offsets._get_offset
+    ???
+E   ValueError: Invalid frequency: ME
+
+The above exception was the direct cause of the following exception:
+tests\test_multi_timeframe.py:191: in test_add_mtf_features
+    result = analyzer.add_mtf_features(daily_data)
+src\multi_timeframe.py:139: in add_mtf_features
+    monthly_df = self.resample_data(df, 'ME')
+src\multi_timeframe.py:51: in resample_data
+    resampled = df.resample(rule).agg(agg_dict)
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\core\frame.py:10994: in resample
+    return super().resample(
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\core\generic.py:8888: in resample
+    return get_resampler(
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\core\resample.py:1522: in get_resampler
+    tg = TimeGrouper(**kwds)
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\core\resample.py:1599: in __init__
+    freq = to_offset(freq)
+pandas\_libs\tslibs\offsets.pyx:4102: in pandas._libs.tslibs.offsets.to_offset
+    ???
+pandas\_libs\tslibs\offsets.pyx:4198: in pandas._libs.tslibs.offsets.to_offset
+    ???
+E   ValueError: Invalid frequency: ME
+______________________ test_add_mtf_features_integration ______________________
+pandas\_libs\tslibs\offsets.pyx:4089: in pandas._libs.tslibs.offsets._get_offset
+    ???
+E   KeyError: 'ME'
+
+The above exception was the direct cause of the following exception:
+pandas\_libs\tslibs\offsets.pyx:4190: in pandas._libs.tslibs.offsets.to_offset
+    ???
+pandas\_libs\tslibs\offsets.pyx:4095: in pandas._libs.tslibs.offsets._get_offset
+    ???
+E   ValueError: Invalid frequency: ME
+
+The above exception was the direct cause of the following exception:
+tests\test_multi_timeframe.py:219: in test_add_mtf_features_integration
+    result = analyzer.add_mtf_features(df)
+src\multi_timeframe.py:139: in add_mtf_features
+    monthly_df = self.resample_data(df, 'ME')
+src\multi_timeframe.py:51: in resample_data
+    resampled = df.resample(rule).agg(agg_dict)
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\core\frame.py:10994: in resample
+    return super().resample(
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\core\generic.py:8888: in resample
+    return get_resampler(
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\core\resample.py:1522: in get_resampler
+    tg = TimeGrouper(**kwds)
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\core\resample.py:1599: in __init__
+    freq = to_offset(freq)
+pandas\_libs\tslibs\offsets.pyx:4102: in pandas._libs.tslibs.offsets.to_offset
+    ???
+pandas\_libs\tslibs\offsets.pyx:4198: in pandas._libs.tslibs.offsets.to_offset
+    ???
+E   ValueError: Invalid frequency: ME
+____________________ TestOptimizer.test_optimize_combined _____________________
+tests\test_optimizer.py:38: in test_optimize_combined
+    params, value = optimizer.optimize(n_trials=2)
+src\optimizer.py:72: in optimize
+    study.optimize(self.objective, n_trials=n_trials)
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\optuna\study\study.py:442: in optimize
+    _optimize(
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\optuna\study\_optimize.py:66: in _optimize
+    _optimize_sequential(
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\optuna\study\_optimize.py:163: in _optimize_sequential
+    frozen_trial = _run_trial(study, func, catch)
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\optuna\study\_optimize.py:251: in _run_trial
+    raise func_err
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\optuna\study\_optimize.py:200: in _run_trial
+    value_or_values = func(trial)
+src\optimizer.py:58: in objective
+    res = self.backtester.run(train_df, strategy, stop_loss=stop_loss, take_profit=take_profit)
+src\backtester.py:90: in run
+    strat = strategy_map.get(ticker)
+E   AttributeError: 'CombinedStrategy' object has no attribute 'get'
+---------------------------- Captured stderr call -----------------------------
+[W 2025-12-04 16:18:22,531] Trial 0 failed with parameters: {'rsi_period': 28, 'bb_length': 49, 'bb_std': 1.7, 'trend_period': 104, 'stop_loss': 0.09000000000000001, 'take_profit': 0.2} because of the following error: AttributeError("'CombinedStrategy' object has no attribute 'get'").
+Traceback (most recent call last):
+  File "C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\optuna\study\_optimize.py", line 200, in _run_trial
+    value_or_values = func(trial)
+                      ^^^^^^^^^^^
+  File "C:\gemini-desktop\AGStock\src\optimizer.py", line 58, in objective
+    res = self.backtester.run(train_df, strategy, stop_loss=stop_loss, take_profit=take_profit)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\gemini-desktop\AGStock\src\backtester.py", line 90, in run
+    strat = strategy_map.get(ticker)
+            ^^^^^^^^^^^^^^^^
+AttributeError: 'CombinedStrategy' object has no attribute 'get'
+[W 2025-12-04 16:18:22,532] Trial 0 failed with value None.
+_______________________ TestOptimizer.test_optimize_rsi _______________________
+tests\test_optimizer.py:31: in test_optimize_rsi
+    params, value = optimizer.optimize(n_trials=2)
+src\optimizer.py:72: in optimize
+    study.optimize(self.objective, n_trials=n_trials)
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\optuna\study\study.py:442: in optimize
+    _optimize(
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\optuna\study\_optimize.py:66: in _optimize
+    _optimize_sequential(
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\optuna\study\_optimize.py:163: in _optimize_sequential
+    frozen_trial = _run_trial(study, func, catch)
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\optuna\study\_optimize.py:251: in _run_trial
+    raise func_err
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\optuna\study\_optimize.py:200: in _run_trial
+    value_or_values = func(trial)
+src\optimizer.py:58: in objective
+    res = self.backtester.run(train_df, strategy, stop_loss=stop_loss, take_profit=take_profit)
+src\backtester.py:90: in run
+    strat = strategy_map.get(ticker)
+E   AttributeError: 'RSIStrategy' object has no attribute 'get'
+---------------------------- Captured stderr call -----------------------------
+[W 2025-12-04 16:18:22,630] Trial 0 failed with parameters: {'period': 18, 'lower': 22, 'upper': 78, 'trend_period': 116, 'stop_loss': 0.05, 'take_profit': 0.12000000000000001} because of the following error: AttributeError("'RSIStrategy' object has no attribute 'get'").
+Traceback (most recent call last):
+  File "C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\optuna\study\_optimize.py", line 200, in _run_trial
+    value_or_values = func(trial)
+                      ^^^^^^^^^^^
+  File "C:\gemini-desktop\AGStock\src\optimizer.py", line 58, in objective
+    res = self.backtester.run(train_df, strategy, stop_loss=stop_loss, take_profit=take_profit)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\gemini-desktop\AGStock\src\backtester.py", line 90, in run
+    strat = strategy_map.get(ticker)
+            ^^^^^^^^^^^^^^^^
+AttributeError: 'RSIStrategy' object has no attribute 'get'
+[W 2025-12-04 16:18:22,630] Trial 0 failed with value None.
+_____________ TestPhase30FullIntegration.test_dynamic_stop_update _____________
+tests\test_phase30_full_integration.py:143: in test_dynamic_stop_update
+    self.assertEqual(pos['highest_price'], 1100.0)
+E   AssertionError: 1000.0 != 1100.0
+---------------------------- Captured stdout call -----------------------------
+[2025-12-04 16:18:25] [INFO] Phase 30-1 & 30-3: \u30ea\u30a2\u30eb\u30bf\u30a4\u30e0\u9069\u5fdc\u5b66\u7fd2\u30fb\u9ad8\u5ea6\u30ea\u30b9\u30af\u7ba1\u7406\u30e2\u30b8\u30e5\u30fc\u30eb\u521d\u671f\u5316\u5b8c\u4e86\n[2025-12-04 16:18:25] [INFO] \u30d5\u30eb\u81ea\u52d5\u30c8\u30ec\u30fc\u30c0\u30fc\u521d\u671f\u5316\u5b8c\u4e86\n\nTesting Dynamic Stop Update...\n\u2705 BUY Executed: 7203.T x 100 @ 1000.0\nUpdated Position after rise: Stop=0.0, High=1000.0
+__________________________ test_crypto_data_loading ___________________________
+tests\test_phase35_crypto.py:14: in test_crypto_data_loading
+    assert "BTC-USD" in data_map
+E   AssertionError: assert 'BTC-USD' in {}
+---------------------------- Captured stdout call -----------------------------
+
+[*********************100%***********************]  1 of 1 completed
+
+1 Failed download:
+- BTC-USD: No data found for this date range, symbol may be delisted
+____________________________ test_fx_data_loading _____________________________
+tests\test_phase35_crypto.py:27: in test_fx_data_loading
+    assert "USDJPY=X" in data_map
+E   AssertionError: assert 'USDJPY=X' in {}
+---------------------------- Captured stdout call -----------------------------
+
+[*********************100%***********************]  1 of 1 completed
+
+1 Failed download:
+- USDJPY=X: No data found for this date range, symbol may be delisted
+____________ TestPortfolioOptimizer.test_optimizer_initialization _____________
+tests\test_portfolio_optimizer.py:40: in test_optimizer_initialization
+    assert optimizer.returns is not None
+E   AttributeError: 'PortfolioOptimizer' object has no attribute 'returns'
+___________ TestPortfolioOptimizer.test_calculate_portfolio_metrics ___________
+tests\test_portfolio_optimizer.py:48: in test_calculate_portfolio_metrics
+    metrics = optimizer.calculate_portfolio_metrics(weights)
+E   AttributeError: 'PortfolioOptimizer' object has no attribute 'calculate_portfolio_metrics'
+_____________ TestPortfolioOptimizer.test_find_efficient_frontier _____________
+tests\test_portfolio_optimizer.py:62: in test_find_efficient_frontier
+    frontier = optimizer.find_efficient_frontier(num_points=10)
+E   AttributeError: 'PortfolioOptimizer' object has no attribute 'find_efficient_frontier'
+______________ TestPortfolioOptimizer.test_maximize_sharpe_ratio ______________
+tests\test_portfolio_optimizer.py:78: in test_maximize_sharpe_ratio
+    optimal_weights = optimizer.maximize_sharpe_ratio()
+E   AttributeError: 'PortfolioOptimizer' object has no attribute 'maximize_sharpe_ratio'
+________________ TestPortfolioOptimizer.test_minimize_variance ________________
+tests\test_portfolio_optimizer.py:90: in test_minimize_variance
+    min_var_weights = optimizer.minimize_variance()
+E   AttributeError: 'PortfolioOptimizer' object has no attribute 'minimize_variance'
+___________________ TestPortfolioOptimizer.test_risk_parity ___________________
+tests\test_portfolio_optimizer.py:99: in test_risk_parity
+    rp_weights = optimizer.risk_parity()
+E   TypeError: PortfolioOptimizer.risk_parity() missing 1 required positional argument: 'returns'
+____________________ TestSmartNotifier.test_initialization ____________________
+tests\test_smart_notifier.py:46: in test_initialization
+    assert notifier.min_confidence == 0.7
+E   AttributeError: 'SmartNotifier' object has no attribute 'min_confidence'
+_____________ TestSmartNotifier.test_filter_signals_by_confidence _____________
+tests\test_smart_notifier.py:56: in test_filter_signals_by_confidence
+    filtered = notifier.filter_signals(signals)
+E   AttributeError: 'SmartNotifier' object has no attribute 'filter_signals'
+__________ TestSmartNotifier.test_filter_signals_by_expected_return ___________
+tests\test_smart_notifier.py:68: in test_filter_signals_by_expected_return
+    filtered = notifier.filter_signals(signals)
+E   AttributeError: 'SmartNotifier' object has no attribute 'filter_signals'
+_________________ TestSmartNotifier.test_filter_signals_empty _________________
+tests\test_smart_notifier.py:76: in test_filter_signals_empty
+    filtered = notifier.filter_signals(signals)
+E   AttributeError: 'SmartNotifier' object has no attribute 'filter_signals'
+____________________ TestSmartNotifier.test_generate_chart ____________________
+tests\test_smart_notifier.py:89: in test_generate_chart
+    chart_path = notifier.generate_chart("TEST", period="30d")
+E   AttributeError: 'SmartNotifier' object has no attribute 'generate_chart'
+____________________ TestSmartNotifier.test_is_quiet_hours ____________________
+tests\test_smart_notifier.py:101: in test_is_quiet_hours
+    with patch('src.smart_notifier.datetime') as mock_datetime:
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1427: in __enter__
+    original, local = self.get_original()
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\unittest\mock.py:1400: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'src.smart_notifier' from 'C:\\gemini-desktop\\AGStock\\src\\smart_notifier.py'> does not have the attribute 'datetime'
+________________ TestSmartNotifier.test_format_signal_message _________________
+tests\test_smart_notifier.py:145: in test_format_signal_message
+    message = notifier.format_signal_message(signal)
+E   AttributeError: 'SmartNotifier' object has no attribute 'format_signal_message'
+_____________________________ test_analyze_empty ______________________________
+tests\test_strategies_base.py:106: in test_analyze_empty
+    result = strategy.analyze(pd.DataFrame())
+src\strategies\base.py:104: in analyze
+    signals = self.generate_signals(df)
+tests\test_strategies_base.py:16: in generate_signals
+    signals[df['Close'] > df['Open']] = 1
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\core\frame.py:3761: in __getitem__
+    indexer = self.columns.get_loc(key)
+C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\pandas\core\indexes\range.py:349: in get_loc
+    raise KeyError(key)
+E   KeyError: 'Close'
+____________ TestTemporalFusionTransformer.test_attention_weights _____________
+tests\test_transformer_model.py:132: in test_attention_weights
+    assert np.abs(attention_weights.sum() - X.shape[1]) < 1e-5
+E   AssertionError: assert 35097006.0 < 1e-05
+E    +  where 35097006.0 = <ufunc 'absolute'>((35097036.0 - 30))
+E    +    where <ufunc 'absolute'> = np.abs
+E    +    and   35097036.0 = <built-in method sum of numpy.ndarray object at 0x0000020331EB0090>()
+E    +      where <built-in method sum of numpy.ndarray object at 0x0000020331EB0090> = array([[1160996.  , 1760745.1 , 1916799.5 ,  501724.62, 2057353.8 ,\n         860366.1 ,  968667.5 , 1856996.  , 1598425.5 , 1385324.8 ,\n        1595465.4 , 1510488.8 , 1604425.2 ,  864354.75, 2074094.5 ,\n         603448.5 ,  830238.5 ,  948019.56,  575626.1 , 1129986.8 ,\n         523624.47,  520916.44,  982640.2 ,  455575.12,  958809.5 ,\n        1468017.5 , 1479386.5 , 1142089.5 , 1173647.8 ,  588781.94]],\n      dtype=float32).sum
+___________ TestTransformerStrategy.test_strategy_confidence_score ____________
+tests\test_transformer_model.py:233: in test_strategy_confidence_score
+    confidence = strategy.get_confidence()
+E   AttributeError: 'TransformerStrategy' object has no attribute 'get_confidence'
+---------------------------- Captured stderr call -----------------------------
+2025-12-04 16:18:58,043 - src.strategies_legacy - ERROR - Error training GRU: 'TransformerStrategy' object has no attribute 'sequence_length'
+2025-12-04 16:18:58,043 - src.strategies_legacy - ERROR - Error training GRU: 'TransformerStrategy' object has no attribute 'sequence_length'
+2025-12-04 16:18:58,043 - src.strategies_legacy - ERROR - Error training GRU: 'TransformerStrategy' object has no attribute 'sequence_length'
+------------------------------ Captured log call ------------------------------
+ERROR    src.strategies_legacy:strategies_legacy.py:698 Error training GRU: 'TransformerStrategy' object has no attribute 'sequence_length'
+__________ TestTransformerIntegration.test_ensemble_with_transformer __________
+tests\test_transformer_model.py:247: in test_ensemble_with_transformer
+    ensemble = CombinedStrategy(
+E   TypeError: CombinedStrategy.__init__() got an unexpected keyword argument 'strategies'
+============================== warnings summary ===============================
+..\..\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\tensorflow\lite\python\util.py:51
+..\..\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\tensorflow\lite\python\util.py:51
+  C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\tensorflow\lite\python\util.py:51: DeprecationWarning: jax.xla_computation is deprecated. Please use the AOT APIs.
+    from jax import xla_computation as _xla_computation
+
+..\..\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\elements\image.py:22
+  C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\streamlit\elements\image.py:22: DeprecationWarning: 'imghdr' is deprecated and slated for removal in Python 3.13
+    import imghdr
+
+tests/test_phase29_integration.py::test_advanced_features
+  C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\python.py:198: PytestReturnNotNoneWarning: Expected None, but tests/test_phase29_integration.py::test_advanced_features returned False, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+
+tests/test_phase29_integration.py::test_stacking_ensemble
+  C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\python.py:198: PytestReturnNotNoneWarning: Expected None, but tests/test_phase29_integration.py::test_stacking_ensemble returned False, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+
+tests/test_phase29_integration.py::test_hyperparameter_tuning
+  C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\python.py:198: PytestReturnNotNoneWarning: Expected None, but tests/test_phase29_integration.py::test_hyperparameter_tuning returned True, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+
+tests/test_phase29_integration.py::test_performance_monitor
+  C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\python.py:198: PytestReturnNotNoneWarning: Expected None, but tests/test_phase29_integration.py::test_performance_monitor returned True, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+
+tests/test_phase30_1_integration.py::test_online_learning
+  C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\python.py:198: PytestReturnNotNoneWarning: Expected None, but tests/test_phase30_1_integration.py::test_online_learning returned True, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+
+tests/test_phase30_1_integration.py::test_regime_detector
+  C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\python.py:198: PytestReturnNotNoneWarning: Expected None, but tests/test_phase30_1_integration.py::test_regime_detector returned True, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+
+tests/test_phase30_1_integration.py::test_dynamic_risk_manager
+  C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\python.py:198: PytestReturnNotNoneWarning: Expected None, but tests/test_phase30_1_integration.py::test_dynamic_risk_manager returned True, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+
+tests/test_phase30_1_integration.py::test_integration
+  C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\python.py:198: PytestReturnNotNoneWarning: Expected None, but tests/test_phase30_1_integration.py::test_integration returned True, which will be an error in a future version of pytest.  Did you mean to use `assert` instead of `return`?
+    warnings.warn(
+
+tests/test_pytest_cov_optional.py::test_registers_cov_options_when_plugin_missing
+  C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\dash\testing\plugin.py:104: PytestDeprecationWarning: The hookimpl pytest_addhooks uses old-style configuration options (marks or attributes).
+  Please use the pytest.hookimpl(tryfirst=True) decorator instead
+   to configure the hooks.
+   See https://docs.pytest.org/en/latest/deprecations.html#configuring-hook-specs-impls-using-markers
+    @pytest.mark.tryfirst
+
+tests/test_pytest_cov_optional.py::test_registers_cov_options_when_plugin_missing
+  C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\config\__init__.py:331: PluggyTeardownRaisedWarning: A plugin raised an exception during an old-style hookwrapper teardown.
+  Plugin: helpconfig, Hook: pytest_cmdline_parse
+  ArgumentError: argument --cov: conflicting option string: --cov
+  For more information see https://pluggy.readthedocs.io/en/stable/api_reference.html#pluggy.PluggyTeardownRaisedWarning
+    config = pluginmanager.hook.pytest_cmdline_parse(
+
+tests/test_transformer_model.py::TestTemporalFusionTransformer::test_model_save_and_load
+  C:\Users\neoen\AppData\Local\Programs\Python\Python311\Lib\site-packages\keras\src\engine\training.py:3103: UserWarning: You are saving your model as an HDF5 file via `model.save()`. This file format is considered legacy. We recommend using instead the native Keras format, e.g. `model.save('my_model.keras')`.
+    saving_api.save_model(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+---------- coverage: platform win32, python 3.11.0-final-0 -----------
+Name                                     Stmts   Miss  Cover   Missing
+----------------------------------------------------------------------
+src\advanced_backtest.py                   101    101     0%   6-282
+src\advanced_features.py                   124     11    91%   39, 74, 107, 150, 174-175, 225, 273, 311-312, 332
+src\advanced_models.py                      41      4    90%   35-41
+src\advanced_risk.py                        89     89     0%   6-234
+src\agents.py                              173     43    75%   24, 33, 59-69, 81, 91, 93, 110-115, 121-127, 131-137, 142-143, 145-146, 157, 181-188, 249
+src\ai_analyst.py                           46     46     0%   5-97
+src\alert_manager.py                       126    126     0%   5-270
+src\alert_system.py                        125    125     0%   9-344
+src\anomaly_detector.py                     90     90     0%   5-208
+src\async_data_loader.py                   143     61    57%   57-63, 79, 82-96, 106-107, 114-127, 186-187, 190, 219-220, 226-229, 249-255, 260-265, 310-328
+src\auth.py                                152     25    84%   87, 90, 93, 139, 235-238, 249-250, 287-291, 297-317
+src\auto_rebalancer.py                     132     31    77%   50-51, 73-75, 109-110, 125-126, 142, 154-158, 173-174, 185, 196-198, 256-260, 272-278
+src\auto_trader_ui.py                      107     74    31%   12-27, 30-36, 39-40, 43-56, 60-129, 144
+src\backtest_engine.py                      45     41     9%   5-86
+src\backtest_visualizer.py                  81     81     0%   6-314
+src\backtester.py                          232     21    91%   83, 89, 94, 254, 272-274, 285-287, 300, 304-322
+src\backup_manager.py                      115     31    73%   70-78, 104-106, 128, 144-145, 161, 177-178, 205-206, 220-222, 239-254
+src\base.py                                120     51    58%   46-48, 53, 57-61, 68-70, 75, 79-83, 90-91, 96, 101, 105-113, 122, 127, 132, 137, 146, 151, 156, 161, 173-176, 180-186, 190-192
+src\benchmark_comparator.py                 99     99     0%   6-269
+src\bert_sentiment.py                       72     27    62%   39-42, 55, 98-100, 104-128
+src\broker.py                               42      7    83%   40, 45, 50, 55, 60, 65, 70
+src\cache_config.py                          8      6    25%   9-20
+src\cloud_storage.py                        79     37    53%   23-32, 40, 48, 55-57, 68-69, 80-82, 86-92, 96-106
+src\config.py                               46      0   100%
+src\config_manager.py                       47      4    91%   89-93
+src\constants.py                            10      0   100%
+src\copy_trading.py                        149    149     0%   5-382
+src\cost_optimizer.py                      125     62    50%   56, 78-80, 157, 161, 184, 199, 216-228, 272-281, 286-343, 347
+src\cross_validation.py                     43      1    98%   143
+src\dashboard_utils.py                      36      1    97%   40
+src\data_loader.py                         120     15    88%   33-35, 62-64, 69, 91, 113-115, 119-120, 139-140
+src\data_manager.py                         84     10    88%   63, 111-112, 142-144, 162-163, 173-174
+src\db_maintenance.py                       86     18    79%   84-85, 97-99, 126-128, 132-144
+src\design_tokens.py                        52      0   100%
+src\dividend_strategy.py                    71     71     0%   6-236
+src\dynamic_ensemble.py                     77     16    79%   56, 65, 99-100, 127-129, 142-143, 148-154
+src\dynamic_risk_manager.py                 89     31    65%   108-110, 150-153, 175, 198, 218-232, 241, 260, 266-299
+src\dynamic_risk_manager_refactored.py     121    121     0%   6-337
+src\dynamic_stop.py                         52      2    96%   67-68
+src\encryption.py                           74     74     0%   5-188
+src\enhanced_performance_dashboard.py      144    144     0%   5-323
+src\ensemble.py                             27     22    19%   14-15, 27-65
+src\error_handler.py                       109    109     0%   6-215
+src\error_handling.py                       88     88     0%   8-301
+src\execution.py                            78      0   100%
+src\execution_optimizer.py                  69     69     0%   6-213
+src\export_manager.py                       80     80     0%   5-175
+src\factor_analyzer.py                      85     85     0%   6-269
+src\features.py                            122     11    91%   60, 100, 105, 137-139, 146-147, 219, 225, 232
+src\formatters.py                           83      2    98%   123-124
+src\fundamentals.py                         26      2    92%   34, 48
+src\hierarchical_strategy.py                42     19    55%   33-78
+src\hyperparameter_tuning.py               111     52    53%   158-172, 207-210, 235-238, 247-269, 281-287, 304-338, 342-349
+src\ibkr_broker.py                          88     88     0%   1-154
+src\integrated_signals.py                   69     69     0%   7-160
+src\kelly_criterion.py                      35      1    97%   78
+src\liquidity_analyzer.py                   74     74     0%   6-233
+src\live_trading.py                        151     37    75%   47-48, 66, 70, 74, 100-103, 115, 126, 131-133, 177, 182-183, 188-189, 199-201, 207-208, 230-231, 239-244, 252-256, 259-260
+src\llm_analyzer.py                         69     12    83%   12-15, 32-33, 84, 86, 89-91, 121
+src\logging_config.py                       45      8    82%   93-102
+src\macro_analyzer.py                       89     89     0%   6-208
+src\meta_learner.py                        107     87    19%   65-69, 82-128, 145-193, 208-244, 249-264
+src\metrics_collector.py                    87     87     0%   5-197
+src\ml_pipeline.py                          89     20    78%   30-35, 42-43, 77-79, 86, 95-97, 105, 112, 119-121
+src\monitoring_dashboard.py                 96     96     0%   5-174
+src\mpt_optimizer.py                       102    102     0%   6-302
+src\multi_timeframe.py                      52      5    90%   116, 118, 140-143
+src\nisa_manager.py                        115    115     0%   5-342
+src\notifier.py                             81      1    99%   22
+src\online_learning.py                     113     59    48%   72, 83-85, 163-171, 180-193, 202-219, 228-241, 250-255, 272-286, 291-315
+src\optimization.py                        204    150    26%   26-28, 51-81, 93-138, 177-260, 289-356, 381-430
+src\optimizer.py                            47      0   100%
+src\options_pricing.py                      89     89     0%   5-264
+src\paper_trader.py                        144     42    71%   22-24, 60-66, 115, 144, 148-168, 204-207, 243, 274-294
+src\parallel_backtester.py                  76     76     0%   5-228
+src\patterns.py                             91     82    10%   10-24, 31-64, 70-106, 112-151, 157-181
+src\pdf_report_generator.py                 94     94     0%   5-187
+src\performance.py                         167    154     8%   19, 23, 32-91, 100-177, 186-241, 250-270, 283-320
+src\performance_attribution.py              95     95     0%   5-232
+src\performance_metrics.py                  97     97     0%   10-213
+src\performance_monitor.py                 111    111     0%   10-314
+src\performance_optimizer.py               113    113     0%   11-184
+src\personal_features.py                   195    195     0%   6-345
+src\portfolio.py                           131     74    44%   23, 46, 56, 72, 81, 87, 98, 126-142, 157-243
+src\portfolio_manager.py                    42      2    95%   58-59
+src\portfolio_manager_refactored.py        109    109     0%   6-263
+src\portfolio_optimizer.py                 111     97    13%   37-84, 101-128, 153-205, 226-242, 246-269
+src\production_manager.py                  101    101     0%   11-219
+src\prompts.py                               3      0   100%
+src\psychological_guard.py                  84     84     0%   6-294
+src\pytest_cov_optional.py                  13      2    85%   14-15
+src\rakuten_broker.py                      153     68    56%   43-49, 53-77, 82, 93-95, 116-118, 122-132, 137-138, 158-161, 166-167, 180-181, 203-204, 226-231, 235-238, 250-259
+src\realtime_alerts.py                     129    129     0%   8-309
+src\realtime_data.py                        96     96     0%   8-182
+src\rebalancer.py                           84     38    55%   59, 124-126, 140, 172-179, 191-205, 210-246
+src\recovery_manager.py                    107    107     0%   5-217
+src\regime.py                              100     11    89%   62-63, 91-93, 103-105, 190-191, 196, 225, 230
+src\regime_detector.py                     110     21    81%   103, 107-109, 129, 133, 174-176, 196, 200, 330-352
+src\rich_notifier.py                       106    106     0%   5-291
+src\risk_guard.py                          102      8    92%   41, 61-62, 76-77, 168, 172, 193
+src\risk_limiter.py                        135     17    87%   191-221, 225
+src\rl_agent.py                             74     74     0%   1-106
+src\rl_environment.py                       65     65     0%   1-145
+src\sector_rotation.py                      83      9    89%   47, 53-54, 77, 126, 144-145, 160, 173
+src\sentiment.py                            74     11    85%   42-43, 61, 77, 79, 168-173
+src\simple_dashboard.py                    113    113     0%   6-257
+src\smart_notifier.py                       63      8    87%   51-52, 62-63, 69, 85-87
+src\stacking_ensemble.py                   107     81    24%   71-97, 122-176, 188-197, 210-211, 220-231, 248-283, 287-293
+src\strategies\__init__.py                   7      0   100%
+src\strategies\base.py                      50      1    98%   106
+src\strategies\custom\__init__.py            0      0   100%
+src\strategies_legacy.py                   725    478    34%   15-20, 24-26, 71, 78-85, 91-95, 105, 120-124, 135, 142, 154-158, 168, 184-188, 198-217, 220-224, 234, 275, 290-294, 311-312, 320, 341-358, 361-365, 380-384, 387-392, 396, 406-467, 470-474, 483-486, 489-491, 495-535, 548-615, 619-625, 629-658, 684-695, 704-725, 733-736, 742-798, 802-820, 827-830, 833-858, 861-885, 892-895, 898-922, 925-949, 958-970, 973-992, 1003, 1007-1016, 1040-1042, 1045-1095, 1098-1103, 1115-1116, 1119-1131, 1134-1138
+src\strategy_marketplace.py                134    134     0%   5-381
+src\streaming_pipeline.py                   84     84     0%   7-202
+src\tax_calculator.py                       82     82     0%   5-280
+src\tax_report_generator.py                 85     85     0%   5-268
+src\trade_explainer.py                      32     32     0%   5-99
+src\trader_profile.py                      123    123     0%   5-397
+src\trading_performance_monitor.py          98     46    53%   168, 193-236, 251, 288-348, 352-360
+src\transformer_model.py                   107     19    82%   19-20, 169, 239, 255, 272, 306-339
+src\ui_advanced_analytics.py               157    157     0%   5-291
+src\ui_ai_chat.py                           46     46     0%   4-76
+src\ui_ai_report.py                         48     48     0%   4-80
+src\ui_alerts.py                            79     79     0%   4-158
+src\ui_automation.py                        77     77     0%   5-132
+src\ui_components.py                       130    130     0%   5-327
+src\ui_customizer.py                        82     82     0%   5-240
+src\ui_export.py                            83     83     0%   4-162
+src\ui_renderers.py                        560    495    12%   71-75, 102-118, 126-136, 152, 163-164, 171-198, 204-299, 306-802, 808-920, 931-970, 977-1044
+src\ui_risk_dashboard.py                   118    118     0%   5-232
+src\visualizer.py                           75      8    89%   23-24, 98-100, 155-157
+src\xai.py                                  78     78     0%   8-227
+----------------------------------------------------------------------
+TOTAL                                    13028   8649    34%
+Coverage HTML written to dir htmlcov
+
+=========================== short test summary info ===========================
+FAILED tests/test_backtester.py::TestBacktester::test_run_returns_dict - Attr...
+FAILED tests/test_backtester.py::TestBacktester::test_run_result_contains_required_keys
+FAILED tests/test_backtester.py::TestBacktester::test_total_return_is_numeric
+FAILED tests/test_backtester.py::TestBacktester::test_final_value_calculation
+FAILED tests/test_backtester.py::TestBacktester::test_signals_length_matches_data
+FAILED tests/test_backtester.py::TestBacktester::test_positions_length_matches_data
+FAILED tests/test_backtester.py::TestBacktester::test_positions_are_binary - ...
+FAILED tests/test_backtester.py::TestBacktester::test_equity_curve_is_series
+FAILED tests/test_backtester.py::TestBacktester::test_equity_curve_starts_at_one
+FAILED tests/test_backtester.py::TestBacktester::test_buy_and_hold_strategy
+FAILED tests/test_backtester.py::TestBacktester::test_multiple_strategies_same_data
+FAILED tests/test_backup_manager.py::TestBackupManager::test_list_backups - A...
+FAILED tests/test_backup_manager.py::TestBackupManager::test_get_latest_backup
+FAILED tests/test_cache_config.py::test_install_cache_success - AttributeErro...
+FAILED tests/test_cache_config.py::test_install_cache_import_error - Attribut...
+FAILED tests/test_data_loader.py::TestFetchStockData::test_fetch_multiple_tickers
+FAILED tests/test_data_loader_comprehensive.py::test_parse_period - ValueErro...
+FAILED tests/test_fully_automated_trader.py::TestFullyAutomatedTrader::test_initialization
+FAILED tests/test_fully_automated_trader.py::TestFullyAutomatedTrader::test_calculate_daily_pnl
+FAILED tests/test_lightgbm.py::TestLightGBMStrategy::test_generate_signals - ...
+FAILED tests/test_logging_config.py::test_setup_logging_creates_directory - F...
+FAILED tests/test_meta_learner.py::test_meta_learner_flow - TypeError: MetaLe...
+FAILED tests/test_morning_brief.py::TestMorningBrief::test_get_trading_strategy
+FAILED tests/test_morning_brief.py::TestMorningBrief::test_generate_brief - A...
+FAILED tests/test_multi_timeframe.py::test_resample_data_monthly - ValueError...
+FAILED tests/test_multi_timeframe.py::test_add_mtf_features - ValueError: Inv...
+FAILED tests/test_multi_timeframe.py::test_add_mtf_features_integration - Val...
+FAILED tests/test_optimizer.py::TestOptimizer::test_optimize_combined - Attri...
+FAILED tests/test_optimizer.py::TestOptimizer::test_optimize_rsi - AttributeE...
+FAILED tests/test_phase30_full_integration.py::TestPhase30FullIntegration::test_dynamic_stop_update
+FAILED tests/test_phase35_crypto.py::test_crypto_data_loading - AssertionErro...
+FAILED tests/test_phase35_crypto.py::test_fx_data_loading - AssertionError: a...
+FAILED tests/test_portfolio_optimizer.py::TestPortfolioOptimizer::test_optimizer_initialization
+FAILED tests/test_portfolio_optimizer.py::TestPortfolioOptimizer::test_calculate_portfolio_metrics
+FAILED tests/test_portfolio_optimizer.py::TestPortfolioOptimizer::test_find_efficient_frontier
+FAILED tests/test_portfolio_optimizer.py::TestPortfolioOptimizer::test_maximize_sharpe_ratio
+FAILED tests/test_portfolio_optimizer.py::TestPortfolioOptimizer::test_minimize_variance
+FAILED tests/test_portfolio_optimizer.py::TestPortfolioOptimizer::test_risk_parity
+FAILED tests/test_smart_notifier.py::TestSmartNotifier::test_initialization
+FAILED tests/test_smart_notifier.py::TestSmartNotifier::test_filter_signals_by_confidence
+FAILED tests/test_smart_notifier.py::TestSmartNotifier::test_filter_signals_by_expected_return
+FAILED tests/test_smart_notifier.py::TestSmartNotifier::test_filter_signals_empty
+FAILED tests/test_smart_notifier.py::TestSmartNotifier::test_generate_chart
+FAILED tests/test_smart_notifier.py::TestSmartNotifier::test_is_quiet_hours
+FAILED tests/test_smart_notifier.py::TestSmartNotifier::test_format_signal_message
+FAILED tests/test_strategies_base.py::test_analyze_empty - KeyError: 'Close'
+FAILED tests/test_transformer_model.py::TestTemporalFusionTransformer::test_attention_weights
+FAILED tests/test_transformer_model.py::TestTransformerStrategy::test_strategy_confidence_score
+FAILED tests/test_transformer_model.py::TestTransformerIntegration::test_ensemble_with_transformer
+===== 49 failed, 565 passed, 1 skipped, 14 warnings in 107.74s (0:01:47) ======

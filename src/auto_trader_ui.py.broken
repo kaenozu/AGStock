@@ -1,0 +1,523 @@
+import streamlit as st
+import json
+import os
+import pandas as pd
+from datetime import datetime
+import time
+import plotly.graph_objects as go
+
+from src.paper_trader import PaperTrader
+from fully_automated_trader import FullyAutomatedTrader
+
+# --- Custom CSS ---
+CUSTOM_CSS = """
+<style>
+    /* Global Theme */
+    .stApp {
+        background-color: #0E1117;
+        color: #FAFAFA;
+    }
+    
+    /* Metrics Cards */
+    div[data-testid="stMetric"] {
+        background-color: #1E2130;
+        border: 1px solid #2E3440;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        transition: transform 0.2s;
+    }
+    div[data-testid="stMetric"]:hover {
+        transform: translateY(-2px);
+        border-color: #00D9FF;
+    }
+    
+    /* Buttons */
+    .stButton > button {
+        border-radius: 20px;
+        font-weight: bold;
+    }
+    
+    /* Headers */
+    h1, h2, h3 {
+        font-family: 'Roboto', sans-serif;
+        color: #00D9FF !important;
+    }
+    
+    /* Tables */
+    div[data-testid="stDataFrame"] {
+        background-color: #1E2130;
+        border-radius: 10px;
+        padding: 10px;
+    }
+</style>
+"""
+
+import traceback
+
+def create_auto_trader_ui():
+    """フルオートトレーダーの管理画面を作成"""
+    st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+    
+    st.markdown("## 🚀 フルオート・トレーディング・センター")
+    st.markdown("自動取引システムの監視と制御を行います。")
+    
+    # 設定読み込み
+    config_path = "config.json"
+    config = load_config(config_path)
+    
+    # AI Oracle Section
+    render_ai_oracle(config_path)
+    
+    st.divider()
+    
+    # 3カラムレイアウト
+    col1, col2, col3 = st.columns([1, 1, 1])
+    
+    with col1:
+        render_status_card(config)
+    
+    with col2:
+        render_control_center(config, config_path)
+        
+    with col3:
+        render_todays_summary()
+    
+    st.divider()
+    
+    # 詳細設定、ログ、週次レビュー
+    tab_settings, tab_logs, tab_weekly = st.tabs(["⚙️ 詳細設定 (Advanced)", "📜 実行ログ", "📊 週次レビュー"])
+    
+    with tab_settings:
+        st.info("※通常はデフォルト設定のままで問題ありません。")
+        render_settings_form(config, config_path)
+        
+    with tab_logs:
+        render_logs()
+    
+    with tab_weekly:
+        render_weekly_review()
+
+def render_ai_oracle(config_path):
+    """AI Oracle (今どう思う？) - Real AI Implementation"""
+    with st.expander("🔮 AI Oracle (今どう思う？)", expanded=False):
+        st.markdown("AIが現在の市場データを分析し、リアルタイムで相場観を占います。")
+        st.caption("※ LightGBMモデルを使用して、過去の価格・出来高・テクニカル指標から今後のトレンドを予測します。")
+        
+        if st.button("🔮 AIに相場を聞く", use_container_width=True):
+            with st.spinner("水晶玉を覗いています... (AIモデル起動 & 推論中)"):
+                try:
+                    # 本物のAI戦略を使用
+                    # 本物のAI戦略を使用
+                    from src.strategies import LightGBMStrategy
+                    from src.data_loader import fetch_stock_data, fetch_external_data
+                    
+                    # ターゲット銘柄
+                    tickers = ["^N225", "^GSPC"] # 日経平均とS&P500
+                    
+                    # データ取得 (AIの学習に必要な期間を取得)
+                    data_map = fetch_stock_data(tickers, period="2y")
+                    
+                    # 外部データ（マクロ）取得と結合
+                    try:
+                        external_data = fetch_external_data(period="2y")
+                        # 必要なマクロ指標のリスト（LightGBMStrategyの要件に合わせる）
+                        # ここでは簡易的に結合する
+                        macro_df = pd.DataFrame()
+                        if 'US10Y' in external_data:
+                            us10y = external_data['US10Y']['Close'].rename('US10Y')
+                            macro_df = macro_df.join(us10y, how='outer')
+                        
+                        # 他の必要なデータがあればここで追加
+                        
+                    except Exception as e:
+                        st.warning(f"マクロデータの取得に失敗しました: {e}")
+                        macro_df = pd.DataFrame()
+
+                    col1, col2 = st.columns(2)
+                    
+                    for i, ticker in enumerate(tickers):
+                        df = data_map.get(ticker)
+                        if df is not None and not df.empty:
+                            # 最新価格情報
+                            latest_close = df['Close'].iloc[-1]
+                            prev_close = df['Close'].iloc[-2]
+                            change = (latest_close - prev_close) / prev_close * 100
+                            
+                            # マクロデータを結合
+                            if not macro_df.empty:
+                                df = df.join(macro_df, how='left')
+                                # 欠損値補完
+                                df = df.fillna(method='ffill').fillna(0)
+                                
+                                # 特徴量生成（US10Y_Retなど）
+                                if 'US10Y' in df.columns:
+                                    df['US10Y_Ret'] = df['US10Y'].pct_change()
+                                    df['US10Y_Corr'] = df['Close'].rolling(window=20).corr(df['US10Y'])
+                                    df = df.fillna(0)
+                            
+                            # AI推論実行
+                            strategy = LightGBMStrategy(lookback_days=365)
+                            
+                            # エラーハンドリング: generate_signals内でKeyErrorが発生する可能性があるため
+                            try:
+                                signals = strategy.generate_signals(df)
+                            except KeyError as e:
+                                st.warning(f"一部のデータ不足により詳細分析をスキップしました: {e}")
+                                signals = pd.Series()
+                            except Exception as e:
+                                st.warning(f"予測中にエラーが発生しました: {e}")
+                                signals = pd.Series()
+                            
+                            if not signals.empty:
+                                last_signal = signals.iloc[-1]
+                                explanation = strategy.get_signal_explanation(last_signal)
+                                
+                                # シグナル解釈
+                                if last_signal == 1:
+                                    sentiment = "強気 (Bullish) 🐂"
+                                    color = "green"
+                                    oracle_msg = "「上昇の兆しが見えます。攻めの姿勢が良いでしょう。」"
+                                elif last_signal == -1:
+                                    sentiment = "弱気 (Bearish) 🐻"
+                                    color = "red"
+                                    oracle_msg = "「下落の危険があります。守りを固めるべきです。」"
+                                else:
+                                    sentiment = "中立 (Neutral) ⚖️"
+                                    color = "gray"
+                                    oracle_msg = "「方向感が定まりません。今は静観が賢明です。」"
+                            else:
+                                sentiment = "判断不能 ☁️"
+                                color = "gray"
+                                oracle_msg = "「霧が濃く、未来が見通せません...」"
+                                explanation = "データ不足またはエラーのため予測できませんでした。"
+
+                            with col1 if i == 0 else col2:
+                                st.metric(
+                                    f"{ticker} の予言", 
+                                    f"{latest_close:,.2f}", 
+                                    f"{change:+.2f}%",
+                                    delta_color="normal"
+                                )
+                                st.markdown(f"**AIの神託**: :{color}[{sentiment}]")
+                                st.info(f"{oracle_msg}\n\n*根拠: {explanation}*")
+                    
+                    st.success("AIによるリアルタイム分析が完了しました。")
+                    
+                except Exception as e:
+                    st.error(f"水晶玉が割れてしまいました...: {e}")
+                    st.error(traceback.format_exc())
+
+def load_config(path):
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except:
+            return {}
+    return {}
+
+def save_config(config, path):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(config, f, indent=4, ensure_ascii=False)
+
+def render_status_card(config):
+    # ステータスカード表示
+    auto_enabled = config.get("auto_trading", {}).get("enabled", False)
+    rakuten_enabled = config.get("rakuten", {}).get("enabled", False)
+    
+    st.subheader("システム状態")
+    
+    if auto_enabled:
+        st.success("✅ 自動取引: 有効")
+    else:
+        st.warning("⏸️ 自動取引: 停止中")
+        
+    if rakuten_enabled:
+        st.info("楽天証券連携: ON")
+    else:
+        st.info("楽天証券連携: OFF (ペーパートレードのみ)")
+        
+    # 次回実行予定（簡易表示）
+    st.caption("※タスクスケジューラの設定に従って実行されます")
+
+def render_control_center(config, config_path):
+    # コントロールセンター
+    st.subheader("コントロールセンター")
+    
+    # メインスイッチ (自動取引の有効/無効)
+    current_status = config.get("auto_trading", {}).get("enabled", False)
+    
+    # トグルスイッチ風のUI
+    on = st.checkbox("🤖 自動取引システム (AI Auto-Pilot)", value=current_status)
+    
+    if on != current_status:
+        if "auto_trading" not in config: config["auto_trading"] = {}
+        config["auto_trading"]["enabled"] = on
+        save_config(config, config_path)
+        if on:
+            st.success("AI自動取引システムを起動しました。")
+        else:
+            st.warning("AI自動取引システムを停止しました。")
+                    st.write("日次ルーチンを実行中...")
+                    trader.daily_routine(force_run=True)
+                    
+                    status.update(label="✅ 実行完了", state="complete", expanded=False)
+                    st.success("プロセス完了")
+                    time.sleep(2)
+                    st.rerun()
+                except Exception as e:
+                    status.update(label="❌ エラー発生", state="error")
+                    st.error(f"エラー: {e}")
+
+        if st.button("🛑 緊急停止 (Emergency Stop)", type="primary", use_container_width=True):
+            if "auto_trading" not in config: config["auto_trading"] = {}
+            config["auto_trading"]["enabled"] = False
+            save_config(config, config_path)
+            st.error("緊急停止しました！")
+            time.sleep(1)
+            st.rerun()
+
+def render_todays_summary():
+    # 本日のサマリー
+    st.subheader("本日の実績")
+    
+    pt = PaperTrader()
+    history = pt.get_trade_history()
+    
+    if history.empty:
+        st.info("取引データなし")
+        return
+
+    # timestampをdatetimeに変換
+    if 'timestamp' in history.columns:
+        if not pd.api.types.is_datetime64_any_dtype(history['timestamp']):
+            history['timestamp'] = pd.to_datetime(history['timestamp'])
+            
+        today = datetime.now().date()
+        today_trades = history[history['timestamp'].dt.date == today]
+    else:
+        today_trades = pd.DataFrame()
+    
+    if today_trades.empty:
+        st.info("本日の取引はまだありません")
+    else:
+        buy_count = len(today_trades[today_trades['action'] == 'BUY'])
+        sell_count = len(today_trades[today_trades['action'] == 'SELL'])
+        pnl = today_trades['realized_pnl'].sum() if 'realized_pnl' in today_trades.columns else 0
+        
+        col_a, col_b = st.columns(2)
+        col_a.metric("約定回数", f"{len(today_trades)}回", f"買{buy_count}/売{sell_count}")
+        col_b.metric("確定損益", f"¥{pnl:,.0f}", delta_color="normal")
+        
+        with st.expander("取引詳細"):
+            st.dataframe(today_trades[['timestamp', 'ticker', 'action', 'quantity', 'price']], hide_index=True)
+
+def render_settings_form(config, config_path):
+    # 設定フォーム
+    st.markdown("### 自動取引パラメータ")
+    
+    with st.form("auto_trade_settings"):
+        auto_enabled = st.checkbox("自動取引を有効にする", value=config.get("auto_trading", {}).get("enabled", True))
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            max_trades = st.number_input("1日の最大取引数", value=config.get("auto_trading", {}).get("max_daily_trades", 5), min_value=1, max_value=20)
+            daily_loss = st.number_input("日次損失許容率 (%)", value=abs(config.get("auto_trading", {}).get("daily_loss_limit_pct", -5.0)), min_value=1.0, max_value=20.0)
+        
+        with col2:
+            max_vix = st.number_input("最大VIX（これを超えたら停止）", value=config.get("auto_trading", {}).get("max_vix", 40.0), min_value=10.0, max_value=100.0)
+            risk_per_trade = st.number_input("1トレードのリスク (%)", value=config.get("auto_trading", {}).get("risk_per_trade", 0.02) * 100, min_value=0.1, max_value=10.0)
+            
+        st.markdown("### 楽天証券連携")
+        rakuten_enabled = st.checkbox("楽天証券での実取引を有効にする", value=config.get("rakuten", {}).get("enabled", False))
+        rakuten_headless = st.checkbox("ブラウザを表示しない (Headless)", value=config.get("rakuten", {}).get("headless", False))
+        
+        st.caption("※ログインIDやパスワードは直接 config.json を編集してください（セキュリティのため）")
+        
+        if st.form_submit_button("設定を保存"):
+            if "auto_trading" not in config: config["auto_trading"] = {}
+            if "rakuten" not in config: config["rakuten"] = {}
+            
+            config["auto_trading"]["enabled"] = auto_enabled
+            config["auto_trading"]["max_daily_trades"] = max_trades
+            config["auto_trading"]["daily_loss_limit_pct"] = -daily_loss
+            config["auto_trading"]["max_vix"] = max_vix
+            config["auto_trading"]["risk_per_trade"] = risk_per_trade / 100
+            
+            config["rakuten"]["enabled"] = rakuten_enabled
+            config["rakuten"]["headless"] = rakuten_headless
+            
+            save_config(config, config_path)
+            st.success("設定を保存しました")
+            time.sleep(1)
+            st.rerun()
+
+def render_logs():
+    # ログ表示
+    log_file = "logs/auto_trader.log"
+    if os.path.exists(log_file):
+        with open(log_file, "r", encoding="utf-8") as f:
+            logs = f.readlines()
+            
+        # 最新のログを上に
+        logs.reverse()
+        
+        # ログのフィルタリング
+        filter_text = st.text_input("ログ検索", "")
+        if filter_text:
+            logs = [l for l in logs if filter_text.lower() in l.lower()]
+            
+    with col1:
+        days_back = st.selectbox("表示期間", [7, 14, 30], index=0, format_func=lambda x: f"過去{x}日間")
+    with col2:
+        if st.button("🔄 データ更新", use_container_width=True):
+            st.rerun()
+    
+    pt = PaperTrader()
+    
+    # 期間設定
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=days_back)
+    
+    # 1. 資産サマリー
+    st.markdown("#### 💰 資産状況")
+    balance = pt.get_current_balance()
+    initial_capital = pt.initial_capital
+    
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("総資産", f"¥{balance['total_equity']:,.0f}", 
+                f"{((balance['total_equity'] - initial_capital) / initial_capital * 100):.2f}%")
+    col2.metric("現金", f"¥{balance['cash']:,.0f}")
+    col3.metric("投資額", f"¥{balance['invested_amount']:,.0f}")
+    col4.metric("含み損益", f"¥{balance['unrealized_pnl']:,.0f}",
+                f"{(balance['unrealized_pnl'] / balance['invested_amount'] * 100) if balance['invested_amount'] > 0 else 0:.2f}%")
+    
+    st.divider()
+    
+    # 2. 取引サマリー
+    st.markdown(f"#### 📝 取引サマリー（過去{days_back}日間）")
+    history = pt.get_trade_history()
+    
+    if not history.empty:
+        # 日時カラムの処理
+        time_col = None
+        if 'timestamp' in history.columns:
+            time_col = 'timestamp'
+            history['timestamp'] = pd.to_datetime(history['timestamp'])
+        elif 'date' in history.columns:
+            time_col = 'date'
+            history['date'] = pd.to_datetime(history['date'])
+        
+        if time_col:
+            period_trades = history[history[time_col] >= start_date]
+        else:
+            period_trades = history
+        
+        if not period_trades.empty:
+            col1, col2, col3 = st.columns(3)
+            
+            buy_count = len(period_trades[period_trades['action'] == 'BUY'])
+            sell_count = len(period_trades[period_trades['action'] == 'SELL'])
+            
+            col1.metric("取引回数", f"{len(period_trades)}回")
+            col2.metric("買い", f"{buy_count}回", delta_color="off")
+            col3.metric("売り", f"{sell_count}回", delta_color="off")
+            
+            if 'realized_pnl' in period_trades.columns:
+                total_pnl = period_trades['realized_pnl'].sum()
+                st.metric("確定損益", f"¥{total_pnl:,.0f}", f"{total_pnl:+,.0f}")
+            
+            with st.expander("📋 取引履歴詳細"):
+                display_cols = ['ticker', 'action', 'quantity', 'price']
+                if time_col:
+                    display_cols = [time_col] + display_cols
+                if 'realized_pnl' in period_trades.columns:
+                    display_cols.append('realized_pnl')
+                if 'reason' in period_trades.columns:
+                    display_cols.append('reason')
+                
+                st.dataframe(period_trades[display_cols].sort_values(time_col if time_col else 'ticker', ascending=False), 
+                           hide_index=True, use_container_width=True)
+        else:
+            st.info(f"過去{days_back}日間の取引はありません")
+    else:
+        st.info("取引履歴がありません")
+    
+    st.divider()
+    
+    # 3. 銘柄別パフォーマンス
+    st.markdown("#### 🏆 銘柄別パフォーマンス（現在保有）")
+    positions = pt.get_positions()
+    
+    if not positions.empty:
+        # ソート
+        positions_sorted = positions.sort_values('unrealized_pnl', ascending=False)
+        
+        # 色分け表示
+        def color_pnl(val):
+            if val > 0:
+                return 'background-color: rgba(0, 255, 0, 0.1)'
+            elif val < 0:
+                return 'background-color: rgba(255, 0, 0, 0.1)'
+            return ''
+        
+        display_df = positions_sorted[['ticker', 'quantity', 'entry_price', 'current_price', 'unrealized_pnl', 'unrealized_pnl_pct']].copy()
+        display_df.columns = ['銘柄', '数量', '取得単価', '現在値', '含み損益', '損益率(%)']
+        
+        styled_df = display_df.style.applymap(color_pnl, subset=['含み損益'])
+        st.dataframe(styled_df, hide_index=True, use_container_width=True)
+        
+        # サマリー統計
+        col1, col2, col3 = st.columns(3)
+        winners = len(positions[positions['unrealized_pnl'] > 0])
+        losers = len(positions[positions['unrealized_pnl'] < 0])
+        col1.metric("保有銘柄数", f"{len(positions)}銘柄")
+        col2.metric("プラス", f"{winners}銘柄", delta_color="off")
+        col3.metric("マイナス", f"{losers}銘柄", delta_color="off")
+    else:
+        st.info("現在ポジションはありません")
+    
+    st.divider()
+    
+    # 4. 資産推移グラフ
+    st.markdown("#### 📈 資産推移")
+    equity_history = pt.get_equity_history()
+    
+    if not equity_history.empty:
+        equity_history['date'] = pd.to_datetime(equity_history['date'])
+        recent = equity_history[equity_history['date'] >= start_date]
+        
+        if not recent.empty:
+            
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(
+                x=recent['date'],
+                y=recent['total_equity'],
+                mode='lines+markers',
+                name='総資産',
+                line=dict(color='#00D9FF', width=3),
+                fill='tozeroy',
+                fillcolor='rgba(0, 217, 255, 0.1)'
+            ))
+            
+            # 初期資本のライン
+            fig.add_hline(y=initial_capital, line_dash="dash", line_color="gray", 
+                         annotation_text="初期資本", annotation_position="right")
+            
+            fig.update_layout(
+                title=f"資産推移（過去{days_back}日間）",
+                xaxis_title="日付",
+                yaxis_title="総資産（円）",
+                height=400,
+                hovermode='x unified',
+                template='plotly_dark', # ダークモードテンプレート
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)'
+            )
+            
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("表示できる期間のデータがありません")
+    else:
+        st.info("資産履歴がありません")
