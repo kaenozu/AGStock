@@ -330,20 +330,24 @@ def test_get_japan_unit_size_mini_disabled(paper_trader):
 
 
 def test_calculate_trading_fee(paper_trader):
-    """ミニ株手数料計算"""
+    """ミニ株手数料計算（寄付・リアルタイム）"""
     with patch('builtins.open', MagicMock()):
         with patch('json.load') as mock_json:
             mock_json.return_value = {
                 "mini_stock": {
                     "enabled": True,
-                    "fee_rate": 0.0022,
-                    "spread_rate": 0.005
+                    "spread_rate": 0.0022
                 }
             }
             engine = ExecutionEngine(paper_trader)
-            # 10000円の取引で 0.72% = 72円
-            fee = engine.calculate_trading_fee(10000, is_mini_stock=True)
-            assert fee == pytest.approx(72, rel=0.01)
+            
+            # ケース1: 寄付取引（手数料なし）
+            fee_open = engine.calculate_trading_fee(10000, is_mini_stock=True, order_type="寄付")
+            assert fee_open == 0
+            
+            # ケース2: リアルタイム取引（スプレッド0.22% = 22円）
+            fee_realtime = engine.calculate_trading_fee(10000, is_mini_stock=True, order_type="リアルタイム")
+            assert fee_realtime == pytest.approx(22, rel=0.01)
 
 
 def test_calculate_position_size_mini_stock(paper_trader):

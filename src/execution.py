@@ -29,13 +29,29 @@ class ExecutionEngine:
             return self.mini_stock_config.get("unit_size", 1)
         return 100  # 通常の単元株
     
-    def calculate_trading_fee(self, amount: float, is_mini_stock: bool = False) -> float:
-        """取引手数料を計算"""
+    def calculate_trading_fee(self, amount: float, is_mini_stock: bool = False, 
+                               order_type: str = "寄付") -> float:
+        """
+        取引手数料を計算
+        
+        楽天証券かぶミニ（2024年現在）:
+        - 売買手数料: 無料
+        - スプレッド: リアルタイム取引のみ 0.22%
+        - 寄付取引: スプレッドなし（完全無料）
+        
+        Args:
+            amount: 取引金額
+            is_mini_stock: ミニ株取引かどうか
+            order_type: 注文タイプ（"寄付" or "リアルタイム"）
+        """
         if is_mini_stock and self.mini_stock_enabled:
-            # ミニ株: スプレッド + 手数料
-            fee_rate = self.mini_stock_config.get("fee_rate", 0.0022)
-            spread_rate = self.mini_stock_config.get("spread_rate", 0.005)
-            return amount * (fee_rate + spread_rate)
+            if order_type == "リアルタイム":
+                # リアルタイム取引のみスプレッド0.22%
+                spread_rate = self.mini_stock_config.get("spread_rate", 0.0022)
+                return amount * spread_rate
+            else:
+                # 寄付取引は完全無料
+                return 0
         else:
             # 単元株: 楽天証券の無料化（2023年10月〜）
             return 0
