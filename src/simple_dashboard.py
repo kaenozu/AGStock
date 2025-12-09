@@ -166,11 +166,11 @@ def create_simple_dashboard():
     cash = balance['cash']
     invested = balance['invested_amount']
     unrealized_pnl = balance['unrealized_pnl']
-    
+
     # 日次損益計算
     if len(equity_history) >= 2:
-        today_equity = equity_history.iloc[-1]['equity']
-        yesterday_equity = equity_history.iloc[-2]['equity']
+        today_equity = equity_history.iloc[-1]['total_equity']
+        yesterday_equity = equity_history.iloc[-2]['total_equity'] if len(equity_history) > 1 else today_equity
         daily_pnl = today_equity - yesterday_equity
         daily_change_pct = (daily_pnl / yesterday_equity) if yesterday_equity > 0 else 0
     else:
@@ -181,7 +181,7 @@ def create_simple_dashboard():
     one_month_ago = datetime.now() - timedelta(days=30)
     monthly_history = equity_history[equity_history['date'] >= one_month_ago]
     if len(monthly_history) >= 2:
-        monthly_start = monthly_history.iloc[0]['equity']
+        monthly_start = monthly_history.iloc[0]['total_equity']
         monthly_pnl = total_equity - monthly_start
     else:
         monthly_pnl = 0
@@ -202,6 +202,33 @@ def create_simple_dashboard():
     else:
         win_rate = 0
     
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # 0. AI Command Center (AI指令室)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    st.subheader("🤖 AI Command Center")
+    ai_col1, ai_col2 = st.columns([2, 1])
+
+    with ai_col1:
+        # Latest Committee Decision (Simulation)
+        # In a real scenario, this would fetch from a database or a shared state
+        st.info("💡 **AI委員会からの最新メッセージ**")
+        st.markdown("""
+        > "現在の市場は**強気(Bullish)**傾向ですが、ボラティリティの上昇に注意が必要です。
+        > ポートフォリオの現金比率を30%以上に保つことを推奨します。"
+        > *(Investment Committee, 10 mins ago)*
+        """)
+
+    with ai_col2:
+        # Quick Launch
+        st.write("**クイックアクセス**")
+        if st.button("💬 AIに質問する (Chat)", use_container_width=True, type="primary"):
+             # Switch to generic chat
+             st.session_state["chat_target_ticker"] = None
+             # st.query_params["tab"] = "chat" # Removed due to compatibility issue
+             st.info("「💬 AIチャット」タブへ移動してください ↗")
+
+    st.divider()
+
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # 1. 重要指標（4列）
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -258,60 +285,126 @@ def create_simple_dashboard():
             st.info("ペーパートレードタブに移動してください")
     
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # 2. リスクメーター
+    # 2. ポートフォリオ診断 (Risk Radar)
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    st.subheader("🛡️ リスク状況")
+    st.subheader("🛡️ ポートフォリオ診断 (Risk Radar)")
     
-    risk_score = calculate_simple_risk_score(positions, total_equity)
-    emoji, level, message = get_risk_message(risk_score)
+    # --- 指標計算 ---
+    # 1. 集中度スコア (100 = 完全に分散, 0 = 一点集中)
+    num_positions = len(positions)
+    if num_positions == 0:
+        diversity_score = 0
+    elif num_positions == 1:
+        diversity_score = 20
+    elif num_positions <= 3:
+        diversity_score = 50
+    elif num_positions <= 5:
+        diversity_score = 80
+    else:
+        diversity_score = 100
+        
+    # 2. 資金効率 (100 = 適切に投資中, 0 = 現金過多orカツカツ)
+    cash_ratio = cash / total_equity if total_equity > 0 else 0
+    if 0.1 <= cash_ratio <= 0.4:
+         efficiency_score = 100 # 理想的
+    elif cash_ratio < 0.1:
+         efficiency_score = 60 # リスク取りすぎ
+    else:
+         # 現金多すぎなほどスコア低下
+         efficiency_score = max(0, 100 - (cash_ratio - 0.4) * 200)
+
+    # 3. AI期待値 (仮定: 上昇トレンド銘柄の割合)
+    # 本来はSentiment分析結果を使うが、ここでは含み益銘柄の割合で代用
+    if not positions.empty and 'unrealized_pnl' in positions.columns:
+        profitable_positions = len(positions[positions['unrealized_pnl'] > 0])
+        sentiment_score = (profitable_positions / num_positions) * 100
+    else:
+        sentiment_score = 50 # 中立
+
+    # 4. 安定性 (仮定: ボラティリティの逆数などだが簡略化)
+    # ここでは「大きな含み損がないか」で判定
+    if not positions.empty and 'unrealized_pnl_pct' in positions.columns:
+        min_pnl_pct = positions['unrealized_pnl_pct'].min()
+        if min_pnl_pct < -0.1: # -10%以下の銘柄がある
+            stability_score = 40
+        elif min_pnl_pct < -0.05:
+            stability_score = 70
+        else:
+            stability_score = 95
+    else:
+        stability_score = 100 # ポジションなしは安定
+
+    # --- レーダーチャート描画 ---
+    radar_data = pd.DataFrame(dict(
+        r=[diversity_score, efficiency_score, sentiment_score, stability_score],
+        theta=['分散力', '資金効率', 'AI期待値', '安定性']
+    ))
     
-    col_risk1, col_risk2 = st.columns([1, 2])
+    col_risk1, col_risk2 = st.columns([1, 1])
     
     with col_risk1:
-        # リスクゲージ
-        fig = go.Figure(go.Indicator(
-            mode="gauge+number",
-            value=risk_score,
-            domain={'x': [0, 1], 'y': [0, 1]},
-            title={'text': "リスクスコア"},
-            gauge={
-                'axis': {'range': [0, 100]},
-                'bar': {'color': "#1f77b4"},
-                'steps': [
-                    {'range': [0, 30], 'color': "#00D9FF"},    # ブランドカラー（シアン）
-                    {'range': [30, 70], 'color': "#FFA500"},   # オレンジ
-                    {'range': [70, 100], 'color': "#FF4444"}   # 明るい赤
-                ],
-                'threshold': {
-                    'line': {'color': "white", 'width': 4},
-                    'thickness': 0.75,
-                    'value': risk_score
-                }
-            }
+        fig = go.Figure()
+        fig.add_trace(go.Scatterpolar(
+            r=radar_data['r'],
+            theta=radar_data['theta'],
+            fill='toself',
+            name='Portfolio Stats',
+            line_color='#00D9FF',
+            fillcolor='rgba(0, 217, 255, 0.2)'
         ))
-        fig.update_layout(height=250, margin=dict(l=20, r=20, t=50, b=20))
+        
+        fig.update_layout(
+            polar=dict(
+                radialaxis=dict(
+                    visible=True,
+                    range=[0, 100],
+                    gridcolor='rgba(255, 255, 255, 0.1)',
+                    tickfont=dict(color='gray')
+                ),
+                bgcolor='rgba(0,0,0,0)'
+            ),
+            showlegend=False,
+            height=300,
+            margin=dict(l=40, r=40, t=20, b=20),
+            paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(color='white')
+        )
         st.plotly_chart(fig, use_container_width=True)
-    
+
     with col_risk2:
-        st.markdown(f"### {emoji} リスク: {level}")
-        st.info(message)
+        # 総合スコア計算
+        total_score = int((diversity_score + efficiency_score + sentiment_score + stability_score) / 4)
         
-        # 詳細情報
-        cash_ratio = cash / total_equity if total_equity > 0 else 0
-        invested_ratio = invested / total_equity if total_equity > 0 else 0
-        num_positions = len(positions)
-        
-        diversification_score = min(num_positions * 20, 100) if num_positions > 0 else 0
-        
+        # ランク判定
+        if total_score >= 80:
+            rank = "S (Professional)"
+            rank_color = "#00ff9d" # Green
+            comment = "素晴らしいバランスです。AIの推奨運用に非常に近いです。"
+        elif total_score >= 60:
+            rank = "A (Advanced)"
+            rank_color = "#00D9FF" # Cyan
+            comment = "良好な状態です。弱点パラメーターを補強するとさらに良くなります。"
+        elif total_score >= 40:
+            rank = "B (Batalance Needed)"
+            rank_color = "#FFA500" # Orange
+            comment = "少しバランスが崩れています。分散投資や現金比率を見直してください。"
+        else:
+            rank = "C (Caution)"
+            rank_color = "#FF4444" # Red
+            comment = "リスクが高い状態です。早急なポートフォリオの再構築を推奨します。"
+
         st.markdown(f"""
-**詳細:**
-- 📊 現金比率: {cash_ratio:.0%} 
-  {'✅ 適切' if 0.2 <= cash_ratio <= 0.5 else '⚠️ 調整を検討'}
-- 💼 投資比率: {invested_ratio:.0%}
-- 🎲 分散度: {diversification_score}/100 
-  {'✅ 十分' if diversification_score >= 60 else '⚠️ もう少し分散を'}
-- 🏢 保有銘柄数: {num_positions}銘柄
-""")
+        ### 総合ランク: <span style='color:{rank_color}'>{rank}</span>
+        **スコア: {total_score}/100**
+        
+        {comment}
+        
+        ---
+        - **分散力**: {diversity_score} - 銘柄数の適切さ
+        - **資金効率**: {efficiency_score} - 現金比率のバランス
+        - **AI期待値**: {sentiment_score:.0f} - 含み益銘柄の割合
+        - **安定性**: {stability_score} - 大きな損失の回避度
+        """, unsafe_allow_html=True)
     
     st.divider()
     
@@ -379,7 +472,7 @@ def create_simple_dashboard():
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             x=recent_equity['date'],
-            y=recent_equity['equity'],
+            y=recent_equity['total_equity'],
             mode='lines+markers',
             name='総資産',
             line=dict(color='#00D9FF', width=3),
@@ -437,15 +530,15 @@ def create_simple_dashboard():
     action_col1, action_col2, action_col3 = st.columns(3)
     
     with action_col1:
-        if st.button("📊 市場スキャン", use_container_width=True, type="secondary"):
+        if st.button("📊 市場スキャン", use_container_width=True, type="secondary", key="home_btn_market_scan"):
             st.info("市場スキャンタブに移動してください")
     
     with action_col2:
-        if st.button("💼 ポートフォリオ", use_container_width=True, type="secondary"):
+        if st.button("💼 ポートフォリオ", use_container_width=True, type="secondary", key="home_btn_portfolio"):
             st.info("ポートフォリオタブに移動してください")
     
     with action_col3:
-        if st.button("📝 取引履歴", use_container_width=True, type="secondary"):
+        if st.button("📝 取引履歴", use_container_width=True, type="secondary", key="home_btn_trade_history"):
             st.info("ペーパートレードタブに移動してください")
     
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -570,7 +663,7 @@ def create_simple_dashboard():
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             x=recent_equity['date'],
-            y=recent_equity['equity'],
+            y=recent_equity['total_equity'],
             mode='lines+markers',
             name='総資産',
             line=dict(color='#00D9FF', width=3),
@@ -666,7 +759,7 @@ def create_simple_dashboard():
             "equity_history": equity_history.tail(30).to_dict('records') if not equity_history.empty else []
         }
         
-        json_str = json.dumps(export_data, ensure_ascii=False, indent=2)
+        json_str = json.dumps(export_data, default=str, ensure_ascii=False, indent=2)
         st.download_button(
             label="💾 全データ（JSON）",
             data=json_str,

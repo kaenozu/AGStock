@@ -91,7 +91,10 @@ def parse_period(period: str) -> datetime:
         return now - timedelta(days=730)
 
 
+from src.utils import retry_with_backoff
+
 @st.cache_data(ttl=3600, show_spinner=False)
+@retry_with_backoff(retries=3, backoff_in_seconds=2)
 def fetch_stock_data(
     tickers: Sequence[str],
     period: str = "2y",

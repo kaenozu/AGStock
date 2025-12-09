@@ -3,6 +3,7 @@ FullyAutomatedTraderのテスト
 """
 import pytest
 import pandas as pd
+from datetime import datetime
 from unittest.mock import Mock, patch
 from fully_automated_trader import FullyAutomatedTrader
 

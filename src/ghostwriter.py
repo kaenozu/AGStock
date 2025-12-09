@@ -71,6 +71,15 @@ class Ghostwriter:
         from src.dashboard_utils import get_market_regime
         regime_info = get_market_regime()
         
+        trades_detail = []
+        if not weekly_trades.empty:
+            # Timestamp対策: 日付を文字列に変換
+            df_display = weekly_trades.copy()
+            for col in df_display.columns:
+                if pd.api.types.is_datetime64_any_dtype(df_display[col]):
+                    df_display[col] = df_display[col].dt.strftime('%Y-%m-%d %H:%M:%S')
+            trades_detail = df_display.to_dict('records')
+        
         return {
             "start_date": start_date.strftime("%Y-%m-%d"),
             "end_date": end_date.strftime("%Y-%m-%d"),
@@ -78,7 +87,7 @@ class Ghostwriter:
             "cash": balance['cash'],
             "realized_pnl": realized_pnl,
             "trade_count": len(weekly_trades),
-            "trades_detail": weekly_trades.to_dict('records') if not weekly_trades.empty else [],
+            "trades_detail": trades_detail,
             "market_regime": regime_info
         }
 

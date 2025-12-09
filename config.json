@@ -64,6 +64,12 @@
         "crypto": false,
         "fx": false
     },
+    "ai_committee": {
+        "enabled": false,
+        "strict_mode": false,
+        "api_provider": "google",
+        "model": "gemini-pro"
+    },
     "paper_trading": {
         "initial_capital": 500000,
         "enabled": true

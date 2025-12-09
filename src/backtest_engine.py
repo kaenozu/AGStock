@@ -1,7 +1,7 @@
 import pandas as pd
 from typing import Dict, Any, Type
 from src.backtester import Backtester
-from src.data_loader import fetch_long_term_data
+from src.data_loader import fetch_stock_data
 from src.strategies import Strategy
 
 class HistoricalBacktester:
@@ -14,8 +14,10 @@ class HistoricalBacktester:
         Runs a historical backtest for a specific ticker and strategy.
         """
         # 1. Fetch Data
-        df = fetch_long_term_data(ticker, years=years)
-        if df.empty:
+        data_map = fetch_stock_data([ticker], period=f"{years}y")
+        df = data_map.get(ticker)
+        
+        if df is None or df.empty:
             return {"error": "No data found"}
         
         # 2. Initialize Strategy

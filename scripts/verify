@@ -1,0 +1,74 @@
+
+import logging
+from unittest.mock import MagicMock, patch
+from src.schemas import AppConfig, TradingDecision
+from src.agents.committee import InvestmentCommittee
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("VerifyAI")
+
+def test_committee_review():
+    logger.info("🧪 Testing Committee Review Logic (Mocked)...")
+    
+    # Mock Config
+    config = AppConfig() 
+    
+    # Patch get_llm_reasoner to return a mock instance
+    with patch('src.agents.market_analyst.get_llm_reasoner') as MockGetReasoner:
+        # Configure Mock
+        mock_instance = MagicMock()
+        MockGetReasoner.return_value = mock_instance
+        
+        # Setup side effects for analyze_market_impact
+        # 1. For 7203.T (Positive)
+        # 2. For 9984.T (Negative)
+        mock_instance.analyze_market_impact.side_effect = [
+            {"sentiment": "BULLISH", "reasoning": "Strong positive momentum and earnings growth.", "key_drivers": ["Earnings", "Growth"]},
+            {"sentiment": "BEARISH", "reasoning": "High volatility and negative sentiment detected.", "key_drivers": ["Risk", "Sentiment"]}
+        ]
+        
+        committee = InvestmentCommittee(config)
+        
+        # Test 1: Strong Buy Signal
+        strong_buy_signal = {
+            "ticker": "7203.T",
+            "action": "BUY",
+            "price": 2500,
+            "strategy": "MLStrategy",
+            "reason": "Uptrend",
+            "confidence": 0.9,
+            "sentiment_score": 0.8
+        }
+        
+        logger.info("--- Reviewing Signal 1 (Strong) ---")
+        decision = committee.review_candidate("7203.T", strong_buy_signal)
+        logger.info(f"Signal 1: Buying Opportunity -> Decision: {decision}")
+        
+        if decision == TradingDecision.BUY:
+             logger.info("✅ Signal 1 Approved")
+        else:
+             logger.error("❌ Signal 1 Rejected (Unexpected)")
+
+        # Test 2: Weak Signal
+        weak_signal = {
+            "ticker": "9984.T",
+            "action": "BUY",
+            "price": 6000,
+            "strategy": "RSI",
+            "reason": "Oversold",
+            "confidence": 0.6,
+            "sentiment_score": -0.5
+        }
+        
+        logger.info("--- Reviewing Signal 2 (Weak) ---")
+        decision_weak = committee.review_candidate("9984.T", weak_signal)
+        logger.info(f"Signal 2: Weak/Negative Context -> Decision: {decision_weak}")
+        
+        if decision_weak != TradingDecision.BUY:
+             logger.info("✅ Signal 2 Rejected/Held (Expected)")
+        else:
+             logger.error("❌ Signal 2 Approved (Unexpected)")
+
+if __name__ == "__main__":
+    test_committee_review()
