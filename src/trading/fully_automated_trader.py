@@ -5,7 +5,6 @@
 """
 import sys
 import os
-import json
 import pandas as pd
 import datetime
 from typing import Dict, List
@@ -13,6 +12,9 @@ import traceback
 
 # リトライロジック
 from tenacity import retry, stop_after_attempt, wait_exponential
+
+from src.utils.config_loader import load_config_from_yaml
+from src.utils.logger import setup_logger, get_logger
 
 from src.constants import NIKKEI_225_TICKERS, SP500_TICKERS, STOXX50_TICKERS
 from src.data_loader import fetch_stock_data, get_latest_price, fetch_fundamental_data, CRYPTO_PAIRS, FX_PAIRS
@@ -38,15 +40,22 @@ from src.advanced_risk import AdvancedRiskManager
 class FullyAutomatedTrader:
     """完全自動トレーダー（安全策付き）"""
     
-    def __init__(self, config_path: str = "config.json"):
+    def __init__(self, config_path: str = "config.yaml"):
         """初期化"""
         # 設定読み込み
-        self.config = self.load_config(config_path)
+        self.config = load_config_from_yaml(config_path)
+        
+        # ロガーセットアップ
+        log_dir = self.config.get("paths", {}).get("log_dir", "logs")
+        log_filename = self.config.get("paths", {}).get("auto_trader_log_file", "auto_trader.log")
+        log_level = self.config.get("system", {}).get("log_level", "INFO")
+        setup_logger("AutoTrader", log_dir, log_filename, log_level)
+        self.logger = get_logger("AutoTrader") # インスタンス変数にロガーを保持
         
         # コアコンポーネント
         initial_capital = self.config.get("paper_trading", {}).get("initial_capital", 1000000)
         self.pt = PaperTrader(initial_capital=initial_capital)
-        self.notifier = SmartNotifier(config_path)
+        self.notifier = SmartNotifier(self.config) # configオブジェクトを渡す
         
         # リスク設定
         self.risk_config = self.config.get("auto_trading", {})
@@ -80,10 +89,6 @@ class FullyAutomatedTrader:
         self.backup_enabled = True
         self.emergency_stop_triggered = False
         
-        # ログファイル
-        self.log_file = "logs/auto_trader.log"
-        os.makedirs("logs", exist_ok=True)
-        
         # バックアップマネージャー（オプション機能としてNoneを初期化）
         self.backup_manager = None
         
@@ -96,45 +101,23 @@ class FullyAutomatedTrader:
         self.kelly_criterion = KellyCriterion()
         self.dynamic_stop_manager = DynamicStopManager()
         self.advanced_risk = AdvancedRiskManager(self.config)
-        self.log("Phase 30-1 & 30-3: リアルタイム適応学習・高度リスク管理モジュール初期化完了")
+        self.logger.info("Phase 30-1 & 30-3: リアルタイム適応学習・高度リスク管理モジュール初期化完了")
         
-        self.log("フル自動トレーダー初期化完了")
-    
-    def load_config(self, config_path: str) -> dict:
-        """設定ファイルを読み込み"""
-        try:
-            with open(config_path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except FileNotFoundError:
-            # デフォルト設定
-            return {
-                "paper_trading": {"initial_capital": 1000000},
-                "auto_trading": {
-                    "max_daily_trades": 5,
-                    "daily_loss_limit_pct": -5.0,
-                    "max_vix": 40.0
-                },
-                "notifications": {"line": {"enabled": False}}
-            }
+        self.logger.info("フル自動トレーダー初期化完了")
     
     def log(self, message: str, level: str = "INFO"):
         """ログ出力"""
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        log_message = f"[{timestamp}] [{level}] {message}"
-        
-        # Windows console (cp932) safe output
-        try:
-            print(log_message)
-        except UnicodeEncodeError:
-            # Remove emoji and special characters for console
-            safe_message = log_message.encode('cp932', errors='ignore').decode('cp932')
-            print(safe_message)
-        
-        try:
-            with open(self.log_file, "a", encoding="utf-8") as f:
-                f.write(log_message + "\n")
-        except Exception:
-            pass  # ログ書き込み失敗しても続行
+        # 既存のlogメソッドをloggerオブジェクトのメソッドに置き換える
+        if level == "INFO":
+            self.logger.info(message)
+        elif level == "WARNING":
+            self.logger.warning(message)
+        elif level == "ERROR":
+            self.logger.error(message)
+        elif level == "CRITICAL":
+            self.logger.critical(message)
+        else:
+            self.logger.debug(message)
     
     def calculate_daily_pnl(self) -> float:
         """本日の損益を計算"""
@@ -187,7 +170,8 @@ class FullyAutomatedTrader:
         # 2. 市場ボラティリティチェック
         try:
             import yfinance as yf
-            vix = yf.Ticker("^VIX")
+            vix_ticker = self.config.get("market_indices", {}).get("vix", "^VIX")
+            vix = yf.Ticker(vix_ticker)
             vix_data = vix.history(period="1d")
             if not vix_data.empty:
                 current_vix = vix_data['Close'].iloc[-1]
@@ -197,7 +181,8 @@ class FullyAutomatedTrader:
             pass  # VIXデータ取得失敗時は続行
         
         # 3. 残高チェック
-        if balance['cash'] < 10000:  # 最低1万円
+        min_cash = self.config.get("risk_management", {}).get("min_cash_balance", 10000)
+        if balance['cash'] < min_cash:  # 最低1万円
             return False, "現金残高が不足しています"
         
         return True, "OK"
@@ -900,10 +885,11 @@ class FullyAutomatedTrader:
             # 1. Phase 30-1: 市場レジーム検出とリスクパラメータ更新
             self.log("Phase 30-1: 市場レジーム検出開始...")
             try:
-                # 日経平均のデータを取得してレジーム検出
-                market_data = fetch_stock_data(["^N225"], period="3mo")
-                if market_data and "^N225" in market_data:
-                    df_market = market_data["^N225"]
+                # 日本市場のベンチマークティッカーを設定から取得
+                benchmark_ticker = self.config.get("market_indices", {}).get("japan_benchmark", "^N225")
+                market_data = fetch_stock_data([benchmark_ticker], period="3mo")
+                if market_data and benchmark_ticker in market_data:
+                    df_market = market_data[benchmark_ticker]
                     
                     # レジーム検出
                     regime = self.regime_detector.detect_regime(df_market)

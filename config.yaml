@@ -12,6 +12,7 @@ risk_management:
   stop_loss_default: 0.05
   take_profit_default: 0.10
   allow_short_selling: false
+  min_cash_balance: 10000
 
 data:
   provider: "yfinance"
@@ -38,3 +39,9 @@ paths:
   data_dir: "data"
   backup_dir: "backups"
   db_path: "paper_trade.db"
+  log_dir: "logs"
+  auto_trader_log_file: "auto_trader.log"
+
+market_indices:
+  vix: "^VIX"
+  japan_benchmark: "^N225"
