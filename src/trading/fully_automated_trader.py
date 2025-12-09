@@ -4,7 +4,6 @@
 安全策を含む完全自動運用システム
 """
 import os
-import json
 import pandas as pd
 import datetime
 from typing import Dict, List, Optional, Tuple, Any
@@ -13,6 +12,13 @@ import logging
 
 # リトライロジック
 from tenacity import retry, stop_after_attempt, wait_exponential
+
+# Config & Logging
+# Using main branch style imports where possible
+# main uses self.load_config method, HEAD uses load_config_from_yaml util. 
+# We'll stick to main's method for consistency with standard refactor.
+import json
+from src.utils.logger import setup_logger, get_logger
 
 from src.constants import NIKKEI_225_TICKERS, SP500_TICKERS, STOXX50_TICKERS
 from src.data_loader import fetch_stock_data, get_latest_price, fetch_fundamental_data
@@ -27,7 +33,13 @@ from src.backup_manager import BackupManager
 from src.agents.committee import InvestmentCommittee
 from src.schemas import TradingDecision, AppConfig
 
-# Setup basic logger if not configured
+# New Features from feat-add-position-guards
+from src.regime_detector import MarketRegimeDetector
+from src.dynamic_risk_manager import DynamicRiskManager
+from src.kelly_criterion import KellyCriterion
+from src.dynamic_stop import DynamicStopManager
+
+# Create logger
 logger = logging.getLogger(__name__)
 
 class FullyAutomatedTrader:
@@ -38,35 +50,22 @@ class FullyAutomatedTrader:
         # 設定読み込み
         self.config: Dict[str, Any] = self.load_config(config_path)
 
-        # コアコンポーネント
-        self.pt = PaperTrader()
-        self.notifier = SmartNotifier(config_path)
-
-        # リスク設定
-        self.risk_config: Dict[str, Any] = self.config.get("auto_trading", {})
-        self.max_daily_trades: int = int(self.risk_config.get("max_daily_trades", 5))
-
-        # ポートフォリオ配分目標
-        self.target_japan_pct: float = 50.0
-        self.target_us_pct: float = 30.0
-        self.target_europe_pct: float = 20.0
-
-        # その他設定
-        self.allow_small_mid_cap: bool = True
-        self.backup_enabled: bool = True
-        self.emergency_stop_triggered: bool = False
-
         # ログファイル
         self.log_file: str = "logs/auto_trader.log"
         os.makedirs("logs", exist_ok=True)
+        setup_logger("AutoTrader", "logs", "auto_trader.log")
+        self.logger = get_logger("AutoTrader")
+
+        # コアコンポーネント
+        self.pt = PaperTrader()
+        self.notifier = SmartNotifier(self.config) # Combined usage
 
         # バックアップマネージャー
         self.backup_manager: Optional[BackupManager] = None
         try:
             self.backup_manager = BackupManager()
         except Exception:
-            self.backup_manager = None
-            logger.warning("BackupManager initialization failed.")
+            self.logger.warning("BackupManager initialization failed.")
 
         # 実行エンジン
         self.engine = ExecutionEngine(self.pt)
@@ -88,6 +87,30 @@ class FullyAutomatedTrader:
         else:
             self.committee = None
             self.log("🤖 AI投資委員会: 無効 (Disabled)")
+
+        # リスク設定
+        self.risk_config: Dict[str, Any] = self.config.get("auto_trading", {})
+        self.max_daily_trades: int = int(self.risk_config.get("max_daily_trades", 5))
+
+        # ポートフォリオ配分目標
+        self.target_japan_pct: float = 50.0
+        self.target_us_pct: float = 30.0
+        self.target_europe_pct: float = 20.0
+
+        self.allow_small_mid_cap: bool = True
+        self.backup_enabled: bool = True
+        self.emergency_stop_triggered: bool = False
+        
+        # New Risk Modules (from feat-add-position-guards)
+        try:
+            self.regime_detector = MarketRegimeDetector()
+            self.risk_manager = DynamicRiskManager(self.regime_detector)
+            self.kelly_criterion = KellyCriterion()
+            self.dynamic_stop_manager = DynamicStopManager()
+            # self.advanced_risk = AdvancedRiskManager(self.config) # Class missing, disabled
+            self.log("Phase 30-1 & 30-3: リアルタイム適応学習・高度リスク管理モジュール初期化完了")
+        except Exception as e:
+             self.log(f"高度リスク管理モジュールの初期化エラー: {e}", "WARNING")
 
         self.log("フル自動トレーダー初期化完了")
 
@@ -113,7 +136,17 @@ class FullyAutomatedTrader:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_message = f"[{timestamp}] [{level}] {message}"
         print(log_message)
-        logger.info(message) if level == "INFO" else logger.warning(message)
+        
+        if level == "INFO":
+            self.logger.info(message)
+        elif level == "WARNING":
+            self.logger.warning(message)
+        elif level == "ERROR":
+            self.logger.error(message)
+        elif level == "CRITICAL":
+            self.logger.critical(message)
+        else:
+            self.logger.debug(message)
 
         try:
             with open(self.log_file, "a", encoding="utf-8") as f:
@@ -174,7 +207,8 @@ class FullyAutomatedTrader:
         # 2. 市場ボラティリティチェック
         try:
             import yfinance as yf
-            vix = yf.Ticker("^VIX")
+            vix_ticker = self.config.get("market_indices", {}).get("vix", "^VIX")
+            vix = yf.Ticker(vix_ticker)
             vix_data = vix.history(period="1d")
             if not vix_data.empty:
                 current_vix = float(vix_data['Close'].iloc[-1])
@@ -194,12 +228,6 @@ class FullyAutomatedTrader:
     def _fetch_data_with_retry(self, tickers: List[str]) -> Dict[str, pd.DataFrame]:
         """
         リトライロジック付きでデータ取得
-
-        Args:
-            tickers: 銘柄リスト
-
-        Returns:
-            データマップ
         """
         try:
             self.log(f"データ取得中... ({len(tickers)}銘柄)")
@@ -211,12 +239,7 @@ class FullyAutomatedTrader:
             raise  # リトライのために例外を再throw
 
     def emergency_stop(self, reason: str) -> None:
-        """
-        緊急停止を実行
-
-        Args:
-            reason: 緊急停止の理由
-        """
+        """緊急停止を実行"""
         self.emergency_stop_triggered = True
         self.log(f"🚨 緊急停止: {reason}", "CRITICAL")
 
@@ -239,64 +262,173 @@ class FullyAutomatedTrader:
                 )
         except Exception:
             pass  # 通知失敗しても緊急停止は継続
-
-    def evaluate_positions(self) -> List[Dict[str, Any]]:
-        """既存ポジションを評価（損切り・利確判断）"""
+    
+    def evaluate_positions(self) -> List[Dict]:
+        """
+        保有ポジションを評価し、損切り・利確のシグナルを生成 (Merged from feat-add-position-guards)
+        - DynamicStopManager でのストップ更新・保存
+        - ATRベースの下支え
+        - トレーリング／固定利確
+        """
         positions = self.pt.get_positions()
-        actions: List[Dict[str, Any]] = []
-
         if positions.empty:
-            return actions
+            return []
+
+        # Get tickers safely
+        # Handle case where ticker is index or column
+        if 'ticker' in positions.columns:
+            tickers = positions['ticker'].tolist()
+        else:
+            tickers = positions.index.tolist()
+            
+        tickers = [str(t) for t in tickers if t]
+        
+        if not tickers:
+            return []
+
+        data_map = self._fetch_data_with_retry(tickers)
+        signals: List[Dict] = []
 
         for idx, position in positions.iterrows():
-            try:
-                ticker = str(position.get('ticker', idx))
+            ticker = str(position.get('ticker', idx))
+            if not ticker:
+                continue
 
-                # 最新価格取得
-                data = fetch_stock_data([ticker], period="5d")
-                if not data or ticker not in data:
-                    continue
+            df = data_map.get(ticker)
+            if df is None or df.empty:
+                continue
 
-                latest_price = get_latest_price(data[ticker])
+            latest_price = get_latest_price(df)
+            entry_price = float(position.get('entry_price') or position.get('avg_price') or 0.0)
+            quantity = float(position.get('quantity', 0))
+            if entry_price == 0 or quantity <= 0 or latest_price is None:
+                self.log(f"エントリー価格または数量が不明/無効: {ticker}", "WARNING")
+                continue
 
-                if latest_price is None:
-                    continue
+            pnl_pct = (latest_price - entry_price) / entry_price
+            
+            # Unrealized pct from DB or calc
+            unrealized_pct = float(position.get('unrealized_pnl_pct', pnl_pct * 100))
 
-                # エントリー価格取得（avg_priceまたはentry_price）
-                entry_price = float(position.get('entry_price') or position.get('avg_price') or 0.0)
-                if entry_price == 0:
-                    self.log(f"エントリー価格が見つかりませんまたは0です: {ticker}", "WARNING")
-                    continue
+            # Dynamic Stop Manager logic
+            if hasattr(self, 'dynamic_stop_manager'):
+                highest_price = float(position.get('highest_price') or entry_price)
+                if highest_price < latest_price:
+                    highest_price = latest_price # Update local known highest
+                
+                # Update manager internal state from DB/current
+                self.dynamic_stop_manager.highest_prices[ticker] = highest_price
+                self.dynamic_stop_manager.entry_prices[ticker] = entry_price
+                # If DB has stop_price, load it
+                db_stop = float(position.get('stop_price') or 0.0)
+                if db_stop > 0:
+                    self.dynamic_stop_manager.stops[ticker] = db_stop
 
-                # 損益率計算
-                pnl_pct = (latest_price - entry_price) / entry_price
+                new_stop = self.dynamic_stop_manager.update_stop(ticker, latest_price, df)
+                new_highest = self.dynamic_stop_manager.highest_prices.get(ticker, latest_price)
+                
+                # Write back to DB
+                self.pt.update_position_stop(ticker, new_stop, new_highest)
 
-                # 損切り判断（-5%）
-                if pnl_pct < -0.05:
-                    actions.append({
+                should_exit, exit_reason = self.dynamic_stop_manager.check_exit(ticker, latest_price)
+                if should_exit:
+                    signals.append({
                         'ticker': ticker,
                         'action': 'SELL',
-                        'reason': f'損切り（{pnl_pct:.1%}）',
+                        'reason': exit_reason,
                         'confidence': 1.0,
-                        'price': latest_price
+                        'price': latest_price,
+                        'quantity': quantity
                     })
-                    self.log(f"損切り判断: {ticker} ({pnl_pct:.1%})")
+                    self.log(f"Exit Signal ({ticker}): {exit_reason}")
+                    continue
 
-                # 利確判断（+10%）
-                elif pnl_pct > 0.10:
-                    actions.append({
+                # DynamicRiskManager take profit
+                try:
+                    params = self.risk_manager.current_params
+                    take_profit_threshold = params.get('take_profit', 0.10)
+                    if pnl_pct > take_profit_threshold:
+                        signals.append({
+                            'ticker': ticker,
+                            'action': 'SELL',
+                            'reason': f'利確({pnl_pct:.1%}、閾値{take_profit_threshold:.1%})',
+                            'confidence': 1.0,
+                            'price': latest_price,
+                            'quantity': quantity
+                        })
+                        self.log(f"利確判断: {ticker} ({pnl_pct:.1%})")
+                        continue
+                except Exception:
+                    pass
+            
+            # Fallback / Additional Logic (ATR Support etc from HEAD)
+            # ATRベースの下支えとトレーリング利確
+            if len(df) >= 20:
+                high = df['High']
+                low = df['Low']
+                close = df['Close']
+
+                tr1 = high - low
+                tr2 = (high - close.shift()).abs()
+                tr3 = (low - close.shift()).abs()
+                tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
+                atr = tr.rolling(window=14).mean().iloc[-1]
+
+                stop_loss_price = entry_price - (atr * 2)
+                
+                # Check for dynamic stop existing on self
+                current_stop_price = 0.0
+                if hasattr(self, 'dynamic_stop_manager'):
+                     current_stop_price = self.dynamic_stop_manager.stops.get(ticker, 0.0)
+                
+                # Only use basic ATR logic if dynamic manager didn't set a higher stop
+                target_stop = max(stop_loss_price, current_stop_price)
+
+                if latest_price <= target_stop and target_stop > 0:
+                     # Avoid double signaling if dynamic stop already caught it
+                     # But simple check:
+                     self.log(f"🛑 {ticker}: フォールバックストップロス ({latest_price} <= {target_stop})")
+                     signals.append({
                         'ticker': ticker,
                         'action': 'SELL',
-                        'reason': f'利確（{pnl_pct:.1%}）',
                         'confidence': 1.0,
-                        'price': latest_price
+                        'price': latest_price,
+                        'quantity': quantity,
+                        'strategy': 'Fallback ATR Stop',
+                        'reason': f'ATRベース損切り'
                     })
-                    self.log(f"利確判断: {ticker} ({pnl_pct:.1%})")
+                     continue
 
-            except Exception as e:
-                self.log(f"ポジション評価エラー ({ticker}): {e}", "WARNING")
+                if unrealized_pct >= 5.0:
+                    recent_high = df['High'].tail(20).max()
+                    trailing_stop_price = recent_high * 0.97
 
-        return actions
+                    if latest_price <= trailing_stop_price:
+                        self.log(f"📈 {ticker}: トレーリングストップ発動 (利益確定 +{unrealized_pct:.1f}%)")
+                        signals.append({
+                            'ticker': ticker,
+                            'action': 'SELL',
+                            'confidence': 1.0,
+                            'price': latest_price,
+                            'quantity': quantity,
+                            'strategy': 'Trailing Stop',
+                            'reason': f'利益確定 (+{unrealized_pct:.1f}%)'
+                        })
+                        continue
+
+                if unrealized_pct >= 20.0:
+                    self.log(f"🎯 {ticker}: 目標利益達成 (+{unrealized_pct:.1f}%)")
+                    signals.append({
+                        'ticker': ticker,
+                        'action': 'SELL',
+                        'confidence': 1.0,
+                        'price': latest_price,
+                        'quantity': quantity,
+                        'strategy': 'Target Profit',
+                        'reason': f'目標利益達成 (+{unrealized_pct:.1f}%)'
+                    })
+
+        return signals
 
     def get_target_tickers(self) -> List[str]:
         """ポートフォリオバランスに基づいて対象銘柄を返す"""
@@ -308,8 +440,8 @@ class FullyAutomatedTrader:
         us_value = 0.0
         europe_value = 0.0
 
-        for _, pos in positions.iterrows():
-            ticker = str(pos['ticker'])
+        for idx, pos in positions.iterrows():
+            ticker = str(pos.get('ticker', idx))
             val = pos.get('market_value')
             if val is None:
                 val = float(pos['quantity']) * float(pos['current_price'])
@@ -413,7 +545,11 @@ class FullyAutomatedTrader:
             positions = self.pt.get_positions()
             is_held = False
             if not positions.empty:
-                is_held = ticker in positions['ticker'].values if 'ticker' in positions.columns else ticker in positions.index
+                 # Check 'ticker' column or index
+                 if 'ticker' in positions.columns:
+                     is_held = ticker in positions['ticker'].values
+                 else:
+                     is_held = ticker in positions.index
 
             # 各戦略でシグナル生成
             for strategy_name, strategy in strategies:
@@ -550,100 +686,7 @@ class FullyAutomatedTrader:
         """アドバイスを生成"""
         if daily_pnl < 0:
             return "⚠️ 本日はマイナスでした。リスク管理を見直しましょう。"
-        elif daily_pnl > total_equity * 0.02:
-            return "🎉 素晴らしい成績です！このまま継続しましょう。"
+        elif daily_pnl > 0:
+            return "✅ 素晴らしい結果です！この調子でいきましょう。"
         else:
-            return "✅ 通常運用を継続してください。"
-
-    def daily_routine(self) -> None:
-        """毎日の定期実行ルーチン"""
-        self.log("=" * 60)
-        self.log(f"自動トレーダー開始: {datetime.datetime.now()}")
-        self.log("=" * 60)
-
-        try:
-            # 1. リスクチェック
-            is_safe, reason = self.is_safe_to_trade()
-            if not is_safe:
-                self.log(f"⚠️ 取引中止: {reason}", "WARNING")
-                self.notifier.send_line_notify(
-                    f"⚠️ 本日の自動取引は中止されました\n理由: {reason}",
-                    token=self.config.get("notifications", {}).get("line", {}).get("token")
-                )
-                return
-
-            # 2. 既存ポジション評価
-            self.log("ポジション評価開始...")
-            position_actions = self.evaluate_positions()
-
-            if position_actions:
-                self.log(f"{len(position_actions)}件のポジション調整")
-                self.execute_signals(position_actions)
-
-            # 3. 新規シグナルスキャン
-            new_signals = self.scan_market()
-            
-            # --- AI Committee Review ---
-            if self.ai_enabled and self.committee and new_signals:
-                self.log(f"🤖 AI委員会による審査を実施中... (候補: {len(new_signals)}件)")
-                approved_signals = []
-                
-                for signal in new_signals:
-                    ticker = signal.get('ticker')
-                    try:
-                        # 既存のシグナル情報にセンチメントスコアがあれば付与（scan_marketで取得済みなどの場合）
-                        # 現在はcommittee側で簡易判定
-                        
-                        decision = self.committee.review_candidate(ticker, signal)
-                        
-                        if decision == TradingDecision.BUY:
-                            self.log(f"  ✅ AI承認: {ticker} (自信度: {signal.get('confidence', 'N/A')})")
-                            approved_signals.append(signal)
-                        else:
-                             self.log(f"  ⛔ AI否決: {ticker} (判断: {decision})")
-                             
-                    except Exception as e:
-                        self.log(f"  ⚠️ AI審査エラー ({ticker}): {e}", "ERROR")
-                        # エラー時はスキップ（安全策）
-                
-                self.log(f"AI審査結果: {len(new_signals)} -> {len(approved_signals)}件")
-                new_signals = approved_signals
-            # ---------------------------
-
-            # 4. 新規シグナル実行
-            if new_signals:
-                self.execute_signals(new_signals)
-
-            # 5. 日次エクイティ更新
-            self.pt.update_daily_equity()
-
-            # 6. 日次レポート送信
-            self.send_daily_report()
-
-            self.log("自動トレーダー正常終了")
-
-        except Exception as e:
-            self.log(f"❌ エラー発生: {e}", "ERROR")
-            self.log(traceback.format_exc(), "ERROR")
-
-            # エラー通知
-            token = self.config.get("notifications", {}).get("line", {}).get("token")
-            if token:
-                self.notifier.send_line_notify(
-                    f"❌ 自動トレーダーでエラーが発生しました\n{str(e)}",
-                    token=token
-                )
-
-
-def main() -> None:
-    """メイン関数"""
-    # キャッシュ設定
-    install_cache()
-
-    # 完全自動トレーダー実行
-    trader = FullyAutomatedTrader()
-    trader.daily_routine()
-
-
-if __name__ == "__main__":
-    main()
+            return "⏸️ 本日は取引なしか、損益なしでした。"

@@ -125,6 +125,25 @@ class PaperTrader:
             'invested_amount': 0.0,
             'unrealized_pnl': 0.0
         }
+<<<<<<< HEAD
+    
+    def get_positions(self) -> pd.DataFrame:
+        """Get current open positions with calculated market values"""
+        df = pd.read_sql_query('SELECT * FROM positions', self.conn)
+        
+        # 計算カラムの初期化（空の場合のエラー防止）
+        if df.empty:
+            for col in ['market_value', 'unrealized_pnl', 'unrealized_pnl_pct']:
+                df[col] = pd.Series(dtype='float64')
+            return df.set_index('ticker', drop=False)
+
+        # Add calculated columns for dashboard
+        df['market_value'] = df['quantity'] * df['current_price']
+        df['unrealized_pnl'] = (df['current_price'] - df['entry_price']) * df['quantity']
+        df['unrealized_pnl_pct'] = ((df['current_price'] - df['entry_price']) / df['entry_price']) * 100
+        return df.set_index('ticker', drop=False)
+    
+=======
 
     def get_positions(self) -> pd.DataFrame:
         """Get current open positions with calculated market values"""
@@ -148,6 +167,7 @@ class PaperTrader:
         )
         return df
 
+>>>>>>> main
     def get_trade_history(self, limit: int = 50) -> pd.DataFrame:
         """Get recent trade history"""
         try:
