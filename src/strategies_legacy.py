@@ -8,6 +8,12 @@ from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 from enum import Enum
 from datetime import datetime
+import importlib
+import inspect
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dropout, Dense
+from tensorflow.keras.optimizers import Adam
+from sklearn.preprocessing import MinMaxScaler
 
 # Phase 29: 高度な特徴量のインポート
 try:
@@ -668,6 +674,7 @@ class TransformerStrategy(Strategy):
         super().__init__(name, trend_period)
         self.model = None
         self.is_trained = False
+        self.sequence_length = 60
     
     def train(self, df: pd.DataFrame):
         try:
