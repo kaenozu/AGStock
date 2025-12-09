@@ -6,6 +6,7 @@ import streamlit as st
 from src.auto_rebalancer import AutoRebalancer
 from src.anomaly_detector import AnomalyDetector
 from src.pdf_report_generator import PDFReportGenerator
+from datetime import datetime
 
 def render_automation_tab():
     st.header("🤖 完全自動化設定")

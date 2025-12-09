@@ -59,6 +59,33 @@ class LLMReasoner:
         else:
             return self._call_ollama(prompt, json_mode=True)
 
+    def chat_with_context(self, user_message: str, history: list, context_data: str) -> str:
+        """
+        コンテキストを考慮してチャット応答を生成
+        """
+        system_prompt = f"""
+        あなたはAI投資システムの高度なアシスタント「Ghostwriter」です。
+        以下の市場・ポートフォリオ状況（Context）を踏まえて、ユーザーの質問に日本語で答えてください。
+        
+        ## 現在の状況 (Context)
+        {context_data}
+        
+        回答のガイドライン:
+        1. 専門家として振る舞い、論理的に回答してください。
+        2. データに基づかない推測をする場合は、その旨を明示してください。
+        3. 投資助言ではないことを含ませつつ、有益な視点を提供してください。
+        """
+        
+        # 履歴の構築
+        full_prompt = f"{system_prompt}\n\n## 会話履歴\n"
+        for msg in history:
+            role = "User" if msg["role"] == "user" else "Ghostwriter"
+            full_prompt += f"{role}: {msg['content']}\n"
+            
+        full_prompt += f"User: {user_message}\nGhostwriter:"
+        
+        return self.ask(full_prompt)
+
     def _create_prompt(self, news_text: str, market_data: Dict[str, Any]) -> str:
         """プロンプト生成"""
         return f"""

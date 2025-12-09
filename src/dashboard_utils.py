@@ -7,6 +7,7 @@ import datetime
 import time
 import subprocess
 from src.paper_trader import PaperTrader
+from src.data_loader import fetch_stock_data, get_latest_price
 
 def check_and_execute_missed_trades():
     """
@@ -69,3 +70,109 @@ def check_and_execute_missed_trades():
         # エラーは無視（通常の表示を続ける）
         print(f"Auto-trade check error: {e}")
         pass
+
+
+def get_multi_timeframe_trends(ticker: str) -> dict:
+    """
+    Get trend analysis for multiple timeframes (Short, Medium, Long).
+    """
+    try:
+        # Fetch data (1 year to calculate long term MA)
+        data_map = fetch_stock_data([ticker], period="2y") # Fetch a bit more to be safe
+        if ticker not in data_map or data_map[ticker].empty:
+            return {"short": "neutral", "medium": "neutral", "long": "neutral"}
+        
+        df = data_map[ticker]
+        close = df['Close']
+        
+        if len(close) < 5:
+             return {"short": "neutral", "medium": "neutral", "long": "neutral"}
+
+        # Calculate SMAs
+        sma5 = close.rolling(window=5).mean().iloc[-1]
+        sma20 = close.rolling(window=20).mean().iloc[-1] if len(close) >= 20 else close.mean()
+        sma60 = close.rolling(window=60).mean().iloc[-1] if len(close) >= 60 else close.mean()
+        sma200 = close.rolling(window=200).mean().iloc[-1] if len(close) >= 200 else sma60
+        
+        current_price = close.iloc[-1]
+        
+        # Determine trends
+        trends = {}
+        
+        # Short term: Price vs SMA5
+        if current_price > sma5:
+            trends["short"] = "up"
+        elif current_price < sma5:
+            trends["short"] = "down"
+        else:
+            trends["short"] = "neutral"
+            
+        # Medium term: SMA5 vs SMA20
+        if sma5 > sma20:
+            trends["medium"] = "up"
+        elif sma5 < sma20:
+            trends["medium"] = "down"
+        else:
+            trends["medium"] = "neutral"
+            
+        # Long term: SMA60 vs SMA200 (or Price vs SMA200 for simpler view)
+        if sma60 > sma200:
+            trends["long"] = "up"
+        elif sma60 < sma200:
+            trends["long"] = "down"
+        else:
+            trends["long"] = "neutral"
+            
+        return trends
+        
+    except Exception as e:
+        print(f"Error getting trends for {ticker}: {e}")
+        return {"short": "error", "medium": "error", "long": "error"}
+
+
+def get_market_regime(ticker: str = "^N225") -> dict:
+    """
+    Determine the current market regime (Bull, Bear, Ranging).
+    Uses Nikkei 225 as default market proxy.
+    """
+    try:
+        trends = get_multi_timeframe_trends(ticker)
+        
+        regime = "ranging"
+        description = "横ばい・方向感なし"
+        strategy_desc = "レンジ逆張り / 個別株選定"
+        
+        # Aggregating trends
+        up_counts = sum(1 for v in trends.values() if v == "up")
+        down_counts = sum(1 for v in trends.values() if v == "down")
+        
+        if up_counts == 3:
+            regime = "strong_bull"
+            description = "強い上昇トレンド"
+            strategy_desc = "順張り / モメンタム投資"
+        elif up_counts >= 2:
+            regime = "trending_up"
+            description = "上昇傾向"
+            strategy_desc = "押し目買い"
+        elif down_counts == 3:
+            regime = "strong_bear"
+            description = "強い下落トレンド"
+            strategy_desc = "キャッシュ確保 / 売りヘッジ"
+        elif down_counts >= 2:
+            regime = "trending_down"
+            description = "下落傾向"
+            strategy_desc = "戻り売り / 防御的ポートフォリオ"
+            
+        return {
+            "regime": regime,
+            "description": description,
+            "strategy_desc": strategy_desc,
+            "trends": trends
+        }
+        
+    except Exception as e:
+        return {
+            "regime": "unknown",
+            "description": f"判定エラー ({e})",
+            "strategy_desc": "保守的運用"
+        }
