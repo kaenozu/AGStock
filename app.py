@@ -98,5 +98,31 @@ def main():
     with tabs[5]:
         render_trading_panel(sidebar_config)
 
+    # 6. Real-time Monitor (New Feature)
+    # Ideally should be a separate page or overlay, but adding as expnader or section for now
+    with st.sidebar.expander("⚡ リアルタイム監視", expanded=False):
+        st.markdown("簡易モニタリング起動中...")
+        try:
+             import time
+             from src.realtime.streamer import get_streamer
+             # Stream top 3 tickers just for demo
+             watchlist = ["7203.T", "9984.T", "6758.T"]
+             streamer = get_streamer(watchlist)
+             
+             if st.button("更新 (1分足チェック)"):
+                 streamer._fetch_latest() # Force update
+                 data = streamer.latest_data
+                 for ticker, info in data.items():
+                     price = info['price']
+                     vol = info['volume']
+                     st.metric(label=ticker, value=f"{price:,.0f}", delta=None)
+                     st.caption(f"Vol: {vol:,.0f} at {info['time'].strftime('%H:%M:%S')}")
+             else:
+                 st.caption("ボタンを押して最新データを取得")
+                 
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+
 if __name__ == "__main__":
     main()

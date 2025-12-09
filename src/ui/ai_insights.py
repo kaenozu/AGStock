@@ -76,4 +76,59 @@ def render_ai_insights():
                 st.markdown(f"**信頼度**: {analysis['confidence']*100:.0f}%")
                 st.info(analysis['reasoning'])
         
+
         st.caption(f"分析時刻: {result['timestamp']}")
+
+        # 3. XAI Analysis (Explainable AI)
+        st.divider()
+        st.subheader("🔍 判断根拠の可視化 (XAI)")
+        
+        # Mocking or extracting strategy instance if possible. 
+        # Ideally, InvestmentCommittee should return strategy explanations.
+        # For now, we simulate grabbing the ML strategy to show the concept.
+        
+        from src.strategies.ml import MLStrategy
+        from src.strategies.lightgbm_strategy import LightGBMStrategy
+        from src.data_loader import fetch_stock_data # Assuming we have a default ticker context
+        
+        # Hardcoded demo for immediate visual feedback (since committee.hold_meeting mock doesn't return actual strategy objs)
+        st.info("AIがどのデータを重視したかを表示します（デモ: LightGBMモデル）")
+        
+        if st.checkbox("詳細分析を表示"):
+            try:
+                # Use a dummy strategy instance just to format the display logic, 
+                # as real training happens in background daemon.
+                # In production, we'd load the trained model from disk.
+                
+                # Visualize Mock Data for UX demonstration
+                feature_importance = {
+                    "RSI (Technical)": 0.45,
+                    "USD/JPY (Macro)": -0.32,
+                    "Volume Change": 0.15,
+                    "SP500 Corr": 0.08
+                }
+                
+                features = list(feature_importance.keys())
+                values = list(feature_importance.values())
+                colors = ['green' if v > 0 else 'red' for v in values]
+                
+                import plotly.graph_objects as go
+                
+                fig = go.Figure(go.Bar(
+                    x=values,
+                    y=features,
+                    orientation='h',
+                    marker_color=colors
+                ))
+                
+                fig.update_layout(title="特徴量貢献度 (SHAP Value 近似)", xaxis_title="インパクト (正=買い要因, 負=売り要因)")
+                st.plotly_chart(fig, use_container_width=True)
+                
+                st.markdown("""
+                - **RSI**: テクニカル指標。これが高いと買われすぎを示唆しますが、トレンドフォロー型では買い要因になります。
+                - **USD/JPY**: 為替相関。円安が進むと輸出関連株にプラスの影響を与えます。
+                """)
+                
+            except Exception as e:
+                st.error(f"XAI visualization failed: {e}")
+

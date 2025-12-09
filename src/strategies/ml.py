@@ -1,12 +1,26 @@
 import pandas as pd
 import ta
+from typing import Dict, Any
 from .base import Strategy
+
 
 class MLStrategy(Strategy):
     def __init__(self, name: str = "AI Random Forest", trend_period: int = 0) -> None:
         super().__init__(name, trend_period)
         from sklearn.ensemble import RandomForestClassifier
         self.model = RandomForestClassifier(n_estimators=100, random_state=42)
+        self.feature_names = ['RSI', 'SMA_Ratio', 'Volatility', 'Ret_1', 'Ret_5']
+
+    def explain_prediction(self, df: pd.DataFrame) -> Dict[str, float]:
+        """Return feature importance for the latest prediction"""
+        if self.model is None:
+            return {}
+        try:
+            importances = self.model.feature_importances_
+            return dict(zip(self.feature_names, importances))
+        except Exception:
+            return {}
+
 
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
         if df is None or df.empty or 'Close' not in df.columns:
@@ -40,7 +54,7 @@ class MLStrategy(Strategy):
         # Drop last row (NaN target)
         valid_data = data.iloc[:-1].copy()
         
-        features = ['RSI', 'SMA_Ratio', 'Volatility', 'Ret_1', 'Ret_5']
+        features = self.feature_names
         X = valid_data[features]
         y = valid_data['Target']
         

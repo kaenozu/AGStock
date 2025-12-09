@@ -1,6 +1,8 @@
 import pandas as pd
 import logging
+from typing import Dict, Any
 from .base import Strategy
+
 
 try:
     from src.features import add_advanced_features, add_macro_features
@@ -25,6 +27,50 @@ class LightGBMStrategy(Strategy):
         self.feature_cols = ['ATR', 'BB_Width', 'RSI', 'MACD', 'MACD_Signal', 'MACD_Diff', 
                              'Dist_SMA_20', 'Dist_SMA_50', 'Dist_SMA_200', 'OBV', 'Volume_Change',
                              'USDJPY_Ret', 'USDJPY_Corr', 'SP500_Ret', 'SP500_Corr', 'US10Y_Ret', 'US10Y_Corr']
+        self.explainer = None
+
+    def explain_prediction(self, df: pd.DataFrame) -> Dict[str, float]:
+        """Return SHAP values for the latest prediction"""
+        if self.model is None:
+            return {}
+            
+        try:
+            import shap
+            import lightgbm as lgb
+            
+            # Prepare latest data point
+            data = add_advanced_features(df)
+            macro_data = fetch_macro_data(period="5y")
+            data = add_macro_features(data, macro_data)
+            
+            if data.empty:
+               return {}
+               
+            latest_data = data[self.feature_cols].iloc[[-1]]
+            
+            # Create explainer if not cached (TreeExplainer is efficient)
+            if self.explainer is None:
+                self.explainer = shap.TreeExplainer(self.model)
+                
+            shap_values = self.explainer.shap_values(latest_data)
+            
+            # Handle list output for binary classification
+            if isinstance(shap_values, list):
+                vals = shap_values[1][0] # Positive class
+            else:
+                vals = shap_values[0]
+                
+            explanation = dict(zip(self.feature_cols, vals))
+            # Sort by absolute impact
+            sorted_expl = dict(sorted(explanation.items(), key=lambda item: abs(item[1]), reverse=True))
+            return sorted_expl
+            
+        except ImportError:
+            logger.warning("SHAP not installed")
+            return {}
+        except Exception as e:
+            logger.error(f"Error in SHAP explanation: {e}")
+            return {}
 
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
         try:
