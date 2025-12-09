@@ -50,8 +50,15 @@ class PortfolioRebalancer:
         # 銘柄別比率
         position_ratios = {}
         for ticker in positions.index:
+            if not ticker:
+                if logger:
+                    logger("⚠️ tickerが空のポジションをスキップ")
+                continue
+
             pos = positions.loc[ticker]
             value = pos.get('current_price', 0) * pos.get('quantity', 0)
+            if value <= 0 or total_equity <= 0:
+                continue
             ratio = (value / total_equity) * 100
             position_ratios[ticker] = ratio
         
@@ -105,9 +112,14 @@ class PortfolioRebalancer:
         # 比率が高すぎる銘柄を一部売却
         for ticker, ratio in analysis['position_ratios'].items():
             if ratio > self.max_single_position_pct:
+                if ticker not in positions.index:
+                    continue
+
                 pos = positions.loc[ticker]
                 current_quantity = pos.get('quantity', 0)
                 current_price = pos.get('current_price', 0)
+                if current_quantity is None or current_quantity <= 0 or current_price is None or current_price <= 0:
+                    continue
                 
                 # 目標比率まで減らす
                 target_ratio = self.max_single_position_pct * 0.9  # 少し余裕を持たせる
@@ -140,8 +152,13 @@ class PortfolioRebalancer:
         europe_value = 0
         
         for ticker in positions.index:
+            if not ticker:
+                continue
+
             pos = positions.loc[ticker]
             value = pos.get('current_price', 0) * pos.get('quantity', 0)
+            if value <= 0:
+                continue
             
             if ticker in NIKKEI_225_TICKERS:
                 japan_value += value

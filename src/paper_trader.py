@@ -127,13 +127,13 @@ class PaperTrader:
         if df.empty:
             for col in ['market_value', 'unrealized_pnl', 'unrealized_pnl_pct']:
                 df[col] = pd.Series(dtype='float64')
-            return df
+            return df.set_index('ticker', drop=False)
 
         # Add calculated columns for dashboard
         df['market_value'] = df['quantity'] * df['current_price']
         df['unrealized_pnl'] = (df['current_price'] - df['entry_price']) * df['quantity']
         df['unrealized_pnl_pct'] = ((df['current_price'] - df['entry_price']) / df['entry_price']) * 100
-        return df
+        return df.set_index('ticker', drop=False)
     
     def get_trade_history(self, limit: int = 50) -> pd.DataFrame:
         """Get recent trade history"""

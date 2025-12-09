@@ -121,21 +121,28 @@ class ExecutionEngine:
             elif action == "SELL":
                 # Sell all held shares
                 positions = self.pt.get_positions()
-                if ticker in positions.index:
-                    qty = positions.loc[ticker, 'quantity']
-                    
-                    # 実取引
-                    if self.real_broker:
-                        print(f"🚀 REAL TRADE: SELL {qty} {ticker} @ {price}")
-                        # sell_orderはまだ実装していないが、buy_orderと同様のインターフェースを想定
-                        print("⚠️ 実取引の売り注文は未実装のためスキップします（安全のため）")
-                        success = False 
-                    else:
-                        success = self.pt.execute_trade(ticker, "SELL", qty, price, reason=reason)
-                        if success:
-                            print(f"EXECUTED: SELL {qty} {ticker} @ {price}")
-                            executed_trades.append({
-                                'ticker': ticker, 'action': 'SELL', 'quantity': qty, 'price': price, 'reason': reason
-                            })
+                if positions.empty or ticker not in positions.index:
+                    print(f"Skipping {ticker}: position not found.")
+                    continue
+
+                pos = positions.loc[ticker]
+                qty = pos.get('quantity', 0)
+                if qty is None or qty <= 0:
+                    print(f"Skipping {ticker}: invalid quantity ({qty}).")
+                    continue
+                
+                # 実取引
+                if self.real_broker:
+                    print(f"🚀 REAL TRADE: SELL {qty} {ticker} @ {price}")
+                    # sell_orderはまだ実装していないが、buy_orderと同様のインターフェースを想定
+                    print("⚠️ 実取引の売り注文は未実装のためスキップします（安全のため）")
+                    success = False 
+                else:
+                    success = self.pt.execute_trade(ticker, "SELL", qty, price, reason=reason)
+                    if success:
+                        print(f"EXECUTED: SELL {qty} {ticker} @ {price}")
+                        executed_trades.append({
+                            'ticker': ticker, 'action': 'SELL', 'quantity': qty, 'price': price, 'reason': reason
+                        })
                             
         return executed_trades

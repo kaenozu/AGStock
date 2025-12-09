@@ -251,92 +251,140 @@ class FullyAutomatedTrader:
             pass  # 通知失敗しても緊急停止は継続
     
     def evaluate_positions(self) -> List[Dict]:
-        """既存ポジションを評価（損切り・利確判断）"""
+        """
+        保有ポジションを評価し、損切り・利確のシグナルを生成
+        - DynamicStopManager でのストップ更新・保存
+        - ATRベースの下支え
+        - トレーリング／固定利確
+        """
         positions = self.pt.get_positions()
-        actions = []
-        
         if positions.empty:
-            return actions
-        
-        for idx, position in positions.iterrows():
+            return []
+
+        tickers = [pos.get('ticker') for _, pos in positions.iterrows() if pos.get('ticker')]
+        if not tickers:
+            return []
+
+        data_map = self._fetch_data_with_retry(tickers)
+        signals: List[Dict] = []
+
+        for _, position in positions.iterrows():
+            ticker = position.get('ticker')
+            if not ticker:
+                continue
+
+            df = data_map.get(ticker)
+            if df is None or df.empty:
+                continue
+
+            latest_price = get_latest_price(df)
+            entry_price = position.get('entry_price') or position.get('avg_price')
+            quantity = position.get('quantity', 0)
+            if entry_price is None or quantity <= 0 or latest_price is None:
+                self.log(f"エントリー価格または数量が不明: {ticker}", "WARNING")
+                continue
+
+            pnl_pct = (latest_price - entry_price) / entry_price
+            unrealized_pct = position.get('unrealized_pnl_pct', pnl_pct * 100)
+
+            # Dynamic Stop Managerでストップを再計算してDBに保存
+            highest_price = position.get('highest_price', entry_price)
+            self.dynamic_stop_manager.highest_prices[ticker] = highest_price
+            self.dynamic_stop_manager.entry_prices[ticker] = entry_price
+
+            new_stop = self.dynamic_stop_manager.update_stop(ticker, latest_price, df)
+            new_highest = self.dynamic_stop_manager.highest_prices.get(ticker, latest_price)
+            self.pt.update_position_stop(ticker, new_stop, new_highest)
+
+            should_exit, exit_reason = self.dynamic_stop_manager.check_exit(ticker, latest_price)
+            if should_exit:
+                signals.append({
+                    'ticker': ticker,
+                    'action': 'SELL',
+                    'reason': exit_reason,
+                    'confidence': 1.0,
+                    'price': latest_price,
+                    'quantity': quantity
+                })
+                self.log(f"Exit Signal ({ticker}): {exit_reason}")
+                continue
+
+            # DynamicRiskManagerの利確閾値
             try:
-                ticker = position.get('ticker', idx)
-                
-                # 最新価格取得
-                data = fetch_stock_data([ticker], period="5d")
-                if not data or ticker not in data:
-                    continue
-                
-                latest_price = get_latest_price(data[ticker])
-                
-                if latest_price is None:
-                    continue
-                
-                # エントリー価格取得（avg_priceまたはentry_price）
-                entry_price = position.get('entry_price') or position.get('avg_price')
-                if entry_price is None:
-                    self.log(f"エントリー価格が見つかりません: {ticker}", "WARNING")
-                    continue
-                
-                # 損益率計算
-                pnl_pct = (latest_price - entry_price) / entry_price
-                
-                # Phase 30-3: Dynamic Stop Manager Integration
-                # Load persistent stop/high from DB
-                current_stop = position.get('stop_price', 0)
-                highest_price = position.get('highest_price', entry_price)
-                
-                # Update DSM state
-                self.dynamic_stop_manager.highest_prices[ticker] = highest_price
-                self.dynamic_stop_manager.entry_prices[ticker] = entry_price
-                
-                # Update stop based on latest data
-                new_stop = self.dynamic_stop_manager.update_stop(ticker, latest_price, data[ticker])
-                new_highest = self.dynamic_stop_manager.highest_prices.get(ticker, latest_price)
-                
-                # Save back to DB
-                self.pt.update_position_stop(ticker, new_stop, new_highest)
-                
-                # Check exit condition
-                should_exit, exit_reason = self.dynamic_stop_manager.check_exit(ticker, latest_price)
-                
-                if should_exit:
-                    actions.append({
+                params = self.risk_manager.current_params
+                take_profit_threshold = params.get('take_profit', 0.10)
+                if pnl_pct > take_profit_threshold:
+                    signals.append({
                         'ticker': ticker,
                         'action': 'SELL',
-                        'reason': exit_reason,
+                        'reason': f'利確({pnl_pct:.1%}、閾値{take_profit_threshold:.1%})',
                         'confidence': 1.0,
-                        'price': latest_price
+                        'price': latest_price,
+                        'quantity': quantity
                     })
-                    self.log(f"Exit Signal ({ticker}): {exit_reason}")
-                
-                # Fallback to DynamicRiskManager thresholds if DSM doesn't trigger
-                # (Optional: DSM usually covers stop loss, but maybe keep take profit from DRM?)
-                # For now, let's trust DSM for stops, but maybe add DRM take profit if DSM doesn't have it?
-                # DSM has profit locking but maybe not target profit.
-                
-                # Check DRM take profit as secondary
-                try:
-                    params = self.risk_manager.current_params
-                    take_profit_threshold = params.get('take_profit', 0.10)
-                    if pnl_pct > take_profit_threshold:
-                         # Only if DSM didn't trigger
-                         if not should_exit:
-                            actions.append({
-                                'ticker': ticker,
-                                'action': 'SELL',
-                                'reason': f'利確({pnl_pct:.1%}、閾値{take_profit_threshold:.1%})',
-                                'confidence': 1.0,
-                                'price': latest_price
-                            })
-                            self.log(f"利確判断: {ticker} ({pnl_pct:.1%})")
-                except Exception:
-                    pass
-            
-            except Exception as e:
-                self.log(f"ポジション評価エラー ({ticker}): {e}", "WARNING")
-        
-        return actions
+                    self.log(f"利確判断: {ticker} ({pnl_pct:.1%})")
+                    continue
+            except Exception:
+                pass
+
+            # ATRベースの下支えとトレーリング利確
+            if len(df) >= 20:
+                high = df['High']
+                low = df['Low']
+                close = df['Close']
+
+                tr1 = high - low
+                tr2 = (high - close.shift()).abs()
+                tr3 = (low - close.shift()).abs()
+                tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
+                atr = tr.rolling(window=14).mean().iloc[-1]
+
+                stop_loss_price = entry_price - (atr * 2)
+                stop_loss_pct = ((stop_loss_price - entry_price) / entry_price) * 100
+
+                if latest_price <= stop_loss_price:
+                    self.log(f"🛑 {ticker}: 動的ストップロス発動 ({stop_loss_pct:.1f}%)")
+                    signals.append({
+                        'ticker': ticker,
+                        'action': 'SELL',
+                        'confidence': 1.0,
+                        'price': latest_price,
+                        'quantity': quantity,
+                        'strategy': 'Dynamic Stop-Loss',
+                        'reason': f'ATRベース損切り ({unrealized_pct:.1f}%)'
+                    })
+                    continue
+
+                if unrealized_pct >= 5.0:
+                    recent_high = df['High'].tail(20).max()
+                    trailing_stop_price = recent_high * 0.97
+
+                    if latest_price <= trailing_stop_price:
+                        self.log(f"📈 {ticker}: トレーリングストップ発動 (利益確定 +{unrealized_pct:.1f}%)")
+                        signals.append({
+                            'ticker': ticker,
+                            'action': 'SELL',
+                            'confidence': 1.0,
+                            'price': latest_price,
+                            'quantity': quantity,
+                            'strategy': 'Trailing Stop',
+                            'reason': f'利益確定 (+{unrealized_pct:.1f}%)'
+                        })
+                        continue
+
+                if unrealized_pct >= 20.0:
+                    self.log(f"🎯 {ticker}: 目標利益達成 (+{unrealized_pct:.1f}%)")
+                    signals.append({
+                        'ticker': ticker,
+                        'action': 'SELL',
+                        'confidence': 1.0,
+                        'price': latest_price,
+                        'quantity': quantity,
+                        'strategy': 'Target Profit',
+                        'reason': f'目標利益達成 (+{unrealized_pct:.1f}%)'
+                    })
+
+        return signals
     
     def get_target_tickers(self) -> List[str]:
         """ポートフォリオバランスに基づいて対象銘柄を返す"""
@@ -360,7 +408,7 @@ class FullyAutomatedTrader:
                 fx_value += value
             elif ticker in NIKKEI_225_TICKERS:
                 japan_value += value
-            elif any(ticker.startswith(t) for t in ['', '.'] if ticker in SP500_TICKERS):
+            elif ticker in SP500_TICKERS:
                 us_value += value
             else:
                 europe_value += value
@@ -468,6 +516,8 @@ class FullyAutomatedTrader:
             ("High Dividend", DividendStrategy())  # 修正済みの安全な高配当戦略を追加
         ]
         
+        positions = self.pt.get_positions()
+        held_tickers = set(positions['ticker']) if not positions.empty else set()
         signals = []
         
         for ticker in tickers:
@@ -476,8 +526,7 @@ class FullyAutomatedTrader:
                 continue
             
             # 既にポジションを持っているかチェック
-            positions = self.pt.get_positions()
-            is_held = ticker in positions.index
+            is_held = ticker in held_tickers
             
             # 各戦略でシグナル生成
             for strategy_name, strategy in strategies:
@@ -493,8 +542,7 @@ class FullyAutomatedTrader:
                     if last_signal == 1 and not is_held and allow_buy:
                         
                         # 📊 銘柄相関チェック
-                        positions = self.pt.get_positions()
-                        existing_tickers = list(positions.index) if not positions.empty else []
+                        existing_tickers = list(held_tickers)
                         allow_corr, corr_reason = self.advanced_risk.check_correlation(ticker, existing_tickers, self.log)
                         if not allow_corr:
                             self.log(f"  {ticker}: {corr_reason}")
@@ -649,105 +697,6 @@ class FullyAutomatedTrader:
                     self.log(f"シグナル生成エラー ({ticker}, {strategy_name}): {e}", "WARNING")
         
         self.log(f"検出シグナル数: {len(signals)}")
-        return signals
-    
-    def evaluate_positions(self) -> List[Dict]:
-        """
-        保有ポジションを評価し、損切り・利確のシグナルを生成
-        - 動的ストップロス（ATRベース）
-        - トレーリングストップ（利益確定の自動化）
-        """
-        positions = self.pt.get_positions()
-        
-        if positions.empty:
-            return []
-        
-        signals = []
-        
-        for ticker in positions.index:
-            try:
-                pos = positions.loc[ticker]
-                entry_price = pos.get('entry_price', 0)
-                current_price = pos.get('current_price', 0)
-                quantity = pos.get('quantity', 0)
-                unrealized_pnl_pct = pos.get('unrealized_pnl_pct', 0)
-                
-                if entry_price == 0 or current_price == 0:
-                    continue
-                
-                # データ取得
-                data_map = self._fetch_data_with_retry([ticker])
-                df = data_map.get(ticker)
-                
-                if df is None or df.empty or len(df) < 20:
-                    continue
-                
-                # ATR計算（Average True Range）
-                high = df['High']
-                low = df['Low']
-                close = df['Close']
-                
-                tr1 = high - low
-                tr2 = abs(high - close.shift())
-                tr3 = abs(low - close.shift())
-                tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
-                atr = tr.rolling(window=14).mean().iloc[-1]
-                
-                # 1. 動的ストップロス（ATRベース）
-                # ストップロス = 購入価格 - (ATR × 2)
-                stop_loss_price = entry_price - (atr * 2)
-                stop_loss_pct = ((stop_loss_price - entry_price) / entry_price) * 100
-                
-                if current_price <= stop_loss_price:
-                    self.log(f"🛑 {ticker}: 動的ストップロス発動 ({stop_loss_pct:.1f}%)")
-                    signals.append({
-                        'ticker': ticker,
-                        'action': 'SELL',
-                        'confidence': 1.0,
-                        'price': current_price,
-                        'quantity': quantity,
-                        'strategy': 'Dynamic Stop-Loss',
-                        'reason': f'ATRベース損切り ({unrealized_pnl_pct:.1f}%)'
-                    })
-                    continue
-                
-                # 2. トレーリングストップ（利益が出ている場合）
-                # +5%以上の利益が出たら、最高値から-3%で自動売却
-                if unrealized_pnl_pct >= 5.0:
-                    # 過去20日間の最高値を取得
-                    recent_high = df['High'].tail(20).max()
-                    trailing_stop_price = recent_high * 0.97  # 最高値から3%下
-                    
-                    if current_price <= trailing_stop_price:
-                        self.log(f"📈 {ticker}: トレーリングストップ発動 (利益確定 +{unrealized_pnl_pct:.1f}%)")
-                        signals.append({
-                            'ticker': ticker,
-                            'action': 'SELL',
-                            'confidence': 1.0,
-                            'price': current_price,
-                            'quantity': quantity,
-                            'strategy': 'Trailing Stop',
-                            'reason': f'利益確定 (+{unrealized_pnl_pct:.1f}%)'
-                        })
-                        continue
-                
-                # 3. 固定利確（+20%で自動売却）
-                if unrealized_pnl_pct >= 20.0:
-                    self.log(f"🎯 {ticker}: 目標利益達成 (+{unrealized_pnl_pct:.1f}%)")
-                    signals.append({
-                        'ticker': ticker,
-                        'action': 'SELL',
-                        'confidence': 1.0,
-                        'price': current_price,
-                        'quantity': quantity,
-                        'strategy': 'Target Profit',
-                        'reason': f'目標利益達成 (+{unrealized_pnl_pct:.1f}%)'
-                    })
-                    continue
-                    
-            except Exception as e:
-                self.log(f"ポジション評価エラー ({ticker}): {e}", "WARNING")
-        
         return signals
     
     def execute_signals(self, signals: List[Dict]):
