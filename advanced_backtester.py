@@ -5,8 +5,10 @@
 """
 import pandas as pd
 import numpy as np
-from typing import Dict, List
+from datetime import datetime, timedelta
+from typing import Dict, List, Tuple
 import itertools
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 from src.backtester import Backtester
 from src.strategies import LightGBMStrategy, MLStrategy, CombinedStrategy
@@ -111,7 +113,9 @@ class AdvancedBacktester:
                         best_sharpe = sharpe
                         best_params = param_dict
             
-            except Exception:
+            except Exception as e:
+                # エラーをログに記録
+                print(f"パラメータ {param_dict} でエラー: {e}")
                 continue
             
             # 進捗表示
@@ -164,7 +168,14 @@ class AdvancedBacktester:
             print(f"  テスト: {test_data.index[0]} ~ {test_data.index[-1]}")
             
             # 訓練（戦略を学習）
-            # 注: 実際には戦略のfitメソッドを呼ぶべきだが、簡略化
+            # 機械学習戦略の場合は、訓練データでモデルを再学習
+            if hasattr(strategy, 'fit'):
+                try:
+                    train_data_map = {ticker: train_data}
+                    strategy.fit(train_data_map)
+                    print(f"  戦略を訓練データで再学習しました")
+                except Exception as e:
+                    print(f"  戦略の訓練でエラー: {e}")
             
             # テスト
             backtester = Backtester(
@@ -198,7 +209,7 @@ class AdvancedBacktester:
             'results': results_df
         }
         
-        print("\n=== ウォークフォワード分析結果 ===")
+        print(f"\n=== ウォークフォワード分析結果 ===")
         print(f"イテレーション数: {summary['iterations']}")
         print(f"平均リターン: {summary['avg_return']:.2f}%")
         print(f"平均シャープレシオ: {summary['avg_sharpe']:.2f}")
@@ -246,7 +257,7 @@ class AdvancedBacktester:
         print(f"中央値: {result['median']:.2f}x")
         print(f"標準偏差: {result['std']:.2f}")
         print(f"利益確率: {result['prob_profit']:.1%}")
-        print("パーセンタイル:")
+        print(f"パーセンタイル:")
         for p, v in result['percentiles'].items():
             print(f"  {p}%: {v:.2f}x")
         

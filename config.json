@@ -67,5 +67,13 @@
     "paper_trading": {
         "initial_capital": 500000,
         "enabled": true
+    },
+    "mini_stock": {
+        "enabled": true,
+        "unit_size": 1,
+        "spread_rate": 0.0022,
+        "min_order_amount": 500,
+        "broker": "rakuten_kabumini",
+        "description": "楽天かぶミニ - 1株から取引可能 (寄付:無料 / リアルタイム:0.22%)"
     }
 }

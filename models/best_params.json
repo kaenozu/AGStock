@@ -1,0 +1,40 @@
+{
+  "best_model": "LogisticRegression",
+  "best_score": 0.533974358974359,
+  "best_params": {
+    "C": 66.25256591311384,
+    "penalty": "l2",
+    "solver": "liblinear"
+  },
+  "all_results": [
+    {
+      "model": "RandomForest",
+      "best_score": 0.5128205128205128,
+      "best_params": {
+        "n_estimators": 122,
+        "max_depth": 17,
+        "min_samples_split": 17,
+        "min_samples_leaf": 10
+      }
+    },
+    {
+      "model": "GradientBoosting",
+      "best_score": 0.5290064102564103,
+      "best_params": {
+        "n_estimators": 164,
+        "learning_rate": 0.22413760797025606,
+        "max_depth": 8,
+        "subsample": 0.8566656036189834
+      }
+    },
+    {
+      "model": "LogisticRegression",
+      "best_score": 0.533974358974359,
+      "best_params": {
+        "C": 66.25256591311384,
+        "penalty": "l2",
+        "solver": "liblinear"
+      }
+    }
+  ]
+}

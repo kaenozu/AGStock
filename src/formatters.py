@@ -2,11 +2,11 @@
 フォーマッターユーティリティ
 数値、通貨、パーセンテージなどの統一されたフォーマット関数
 """
-from typing import Optional
+from typing import Optional, Union
 import pandas as pd
 
 
-def format_currency(value: Optional[float], symbol: str = "¥", decimals: int = 0, show_sign: bool = False) -> str:
+def format_currency(value: Optional[float], symbol: str = "¥", decimals: int = 0) -> str:
     """
     通貨フォーマット（統一フォーマット）
     
@@ -14,23 +14,17 @@ def format_currency(value: Optional[float], symbol: str = "¥", decimals: int = 
         value: 金額
         symbol: 通貨記号
         decimals: 小数点以下の桁数
-        show_sign: 符号を常に表示するか
         
     Returns:
-        フォーマット済み文字列（例: "¥1,234,567" or "+¥1,234,567"）
+        フォーマット済み文字列（例: "¥1,234,567"）
     """
     if value is None or pd.isna(value):
         return "N/A"
     
     if decimals == 0:
-        formatted = f"{value:,.0f}"
+        return f"{symbol}{value:,.0f}"
     else:
-        formatted = f"{value:,.{decimals}f}"
-    
-    if show_sign and value >= 0:
-        return f"+{symbol}{formatted}"
-    else:
-        return f"{symbol}{formatted}"
+        return f"{symbol}{value:,.{decimals}f}"
 
 
 def format_percentage(value: Optional[float], decimals: int = 2, show_sign: bool = False) -> str:
@@ -220,24 +214,3 @@ def style_dataframe_percentage(df: pd.DataFrame, columns: list, decimals: int = 
         if col in styled_df.columns:
             styled_df[col] = styled_df[col].apply(lambda x: format_percentage(x, decimals=decimals))
     return styled_df
-
-
-def format_currency_jp(amount: float) -> str:
-    """
-    日本円を万円・億円形式で表示
-    
-    Args:
-        amount: 金額（円）
-        
-    Returns:
-        フォーマットされた文字列
-    """
-    if amount is None or pd.isna(amount):
-        return "N/A"
-        
-    if amount >= 100000000:  # 1億以上
-        return f"¥{amount/100000000:.2f}億"
-    elif amount >= 10000:  # 1万以上
-        return f"¥{amount/10000:.1f}万"
-    else:
-        return f"¥{amount:,.0f}"

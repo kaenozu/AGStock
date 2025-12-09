@@ -21,7 +21,7 @@ FX_PAIRS = [
 ]
 
 JP_STOCKS = [
-    "7203.T", "9984.T", "6758.T", "8035.T", "6861.T", 
+    "7203.T", "9984.T", "6758.T", "8035.T", "6861.T",
     "6098.T", "4063.T", "6367.T", "6501.T", "7974.T",
     "9432.T", "8306.T", "7267.T", "4502.T", "6954.T"
 ]
@@ -93,7 +93,7 @@ def parse_period(period: str) -> datetime:
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def fetch_stock_data(
-    tickers: Sequence[str], 
+    tickers: Sequence[str],
     period: str = "2y",
     interval: str = "1d",
     use_async: bool = True
@@ -103,7 +103,7 @@ def fetch_stock_data(
     """
     if not tickers:
         return {}
-    
+
     # 非同期ローダーを使用（利用可能かつ有効な場合）
     if use_async and ASYNC_AVAILABLE and len(tickers) > 1:
         try:
@@ -113,30 +113,30 @@ def fetch_stock_data(
             except RuntimeError:
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
-                
+
             loader = AsyncDataLoader()
             return loop.run_until_complete(loader.fetch_multiple_async(list(tickers), period, interval))
         except Exception as e:
             logger.warning(f"Async fetch failed, falling back to sync: {e}")
             # フォールバック
-    
+
     # 同期処理
     logger.info(f"Using sync loader for {len(tickers)} tickers")
     db = DataManager()
     start_date = parse_period(period)
     result = {}
     need_download = []
-    
+
     # Step 1: Try to load from database
     for ticker in tickers:
         cached_df = db.load_data(ticker, start_date=start_date)
-        
+
         if not cached_df.empty:
             latest_date = cached_df.index[-1]
             # データが新鮮で、かつ十分な量があるかチェック
             is_fresh = latest_date >= datetime.now() - timedelta(days=2)
             has_enough_data = len(cached_df) > 50  # 少なくとも50件はあるべき
-            
+
             if is_fresh and has_enough_data:
                 result[ticker] = cached_df
             else:
@@ -145,27 +145,27 @@ def fetch_stock_data(
                 result[ticker] = cached_df
         else:
             need_download.append(ticker)
-    
+
     # Step 2: Bulk download for tickers that need updates
     if need_download:
         try:
             logger.info(f"Downloading data for {len(need_download)} tickers: {need_download}")
             # キャッシュを回避するために ignore_tz=True などを検討したが、まずはログ出力
             raw = yf.download(need_download, period=period, group_by='ticker', auto_adjust=True, threads=True)
-            
+
             if not raw.empty:
                 logger.info(f"Downloaded raw data shape: {raw.shape}")
                 processed = process_downloaded_data(raw, need_download)
-                
+
                 for ticker, df in processed.items():
                     logger.info(f"Processed {ticker}: {len(df)} rows")
                     if not df.empty:
                         db.save_data(df, ticker)
                         result[ticker] = db.load_data(ticker, start_date=start_date)
-            
+
         except Exception as e:
             logger.error(f"Error downloading data for {need_download}: {e}")
-    
+
     return result
 
 
@@ -182,19 +182,19 @@ def fetch_external_data(period: str = "2y") -> Dict[str, pd.DataFrame]:
         'OIL': 'CL=F',       # Crude Oil Futures
         'US10Y': '^TNX'      # US 10-Year Treasury Yield
     }
-    
+
     # Use fetch_stock_data logic (async/cache)
     # Map back to internal names
     yf_tickers = list(external_tickers.values())
     raw_data = fetch_stock_data(yf_tickers, period=period)
-    
+
     data = {}
     ticker_map = {v: k for k, v in external_tickers.items()}
-    
+
     for yf_ticker, df in raw_data.items():
         if yf_ticker in ticker_map:
             data[ticker_map[yf_ticker]] = df
-            
+
     return data
 
 
@@ -218,7 +218,7 @@ def fetch_fundamental_data(ticker: str) -> Optional[Dict[str, Any]]:
     try:
         ticker_obj = yf.Ticker(ticker)
         info = ticker_obj.info
-        
+
         return {
             "trailingPE": info.get("trailingPE"),
             "priceToBook": info.get("priceToBook"),
