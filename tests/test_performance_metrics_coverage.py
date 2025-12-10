@@ -1,4 +1,5 @@
 """performance_metrics.pyのテスト"""
+import time
 import pytest
 import pandas as pd
 import numpy as np
@@ -93,6 +94,44 @@ class TestAdvancedMetrics:
         duration = metrics.max_drawdown_duration()
         assert isinstance(duration, int)
         assert duration >= 0
+
+    def test_max_drawdown_duration_performance(self):
+        """大規模データでも最大ドローダウン期間の計算が高速に実行されることを確認"""
+        np.random.seed(42)
+        large_returns = pd.Series(np.random.randn(100_000) * 0.01)
+        metrics = AdvancedMetrics(large_returns)
+
+        def baseline_duration():
+            cumulative = (1 + large_returns).cumprod()
+            running_max = cumulative.expanding().max()
+            drawdown = (cumulative - running_max) / running_max
+            is_drawdown = drawdown < 0
+            duration = 0
+            max_duration = 0
+            for in_dd in is_drawdown:
+                if in_dd:
+                    duration += 1
+                    max_duration = max(max_duration, duration)
+                else:
+                    duration = 0
+            return max_duration
+
+        baseline_result = baseline_duration()
+        optimized_result = metrics.max_drawdown_duration()
+        assert optimized_result == baseline_result
+
+        def measure_time(func, repeats: int = 3) -> float:
+            times = []
+            for _ in range(repeats):
+                start = time.perf_counter()
+                func()
+                times.append(time.perf_counter() - start)
+            return min(times)
+
+        baseline_time = measure_time(baseline_duration)
+        optimized_time = measure_time(metrics.max_drawdown_duration)
+
+        assert optimized_time < baseline_time * 0.8
     
     def test_win_rate(self, sample_returns):
         """勝率テスト"""
