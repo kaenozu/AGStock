@@ -8,17 +8,17 @@ import json
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.schemas import load_config, AppConfig
-from src.utils import retry_with_backoff
+from src.helpers import retry_with_backoff
 
 class TestHardening(unittest.TestCase):
     def test_load_config_defaults(self):
-        """設定ファイルがない場合、デフォルト値がロードされるか"""
+        """設定ファイルがなぁE��合、デフォルト値がロードされるぁE""
         config = load_config("non_existent_config.json")
         self.assertIsInstance(config, AppConfig)
         self.assertEqual(config.capital.initial_capital, 1000000.0)
     
     def test_load_config_valid(self):
-        """有効な設定ファイルがロードされるか"""
+        """有効な設定ファイルがロードされるぁE""
         dummy_data = {"capital": {"initial_capital": 500.0}}
         with open("test_config.json", "w") as f:
             json.dump(dummy_data, f)
@@ -31,7 +31,7 @@ class TestHardening(unittest.TestCase):
                 os.remove("test_config.json")
                 
     def test_retry_decorator(self):
-        """リトライデコレータが機能するか"""
+        """リトライチE��レータが機�EするぁE""
         mock = unittest.mock.Mock()
         mock.side_effect = [Exception("Fail 1"), Exception("Fail 2"), "Success"]
         

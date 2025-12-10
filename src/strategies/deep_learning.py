@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
 import logging
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dropout, Dense
-from tensorflow.keras.optimizers import Adam
+# from tensorflow.keras.models import Sequential
+# from tensorflow.keras.layers import LSTM, Dropout, Dense
+# from tensorflow.keras.optimizers import Adam
 from sklearn.preprocessing import MinMaxScaler
 from .base import Strategy
 
@@ -28,6 +28,10 @@ class DeepLearningStrategy(Strategy):
         return np.array(X), np.array(y)
 
     def build_model(self, input_shape):
+        from tensorflow.keras.models import Sequential
+        from tensorflow.keras.layers import LSTM, Dropout, Dense
+        from tensorflow.keras.optimizers import Adam
+
         model = Sequential()
         model.add(LSTM(units=50, return_sequences=False, input_shape=input_shape))
         model.add(Dropout(0.2))

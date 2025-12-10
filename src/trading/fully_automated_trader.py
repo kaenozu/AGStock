@@ -34,7 +34,7 @@ from src.agents.committee import InvestmentCommittee
 from src.schemas import TradingDecision, AppConfig
 
 # New Features from feat-add-position-guards
-from src.regime_detector import MarketRegimeDetector
+from src.regime_detector import RegimeDetector
 from src.dynamic_risk_manager import DynamicRiskManager
 from src.kelly_criterion import KellyCriterion
 from src.dynamic_stop import DynamicStopManager
@@ -103,7 +103,7 @@ class FullyAutomatedTrader:
         
         # New Risk Modules (from feat-add-position-guards)
         try:
-            self.regime_detector = MarketRegimeDetector()
+            self.regime_detector = RegimeDetector()
             self.risk_manager = DynamicRiskManager(self.regime_detector)
             self.kelly_criterion = KellyCriterion()
             self.dynamic_stop_manager = DynamicStopManager()

@@ -1,4 +1,4 @@
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from datetime import datetime
 from src.agents.base_agent import BaseAgent
 from src.agents.market_analyst import MarketAnalyst
@@ -91,6 +91,50 @@ class InvestmentCommittee:
         logger.info(f"🏛️ Meeting Adjourned. Decision: {final_decision.value}")
         return result
 
+    def conduct_debate(self, ticker: str, market_data: Dict[str, Any], position: Optional[Dict[str, Any]] = None) -> List[Dict[str, str]]:
+        """
+        Simulates a conversational debate among agents for UI display.
+        Returns a list of message objects: {"agent": "Name", "message": "Content", "decision": "BUY/SELL"}
+        """
+        debate_log = []
+        
+        # 1. Market Analyst Starts
+        ma_analysis = self.market_analyst.analyze({"ticker": ticker, "market_stats": market_data})
+        debate_log.append({
+            "agent": "MarketAnalyst",
+            "avatar": "📈",
+            "message": f"Analyzing {ticker}... My Technical/Fundamental models suggest: {ma_analysis.decision.value}.\nReason: {ma_analysis.reasoning}",
+            "decision": ma_analysis.decision.value
+        })
+        
+        # 2. Risk Manager Responds
+        # Risk Manager needs portfolio context usually, we provide what we have
+        risk_data = {
+            "ticker": ticker, 
+            "portfolio": {"positions": [position] if position else []},
+            "market_stats": market_data
+        }
+        rm_analysis = self.risk_manager.analyze(risk_data)
+        
+        response_tone = "agrees" if rm_analysis.decision == ma_analysis.decision else "disagrees"
+        debate_log.append({
+            "agent": "RiskManager",
+            "avatar": "🛡️",
+            "message": f"I have reviewed the risk profile. I {response_tone} with the analyst.\nMy assessment: {rm_analysis.decision.value}.\nRisk Factors: {rm_analysis.reasoning}",
+            "decision": rm_analysis.decision.value
+        })
+        
+        # 3. Chair (Committee) Concludes
+        final_decision, rationale = self._form_consensus([ma_analysis, rm_analysis])
+        debate_log.append({
+            "agent": "Chairperson",
+            "avatar": "🏛️",
+            "message": f"After hearing both sides, the committee rules: {final_decision.value}.\nRationale: {rationale}",
+            "decision": final_decision.value
+        })
+        
+        return debate_log
+
     def _form_consensus(self, analyses: List[AgentAnalysis]) -> tuple[TradingDecision, str]:
         """
         Vote counting logic.
@@ -109,11 +153,11 @@ class InvestmentCommittee:
             votes[a.decision] += 1
             if a.agent_name == "RiskManager" and a.decision == TradingDecision.SELL:
                 risk_veto = True
-                veto_reason = f"Risk Veto: {a.reasoning}"
+                veto_reason = f"Risk Veto based on: {a.reasoning}"
         
         # Veto Logic
         if risk_veto:
-            return TradingDecision.HOLD, f"Safety Override: {veto_reason}"
+            return TradingDecision.HOLD, f"Risk Manager exercised Veto. ({veto_reason})"
             
         # Majority Vote
         if votes[TradingDecision.BUY] > votes[TradingDecision.SELL] and votes[TradingDecision.BUY] > votes[TradingDecision.HOLD]:
@@ -122,4 +166,4 @@ class InvestmentCommittee:
         if votes[TradingDecision.SELL] > votes[TradingDecision.BUY]:
             return TradingDecision.SELL, "Majority voted SELL."
             
-        return TradingDecision.HOLD, "No majority consensus or neutral sentiment."
+        return TradingDecision.HOLD, "No clear majority or neutral sentiment."

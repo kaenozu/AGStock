@@ -1,68 +1,124 @@
 """
 LLM Reasoner - 市場推論エンジン
 ニュースと市場データを基に、株価変動の「理由」を推論する
+Supports: Gemini, OpenAI, Ollama
 """
 import os
 import json
 import logging
 from typing import Dict, Any, Optional
-import google.generativeai as genai
+
+try:
+    import google.generativeai as genai
+    HAS_GEMINI = True
+except ImportError:
+    HAS_GEMINI = False
+    
+try:
+    from openai import OpenAI
+    HAS_OPENAI = True
+except ImportError:
+    HAS_OPENAI = False
+    
 import requests
 
 logger = logging.getLogger(__name__)
 
 class LLMReasoner:
-    """LLMによる市場分析・推論クラス"""
+    """LLMによる市場分析・推論クラス (Gemini / OpenAI / Ollama)"""
     
     def __init__(self):
-        self.provider = "gemini" # or "ollama"
-        self.api_key = os.getenv("GEMINI_API_KEY")
+        self.provider = "ollama"  # Default fallback
+        self.gemini_api_key = None
+        self.openai_api_key = None
+        self.openai_client = None
         
-        # config.jsonからも読み込む
-        if not self.api_key:
-            try:
-                import json
-                with open("config.json", "r", encoding="utf-8") as f:
-                    config = json.load(f)
-                    self.api_key = config.get("gemini_api_key")
-            except:
-                pass
-
-        self.model_name = "gemini-pro"
+        # Model Names
+        self.gemini_model_name = "gemini-2.0-flash"
+        self.openai_model_name = "gpt-4o-mini"  # Cost-effective
         self.ollama_url = "http://localhost:11434/api/generate"
-        self.ollama_model = "llama3" # or "mistral", "gemma"
+        self.ollama_model = "llama3"
         
-        if self.api_key:
-            genai.configure(api_key=self.api_key)
-            self.model = genai.GenerativeModel(self.model_name)
+        # Load from config.json
+        self._load_keys_from_config()
+        
+        # Initialize with best available provider
+        self._initialize_provider()
+    
+    def _load_keys_from_config(self):
+        """Load API keys from config.json"""
+        try:
+            with open("config.json", "r", encoding="utf-8") as f:
+                config = json.load(f)
+                self.gemini_api_key = config.get("gemini_api_key") or os.getenv("GEMINI_API_KEY")
+                self.openai_api_key = config.get("openai_api_key") or os.getenv("OPENAI_API_KEY")
+        except Exception as e:
+            logger.warning(f"Could not load config.json: {e}")
+    
+    def _initialize_provider(self):
+        """Set up the best available LLM provider"""
+        # Priority: OpenAI > Gemini > Ollama
+        if HAS_OPENAI and self.openai_api_key:
+            self.openai_client = OpenAI(api_key=self.openai_api_key)
+            self.provider = "openai"
+            logger.info("Using OpenAI provider.")
+        elif HAS_GEMINI and self.gemini_api_key:
+            genai.configure(api_key=self.gemini_api_key)
+            self.gemini_model = genai.GenerativeModel(self.gemini_model_name)
+            self.provider = "gemini"
+            logger.info("Using Gemini provider.")
         else:
-            logger.warning("GEMINI_API_KEY not found. Switching to Ollama (if available).")
             self.provider = "ollama"
+            logger.warning("No API keys found. Falling back to Ollama (local).")
+    
+    # --- For backward compatibility ---
+    @property
+    def api_key(self):
+        return self.gemini_api_key or self.openai_api_key
+    
+    def set_api_key(self, api_key: str):
+        """Set Gemini API key dynamically (legacy method)"""
+        self.set_gemini_key(api_key)
+    
+    def set_gemini_key(self, api_key: str):
+        """Set Gemini API key and switch provider"""
+        self.gemini_api_key = api_key
+        if HAS_GEMINI and api_key:
+            genai.configure(api_key=api_key)
+            self.gemini_model = genai.GenerativeModel(self.gemini_model_name)
+            self.provider = "gemini"
+            logger.info("Switched to Gemini provider.")
+    
+    def set_openai_key(self, api_key: str):
+        """Set OpenAI API key and switch provider"""
+        self.openai_api_key = api_key
+        if HAS_OPENAI and api_key:
+            self.openai_client = OpenAI(api_key=api_key)
+            self.provider = "openai"
+            logger.info("Switched to OpenAI provider.")
 
     def ask(self, prompt: str) -> str:
-        """
-        汎用的な質問への回答を生成（テキスト形式）
-        """
-        if self.provider == "gemini" and self.api_key:
+        """汎用的な質問への回答を生成（テキスト形式）"""
+        if self.provider == "openai":
+            return self._call_openai(prompt, json_mode=False)
+        elif self.provider == "gemini":
             return self._call_gemini(prompt, json_mode=False)
         else:
             return self._call_ollama(prompt, json_mode=False)
 
     def analyze_market_impact(self, news_text: str, market_data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        ニュースと市場データからインパクトを分析
-        """
+        """ニュースと市場データからインパクトを分析"""
         prompt = self._create_prompt(news_text, market_data)
         
-        if self.provider == "gemini" and self.api_key:
+        if self.provider == "openai":
+            return self._call_openai(prompt, json_mode=True)
+        elif self.provider == "gemini":
             return self._call_gemini(prompt, json_mode=True)
         else:
             return self._call_ollama(prompt, json_mode=True)
 
     def chat_with_context(self, user_message: str, history: list, context_data: str) -> str:
-        """
-        コンテキストを考慮してチャット応答を生成
-        """
+        """コンテキストを考慮してチャット応答を生成"""
         system_prompt = f"""
         あなたはAI投資システムの高度なアシスタント「Ghostwriter」です。
         以下の市場・ポートフォリオ状況（Context）を踏まえて、ユーザーの質問に日本語で答えてください。
@@ -76,7 +132,6 @@ class LLMReasoner:
         3. 投資助言ではないことを含ませつつ、有益な視点を提供してください。
         """
         
-        # 履歴の構築
         full_prompt = f"{system_prompt}\n\n## 会話履歴\n"
         for msg in history:
             role = "User" if msg["role"] == "user" else "Ghostwriter"
@@ -85,6 +140,82 @@ class LLMReasoner:
         full_prompt += f"User: {user_message}\nGhostwriter:"
         
         return self.ask(full_prompt)
+
+    def analyze_news_sentiment(self, news_list: list) -> Dict[str, Any]:
+        """Analyze a list of news items and return sentiment score and reasoning."""
+        if not news_list:
+            return self._get_fallback_response("No news provided")
+            
+        news_text = ""
+        for i, item in enumerate(news_list):
+            news_text += f"{i+1}. {item.get('title', '')} ({item.get('published', '')})\n"
+            
+        prompt = f"""
+        あなたはAIヘッジファンドのチーフアナリストです。
+        以下の最新ニュースを分析し、現在の市場センチメントをスコアリングしてください。
+        
+        ## 最新ニュース
+        {news_text}
+        
+        ## 分析タスク
+        1. ニュース全体のセンチメントを -10 (超弱気) 〜 +10 (超強気) で評価してください。
+        2. その理由を簡潔に要約してください。
+        3. 特に注目すべきトピックがあれば挙げてください。
+        
+        ## 出力フォーマット (JSONのみ)
+        {{
+            "sentiment_score": 0,
+            "sentiment_label": "BULLISH/BEARISH/NEUTRAL",
+            "reasoning": "分析理由（日本語で150文字以内）",
+            "key_topics": ["トピック1", "トピック2"],
+            "trading_implication": "投資家へのアドバイス（日本語）"
+        }}
+        """
+        
+        if self.provider == "openai":
+            return self._call_openai(prompt, json_mode=True)
+        elif self.provider == "gemini":
+            return self._call_gemini(prompt, json_mode=True)
+        else:
+            return self._call_ollama(prompt, json_mode=True)
+
+    def analyze_earnings_report(self, pdf_text: str) -> Dict[str, Any]:
+        """決算短信などのPDFテキストを分析"""
+        # Truncate text if too long (approx 50k chars to be safe for smaller models, though 128k context helps)
+        max_chars = 60000 
+        if len(pdf_text) > max_chars:
+            pdf_text = pdf_text[:max_chars] + "...(truncated)..."
+            
+        prompt = f"""
+        あなたはベテランの証券アナリストです。
+        以下の決算資料（テキスト抽出版）を読み込み、投資家向けに要約・評価してください。
+        
+        ## 決算資料テキスト
+        {pdf_text}
+        
+        ## 分析フォーマット (JSONのみ)
+        {{
+            "score": 0,  // 0〜10のスコア (10が最高、5が中立)
+            "summary": "全体の要約（日本語で200文字程度）",
+            "good_points": ["良い点1", "良い点2", "良い点3"],
+            "bad_points": ["懸念点1", "懸念点2", "懸念点3"],
+            "outlook": "今後の見通しと投資判断（日本語で）"
+        }}
+        """
+        
+        
+        # User Request: Prioritize Gemini for this specific feature
+        if self.gemini_api_key:
+            # Lazy initialization if not set
+            if not hasattr(self, 'gemini_model') or self.gemini_model is None:
+                 genai.configure(api_key=self.gemini_api_key)
+                 self.gemini_model = genai.GenerativeModel(self.gemini_model_name)
+                 
+            return self._call_gemini(prompt, json_mode=True)
+        elif self.provider == "openai":
+            return self._call_openai(prompt, json_mode=True)
+        else:
+            return self._call_ollama(prompt, json_mode=True)
 
     def _create_prompt(self, news_text: str, market_data: Dict[str, Any]) -> str:
         """プロンプト生成"""
@@ -107,14 +238,39 @@ class LLMReasoner:
         }}
         """
 
+    def _call_openai(self, prompt: str, json_mode: bool = False) -> Any:
+        """OpenAI API呼び出し"""
+        try:
+            messages = [{"role": "user", "content": prompt}]
+            
+            kwargs = {
+                "model": self.openai_model_name,
+                "messages": messages,
+            }
+            
+            if json_mode:
+                kwargs["response_format"] = {"type": "json_object"}
+            
+            response = self.openai_client.chat.completions.create(**kwargs)
+            text = response.choices[0].message.content
+            
+            if json_mode:
+                return json.loads(text)
+            return text
+                
+        except Exception as e:
+            logger.error(f"OpenAI API error: {e}")
+            if json_mode:
+                return self._get_fallback_response(str(e))
+            return f"Error: {e}"
+
     def _call_gemini(self, prompt: str, json_mode: bool = False) -> Any:
         """Gemini API呼び出し"""
         try:
-            response = self.model.generate_content(prompt)
+            response = self.gemini_model.generate_content(prompt)
             text = response.text
             
             if json_mode:
-                # JSON部分を抽出
                 cleaned_text = self._clean_json_text(text)
                 return json.loads(cleaned_text)
             else:
@@ -123,7 +279,7 @@ class LLMReasoner:
         except Exception as e:
             logger.error(f"Gemini API error: {e}")
             if json_mode:
-                return self._get_fallback_response()
+                return self._get_fallback_response(str(e))
             else:
                 return f"Error: {e}"
 
@@ -138,7 +294,7 @@ class LLMReasoner:
             if json_mode:
                 payload["format"] = "json"
                 
-            response = requests.post(self.ollama_url, json=payload, timeout=60) # Timeout extended for reports
+            response = requests.post(self.ollama_url, json=payload, timeout=60)
             if response.status_code == 200:
                 result = response.json()
                 text = result['response']
@@ -166,9 +322,13 @@ class LLMReasoner:
         """エラー時のフォールバック"""
         return {
             "sentiment": "NEUTRAL",
+            "sentiment_score": 0,
+            "sentiment_label": "NEUTRAL",
             "reasoning": f"AI分析を実行できませんでした: {reason}",
             "key_drivers": [],
-            "impact_level": "LOW"
+            "key_topics": [],
+            "impact_level": "LOW",
+            "trading_implication": "分析を再試行してください。"
         }
 
 # シングルトン

@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from typing import Dict, Any, Optional
 import logging
-from .regime_detector import MarketRegimeDetector
+from .regime_detector import RegimeDetector
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,12 +21,12 @@ class DynamicRiskManager:
     市場レジームとボラティリティに基づいて、リスクパラメータを動的に調整します。
     """
     
-    def __init__(self, regime_detector: Optional[MarketRegimeDetector] = None):
+    def __init__(self, regime_detector: Optional[RegimeDetector] = None):
         """
         Args:
             regime_detector: 市場レジーム検出器（Noneの場合は新規作成）
         """
-        self.regime_detector = regime_detector or MarketRegimeDetector()
+        self.regime_detector = regime_detector or RegimeDetector()
         self.current_regime = None
         self.current_params = {}
         self.parameter_history = []
@@ -45,7 +45,8 @@ class DynamicRiskManager:
             更新されたパラメータの辞書
         """
         # レジーム検出
-        self.current_regime = self.regime_detector.detect_regime(df, lookback)
+        # NOTE: RegimeDetector uses internal windows, lookback argument is unused for detection logic
+        self.current_regime = self.regime_detector.detect_regime(df)
         
         # レジーム別の基本パラメータ取得
         base_params = self.regime_detector.get_regime_strategy(self.current_regime)

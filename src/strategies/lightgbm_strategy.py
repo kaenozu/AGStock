@@ -16,13 +16,20 @@ try:
 except ImportError:
     def fetch_macro_data(period="5y"): return {}
 
+try:
+    from src.optimization.optuna_tuner import OptunaTuner
+except ImportError:
+    OptunaTuner = None
+
 logger = logging.getLogger(__name__)
 
 class LightGBMStrategy(Strategy):
-    def __init__(self, lookback_days=365, threshold=0.005):
+    def __init__(self, lookback_days=365, threshold=0.005, auto_tune=False):
         super().__init__("LightGBM Alpha")
         self.lookback_days = lookback_days
         self.threshold = threshold
+        self.auto_tune = auto_tune
+        self.best_params = None
         self.model = None
         self.feature_cols = ['ATR', 'BB_Width', 'RSI', 'MACD', 'MACD_Signal', 'MACD_Diff', 
                              'Dist_SMA_20', 'Dist_SMA_50', 'Dist_SMA_200', 'OBV', 'Volume_Change',
@@ -113,7 +120,23 @@ class LightGBMStrategy(Strategy):
             X_train = train_df[self.feature_cols]
             y_train = (train_df['Return_1d'] > 0).astype(int)
             
+            # Default params
             params = {'objective': 'binary', 'metric': 'binary_logloss', 'verbosity': -1, 'seed': 42}
+            
+            # Auto-Tune if enabled (and enough data)
+            if self.auto_tune and len(train_df) > 200:
+                try:
+                     # Only tune occasionally to save time (e.g. at start or every year)
+                     # For simplicity here: Tune if model is None (first run) or every 5 loops
+                     if self.model is None or (current_idx - start_idx) % (retrain_period * 5) == 0:
+                         logger.info(f"Running Optuna tuning at index {current_idx}...")
+                         tuner = OptunaTuner(n_trials=10) # 10 trials for speed
+                         best_params = tuner.optimize_lightgbm(X_train, y_train)
+                         params.update(best_params)
+                         self.best_params = best_params # Cache for display
+                except Exception as e:
+                    logger.error(f"Optuna tuning failed: {e}")
+            
             train_data = lgb.Dataset(X_train, label=y_train)
             self.model = lgb.train(params, train_data, num_boost_round=100)
             

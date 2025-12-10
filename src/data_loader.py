@@ -1,48 +1,171 @@
-import logging
-from typing import Dict, Mapping, Sequence, Any, Optional
-import streamlit as st
+"""Data loading utilities for AGStock."""
+
 import asyncio
-import pandas as pd
-import yfinance as yf
+import logging
 from datetime import datetime, timedelta
+from typing import Any, Awaitable, Callable, Dict, Mapping, Optional, Sequence, TypeVar
+
+import pandas as pd
+import streamlit as st
+import yfinance as yf
+
 from src.data_manager import DataManager
+from src.helpers import retry_with_backoff
 
 logger = logging.getLogger(__name__)
 
-# Asset Classes
+try:
+    from src.async_data_loader import AsyncDataLoader
+    ASYNC_AVAILABLE = True
+except ImportError:
+    AsyncDataLoader = None  # type: ignore[assignment]
+    ASYNC_AVAILABLE = False
+    logger.warning("Async data loader not available; falling back to sync mode.")
+
+try:
+    from src.cache_manager import CacheManager
+    HAS_PERSISTENT_CACHE = True
+except ImportError:
+    CacheManager = None  # type: ignore[assignment]
+    HAS_PERSISTENT_CACHE = False
+
+T = TypeVar("T")
+
 CRYPTO_PAIRS = [
     "BTC-USD", "ETH-USD", "XRP-USD", "SOL-USD", "DOGE-USD",
-    "BNB-USD", "ADA-USD", "MATIC-USD", "DOT-USD", "LTC-USD"
+    "BNB-USD", "ADA-USD", "MATIC-USD", "DOT-USD", "LTC-USD",
 ]
 
 FX_PAIRS = [
-    "USDJPY=X", "EURUSD=X", "GBPUSD=X", "AUDUSD=X", "USDCAD=X",
-    "USDCHF=X", "EURJPY=X", "GBPJPY=X"
+    "USDJPY=X", "EURUSD=X", "GBPUSD=X", "AUDUSD=X",
+    "USDCAD=X", "USDCHF=X", "EURJPY=X", "GBPJPY=X",
 ]
 
 JP_STOCKS = [
     "7203.T", "9984.T", "6758.T", "8035.T", "6861.T",
     "6098.T", "4063.T", "6367.T", "6501.T", "7974.T",
-    "9432.T", "8306.T", "7267.T", "4502.T", "6954.T"
+    "9432.T", "8306.T", "7267.T", "4502.T", "6954.T",
 ]
 
-# 非同期ローダーのインポート（オプション）
-try:
-    from src.async_data_loader import AsyncDataLoader
-    ASYNC_AVAILABLE = True
-except ImportError:
-    ASYNC_AVAILABLE = False
-    logger.warning("Async data loader not available")
+STALE_DATA_MAX_AGE = timedelta(days=2)
+MINIMUM_DATA_POINTS = 50
+MARKET_SUMMARY_CACHE_KEY = "market_summary_snapshot"
+MARKET_SUMMARY_TTL = 1800
+FUNDAMENTAL_CACHE_TTL = 86400
+
+_cache_instance: Optional[CacheManager] = None
+
+
+def _get_cache() -> Optional[CacheManager]:
+    global _cache_instance
+    if not HAS_PERSISTENT_CACHE or CacheManager is None:
+        return None
+    if _cache_instance is None:
+        _cache_instance = CacheManager()
+    return _cache_instance
+
+
+def _should_use_async_loader(use_async: bool, tickers: Sequence[str]) -> bool:
+    return use_async and ASYNC_AVAILABLE and len(tickers) > 1
+
+
+def _run_coroutine(coro_factory: Callable[[], Awaitable[T]]) -> T:
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            new_loop = asyncio.new_event_loop()
+            try:
+                return new_loop.run_until_complete(coro_factory())
+            finally:
+                new_loop.close()
+        return loop.run_until_complete(coro_factory())
+    except RuntimeError:
+        return asyncio.run(coro_factory())
+
+
+def _attempt_async_fetch(
+    tickers: Sequence[str],
+    period: str,
+    interval: str,
+) -> Optional[Dict[str, pd.DataFrame]]:
+    if not ASYNC_AVAILABLE or AsyncDataLoader is None:
+        return None
+
+    loader = AsyncDataLoader()
+
+    async def _runner() -> Dict[str, pd.DataFrame]:
+        return await loader.fetch_multiple_async(list(tickers), period, interval)
+
+    try:
+        return _run_coroutine(_runner)
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.warning("Async fetch failed, using sync fallback: %s", exc)
+        return None
+
+
+def _load_cached_ticker(
+    db: DataManager,
+    ticker: str,
+    start_date: datetime,
+) -> tuple[Optional[pd.DataFrame], bool]:
+    cached_df = db.load_data(ticker, start_date=start_date)
+    if cached_df.empty:
+        return None, True
+
+    latest_date = cached_df.index[-1]
+    is_fresh = latest_date >= datetime.now() - STALE_DATA_MAX_AGE
+    has_enough_data = len(cached_df) > MINIMUM_DATA_POINTS
+    needs_refresh = not (is_fresh and has_enough_data)
+    return cached_df, needs_refresh
+
+
+def _download_and_cache_missing(
+    tickers: Sequence[str],
+    period: str,
+    interval: str,
+    start_date: datetime,
+    db: DataManager,
+) -> Dict[str, pd.DataFrame]:
+    if not tickers:
+        return {}
+
+    try:
+        logger.info("Downloading %d tickers via yfinance", len(tickers))
+        raw = yf.download(
+            tickers,
+            period=period,
+            interval=interval,
+            group_by="ticker",
+            auto_adjust=True,
+            threads=True,
+        )
+    except Exception as exc:
+        logger.error("Error downloading data for %s: %s", tickers, exc)
+        return {}
+
+    if raw.empty:
+        return {}
+
+    processed = process_downloaded_data(raw, tickers)
+    updated: Dict[str, pd.DataFrame] = {}
+
+    for ticker, df in processed.items():
+        if df.empty:
+            continue
+        db.save_data(df, ticker)
+        refreshed = db.load_data(ticker, start_date=start_date)
+        if not refreshed.empty:
+            updated[ticker] = refreshed
+
+    return updated
 
 
 def process_downloaded_data(
     raw_data: pd.DataFrame,
     tickers: Sequence[str],
-    column_map: Mapping[str, str] | None = None,
+    column_map: Optional[Mapping[str, str]] = None,
 ) -> Dict[str, pd.DataFrame]:
-    """
-    yfinanceのダウンロード結果をティッカーごとに分割してクリーンアップする。
-    """
+    """Normalize the structure returned by yfinance.download into per-ticker dataframes."""
     if raw_data is None or raw_data.empty or not tickers:
         return {}
 
@@ -76,22 +199,19 @@ def process_downloaded_data(
 
 
 def parse_period(period: str) -> datetime:
-    """Convert period string (e.g., '2y', '1mo') to start datetime."""
+    """Convert a period string such as '2y' or '1mo' into a start datetime."""
     now = datetime.now()
-    if period.endswith('y'):
+    if period.endswith("y"):
         years = int(period[:-1])
         return now - timedelta(days=years * 365)
-    elif period.endswith('mo'):
+    if period.endswith("mo"):
         months = int(period[:-2])
         return now - timedelta(days=months * 30)
-    elif period.endswith('d'):
+    if period.endswith("d"):
         days = int(period[:-1])
         return now - timedelta(days=days)
-    else:
-        return now - timedelta(days=730)
+    return now - timedelta(days=730)
 
-
-from src.utils import retry_with_backoff
 
 @st.cache_data(ttl=3600, show_spinner=False)
 @retry_with_backoff(retries=3, backoff_in_seconds=2)
@@ -99,137 +219,154 @@ def fetch_stock_data(
     tickers: Sequence[str],
     period: str = "2y",
     interval: str = "1d",
-    use_async: bool = True
+    use_async: bool = True,
 ) -> Dict[str, pd.DataFrame]:
-    """
-    Fetch stock data for multiple tickers.
-    """
+    """Fetch price history for one or more tickers."""
     if not tickers:
         return {}
 
-    # 非同期ローダーを使用（利用可能かつ有効な場合）
-    if use_async and ASYNC_AVAILABLE and len(tickers) > 1:
-        try:
-            # 新しいイベントループを作成（Streamlitのスレッド問題回避）
-            try:
-                loop = asyncio.get_event_loop()
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
+    if _should_use_async_loader(use_async, tickers):
+        async_result = _attempt_async_fetch(tickers, period, interval)
+        if async_result is not None:
+            return async_result
 
-            loader = AsyncDataLoader()
-            return loop.run_until_complete(loader.fetch_multiple_async(list(tickers), period, interval))
-        except Exception as e:
-            logger.warning(f"Async fetch failed, falling back to sync: {e}")
-            # フォールバック
+    logger.info("Using sync loader for %d tickers", len(tickers))
 
-    # 同期処理
-    logger.info(f"Using sync loader for {len(tickers)} tickers")
     db = DataManager()
     start_date = parse_period(period)
-    result = {}
-    need_download = []
+    result: Dict[str, pd.DataFrame] = {}
+    need_refresh: list[str] = []
 
-    # Step 1: Try to load from database
     for ticker in tickers:
-        cached_df = db.load_data(ticker, start_date=start_date)
+        cached_df, needs_refresh = _load_cached_ticker(db, ticker, start_date)
+        if cached_df is not None:
+            result[ticker] = cached_df
+        if needs_refresh:
+            need_refresh.append(ticker)
 
-        if not cached_df.empty:
-            latest_date = cached_df.index[-1]
-            # データが新鮮で、かつ十分な量があるかチェック
-            is_fresh = latest_date >= datetime.now() - timedelta(days=2)
-            has_enough_data = len(cached_df) > 50  # 少なくとも50件はあるべき
-
-            if is_fresh and has_enough_data:
-                result[ticker] = cached_df
-            else:
-                need_download.append(ticker)
-                # フォールバックとして保持するが、ダウンロード成功時に上書きされる
-                result[ticker] = cached_df
-        else:
-            need_download.append(ticker)
-
-    # Step 2: Bulk download for tickers that need updates
-    if need_download:
-        try:
-            logger.info(f"Downloading data for {len(need_download)} tickers: {need_download}")
-            # キャッシュを回避するために ignore_tz=True などを検討したが、まずはログ出力
-            raw = yf.download(need_download, period=period, group_by='ticker', auto_adjust=True, threads=True)
-
-            if not raw.empty:
-                logger.info(f"Downloaded raw data shape: {raw.shape}")
-                processed = process_downloaded_data(raw, need_download)
-
-                for ticker, df in processed.items():
-                    logger.info(f"Processed {ticker}: {len(df)} rows")
-                    if not df.empty:
-                        db.save_data(df, ticker)
-                        result[ticker] = db.load_data(ticker, start_date=start_date)
-
-        except Exception as e:
-            logger.error(f"Error downloading data for {need_download}: {e}")
+    downloaded = _download_and_cache_missing(need_refresh, period, interval, start_date, db)
+    result.update(downloaded)
 
     return result
 
 
 def fetch_external_data(period: str = "2y") -> Dict[str, pd.DataFrame]:
-    """
-    Fetches external market data (VIX, USD/JPY, etc.)
-    """
+    """Fetch external market indicators (VIX, USDJPY, etc.)."""
     external_tickers = {
-        'VIX': '^VIX',       # Volatility Index
-        'USDJPY': 'JPY=X',   # USD/JPY Exchange Rate
-        'SP500': '^GSPC',    # S&P 500
-        'NIKKEI': '^N225',   # Nikkei 225
-        'GOLD': 'GC=F',      # Gold Futures
-        'OIL': 'CL=F',       # Crude Oil Futures
-        'US10Y': '^TNX'      # US 10-Year Treasury Yield
+        "VIX": "^VIX",
+        "USDJPY": "JPY=X",
+        "SP500": "^GSPC",
+        "NIKKEI": "^N225",
+        "GOLD": "GC=F",
+        "OIL": "CL=F",
+        "US10Y": "^TNX",
     }
 
-    # Use fetch_stock_data logic (async/cache)
-    # Map back to internal names
     yf_tickers = list(external_tickers.values())
     raw_data = fetch_stock_data(yf_tickers, period=period)
 
-    data = {}
+    data: Dict[str, pd.DataFrame] = {}
     ticker_map = {v: k for k, v in external_tickers.items()}
 
     for yf_ticker, df in raw_data.items():
-        if yf_ticker in ticker_map:
-            data[ticker_map[yf_ticker]] = df
+        alias = ticker_map.get(yf_ticker)
+        if alias:
+            data[alias] = df
 
     return data
 
 
 def get_latest_price(df: pd.DataFrame) -> float:
-    """Returns the latest close price from a dataframe."""
+    """Return the most recent closing price from a dataframe."""
     if df is None or df.empty:
         return 0.0
-    return df['Close'].iloc[-1]
+    return float(df["Close"].iloc[-1])
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def fetch_macro_data(period: str = "2y") -> Dict[str, pd.DataFrame]:
-    """Legacy macro data fetcher (kept for compatibility)"""
+    """Legacy macro data fetcher (kept for compatibility)."""
     return fetch_external_data(period)
 
 
 def fetch_fundamental_data(ticker: str) -> Optional[Dict[str, Any]]:
-    """
-    Fetches fundamental data for a single ticker.
-    """
+    """Fetch fundamental metrics for a given ticker with cache support."""
+    cache = _get_cache()
+    cache_key = f"fundamental::{ticker.upper()}"
+
+    if cache:
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
+
     try:
         ticker_obj = yf.Ticker(ticker)
         info = ticker_obj.info
-
-        return {
-            "trailingPE": info.get("trailingPE"),
-            "priceToBook": info.get("priceToBook"),
-            "returnOnEquity": info.get("returnOnEquity"),
-            "marketCap": info.get("marketCap"),
-            "forwardPE": info.get("forwardPE"),
-            "dividendYield": info.get("dividendYield")
-        }
-    except Exception as e:
-        logger.error("Error fetching fundamentals for %s: %s", ticker, e)
+    except Exception as exc:
+        logger.error("Error fetching fundamentals for %s: %s", ticker, exc)
         return None
+
+    result = {
+        "trailingPE": info.get("trailingPE"),
+        "priceToBook": info.get("priceToBook"),
+        "returnOnEquity": info.get("returnOnEquity"),
+        "marketCap": info.get("marketCap"),
+        "forwardPE": info.get("forwardPE"),
+        "dividendYield": info.get("dividendYield"),
+    }
+
+    if cache:
+        cache.set(cache_key, result, ttl_seconds=FUNDAMENTAL_CACHE_TTL)
+
+    return result
+
+
+def fetch_market_summary() -> tuple[pd.DataFrame, Dict[str, Any]]:
+    """Fetch a lightweight market summary with persistent caching."""
+    cache = _get_cache()
+
+    if cache:
+        cached_payload = cache.get(MARKET_SUMMARY_CACHE_KEY)
+        if cached_payload:
+            try:
+                summary_df = pd.DataFrame(cached_payload.get("summary_data", []))
+                stats = cached_payload.get("stats", {})
+                return summary_df, stats
+            except Exception as exc:
+                logger.warning("Cached market summary decode failed: %s", exc)
+
+    market_df_dict = fetch_external_data(period="1mo")
+    summary_data: list[Dict[str, float]] = []
+    stats: Dict[str, Any] = {}
+
+    for ticker_name, df in market_df_dict.items():
+        if df is None or df.empty or "Close" not in df.columns:
+            continue
+
+        current_price = float(df["Close"].iloc[-1])
+        prev_price = float(df["Close"].iloc[-2]) if len(df) > 1 else current_price
+        change_pct = (current_price - prev_price) / prev_price if prev_price else 0.0
+
+        stats[ticker_name] = {
+            "price": current_price,
+            "change_percent": change_pct,
+        }
+
+        summary_data.append(
+            {
+                "ticker": ticker_name,
+                "price": current_price,
+                "change_percent": change_pct,
+            }
+        )
+
+    summary_df = pd.DataFrame(summary_data)
+
+    if cache:
+        cache.set(
+            MARKET_SUMMARY_CACHE_KEY,
+            {"stats": stats, "summary_data": summary_data},
+            ttl_seconds=MARKET_SUMMARY_TTL,
+        )
+
+    return summary_df, stats
