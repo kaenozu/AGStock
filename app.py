@@ -14,33 +14,43 @@ from src.ui.sidebar import render_sidebar
 from src.ui.dashboard_main import render_market_scan_tab
 from src.ui.trading_panel import render_trading_panel
 from src.ui.portfolio_panel import render_portfolio_panel
-from src.ui.portfolio_panel import render_portfolio_panel
+
 from src.simple_dashboard import create_simple_dashboard
 from src.ui.ai_insights import render_ai_insights
 from src.logger_config import setup_logging
-from src.ui.ai_chat import render_ai_chat # Added this import for the new main function
+from src.ui.ai_chat import render_ai_chat
+from src.ui.strategy_arena import render_strategy_arena
+from src.ui.news_analyst import render_news_analyst # New Import
+from src.ui.earnings_analyst import render_earnings_analyst # Phase 28
 
 # Setup Logging
 setup_logging()
 
+# Page Configuration (Must be first)
+st.set_page_config(page_title="AGStock AI Trading System", layout="wide")
+
 # Install cache
 install_cache()
 
-# Initialize Strategies
-strategies = [
-    SMACrossoverStrategy(),
-    RSIStrategy(),
-    BollingerBandsStrategy(),
-    CombinedStrategy(),
-    MLStrategy(),
-    LightGBMStrategy(),
-    DeepLearningStrategy(),
-    EnsembleStrategy()
-]
-strategies.extend(load_custom_strategies())
+# Initialize Strategies (Cached)
+@st.cache_resource
+def get_strategies():
+    strategies = [
+        SMACrossoverStrategy(),
+        RSIStrategy(),
+        BollingerBandsStrategy(),
+        CombinedStrategy(),
+        MLStrategy(),
+        LightGBMStrategy(),
+        DeepLearningStrategy(),
+        EnsembleStrategy()
+    ]
+    strategies.extend(load_custom_strategies())
+    return strategies
 
-# Page Configuration
-st.set_page_config(page_title="AGStock AI Tradng System", layout="wide")
+strategies = get_strategies()
+
+# Initialize Strategies (Cached)
 
 st.title("🌍 AGStock AI Trading System (Pro)")
 st.markdown("日本・米国・欧州の主要株式を対象とした、プロ仕様のバックテストエンジン搭載。")
@@ -61,42 +71,51 @@ def main():
     sidebar_config = render_sidebar()
     
     # Create Tabs
-    # Note: Backtest and Performance Analysis were in previous versions. 
-    # I will include them to match imports.
+    # Create Tabs (Simplified)
+    
+    # Check for new signals (notification badge)
+    import os
+    import json
+    signal_count = 0
+    try:
+        if os.path.exists("scan_results.json"):
+            with open("scan_results.json", "r", encoding="utf-8") as f:
+                scan_data = json.load(f)
+                results = scan_data.get("results", [])
+                signal_count = len([r for r in results if r.get("Action") != "HOLD"])
+    except Exception:
+        signal_count = 0
+    
+    # Build tab labels with badges
+    trading_badge = f" ({signal_count})" if signal_count > 0 else ""
+    
     tab_list = [
-        "🏠 ホーム", 
-        "📊 市場スキャン", 
-        "🤖 AI投資委員会", 
-        "💬 AIチャット",
-        "📈 ポートフォリオ", 
-        "📝 ペーパートレード"
+        "🏠 ダッシュボード", 
+        "🤖 AI分析センター", 
+        f"💼 トレーディング{trading_badge}", 
+        "🧪 戦略研究所"
     ]
     
     tabs = st.tabs(tab_list)
     
-    # 0. Home
+    # 0. Dashboard (Home)
     with tabs[0]:
         create_simple_dashboard()
 
-    # 1. Market Scan
+    # 1. AI Hub
     with tabs[1]:
-        render_market_scan_tab(sidebar_config)
+        from src.ui.ai_hub import render_ai_hub
+        render_ai_hub()
 
-    # 2. AI Insights
+    # 2. Trading Hub
     with tabs[2]:
-        render_ai_insights()
+        from src.ui.trading_hub import render_trading_hub
+        render_trading_hub(sidebar_config, strategies)
 
-    # 3. AI Chat
+    # 3. Lab Hub (Strategy & Settings)
     with tabs[3]:
-        render_ai_chat()
-
-    # 4. Portfolio
-    with tabs[4]:
-        render_portfolio_panel(sidebar_config, strategies)
-
-    # 5. Paper Trading
-    with tabs[5]:
-        render_trading_panel(sidebar_config)
+        from src.ui.lab_hub import render_lab_hub
+        render_lab_hub()
 
     # 6. Real-time Monitor (New Feature)
     # Ideally should be a separate page or overlay, but adding as expnader or section for now
@@ -126,4 +145,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

@@ -66,17 +66,30 @@ class HistoricalBacktester:
         
         return results
 
-    def compare_strategies(self, ticker: str, strategies: list, years: int = 10) -> pd.DataFrame:
+    def compare_strategies(self, ticker: str, strategies: list, years: int = 10) -> tuple[pd.DataFrame, pd.DataFrame]:
         """
-        Runs multiple strategies and returns a comparison DataFrame.
+        Runs multiple strategies and returns comparison metrics and equity curves.
+        
+        Returns:
+            metrics_df: DataFrame with performance metrics
+            equity_curves_df: DataFrame with equity curves (col=strategy_name)
         """
         results_list = []
+        equity_curves = pd.DataFrame()
         
         for strat_cls, params in strategies:
+            try:
+                # Instantiate strategy to get name if possible
+                strat_name = strat_cls(**params).name
+            except:
+                strat_name = getattr(strat_cls, "name", str(strat_cls))
+
             res = self.run_test(ticker, strat_cls, years, **params)
+            
             if "error" not in res:
+                strat_name = res['strategy_name']
                 results_list.append({
-                    "Strategy": res['strategy_name'],
+                    "Strategy": strat_name,
                     "Total Return": res['total_return'],
                     "CAGR": res['cagr'],
                     "Max Drawdown": res['max_drawdown'],
@@ -85,4 +98,18 @@ class HistoricalBacktester:
                     "Trades": res['total_trades']
                 })
                 
-        return pd.DataFrame(results_list)
+                # Add equity curve
+                curve = res['equity_curve']
+                curve.name = strat_name
+                if equity_curves.empty:
+                    equity_curves = pd.DataFrame(curve)
+                else:
+                    equity_curves = equity_curves.join(curve, how='outer')
+            else:
+                # Handle error case
+                pass
+                
+        # Fill NaN (forward fill then zero fill)
+        equity_curves = equity_curves.ffill().fillna(1.0)
+                
+        return pd.DataFrame(results_list), equity_curves

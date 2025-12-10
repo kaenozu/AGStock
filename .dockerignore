@@ -1,0 +1,36 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# IDE
+.vscode
+.idea
+
+# Data (Don't copy stale data into image, use volumes)
+data/
+logs/
+*.db
+*.log
+*.sqlite
+cache.db
+stock_data.db
+
+# Tests
+tests/
+.pytest_cache/
+.coverage
+htmlcov/

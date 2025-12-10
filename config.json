@@ -1,4 +1,5 @@
 {
+    "gemini_api_key": "YOUR_API_KEY_HERE",
     "user_profile": {
         "experience": "beginner",
         "risk_tolerance": "low",
@@ -67,8 +68,12 @@
     "ai_committee": {
         "enabled": false,
         "strict_mode": false,
-        "api_provider": "google",
-        "model": "gemini-pro"
+        "api_key": "YOUR_API_KEY_HERE",
+        "model": "gpt-4"
+    },
+    "gemini": {
+        "api_key": "YOUR_API_KEY_HERE",
+        "enabled": true
     },
     "paper_trading": {
         "initial_capital": 500000,
@@ -81,5 +86,6 @@
         "min_order_amount": 500,
         "broker": "rakuten_kabumini",
         "description": "楽天かぶミニ - 1株から取引可能 (寄付:無料 / リアルタイム:0.22%)"
-    }
+    },
+    "openai_api_key": "YOUR_API_KEY_HERE"
 }

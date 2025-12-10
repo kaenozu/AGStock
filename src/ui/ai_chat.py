@@ -3,6 +3,7 @@
 AI Chat Interface (Ghostwriter)
 """
 import streamlit as st
+import json
 from src.llm_reasoner import get_llm_reasoner
 from src.paper_trader import PaperTrader
 from src.agents.committee import InvestmentCommittee
@@ -63,14 +64,32 @@ def render_ai_chat():
                 
                 try:
                     # Gather Context
+                    # 1. Portfolio Data
                     pt = PaperTrader()
                     balance = pt.get_current_balance()
                     positions = pt.get_positions().to_dict(orient='records')
                     
-                    # Retrieve latest committee decision
+                    # 2. Market Data
+                    from src.data_loader import fetch_market_summary
+                    market_summary_df, _ = fetch_market_summary()
+                    market_context = market_summary_df.to_dict(orient='records') if not market_summary_df.empty else "No market data available"
+
+                    # 3. Committee Decision (Placeholder for now)
                     committee_context = "No recent committee meeting held."
                     
-                    context_data = f"Portfolio Balance: {balance}\nCurrent Positions: {positions}\nRecent Committee Status: {committee_context}"
+                    context_data = f"""
+                    ## User Portfolio
+                    - Cash: {balance.get('cash', 0):,.0f} JPY
+                    - Total Equity: {balance.get('total_equity', 0):,.0f} JPY
+                    - Unrealized PnL: {balance.get('unrealized_pnl', 0):,.0f} JPY
+                    - Positions: {json.dumps(positions, ensure_ascii=False)}
+                    
+                    ## Market Overview (Latest)
+                    {json.dumps(market_context, ensure_ascii=False)}
+                    
+                    ## AI Committee
+                    {committee_context}
+                    """
                     
                     reasoner = get_llm_reasoner()
                     
