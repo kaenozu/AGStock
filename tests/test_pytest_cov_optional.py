@@ -13,6 +13,19 @@ def test_registers_cov_options_when_plugin_missing(pytester, monkeypatch):
     assert result.ret != pytest.ExitCode.USAGE_ERROR
 
 
+def test_registers_cov_config_option(pytester, monkeypatch):
+    monkeypatch.setattr(pytest_cov_optional, "_pytest_cov_installed", lambda: False)
+
+    result = pytester.runpytest(
+        "--cov=src",
+        "--cov-report=term",
+        "--cov-config=.coveragerc",
+        plugins=[pytest_cov_optional],
+    )
+
+    assert result.ret != pytest.ExitCode.USAGE_ERROR
+
+
 def test_defers_when_plugin_present(monkeypatch):
     added_options = []
 

@@ -29,6 +29,7 @@ class AdvancedMetrics:
         self.returns = returns
         self.risk_free_rate = risk_free_rate
         self.daily_rf_rate = (1 + risk_free_rate) ** (1/252) - 1
+        self._drawdown_cache: Optional[np.ndarray] = None
     
     def sharpe_ratio(self, periods: int = 252) -> float:
         """シャープレシオを計算"""
@@ -52,36 +53,32 @@ class AdvancedMetrics:
         max_dd = self.max_drawdown()
         if max_dd == 0:
             return 0.0
-        
+
         annual_return = (1 + self.returns.mean()) ** 252 - 1
         return annual_return / abs(max_dd)
-    
+
     def max_drawdown(self) -> float:
         """最大ドローダウンを計算"""
-        cumulative = (1 + self.returns).cumprod()
-        running_max = cumulative.expanding().max()
-        drawdown = (cumulative - running_max) / running_max
-        return drawdown.min()
-    
+        drawdown = self._get_drawdown_array()
+        return float(drawdown.min()) if drawdown.size > 0 else 0.0
+
     def max_drawdown_duration(self) -> int:
         """最大ドローダウン期間を計算（日数）"""
-        cumulative = (1 + self.returns).cumprod()
-        running_max = cumulative.expanding().max()
-        drawdown = (cumulative - running_max) / running_max
-        
-        # ドローダウン中の期間を計算
-        is_drawdown = drawdown < 0
-        duration = 0
+        drawdown = self._get_drawdown_array()
+        drawdown_flags = drawdown < 0
+
+        if not np.any(drawdown_flags):
+            return 0
+
+        changes = np.diff(drawdown_flags.astype(int))
+        boundaries = np.concatenate(([0], np.flatnonzero(changes) + 1, [drawdown_flags.size]))
+
         max_duration = 0
-        
-        for in_dd in is_drawdown:
-            if in_dd:
-                duration += 1
-                max_duration = max(max_duration, duration)
-            else:
-                duration = 0
-        
-        return max_duration
+        for start, end in zip(boundaries[:-1], boundaries[1:]):
+            if drawdown_flags[start]:
+                max_duration = max(max_duration, end - start)
+
+        return int(max_duration)
     
     def win_rate(self) -> float:
         """勝率を計算"""
@@ -116,11 +113,19 @@ class AdvancedMetrics:
         """情報比率を計算"""
         active_returns = self.returns - benchmark_returns
         tracking_error = active_returns.std()
-        
+
         if tracking_error == 0:
             return 0.0
-        
+
         return np.sqrt(252) * active_returns.mean() / tracking_error
+
+    def _get_drawdown_array(self) -> np.ndarray:
+        """ドローダウン配列をキャッシュ付きで取得"""
+        if self._drawdown_cache is None:
+            cumulative = np.cumprod(1 + self.returns.to_numpy())
+            running_max = np.maximum.accumulate(cumulative)
+            self._drawdown_cache = (cumulative - running_max) / running_max
+        return self._drawdown_cache
     
     def all_metrics(self, benchmark_returns: Optional[pd.Series] = None) -> Dict[str, float]:
         """すべてのメトリクスを計算"""
