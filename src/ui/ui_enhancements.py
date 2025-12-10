@@ -287,38 +287,80 @@ class MetricTooltipCatalog:
             "cagr": {
                 "formula": "(終値 / 期首価格) ** (1/年数) - 1",
                 "period": "3Y",
-                "precision": 4,
+                "precision": 2,
+                "unit": "percent",
             },
             "sharpe": {
                 "formula": "(リターン平均 - 無リスク利子率) / リターン標準偏差",
                 "period": "1Y",
                 "precision": 3,
+                "unit": "ratio",
             },
             "max_drawdown": {
                 "formula": "累積損失の最大値",
                 "period": "全期間",
                 "precision": 3,
+                "unit": "percent",
             },
         }
         return cls(metrics)
 
     def validate(self) -> None:
+        allowed_units = {"percent", "ratio", "absolute"}
         for name, config in self.metrics.items():
-            if "formula" not in config or "period" not in config or "precision" not in config:
+            if "formula" not in config or "period" not in config or "precision" not in config or "unit" not in config:
                 raise ValueError(f"Metric '{name}' is missing required fields")
-            if not isinstance(config["precision"], int):
+            if not isinstance(config["precision"], int) or config["precision"] < 0:
                 raise ValueError(f"Metric '{name}' precision must be int")
+            if config["unit"] not in allowed_units:
+                raise ValueError(f"Metric '{name}' has invalid unit '{config['unit']}'")
 
     def get(self, metric: str) -> str:
         if metric not in self.metrics:
             raise KeyError(f"Metric '{metric}' not found")
         config = self.metrics[metric]
-        return f"式: {config['formula']} / 期間: {config['period']} / 精度: {config['precision']}桁"
+        unit_label = {
+            "percent": "％",
+            "ratio": "比率",
+            "absolute": "絶対値",
+        }.get(config["unit"], "")
+        return (
+            f"式: {config['formula']} / 期間: {config['period']} / "
+            f"単位: {unit_label} / 精度: {config['precision']}桁"
+        )
 
-    def update(self, metric: str, *, formula: str, period: str, precision: int) -> None:
+    def update(
+        self,
+        metric: str,
+        *,
+        formula: str,
+        period: str,
+        precision: int,
+        unit: str | None = None,
+    ) -> None:
+        selected_unit = unit
+        if selected_unit is None:
+            selected_unit = self.metrics.get(metric, {}).get("unit", "ratio")
         self.metrics[metric] = {
             "formula": formula,
             "period": period,
             "precision": precision,
+            "unit": selected_unit,
         }
+
+    def render_value(self, metric: str, value: float | None) -> str:
+        if metric not in self.metrics:
+            raise KeyError(f"Metric '{metric}' not found")
+        if value is None:
+            return "N/A"
+        config = self.metrics[metric]
+        precision = config.get("precision", 2)
+        unit = config.get("unit", "ratio")
+
+        if unit == "percent":
+            scaled = value * 100
+            return f"{scaled:.{precision}f}%"
+        if unit == "absolute" or unit == "ratio":
+            return f"{value:.{precision}f}"
+        raise ValueError(f"Unknown unit '{unit}' for metric '{metric}'")
 
