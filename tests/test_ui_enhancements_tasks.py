@@ -152,3 +152,15 @@ def test_metric_tooltip_catalog_consistency_and_updates():
     catalog.update("custom", formula="x/y", period="1M", precision=2)
     assert catalog.get("custom").endswith("精度: 2桁")
 
+
+def test_metric_tooltip_catalog_renders_values_with_units_and_precision():
+    catalog = MetricTooltipCatalog.default()
+    catalog.validate()
+
+    assert catalog.render_value("cagr", 0.12345) == "12.35%"
+    assert catalog.render_value("sharpe", 1.9876) == "1.988"
+    assert catalog.render_value("max_drawdown", None) == "N/A"
+
+    catalog.update("alpha", formula="a-b", period="1Y", precision=1, unit="absolute")
+    assert catalog.render_value("alpha", 12.345) == "12.3"
+
