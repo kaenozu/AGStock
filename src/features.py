@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import ta
-from scipy.fft import fft
+from numpy.lib.stride_tricks import sliding_window_view
 
 def add_technical_indicators(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -36,37 +36,34 @@ def add_frequency_features(df: pd.DataFrame, window: int = 20) -> pd.DataFrame:
     Captures cyclical patterns in price changes.
     """
     df = df.copy()
-    
-    # Use log returns for stationarity
-    log_ret = np.log(df['Close'] / df['Close'].shift(1)).fillna(0)
-    
-    # Rolling FFT is computationally expensive, so we optimize
-    # We'll calculate the dominant frequency power for each window
-    
-    def get_dominant_freq_power(x):
-        # Apply Hanning window to reduce spectral leakage
-        n = len(x)
-        window_func = np.hanning(n)
-        x_windowed = x * window_func
-        
-        # FFT
-        f_transform = fft(x_windowed)
-        power_spectrum = np.abs(f_transform)[:n//2] # Keep positive frequencies
-        
-        # Return max power (dominant frequency strength)
-        # Skip DC component (index 0)
-        if len(power_spectrum) > 1:
-            return np.max(power_spectrum[1:])
-        return 0.0
 
-    # Apply rolling window
-    # Note: rolling().apply() is slow for complex functions. 
-    # For production, consider vectorized approaches or numba.
-    # Here we use a stride or simplified approach if performance is an issue.
-    # For now, we apply it to 'Close' price detrended or returns.
-    
-    df['Freq_Power'] = log_ret.rolling(window=window).apply(get_dominant_freq_power, raw=True)
-    
+    # Use log returns for stationarity
+    log_ret = np.log(df['Close'] / df['Close'].shift(1)).fillna(0).to_numpy()
+
+    if len(log_ret) < window:
+        df['Freq_Power'] = np.nan
+        return df
+
+    # Vectorized dominant frequency calculation using sliding windows to avoid
+    # per-window Python function calls.
+    hanning_window = np.hanning(window)
+    windows = sliding_window_view(log_ret, window_shape=window)
+    windowed = windows * hanning_window
+
+    spectra = np.fft.fft(windowed, axis=1)
+    power_spectrum = np.abs(spectra[:, : window // 2])
+
+    if power_spectrum.shape[1] > 1:
+        dominant_power = power_spectrum[:, 1:].max(axis=1)
+    else:
+        dominant_power = np.zeros(power_spectrum.shape[0])
+
+    freq_power = np.empty_like(log_ret, dtype=float)
+    freq_power[: window - 1] = np.nan
+    freq_power[window - 1 :] = dominant_power
+
+    df['Freq_Power'] = freq_power
+
     return df
 
 def add_sentiment_features(df: pd.DataFrame) -> pd.DataFrame:
