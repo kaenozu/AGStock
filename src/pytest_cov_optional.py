@@ -37,3 +37,10 @@ def pytest_addoption(parser):
         dest="cov_report",
         help="(stub) coverage reports when pytest-cov is unavailable",
     )
+    group.addoption(
+        "--cov-config",
+        action="store",
+        default=None,
+        dest="cov_config",
+        help="(stub) coverage configuration file when pytest-cov is unavailable",
+    )
