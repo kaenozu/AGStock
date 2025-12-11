@@ -120,14 +120,34 @@ class TradeSimulator(TradeSimulatorCore):
                 # 整数信号ロジック
                 if isinstance(today_sig, (int, np.integer)):
                     position, cash, exit_executed = self._process_integer_signals(
-                        today_sig, ticker, holdings, cash, exec_price, trades, exit_executed
+                        today_sig,
+                        ticker,
+                        holdings,
+                        cash,
+                        exec_price,
+                        trades,
+                        exit_executed,
+                        full_index,
+                        i,
                     )
 
                 # Orderオブジェクトロジック
                 if isinstance(today_sig, Order):
                     holdings, cash, self.entry_prices, exit_executed = self._process_order_signals(
-                        today_sig, ticker, holdings, cash, current_portfolio_value, 
-                        df, trailing_stop, highest_prices, trailing_stop_levels, exit_executed
+                        today_sig,
+                        ticker,
+                        holdings,
+                        cash,
+                        current_portfolio_value,
+                        df,
+                        trailing_stop,
+                        highest_prices,
+                        trailing_stop_levels,
+                        exit_executed,
+                        exec_price,
+                        trades,
+                        full_index,
+                        i,
                     )
 
                 # 整数信号による新規ポジション
@@ -171,16 +191,29 @@ class TradeSimulator(TradeSimulatorCore):
                 signals_map[ticker] = pd.Series(0, index=df.index)
         return signals_map
 
-    def _process_integer_signals(self, today_sig, ticker, holdings, cash, exec_price, trades, exit_executed):
+    def _process_integer_signals(
+        self,
+        today_sig,
+        ticker,
+        holdings,
+        cash,
+        exec_price,
+        trades,
+        exit_executed,
+        full_index,
+        i,
+    ):
         """整数信号の処理"""
         position = holdings[ticker]
-        if position > 0 and today_sig == -1:  # ポンポジションをクローズ
+        exit_date = full_index[i + 1]
+
+        if position > 0 and today_sig == -1:  # ロングポジションをクローズ
             entry = self.entry_prices[ticker]
             ret = (exec_price - entry) / entry
             trades.append({
                 "ticker": ticker,
                 "entry_date": None,
-                "exit_date": full_index[i + 1],
+                "exit_date": exit_date,
                 "entry_price": entry,
                 "exit_price": exec_price,
                 "return": ret,
@@ -196,7 +229,7 @@ class TradeSimulator(TradeSimulatorCore):
             trades.append({
                 "ticker": ticker,
                 "entry_date": None,
-                "exit_date": full_index[i + 1],
+                "exit_date": exit_date,
                 "entry_price": entry,
                 "exit_price": exec_price,
                 "return": ret,
@@ -208,43 +241,58 @@ class TradeSimulator(TradeSimulatorCore):
             exit_executed = True
         return holdings, cash, exit_executed
 
-    def _process_order_signals(self, today_sig, ticker, holdings, cash, current_portfolio_value, 
-                              df, trailing_stop, highest_prices, trailing_stop_levels, exit_executed):
+    def _process_order_signals(
+        self,
+        today_sig,
+        ticker,
+        holdings,
+        cash,
+        current_portfolio_value,
+        df,
+        trailing_stop,
+        highest_prices,
+        trailing_stop_levels,
+        exit_executed,
+        exec_price,
+        trades,
+        full_index,
+        i,
+    ):
         """Orderオブジェクト信号の処理"""
         if not today_sig.ticker:
             today_sig.ticker = ticker
 
         should_execute = False
         fill_price = exec_price
+        next_idx = min(i + 1, len(df) - 1)
 
         if today_sig.type == OrderType.MARKET:
             should_execute = True
         elif today_sig.type == OrderType.LIMIT:
-            # 修正: iが定義されていないため、当日インデックスを計算
-            current_i = df.index.get_loc(df.index[df.index <= datetime.now()].max()) if not df.empty else 0
             if today_sig.action.upper() == "BUY":
-                if df["Low"].iloc[min(current_i + 1, len(df) - 1)] <= today_sig.price:
+                if df["Low"].iloc[next_idx] <= today_sig.price:
                     should_execute = True
                     fill_price = min(today_sig.price, exec_price)
             else:  # SELL
-                if df["High"].iloc[min(current_i + 1, len(df) - 1)] >= today_sig.price:
+                if df["High"].iloc[next_idx] >= today_sig.price:
                     should_execute = True
                     fill_price = max(today_sig.price, exec_price)
         elif today_sig.type == OrderType.STOP:
-            current_i = df.index.get_loc(df.index[df.index <= datetime.now()].max()) if not df.empty else 0
             if today_sig.action.upper() == "BUY":
-                if df["High"].iloc[min(current_i + 1, len(df) - 1)] >= today_sig.price:
+                if df["High"].iloc[next_idx] >= today_sig.price:
                     should_execute = True
                     fill_price = max(today_sig.price, exec_price)
             else:  # SELL
-                if df["Low"].iloc[min(current_i + 1, len(df) - 1)] <= today_sig.price:
+                if df["Low"].iloc[next_idx] <= today_sig.price:
                     should_execute = True
                     fill_price = min(today_sig.price, exec_price)
 
         if should_execute:
             if today_sig.action.upper() == "BUY":
                 if holdings[ticker] == 0:
-                    qty = today_sig.quantity if today_sig.quantity else self._size_position(ticker, current_portfolio_value, fill_price)
+                    qty = today_sig.quantity if today_sig.quantity else self._size_position(
+                        ticker, current_portfolio_value, fill_price
+                    )
                     holdings[ticker] = qty
                     self.entry_prices[ticker] = fill_price
                     highest_prices[ticker] = fill_price
