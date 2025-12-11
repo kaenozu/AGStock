@@ -6,6 +6,7 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+
 class RiskGuard:
     """
     Safety mechanism to prevent catastrophic losses in live trading.
@@ -20,61 +21,89 @@ class RiskGuard:
         max_drawdown_limit_pct: float = -20.0,
         state_file: str = "risk_state.json"
     ):
+        # Risk parameters
         self.daily_loss_limit_pct = daily_loss_limit_pct
         self.max_position_size_pct = max_position_size_pct
         self.max_vix = max_vix
         self.max_drawdown_limit_pct = max_drawdown_limit_pct
         self.state_file = state_file
-        
-        # Default state
+
+        # State variables
         self.daily_start_value = initial_portfolio_value
         self.last_reset_date = datetime.now().date()
         self.circuit_breaker_triggered = False
         self.high_water_mark = initial_portfolio_value
         self.drawdown_triggered = False
-        
+
         # Load state if exists
         self.load_state()
-        
+
         # If loading for the first time or after reset, ensure high_water_mark is at least initial
         if self.high_water_mark < initial_portfolio_value:
-             self.high_water_mark = initial_portfolio_value
+            self.high_water_mark = initial_portfolio_value
+
+    def _get_state_data(self) -> dict:
+        """現在の状態データを取得"""
+        return {
+            'daily_start_value': self.daily_start_value,
+            'last_reset_date': self.last_reset_date.strftime('%Y-%m-%d'),
+            'circuit_breaker_triggered': self.circuit_breaker_triggered,
+            'high_water_mark': self.high_water_mark,
+            'drawdown_triggered': self.drawdown_triggered
+        }
 
     def load_state(self):
         """Load risk state from file."""
-        if os.path.exists(self.state_file):
-            try:
-                with open(self.state_file, 'r') as f:
-                    state = json.load(f)
-                    
-                self.daily_start_value = state.get('daily_start_value', self.daily_start_value)
-                
-                last_date_str = state.get('last_reset_date')
-                if last_date_str:
-                    self.last_reset_date = datetime.strptime(last_date_str, '%Y-%m-%d').date()
-                    
-                self.circuit_breaker_triggered = state.get('circuit_breaker_triggered', False)
-                self.high_water_mark = state.get('high_water_mark', self.high_water_mark)
-                self.drawdown_triggered = state.get('drawdown_triggered', False)
-                
-                logger.info(f"Risk state loaded. Daily Start: {self.daily_start_value}, HWM: {self.high_water_mark}")
-            except Exception as e:
-                logger.error(f"Failed to load risk state: {e}")
+        if not os.path.exists(self.state_file):
+            return
+
+        try:
+            with open(self.state_file, 'r', encoding='utf-8') as f:
+                state = json.load(f)
+
+            # Load state values with defaults
+            self.daily_start_value = state.get('daily_start_value', self.daily_start_value)
+
+            last_date_str = state.get('last_reset_date')
+            if last_date_str:
+                self.last_reset_date = datetime.strptime(last_date_str, '%Y-%m-%d').date()
+
+            self.circuit_breaker_triggered = state.get('circuit_breaker_triggered', False)
+            self.high_water_mark = state.get('high_water_mark', self.high_water_mark)
+            self.drawdown_triggered = state.get('drawdown_triggered', False)
+
+            logger.info(f"Risk state loaded. Daily Start: {self.daily_start_value}, HWM: {self.high_water_mark}")
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse risk state file {self.state_file}: {e}")
+            from .errors import RiskManagementError
+            raise RiskManagementError(
+                message=f"Failed to parse risk state file: {self.state_file}",
+                risk_type="STATE_LOAD_ERROR",
+                details={"file_path": self.state_file, "original_error": str(e)}
+            ) from e
+        except Exception as e:
+            logger.error(f"Failed to load risk state: {e}")
+            from .errors import RiskManagementError
+            raise RiskManagementError(
+                message="Failed to load risk state",
+                risk_type="STATE_LOAD_ERROR",
+                details={"file_path": self.state_file, "original_error": str(e)}
+            ) from e
 
     def save_state(self):
         """Save risk state to file."""
         try:
-            state = {
-                'daily_start_value': self.daily_start_value,
-                'last_reset_date': self.last_reset_date.strftime('%Y-%m-%d'),
-                'circuit_breaker_triggered': self.circuit_breaker_triggered,
-                'high_water_mark': self.high_water_mark,
-                'drawdown_triggered': self.drawdown_triggered
-            }
-            with open(self.state_file, 'w') as f:
-                json.dump(state, f, indent=4)
+            state = self._get_state_data()
+            with open(self.state_file, 'w', encoding='utf-8') as f:
+                json.dump(state, f, indent=4, ensure_ascii=False)
         except Exception as e:
             logger.error(f"Failed to save risk state: {e}")
+            from .errors import RiskManagementError
+            raise RiskManagementError(
+                message="Failed to save risk state",
+                risk_type="STATE_SAVE_ERROR",
+                details={"file_path": self.state_file, "original_error": str(e)}
+            ) from e
 
     def reset_daily_tracking(self, current_value: float):
         """Reset daily tracking at market open."""
@@ -82,7 +111,7 @@ class RiskGuard:
         if today != self.last_reset_date:
             self.daily_start_value = current_value
             self.last_reset_date = today
-            self.circuit_breaker_triggered = False # Reset daily circuit breaker
+            self.circuit_breaker_triggered = False  # Reset daily circuit breaker
             # Note: drawdown_triggered is NOT reset daily
             
             self.save_state()

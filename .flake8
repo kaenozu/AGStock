@@ -1,11 +1,33 @@
 [flake8]
+# 設定ファイルの最大行数制限
 max-line-length = 120
-extend-ignore = W293, E501
+# 検査から除外するディレクトリ
 exclude =
     .git,
     __pycache__,
     .venv,
     venv,
-    build,
+    env,
+    .env,
+    node_modules,
     dist,
-    *.egg-info
+    build,
+    .pytest_cache,
+    .benchmarks,
+    .cache,
+# インポートに関する警告を無効化（開発中は許容）
+extend-ignore = 
+    # E203: whitespace before ':'
+    E203,
+    # W503: line break before binary operator
+    W503,
+# 最大複雑度
+max-complexity = 10
+# インラインコメントのスペース要件
+inline-quotes = double
+# ドルーネンについての設定
+per-file-ignores =
+    # __init__.py フイルではインポートの警告を許可
+    __init__.py:F401,
+    # テストファイルでは命名規則を緩和
+    */tests/*:N802,N803,N806
