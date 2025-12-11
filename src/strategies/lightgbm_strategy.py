@@ -1,6 +1,7 @@
 import logging
-from typing import Dict, Any
+from typing import Dict
 
+import lightgbm as lgb
 import numpy as np
 import pandas as pd
 from .base import Strategy
@@ -24,6 +25,7 @@ except ImportError:
     OptunaTuner = None
 
 logger = logging.getLogger(__name__)
+
 
 class LightGBMStrategy(Strategy):
     def __init__(self, lookback_days=365, threshold=0.005, auto_tune=False):
@@ -111,15 +113,14 @@ class LightGBMStrategy(Strategy):
             
         try:
             import shap
-            import lightgbm as lgb
-            
+
             # Prepare latest data point
             data = add_advanced_features(df)
             macro_data = fetch_macro_data(period="5y")
             data = add_macro_features(data, macro_data)
             
             if data.empty:
-               return {}
+                return {}
                
             latest_data = data[self.feature_cols].iloc[[-1]]
             
@@ -131,7 +132,7 @@ class LightGBMStrategy(Strategy):
             
             # Handle list output for binary classification
             if isinstance(shap_values, list):
-                vals = shap_values[1][0] # Positive class
+                vals = shap_values[1][0]  # Positive class
             else:
                 vals = shap_values[0]
                 
@@ -149,7 +150,7 @@ class LightGBMStrategy(Strategy):
 
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
         try:
-            import lightgbm as lgb
+            pass
         except ImportError:
             logger.warning("LightGBM not installed. Returning empty signals.")
             return pd.Series(0, index=df.index)
@@ -194,14 +195,14 @@ class LightGBMStrategy(Strategy):
             # Auto-Tune if enabled (and enough data)
             if self.auto_tune and len(train_df) > 200:
                 try:
-                     # Only tune occasionally to save time (e.g. at start or every year)
-                     # For simplicity here: Tune if model is None (first run) or every 5 loops
-                     if self.model is None or (current_idx - start_idx) % (retrain_period * 5) == 0:
-                         logger.info(f"Running Optuna tuning at index {current_idx}...")
-                         tuner = OptunaTuner(n_trials=10) # 10 trials for speed
-                         best_params = tuner.optimize_lightgbm(X_train, y_train)
-                         params.update(best_params)
-                         self.best_params = best_params # Cache for display
+                    # Only tune occasionally to save time (e.g. at start or every year)
+                    # For simplicity here: Tune if model is None (first run) or every 5 loops
+                    if self.model is None or (current_idx - start_idx) % (retrain_period * 5) == 0:
+                        logger.info(f"Running Optuna tuning at index {current_idx}...")
+                        tuner = OptunaTuner(n_trials=10)  # 10 trials for speed
+                        best_params = tuner.optimize_lightgbm(X_train, y_train)
+                        params.update(best_params)
+                        self.best_params = best_params  # Cache for display
                 except Exception as e:
                     logger.error(f"Optuna tuning failed: {e}")
             
