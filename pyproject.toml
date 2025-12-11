@@ -1,18 +1,71 @@
 [tool.black]
-line-length = 100
-target-version = ['py38']
+# Blackの設定
+line-length = 120
+target-version = ['py38', 'py39', 'py310', 'py311']
 include = '\.pyi?$'
+# 除外するディレクトリ
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | \.pytest_cache
+  | \.benchmarks
+  | \.cache
+  | venv
+  | env
+  | node_modules
+  | dist
+  | build
+)/
+'''
 
-[tool.isort]
-profile = "black"
-multi_line_output = 3
-
-[tool.pytest.ini_options]
-minversion = "6.0"
-addopts = "-ra -q"
-testpaths = [
-    "tests",
+[tool.pytest]
+# Pytestの設定
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "-ra",
+    "--tb=short",
+    "--disable-warnings"
 ]
-python_files = "test_*.py"
-python_classes = "Test*"
-python_functions = "test_*"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests"
+]
+
+[tool.coverage.run]
+# Coverageの設定
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/.venv/*",
+    "*/env/*",
+    "*/.env/*",
+    "*/node_modules/*",
+    "*/dist/*",
+    "*/build/*",
+    "*/.pytest_cache/*",
+    "*/.benchmarks/*",
+    "*/.cache/*"
+]
+
+[tool.coverage.report]
+# Coverageレポートの設定
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:"
+]

@@ -14,21 +14,14 @@ class PaperTrader:
     def __init__(self, db_path: str = "paper_trading.db", initial_capital: float = None):
         self.db_path = db_path
 
-        # Load initial capital from config.json if not specified
+        # Load initial capital from config if not specified
         if initial_capital is None:
             try:
-                # Use standard JSON load directly here to avoid circular dependencies with schemas
-                # or just as a fallback.
-                config_path = Path("config.json")
-                if config_path.exists():
-                    with open(config_path, 'r', encoding='utf-8') as f:
-                        config = json.load(f)
-                    initial_capital = config.get('paper_trading', {}).get('initial_capital', 1000000)
-                else:
-                    initial_capital = 1000000  # Default 1M JPY
+                from .config_manager import get_config_value
+                initial_capital = get_config_value('paper_trading.initial_capital', 1000000)
             except Exception as e:
-                logger.error(f"Error loading initial capital: {e}")
-                initial_capital = 1000000
+                logger.error(f"Error loading initial capital from config: {e}")
+                initial_capital = 1000000  # Default 1M JPY
 
         self.initial_capital = float(initial_capital)
         self.conn = sqlite3.connect(db_path)

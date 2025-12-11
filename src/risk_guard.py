@@ -75,8 +75,20 @@ class RiskGuard:
             logger.info(f"Risk state loaded. Daily Start: {self.daily_start_value}, HWM: {self.high_water_mark}")
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse risk state file {self.state_file}: {e}")
+            from .errors import RiskManagementError
+            raise RiskManagementError(
+                message=f"Failed to parse risk state file: {self.state_file}",
+                risk_type="STATE_LOAD_ERROR",
+                details={"file_path": self.state_file, "original_error": str(e)}
+            ) from e
         except Exception as e:
             logger.error(f"Failed to load risk state: {e}")
+            from .errors import RiskManagementError
+            raise RiskManagementError(
+                message="Failed to load risk state",
+                risk_type="STATE_LOAD_ERROR",
+                details={"file_path": self.state_file, "original_error": str(e)}
+            ) from e
 
     def save_state(self):
         """Save risk state to file."""
@@ -86,6 +98,12 @@ class RiskGuard:
                 json.dump(state, f, indent=4, ensure_ascii=False)
         except Exception as e:
             logger.error(f"Failed to save risk state: {e}")
+            from .errors import RiskManagementError
+            raise RiskManagementError(
+                message="Failed to save risk state",
+                risk_type="STATE_SAVE_ERROR",
+                details={"file_path": self.state_file, "original_error": str(e)}
+            ) from e
 
     def reset_daily_tracking(self, current_value: float):
         """Reset daily tracking at market open."""

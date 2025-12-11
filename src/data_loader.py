@@ -161,7 +161,12 @@ def _download_and_cache_missing(
         )
     except Exception as exc:
         logger.error("Error downloading data for %s: %s", tickers, exc)
-        return {}
+        from .errors import DataLoadError
+        raise DataLoadError(
+            message=f"Failed to download data for tickers: {tickers}",
+            ticker=",".join(tickers) if tickers else None,
+            details={"period": period, "interval": interval, "original_error": str(exc)}
+        ) from exc
 
     if raw.empty:
         return {}
@@ -172,10 +177,19 @@ def _download_and_cache_missing(
     for ticker, df in processed.items():
         if df.empty:
             continue
-        db.save_data(df, ticker)
-        refreshed = db.load_data(ticker, start_date=start_date)
-        if not refreshed.empty:
-            updated[ticker] = refreshed
+        try:
+            db.save_data(df, ticker)
+            refreshed = db.load_data(ticker, start_date=start_date)
+            if not refreshed.empty:
+                updated[ticker] = refreshed
+        except Exception as exc:
+            logger.error("Error saving/loading data for %s: %s", ticker, exc)
+            from .errors import DataLoadError
+            raise DataLoadError(
+                message=f"Failed to save/load data for ticker: {ticker}",
+                ticker=ticker,
+                details={"original_error": str(exc)}
+            ) from exc
 
     return updated
 
