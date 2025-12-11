@@ -1,121 +1,218 @@
-"""
-config_managerのテスト
-"""
-import pytest
+"""config_manager.pyのユニットテスト"""
+
+import json
+import tempfile
 import os
-from unittest.mock import patch
-from src.config_manager import Config
+from pathlib import Path
+import pytest
+from src.config_manager import ConfigManager, TradingConfig
+from src.errors import ConfigurationError
 
 
-def test_config_defaults():
-    """デフォルト値のテスト"""
-    assert Config.ENVIRONMENT == 'development' or isinstance(Config.ENVIRONMENT, str)
-    assert isinstance(Config.DEBUG, bool)
-    assert isinstance(Config.PAPER_TRADING, bool)
-
-
-def test_config_debug_parsing():
-    """DEBUG設定のパースのテスト"""
-    with patch.dict(os.environ, {'DEBUG': 'true'}):
-        # 環境変数を再読み込み
-        from importlib import reload
-        import src.config_manager
-        reload(src.config_manager)
-        assert src.config_manager.Config.DEBUG is True
-
-
-def test_config_paper_trading_parsing():
-    """PAPER_TRADING設定のパースのテスト"""
-    with patch.dict(os.environ, {'PAPER_TRADING': 'false'}):
-        from importlib import reload
-        import src.config_manager
-        reload(src.config_manager)
-        assert src.config_manager.Config.PAPER_TRADING is False
-
-
-def test_config_cache_ttl_parsing():
-    """CACHE_TTL設定のパースのテスト"""
-    with patch.dict(os.environ, {'CACHE_TTL': '7200'}):
-        from importlib import reload
-        import src.config_manager
-        reload(src.config_manager)
-        assert src.config_manager.Config.CACHE_TTL == 7200
-
-
-def test_config_max_workers_parsing():
-    """MAX_WORKERS設定のパースのテスト"""
-    with patch.dict(os.environ, {'MAX_WORKERS': '8'}):
-        from importlib import reload
-        import src.config_manager
-        reload(src.config_manager)
-        assert src.config_manager.Config.MAX_WORKERS == 8
-
-
-def test_config_validate_development():
-    """開発環境での検証テスト"""
-    with patch.object(Config, 'ENVIRONMENT', 'development'):
-        assert Config.validate() is True
-
-
-def test_config_validate_production_missing_secret():
-    """本番環境でSECRET_KEYが未設定の場合"""
-    with patch.object(Config, 'ENVIRONMENT', 'production'), \
-         patch.object(Config, 'SECRET_KEY', 'dev-secret-key-change-in-production'):
-        assert Config.validate() is False
-
-
-def test_config_validate_production_missing_jwt():
-    """本番環境でJWT_SECRETが未設定の場合"""
-    with patch.object(Config, 'ENVIRONMENT', 'production'), \
-         patch.object(Config, 'SECRET_KEY', 'production-secret'), \
-         patch.object(Config, 'JWT_SECRET', 'dev-jwt-secret-change-in-production'):
-        assert Config.validate() is False
-
-
-def test_config_validate_production_missing_openai():
-    """本番環境でOPENAI_API_KEYが未設定の場合"""
-    with patch.object(Config, 'ENVIRONMENT', 'production'), \
-         patch.object(Config, 'SECRET_KEY', 'production-secret'), \
-         patch.object(Config, 'JWT_SECRET', 'production-jwt'), \
-         patch.object(Config, 'OPENAI_API_KEY', ''):
-        assert Config.validate() is False
-
-
-def test_config_validate_production_all_set():
-    """本番環境で全ての必須設定がある場合"""
-    with patch.object(Config, 'ENVIRONMENT', 'production'), \
-         patch.object(Config, 'SECRET_KEY', 'production-secret'), \
-         patch.object(Config, 'JWT_SECRET', 'production-jwt'), \
-         patch.object(Config, 'OPENAI_API_KEY', 'sk-test'):
-        assert Config.validate() is True
-
-
-def test_config_to_dict():
-    """to_dictメソッドのテスト"""
-    config_dict = Config.to_dict()
+class TestTradingConfig:
+    """TradingConfigのテスト"""
     
-    assert 'environment' in config_dict
-    assert 'debug' in config_dict
-    assert 'log_level' in config_dict
-    assert 'paper_trading' in config_dict
-    assert 'auto_trading_enabled' in config_dict
-    assert 'enable_notifications' in config_dict
-    assert 'cache_ttl' in config_dict
-    assert 'max_workers' in config_dict
+    def test_trading_config_initialization(self):
+        """TradingConfigの初期化テスト"""
+        config = TradingConfig(
+            initial_capital=1000000.0,
+            paper_trading_initial_capital=500000.0,
+            risk_management={"daily_loss_limit_pct": -5.0},
+            mini_stock={"enabled": True},
+            backtest={"default_period": "2y"}
+        )
+        assert config.initial_capital == 1000000.0
+        assert config.paper_trading_initial_capital == 500000.0
+        assert config.risk_management == {"daily_loss_limit_pct": -5.0}
+        assert config.mini_stock == {"enabled": True}
+        assert config.backtest == {"default_period": "2y"}
     
-    # 機密情報が含まれていないことを確認
-    assert 'SECRET_KEY' not in config_dict
-    assert 'JWT_SECRET' not in config_dict
-    assert 'OPENAI_API_KEY' not in config_dict
+    def test_trading_config_validation_valid_values(self):
+        """TradingConfigの有効な値の検証テスト"""
+        # 有効な値で初期化されることを確認
+        config = TradingConfig(initial_capital=1000000.0, paper_trading_initial_capital=500000.0)
+        assert config.initial_capital == 1000000.0
+        assert config.paper_trading_initial_capital == 500000.0
+    
+    def test_trading_config_validation_invalid_initial_capital(self):
+        """TradingConfigの無効な初期資本金の検証テスト"""
+        with pytest.raises(ConfigurationError) as exc_info:
+            TradingConfig(initial_capital=-1000.0)
+        assert exc_info.value.config_key == "initial_capital"
+        
+        with pytest.raises(ConfigurationError) as exc_info:
+            TradingConfig(initial_capital=0)
+        assert exc_info.value.config_key == "initial_capital"
+        
+        with pytest.raises(ConfigurationError) as exc_info:
+            TradingConfig(initial_capital="invalid")
+        assert exc_info.value.config_key == "initial_capital"
+    
+    def test_trading_config_validation_invalid_paper_trading_capital(self):
+        """TradingConfigの無効なペーパートレード初期資本金の検証テスト"""
+        with pytest.raises(ConfigurationError) as exc_info:
+            TradingConfig(initial_capital=1000000.0, paper_trading_initial_capital=-500000.0)
+        assert exc_info.value.config_key == "paper_trading_initial_capital"
 
 
-def test_config_to_dict_types():
-    """to_dictの返り値の型のテスト"""
-    config_dict = Config.to_dict()
+class TestConfigManager:
+    """ConfigManagerのテスト"""
     
-    assert isinstance(config_dict['environment'], str)
-    assert isinstance(config_dict['debug'], bool)
-    assert isinstance(config_dict['log_level'], str)
-    assert isinstance(config_dict['paper_trading'], bool)
-    assert isinstance(config_dict['cache_ttl'], int)
-    assert isinstance(config_dict['max_workers'], int)
+    def test_config_manager_initialization_with_default(self):
+        """ConfigManagerの初期化とデフォルト値のテスト"""
+        # 無効なパスで初期化（デフォルト設定が使用される）
+        manager = ConfigManager(config_path="nonexistent_config.json")
+        config = manager.load_config()
+        
+        assert isinstance(config, TradingConfig)
+        assert config.initial_capital == 1000000.0
+        assert config.paper_trading_initial_capital == 1000000.0
+    
+    def test_config_manager_with_valid_config_file(self):
+        """有効な設定ファイルを使用したConfigManagerのテスト"""
+        # 一時的な設定ファイルを作成
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+            config_data = {
+                "initial_capital": 2000000.0,
+                "paper_trading": {
+                    "initial_capital": 1500000.0
+                },
+                "risk_management": {
+                    "daily_loss_limit_pct": -3.0
+                }
+            }
+            json.dump(config_data, f)
+            temp_config_path = f.name
+        
+        try:
+            manager = ConfigManager(config_path=temp_config_path)
+            config = manager.load_config()
+            
+            assert config.initial_capital == 2000000.0
+            assert config.paper_trading_initial_capital == 1500000.0
+            assert config.risk_management["daily_loss_limit_pct"] == -3.0
+        finally:
+            # テンポラリファイルを削除
+            os.unlink(temp_config_path)
+    
+    def test_config_manager_with_invalid_json(self):
+        """無効なJSONファイルのテスト"""
+        # 無効なJSONデータを持つ一時ファイルを作成
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+            f.write("{ invalid json }")
+            temp_config_path = f.name
+        
+        try:
+            with pytest.raises(ConfigurationError) as exc_info:
+                manager = ConfigManager(config_path=temp_config_path)
+                manager.load_config()
+            
+            assert exc_info.value.config_key == "config_file"
+        finally:
+            # テンポラリファイルを削除
+            os.unlink(temp_config_path)
+    
+    def test_config_manager_with_missing_required_key(self):
+        """必須キーが欠落している設定ファイルのテスト"""
+        # 初期資本金がない設定ファイルを作成
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+            config_data = {
+                "paper_trading": {
+                    "initial_capital": 1500000.0
+                }
+            }
+            json.dump(config_data, f)
+            temp_config_path = f.name
+        
+        try:
+            with pytest.raises(ConfigurationError) as exc_info:
+                manager = ConfigManager(config_path=temp_config_path)
+                manager.load_config()
+            
+            assert exc_info.value.config_key == "initial_capital"
+        finally:
+            # テンポラリファイルを削除
+            os.unlink(temp_config_path)
+    
+    def test_config_manager_get_method(self):
+        """ConfigManagerのgetメソッドのテスト"""
+        manager = ConfigManager(config_path="nonexistent_config.json")
+        
+        # 存在するキーの取得
+        initial_capital = manager.get("initial_capital")
+        assert initial_capital == 1000000.0
+        
+        # 存在しないキーの取得（デフォルト値）
+        nonexistent = manager.get("nonexistent_key", "default_value")
+        assert nonexistent == "default_value"
+    
+    def test_config_manager_get_nested_method(self):
+        """ConfigManagerのget_nestedメソッドのテスト"""
+        manager = ConfigManager(config_path="nonexistent_config.json")
+        
+        # ネストされたキーの取得
+        daily_loss_limit = manager.get_nested("risk_management.daily_loss_limit_pct")
+        assert daily_loss_limit == -5.0  # デフォルト値
+        
+        # 存在しないネストされたキーの取得（デフォルト値）
+        nonexistent = manager.get_nested("nonexistent.nested.key", "default_value")
+        assert nonexistent == "default_value"
+    
+    def test_config_manager_update_config(self):
+        """ConfigManagerの設定更新のテスト"""
+        manager = ConfigManager(config_path="nonexistent_config.json")
+        
+        # 設定を更新
+        new_config = {"initial_capital": 3000000.0}
+        manager.update_config(new_config)
+        
+        # 更新された値を確認
+        updated_capital = manager.get("initial_capital")
+        assert updated_capital == 3000000.0
+    
+    def test_config_manager_update_config_validation(self):
+        """ConfigManagerの設定更新時の検証テスト"""
+        manager = ConfigManager(config_path="nonexistent_config.json")
+        
+        # 無効な値で設定を更新しようとするとエラーになることを確認
+        invalid_config = {"initial_capital": -1000.0}
+        
+        with pytest.raises(ConfigurationError):
+            manager.update_config(invalid_config)
+    
+    def test_config_manager_save_config(self):
+        """ConfigManagerの設定保存のテスト"""
+        manager = ConfigManager(config_path="nonexistent_config.json")
+        
+        # 新しい設定を作成して保存
+        new_config = {"initial_capital": 2500000.0, "test_key": "test_value"}
+        manager.update_config(new_config)
+        
+        # 一時的な保存先を作成
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.json') as f:
+            temp_save_path = f.name
+        
+        try:
+            manager.save_config(output_path=temp_save_path)
+            
+            # 保存されたファイルを読み込んで確認
+            with open(temp_save_path, 'r', encoding='utf-8') as f:
+                saved_data = json.load(f)
+            
+            assert saved_data["initial_capital"] == 2500000.0
+            assert saved_data["test_key"] == "test_value"
+        finally:
+            # テンポラリファイルを削除
+            os.unlink(temp_save_path)
+    
+    def test_config_manager_save_config_error(self):
+        """ConfigManagerの設定保存エラーのテスト"""
+        manager = ConfigManager(config_path="nonexistent_config.json")
+        
+        # アクセス不可なパスに保存しようとするとエラーになることを確認
+        invalid_path = "/invalid/path/config.json"
+        
+        with pytest.raises(ConfigurationError) as exc_info:
+            manager.save_config(output_path=invalid_path)
+        
+        assert exc_info.value.config_key == "config_save"
