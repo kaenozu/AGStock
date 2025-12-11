@@ -53,15 +53,24 @@ MARKET_SUMMARY_CACHE_KEY = "market_summary_snapshot"
 MARKET_SUMMARY_TTL = 1800
 FUNDAMENTAL_CACHE_TTL = 86400
 
-_cache_instance: Optional[CacheManager] = None
+
+# シングルトンキャッシュインスタンスの作成
+def _create_cache_instance() -> Optional[CacheManager]:
+    """キャッシュマネージャーのインスタンスを作成"""
+    if HAS_PERSISTENT_CACHE and CacheManager is not None:
+        try:
+            return CacheManager()
+        except Exception as e:
+            logger.error(f"Cache manager initialization failed: {e}")
+            return None
+    return None
+
+
+_cache_instance: Optional[CacheManager] = _create_cache_instance()
 
 
 def _get_cache() -> Optional[CacheManager]:
-    global _cache_instance
-    if not HAS_PERSISTENT_CACHE or CacheManager is None:
-        return None
-    if _cache_instance is None:
-        _cache_instance = CacheManager()
+    """キャッシュマネージャーのインスタンスを取得"""
     return _cache_instance
 
 
@@ -70,16 +79,27 @@ def _should_use_async_loader(use_async: bool, tickers: Sequence[str]) -> bool:
 
 
 def _run_coroutine(coro_factory: Callable[[], Awaitable[T]]) -> T:
+    """
+    非同期処理を安全に実行するためのヘルパー関数
+    既存のイベントループに対応し、安全に非同期処理を実行する
+    """
     try:
+        # 既存のイベントループを取得
         loop = asyncio.get_event_loop()
         if loop.is_running():
+            # イベントループが実行中の場合は新しいループを作成
             new_loop = asyncio.new_event_loop()
             try:
+                asyncio.set_event_loop(new_loop)
                 return new_loop.run_until_complete(coro_factory())
             finally:
                 new_loop.close()
-        return loop.run_until_complete(coro_factory())
+                asyncio.set_event_loop(loop)  # 元のイベントループを復元
+        else:
+            # イベントループが実行中でなければ直接実行
+            return loop.run_until_complete(coro_factory())
     except RuntimeError:
+        # イベントループが存在しない場合、新しいループで実行
         return asyncio.run(coro_factory())
 
 

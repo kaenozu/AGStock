@@ -2,12 +2,14 @@
 Vectorized Backtester - 高速バックテストエンジン
 Pandasのベクトル演算を活用し、ループ処理を排除した超高速バックテストを実現
 """
+
 import pandas as pd
 import numpy as np
-from typing import Dict, Any, Tuple
+from typing import Dict
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 class VectorizedBacktester:
     """ベクトル化バックテスター"""
@@ -33,7 +35,7 @@ class VectorizedBacktester:
             パフォーマンス指標 (Sharpe Ratio, Total Return)
         """
         try:
-            # データコピー（元データを破壊しないため）ただし速度重視なら参照渡し検討
+            # データコピー（元データを破壊しないため）  ただし速度重視なら参照渡し検討
             # ここでは安全のためコピー、ただし必要なカラムのみ
             data = df[['Close']].copy()
             
@@ -70,14 +72,13 @@ class VectorizedBacktester:
             # Signalが1のとき保有開始、-1のとき解消。
             # cumsumを使って現在のポジション状態を計算するのは単純すぎ（ドテンになる）
             # ここでは「翌日のリターン」にシグナルを掛ける簡易バックテストとする
-            
-            # ポジション: 直近の非ゼロシグナルを採用 (ffill)
-            data['Position'] = data['Signal'].replace(0, np.nan).fillna(method='ffill')
-            data['Position'] = data['Position'].fillna(0)
+
+            # ポジション: 直近の非ゼロシグナルを採用 (ffill) - 最初のシグナルが現れる前は0
+            data['Position'] = data['Signal'].replace(0, np.nan).fillna(method='ffill').fillna(0)
             
             # 3. リターン計算
             data['Market_Ret'] = data['Close'].pct_change()
-            data['Strategy_Ret'] = data['Market_Ret'] * data['Position'].shift(1) # 前日のポジションで翌日のリターンを得る
+            data['Strategy_Ret'] = data['Market_Ret'] * data['Position'].shift(1)  # 前日のポジションで翌日のリターンを得る
             
             # コスト控除 (簡易: 0.1%)
             # 取引回数: Positionが変化した回数
@@ -97,7 +98,7 @@ class VectorizedBacktester:
             if daily_vol == 0:
                 sharpe = 0
             else:
-                sharpe = (daily_ret / daily_vol) * np.sqrt(252) # 年率換算
+                sharpe = (daily_ret / daily_vol) * np.sqrt(252)  # 年率換算
             
             return {
                 "total_return": total_return,
@@ -105,12 +106,15 @@ class VectorizedBacktester:
                 "trades": trades.sum()
             }
             
-        except Exception as e:
+        except Exception:
             # logger.error(f"Backtest error: {e}")
             return {"total_return": -1.0, "sharpe_ratio": -1.0}
 
+
 # シングルトン
+
 _backtester = None
+
 
 def get_vector_backtester() -> VectorizedBacktester:
     global _backtester

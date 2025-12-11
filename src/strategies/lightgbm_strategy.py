@@ -150,7 +150,8 @@ class LightGBMStrategy(Strategy):
 
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
         try:
-            pass
+            # Verify lightgbm is available
+            import lightgbm as lgb
         except ImportError:
             logger.warning("LightGBM not installed. Returning empty signals.")
             return pd.Series(0, index=df.index)
