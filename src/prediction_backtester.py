@@ -7,14 +7,14 @@ import numpy as np
 from typing import Dict, List, Optional
 from datetime import datetime, timedelta
 import logging
-from src.ensemble_predictor import EnsemblePredictor
+from src.enhanced_ensemble_predictor import EnhancedEnsemblePredictor
 from src.data_loader import fetch_stock_data, fetch_fundamental_data
 
 logger = logging.getLogger(__name__)
 
 class PredictionBacktester:
     def __init__(self):
-        self.predictor = EnsemblePredictor()
+        self.predictor = EnhancedEnsemblePredictor()
         
     def run_backtest(
         self, 

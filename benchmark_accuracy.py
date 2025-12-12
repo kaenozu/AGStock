@@ -72,9 +72,9 @@ def backtest_basic_model(df, test_days=30):
 
 def backtest_ensemble_model(df, test_days=30):
     """アンサンブルモデルのバックテスト"""
-    from src.ensemble_predictor import EnsemblePredictor
-    
-    predictor = EnsemblePredictor()
+    from src.enhanced_ensemble_predictor import EnhancedEnsemblePredictor
+
+    predictor = EnhancedEnsemblePredictor()
     predictions = []
     actuals = []
     

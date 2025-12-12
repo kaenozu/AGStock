@@ -169,10 +169,10 @@ def test_data_augmenter():
 
 def test_ensemble_predictor():
     """アンサンブル予測テスト（統合）"""
-    from src.ensemble_predictor import EnsemblePredictor
+    from src.enhanced_ensemble_predictor import EnhancedEnsemblePredictor
     from src.data_loader import fetch_stock_data
-    
-    predictor = EnsemblePredictor()
+
+    predictor = EnhancedEnsemblePredictor()
     data = fetch_stock_data(["7203.T"], period="1y")
     df = data.get("7203.T")
     

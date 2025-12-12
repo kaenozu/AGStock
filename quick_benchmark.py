@@ -47,8 +47,8 @@ print(f"   方向精度: {basic_acc:.0%} ({correct}/{total})")
 
 # 2. アンサンブル
 print("\n2️⃣ アンサンブル (5モデル) テスト...")
-from src.ensemble_predictor import EnsemblePredictor
-ensemble = EnsemblePredictor()
+from src.enhanced_ensemble_predictor import EnhancedEnsemblePredictor
+ensemble = EnhancedEnsemblePredictor()
 result = ensemble.predict_trajectory(df, days_ahead=5, ticker="7203.T")
 print(f"   予測: {result.get('trend', 'N/A')}, {result.get('change_pct', 0):+.1f}%")
 

@@ -123,7 +123,7 @@ class MarketScanner:
                         # 🔮 中期予測フィルター（新機能）
                         # 短期だけでなく、5日後も上昇が見込める銘柄のみBUY
                         try:
-                            predictor = EnsemblePredictor()
+                            predictor = EnhancedEnsemblePredictor()
                             future_result = predictor.predict_trajectory(df, days_ahead=5)
                             
                             if "error" not in future_result:

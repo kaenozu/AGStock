@@ -32,9 +32,9 @@ class IntelligentAutoSelector:
     def _initialize(self):
         """各コンポーネントを初期化"""
         try:
-            from src.ensemble_predictor import EnsemblePredictor
-            self.ensemble_predictor = EnsemblePredictor()
-            logger.info("EnsemblePredictor initialized with 5 models + RL + FinBERT")
+            from src.enhanced_ensemble_predictor import EnhancedEnsemblePredictor
+            self.ensemble_predictor = EnhancedEnsemblePredictor()
+            logger.info("EnhancedEnsemblePredictor initialized with advanced models + RL + FinBERT")
         except Exception as e:
             logger.error(f"Failed to init EnsemblePredictor: {e}")
         

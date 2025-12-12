@@ -341,7 +341,7 @@ def show_main_dashboard():
                             data_map = fetch_stock_data([ticker], period="2y")
                             df = data_map.get(ticker)
                             
-                            predictor = EnsemblePredictor()
+                            predictor = EnhancedEnsemblePredictor()
                             result = predictor.predict_trajectory(df, days_ahead=5)
                             
                             if "error" in result:
