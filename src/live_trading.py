@@ -11,6 +11,7 @@ import yfinance as yf
 
 from src.strategies import Strategy, Order, OrderType
 from src.broker import Broker, Position as BrokerPosition
+from src.constants import DEFAULT_VOLATILITY_SYMBOL, FALLBACK_VOLATILITY_SYMBOLS
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -155,13 +156,13 @@ class LiveTradingEngine:
     Fetches data, runs strategies, and sends orders to the broker.
     """
     def __init__(
-        self, 
-        broker: Broker, 
-        strategies: Dict[str, Strategy], 
+        self,
+        broker: Broker,
+        strategies: Dict[str, Strategy],
         tickers: List[str],
         enable_risk_guard: bool = True,
         initial_portfolio_value: float = 100_000.0,
-        vol_symbol: str = "^VIX",
+        vol_symbol: str = DEFAULT_VOLATILITY_SYMBOL,
     ):
         self.broker = broker
         self.strategies = strategies
@@ -198,11 +199,20 @@ class LiveTradingEngine:
         try:
             with open("config.json", "r", encoding="utf-8") as f:
                 cfg = json.load(f)
+            # バリデーション: volatility_symbolsが存在し、リスト形式であることを確認
             vol_list = cfg.get("volatility_symbols")
-            if isinstance(vol_list, list) and vol_list:
-                fallback_list = [str(s) for s in vol_list if s]
-        except Exception:
+            if vol_list is not None:
+                if isinstance(vol_list, list) and all(isinstance(s, str) for s in vol_list if s):
+                    fallback_list = [str(s) for s in vol_list if s]
+                else:
+                    logger.warning("Invalid volatility_symbols format in config.json. Using default VIX symbol.")
+        except FileNotFoundError:
+            # config.jsonが存在しない場合はデフォルトのまま継続
             pass
+        except json.JSONDecodeError:
+            logger.warning("Invalid JSON format in config.json. Using default VIX symbol.")
+        except Exception:
+            logger.warning("Error reading config.json. Using default VIX symbol.")
 
         if "^VIX" not in fallback_list:
             fallback_list.append("^VIX")

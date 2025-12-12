@@ -74,7 +74,8 @@ cp .env.example .env
 
 # 設定ファイル作成（任意）
 cp config.json.example config.json
-# config.jsonファイルを編集して設定をカスタマイズ
+# config.jsonファイルを編集して実行時設定をカスタマイズ
+# 設定例: ボラティリティ指標、リスク許容度など
 
 # 起動
 streamlit run app.py
@@ -148,6 +149,9 @@ streamlit run weekend_advisor.py
 - `REALTIME_BACKOFF_SECONDS`: リアルタイムデータ取得時のリトライ間隔（デフォルト: 1秒）
 - `PAPER_TRADER_REALTIME_FALLBACK`: ペーパートレードでリアルタイム価格を使用するか（デフォルト: false）
 - `PAPER_TRADER_REFRESH_INTERVAL`: ペーパートレードの価格更新間隔（秒、デフォルト: 300秒）
+
+> **注意**: 環境変数は `.env` ファイルで設定することを推奨します。このファイルはAPIキーなどの機密情報を含むため、`.gitignore` でバージョン管理から除外されています。
+> 設定ファイル（`config.json`）は実行時の設定を保存するためのもので、環境変数とは異なります。
 
 ---
 

@@ -7,6 +7,11 @@ from typing import Dict, Optional, Tuple
 import json
 import logging
 from pathlib import Path
+
+from src.constants import (
+    DEFAULT_PAPER_TRADER_REFRESH_INTERVAL,
+    PAPER_TRADER_REALTIME_FALLBACK_DEFAULT
+)
 from src.data_loader import fetch_stock_data
 from src.helpers import retry_with_backoff
 
@@ -42,13 +47,19 @@ class PaperTrader:
         if flag is not None:
             return bool(flag)
         env_val = os.getenv("PAPER_TRADER_REALTIME_FALLBACK", "").lower()
-        return env_val in {"1", "true", "yes", "on"}
+        if env_val in {"1", "true", "yes", "on"}:
+            return True
+        elif env_val in {"0", "false", "no", "off", ""}:
+            return PAPER_TRADER_REALTIME_FALLBACK_DEFAULT
+        else:
+            logger.warning(f"Invalid value for PAPER_TRADER_REALTIME_FALLBACK: {env_val}. Using default value.")
+            return PAPER_TRADER_REALTIME_FALLBACK_DEFAULT
 
     def _min_refresh_interval(self) -> int:
         try:
-            val = int(os.getenv("PAPER_TRADER_REFRESH_INTERVAL", "300"))
+            val = int(os.getenv("PAPER_TRADER_REFRESH_INTERVAL", str(DEFAULT_PAPER_TRADER_REFRESH_INTERVAL)))
         except Exception:
-            val = 300
+            val = DEFAULT_PAPER_TRADER_REFRESH_INTERVAL
         return max(val, 10)
 
     def _calculate_equity_snapshot(self, positions: pd.DataFrame, cash: float) -> Tuple[float, float, float]:

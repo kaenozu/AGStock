@@ -7,6 +7,8 @@ import os
 from datetime import datetime, timedelta
 from typing import Any, Awaitable, Callable, Dict, Mapping, Optional, Sequence, TypeVar
 
+from src.constants import DEFAULT_REALTIME_TTL_SECONDS, DEFAULT_REALTIME_BACKOFF_SECONDS
+
 import pandas as pd
 import streamlit as st
 import yfinance as yf
@@ -71,9 +73,9 @@ def _create_cache_instance() -> Optional[CacheManager]:
 _cache_instance: Optional[CacheManager] = _create_cache_instance()
 _realtime_cache: Dict[str, tuple[float, pd.DataFrame]] = {}
 try:
-    _DEFAULT_REALTIME_TTL = int(os.getenv("REALTIME_TTL_SECONDS", "30"))
+    _DEFAULT_REALTIME_TTL = int(os.getenv("REALTIME_TTL_SECONDS", str(DEFAULT_REALTIME_TTL_SECONDS)))
 except Exception:
-    _DEFAULT_REALTIME_TTL = 30
+    _DEFAULT_REALTIME_TTL = DEFAULT_REALTIME_TTL_SECONDS
 
 
 def _get_cache() -> Optional[CacheManager]:
@@ -413,7 +415,7 @@ def fetch_market_summary() -> tuple[pd.DataFrame, Dict[str, Any]]:
     return summary_df, stats
 
 
-DEFAULT_BACKOFF = int(os.getenv("REALTIME_BACKOFF_SECONDS", "1"))
+DEFAULT_BACKOFF = int(os.getenv("REALTIME_BACKOFF_SECONDS", str(DEFAULT_REALTIME_BACKOFF_SECONDS)))
 
 
 @retry_with_backoff(retries=2, backoff_in_seconds=DEFAULT_BACKOFF)
