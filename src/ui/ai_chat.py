@@ -11,7 +11,7 @@ from src.agents.committee import InvestmentCommittee
 def render_ai_chat():
     """Renders the Ghostwriter chat interface."""
     st.header("💬 AI Chat (Ghostwriter with Context)")
-    st.write("AGStockのアシスタント「Ghostwriter」が、市場分析やポートフォリオについてお答えします。")
+    st.write("AGStockのアシスタント「Ghostwriter」が、市場刁E��めE�EートフォリオにつぁE��お答えします、E)
     
     # 1. Initialize Chat History
     if "messages" not in st.session_state:
@@ -19,7 +19,7 @@ def render_ai_chat():
         # Initial greeting
         st.session_state.messages.append({
             "role": "assistant",
-            "content": "こんにちは！本日の市場やポートフォリオについて、何か気になることはありますか？"
+            "content": "こんにちは�E�本日の市場めE�EートフォリオにつぁE��、何か気になることはありますか�E�E
         })
 
     # 2. Display Chat Messages
@@ -39,7 +39,7 @@ def render_ai_chat():
     with st.form(key="chat_form", clear_on_submit=True):
         col_in, col_btn = st.columns([6, 1])
         with col_in:
-            prompt = st.text_input("質問を入力してください... (例: トヨタの分析をお願い)", key="chat_input_text")
+            prompt = st.text_input("質問を入力してください... (侁E トヨタの刁E��をお願い)", key="chat_input_text")
         with col_btn:
             # Align button
             st.write("") 
@@ -108,4 +108,4 @@ def render_ai_chat():
                     message_placeholder.error(error_msg)
                     st.session_state.messages.append({"role": "assistant", "content": error_msg})
         
-        st.rerun()
+        st.experimental_rerun()
