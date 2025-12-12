@@ -26,7 +26,8 @@ class MarketAnalyst(BaseAgent):
         
         regime_info = None
         market_df = data.get("market_df")
-        if isinstance(market_df, pd.DataFrame) and not market_df.empty:
+        # Ensure market_df is actually a DataFrame before checking .empty
+        if market_df is not None and isinstance(market_df, pd.DataFrame) and not market_df.empty:
             regime_info = self.regime_detector.get_regime_signal(market_df)
         
         # 2. LLM Analysis

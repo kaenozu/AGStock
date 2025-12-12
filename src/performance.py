@@ -318,3 +318,172 @@ class PerformanceAnalyzer:
         except Exception as e:
             print(f"Error comparing with benchmark: {e}")
             return {}
+    
+    def get_daily_returns(self) -> pd.DataFrame:
+        """
+        Calculate daily returns from equity history.
+        
+        Returns:
+            pd.DataFrame: DataFrame with date and daily_return columns
+        """
+        try:
+            conn = self._get_connection()
+            query = """
+            SELECT date, total_equity
+            FROM balance
+            ORDER BY date
+            """
+            equity = pd.read_sql_query(query, conn, parse_dates=['date'])
+            conn.close()
+            
+            if equity.empty or len(equity) < 2:
+                return pd.DataFrame()
+            
+            # Calculate daily returns
+            equity['daily_return'] = equity['total_equity'].pct_change() * 100
+            equity['daily_pnl'] = equity['total_equity'].diff()
+            
+            return equity[['date', 'daily_return', 'daily_pnl']].dropna()
+        
+        except Exception as e:
+            print(f"Error calculating daily returns: {e}")
+            return pd.DataFrame()
+    
+    def get_monthly_heatmap_data(self) -> pd.DataFrame:
+        """
+        Format data for monthly performance heatmap.
+        
+        Returns:
+            pd.DataFrame: DataFrame with year, month, and monthly_return_pct
+        """
+        try:
+            monthly = self.get_monthly_returns()
+            
+            if monthly.empty:
+                return pd.DataFrame()
+            
+            # Convert to percentage
+            monthly['monthly_return_pct'] = monthly['monthly_return'] / 10000  # Assuming returns are in basis points
+            
+            # Add month names for display
+            month_names = {
+                1: '1月', 2: '2月', 3: '3月', 4: '4月',
+                5: '5月', 6: '6月', 7: '7月', 8: '8月',
+                9: '9月', 10: '10月', 11: '11月', 12: '12月'
+            }
+            monthly['month_name'] = monthly['month'].map(month_names)
+            
+            return monthly[['year', 'month', 'month_name', 'monthly_return']]
+        
+        except Exception as e:
+            print(f"Error formatting heatmap data: {e}")
+            return pd.DataFrame()
+    
+    def get_performance_summary(self) -> Dict:
+        """
+        Get overall performance summary statistics.
+        
+        Returns:
+            dict: Summary metrics including win rate, best/worst month, total trades
+        """
+        try:
+            conn = self._get_connection()
+            
+            # Total trades
+            query_trades = "SELECT COUNT(*) as total_trades FROM orders"
+            total_trades = pd.read_sql_query(query_trades, conn)['total_trades'].iloc[0]
+            
+            # Win rate (from closed positions)
+            query_orders = "SELECT * FROM orders ORDER BY date"
+            orders = pd.read_sql_query(query_orders, conn)
+            
+            conn.close()
+            
+            if orders.empty:
+                return {
+                    'total_trades': 0,
+                    'win_rate': 0.0,
+                    'best_month': None,
+                    'worst_month': None,
+                    'total_return': 0.0
+                }
+            
+            # Calculate win rate from realized trades
+            positions = {}
+            wins = 0
+            losses = 0
+            
+            for _, row in orders.iterrows():
+                ticker = row['ticker']
+                action = row['action']
+                quantity = row['quantity']
+                price = row['price']
+                
+                if action == 'BUY':
+                    if ticker not in positions:
+                        positions[ticker] = []
+                    positions[ticker].append({'quantity': quantity, 'price': price})
+                
+                elif action == 'SELL' and ticker in positions:
+                    remaining = quantity
+                    while remaining > 0 and positions[ticker]:
+                        buy_pos = positions[ticker][0]
+                        sell_qty = min(buy_pos['quantity'], remaining)
+                        profit = (price - buy_pos['price']) * sell_qty
+                        
+                        if profit > 0:
+                            wins += 1
+                        elif profit < 0:
+                            losses += 1
+                        
+                        buy_pos['quantity'] -= sell_qty
+                        remaining -= sell_qty
+                        
+                        if buy_pos['quantity'] == 0:
+                            positions[ticker].pop(0)
+            
+            total_closed = wins + losses
+            win_rate = (wins / total_closed * 100) if total_closed > 0 else 0.0
+            
+            # Monthly stats
+            monthly = self.get_monthly_returns()
+            best_month = None
+            worst_month = None
+            
+            if not monthly.empty:
+                best_idx = monthly['monthly_return'].idxmax()
+                worst_idx = monthly['monthly_return'].idxmin()
+                
+                best_month = {
+                    'year': int(monthly.loc[best_idx, 'year']),
+                    'month': int(monthly.loc[best_idx, 'month']),
+                    'return': float(monthly.loc[best_idx, 'monthly_return'])
+                }
+                
+                worst_month = {
+                    'year': int(monthly.loc[worst_idx, 'year']),
+                    'month': int(monthly.loc[worst_idx, 'month']),
+                    'return': float(monthly.loc[worst_idx, 'monthly_return'])
+                }
+            
+            # Total return
+            cumulative = self.get_cumulative_pnl()
+            total_return = cumulative['cumulative_pnl'].iloc[-1] if not cumulative.empty else 0.0
+            
+            return {
+                'total_trades': int(total_trades),
+                'win_rate': win_rate,
+                'best_month': best_month,
+                'worst_month': worst_month,
+                'total_return': total_return
+            }
+        
+        except Exception as e:
+            print(f"Error calculating performance summary: {e}")
+            return {
+                'total_trades': 0,
+                'win_rate': 0.0,
+                'best_month': None,
+                'worst_month': None,
+                'total_return': 0.0
+            }

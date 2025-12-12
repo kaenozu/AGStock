@@ -14,14 +14,21 @@ class PaperTrader:
     def __init__(self, db_path: str = "paper_trading.db", initial_capital: float = None):
         self.db_path = db_path
 
-        # Load initial capital from config if not specified
+        # Load initial capital from config.json if not specified
         if initial_capital is None:
             try:
-                from .config_manager import get_config_value
-                initial_capital = get_config_value('paper_trading.initial_capital', 1000000)
+                # Use standard JSON load directly here to avoid circular dependencies with schemas
+                # or just as a fallback.
+                config_path = Path("config.json")
+                if config_path.exists():
+                    with open(config_path, 'r', encoding='utf-8') as f:
+                        config = json.load(f)
+                    initial_capital = config.get('paper_trading', {}).get('initial_capital', 1000000)
+                else:
+                    initial_capital = 1000000  # Default 1M JPY
             except Exception as e:
-                logger.error(f"Error loading initial capital from config: {e}")
-                initial_capital = 1000000  # Default 1M JPY
+                logger.error(f"Error loading initial capital: {e}")
+                initial_capital = 1000000
 
         self.initial_capital = float(initial_capital)
         self.conn = sqlite3.connect(db_path)
@@ -118,6 +125,7 @@ class PaperTrader:
             'invested_amount': 0.0,
             'unrealized_pnl': 0.0
         }
+
     def get_positions(self) -> pd.DataFrame:
         """Get current open positions with calculated market values"""
         try:
@@ -127,7 +135,7 @@ class PaperTrader:
 
         if df.empty:
             # Return empty with expected columns
-            empty_df = pd.DataFrame(columns=['ticker', 'quantity', 'entry_price', 'current_price', 
+            empty_df = pd.DataFrame(columns=['ticker', 'quantity', 'entry_price', 'current_price',
                                        'unrealized_pnl', 'market_value', 'unrealized_pnl_pct'])
             # Ensure index is set even for empty df if downstream expects it
             return empty_df.set_index('ticker', drop=False) if not empty_df.empty else empty_df
@@ -166,20 +174,20 @@ class PaperTrader:
         tickers = positions['ticker'].tolist()
         if not tickers:
             return
-            
+
         try:
             data_map = fetch_stock_data(tickers, period="5d") # Short period is enough for current price
-            
+
             cursor = self.conn.cursor()
             updated = False
-            
+
             for _, pos in positions.iterrows():
                 ticker = pos['ticker']
                 if ticker in data_map and not data_map[ticker].empty:
                     current_price = data_map[ticker]['Close'].iloc[-1]
                     if hasattr(current_price, 'item'):
                         current_price = current_price.item()
-                    
+
                     unrealized_pnl = (float(current_price) - float(pos['entry_price'])) * int(pos['quantity'])
 
                     cursor.execute('''
@@ -188,10 +196,10 @@ class PaperTrader:
                         WHERE ticker = ?
                     ''', (current_price, unrealized_pnl, ticker))
                     updated = True
-            
+
             if updated:
                 self.conn.commit()
-                
+
         except Exception as e:
             logger.error(f"Failed to update position prices: {e}")
             raise e # Propagation for retry
@@ -224,7 +232,7 @@ class PaperTrader:
                     new_qty = old_qty + quantity
                     # Weighted average price
                     new_avg_price = ((old_qty * old_price) + (quantity * price)) / new_qty
-                    
+
                     cursor.execute('''
                         UPDATE positions
                         SET quantity = ?, entry_price = ?, current_price = ?
@@ -274,7 +282,7 @@ class PaperTrader:
 
             self.conn.commit()
             return True
-            
+
         except Exception as e:
             logger.error(f"Trade execution failed: {e}")
             return False
@@ -285,11 +293,11 @@ class PaperTrader:
             self.update_positions_prices()
 
             balance = self.get_current_balance()
-            
+
             # Recalculate simply from balance and positions just in case
-            # But get_current_balance already does logic. 
+            # But get_current_balance already does logic.
             # Ideally we trust get_current_balance['total_equity'] but we better update DB record.
-            
+
             # get_current_balance reads from DB 'balance' table (cash) + calculated position value
             # So let's maximize consistency
             total_equity = balance['total_equity']
