@@ -68,20 +68,52 @@ run_unified_dashboard.bat
 # 依存関係インストール
 pip install -r requirements.txt
 
-# 環境変数設定（任意）
+# 環境変数ファイルの設定（任意）
 cp .env.example .env
-# .envファイルを編集してAPIキーを設定
+# .envファイルを編集してAPIキー等を設定
+# 詳細な設定は「環境変数一覧」セクションを参照
 
-# 設定ファイル作成（任意）
+# 実行時設定ファイルの作成（任意）
 cp config.json.example config.json
 # config.jsonファイルを編集して実行時設定をカスタマイズ
 # 設定例: ボラティリティ指標、リスク許容度など
+# 詳細な設定は「設定ファイル」セクションを参照
 
 # 起動
 streamlit run app.py
 ```
 
 ブラウザで `http://localhost:8501` にアクセス
+
+---
+
+## ⚙️ 設定ファイル
+
+このセクションでは、`config.json` で設定可能な項目について説明します。
+
+### 設定例
+
+```json
+{
+  "volatility_symbols": [
+    "^VIX",
+    "^VXO"
+  ],
+  "risk_limits": {
+    "max_daily_loss_pct": -5.0,
+    "max_position_size_pct": 10.0,
+    "max_volatility_threshold": 40.0
+  },
+  "trading_settings": {
+    "default_position_size_usd": 10000,
+    "min_stock_price_threshold": 5.0
+  }
+}
+```
+
+- `volatility_symbols`: ボラティリティ指標として使用する銘柄を設定します。
+- `risk_limits`: リスク管理のための制限を設定します。
+- `trading_settings`: 取引時の設定を定義します。
 
 ---
 

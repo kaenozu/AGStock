@@ -62,6 +62,33 @@ class PaperTrader:
             val = DEFAULT_PAPER_TRADER_REFRESH_INTERVAL
         return max(val, 10)
 
+    def _calculate_position_value(self, pos: pd.Series) -> Tuple[float, float, float]:
+        """
+        各ポジションの市場価値、投資額、未実現損益を計算
+        """
+        qty = float(pos.get("quantity", 0) or 0)
+        entry_price = float(pos.get("entry_price") or pos.get("avg_price") or 0.0)
+        current_price = pos.get("current_price", entry_price)
+
+        # current_price が欠損/0の時は entry_price で代替
+        try:
+            current_price = float(current_price)
+        except Exception:
+            current_price = entry_price
+        if pd.isna(current_price) or current_price == 0:
+            current_price = entry_price
+
+        market_value = qty * current_price
+        invested_amount = qty * entry_price
+
+        stored_unrealized = pos.get("unrealized_pnl")
+        if stored_unrealized is None or pd.isna(stored_unrealized):
+            unrealized_pnl = (current_price - entry_price) * qty
+        else:
+            unrealized_pnl = float(stored_unrealized)
+
+        return market_value, invested_amount, unrealized_pnl
+
     def _calculate_equity_snapshot(self, positions: pd.DataFrame, cash: float) -> Tuple[float, float, float]:
         """現金と保有ポジションから総資産/投下資本/含み損益を計算"""
         invested_amount = 0.0
@@ -70,26 +97,10 @@ class PaperTrader:
 
         if not positions.empty:
             for _, pos in positions.iterrows():
-                qty = float(pos.get("quantity", 0) or 0)
-                entry_price = float(pos.get("entry_price") or pos.get("avg_price") or 0.0)
-                current_price = pos.get("current_price", entry_price)
-
-                # current_price が欠損/0の時は entry_price で代替
-                try:
-                    current_price = float(current_price)
-                except Exception:
-                    current_price = entry_price
-                if pd.isna(current_price) or current_price == 0:
-                    current_price = entry_price
-
-                market_value += qty * current_price
-                invested_amount += qty * entry_price
-
-                stored_unrealized = pos.get("unrealized_pnl")
-                if stored_unrealized is None or pd.isna(stored_unrealized):
-                    unrealized_pnl += (current_price - entry_price) * qty
-                else:
-                    unrealized_pnl += float(stored_unrealized)
+                pos_market_value, pos_invested_amount, pos_unrealized_pnl = self._calculate_position_value(pos)
+                market_value += pos_market_value
+                invested_amount += pos_invested_amount
+                unrealized_pnl += pos_unrealized_pnl
 
         total_equity = cash + market_value
         return total_equity, invested_amount, unrealized_pnl

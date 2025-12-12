@@ -229,7 +229,7 @@ class LiveTradingEngine:
                 self._last_vix_level = val
                 return val
             except Exception as exc:
-                logger.warning(f"Failed to fetch volatility symbol {sym}: {exc}")
+                logger.warning("Failed to fetch volatility symbol: %s, error: %s", sym, exc)
                 continue
 
         return self._last_vix_level
