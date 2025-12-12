@@ -1,0 +1,15 @@
+{
+  "volatility_symbols": [
+    "^VIX",
+    "^VXO"
+  ],
+  "risk_limits": {
+    "max_daily_loss_pct": -5.0,
+    "max_position_size_pct": 10.0,
+    "max_volatility_threshold": 40.0
+  },
+  "trading_settings": {
+    "default_position_size_usd": 10000,
+    "min_stock_price_threshold": 5.0
+  }
+}

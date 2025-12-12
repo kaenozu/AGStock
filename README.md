@@ -72,6 +72,10 @@ pip install -r requirements.txt
 cp .env.example .env
 # .envファイルを編集してAPIキーを設定
 
+# 設定ファイル作成（任意）
+cp config.json.example config.json
+# config.jsonファイルを編集して設定をカスタマイズ
+
 # 起動
 streamlit run app.py
 ```
@@ -133,6 +137,17 @@ streamlit run weekend_advisor.py
 - **リスク許容度**: `config.json`で設定
 - **アラート閾値**: UIから簡単に変更可能
 - **ポートフォリオ制約**: 相関・セクター露出の上限
+
+---
+
+## ⚙️ 環境変数一覧
+
+以下の環境変数でシステムの動作をカスタマイズできます:
+
+- `REALTIME_TTL_SECONDS`: リアルタイムデータのキャッシュ有効期限（デフォルト: 30秒）
+- `REALTIME_BACKOFF_SECONDS`: リアルタイムデータ取得時のリトライ間隔（デフォルト: 1秒）
+- `PAPER_TRADER_REALTIME_FALLBACK`: ペーパートレードでリアルタイム価格を使用するか（デフォルト: false）
+- `PAPER_TRADER_REFRESH_INTERVAL`: ペーパートレードの価格更新間隔（秒、デフォルト: 300秒）
 
 ---
 
