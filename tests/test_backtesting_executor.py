@@ -22,8 +22,8 @@ def test_execute_market_buy_order(executor):
     """市場注文（買い）の執行テスト"""
     signal = Order(
         ticker="7203.T",
+        type=OrderType.MARKET,
         action="BUY",
-        order_type=OrderType.MARKET,
         quantity=100,
         price=None  # 市場価格で執行
     )
@@ -62,8 +62,8 @@ def test_execute_market_sell_order(executor):
     """市場注文（売り）の執行テスト"""
     signal = Order(
         ticker="7203.T",
+        type=OrderType.MARKET,
         action="SELL",
-        order_type=OrderType.MARKET,
         quantity=100,
         price=None  # 市場価格で執行
     )

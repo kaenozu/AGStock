@@ -3,7 +3,7 @@ import pytest
 import pandas as pd
 import numpy as np
 from src.backtesting.engine import BacktestEngine
-from src.strategies import MovingAverageCrossoverStrategy
+from src.strategies import SMACrossoverStrategy
 
 
 @pytest.fixture
@@ -38,7 +38,7 @@ def test_backtest_engine_initialization(backtest_engine):
 
 def test_run_backtest_single_asset(backtest_engine, sample_data):
     """単一資産のバックテストが正常に実行されることを確認"""
-    strategy = MovingAverageCrossoverStrategy(short_window=5, long_window=20)
+    strategy = SMACrossoverStrategy(short_window=5, long_window=20)
     result = backtest_engine.run(
         data=sample_data,
         strategy=strategy
