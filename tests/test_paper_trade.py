@@ -1,5 +1,6 @@
 import pytest
 from src.paper_trader import PaperTrader
+import pandas as pd
 
 @pytest.fixture
 def temp_db_path(tmp_path):
@@ -62,3 +63,49 @@ def test_trade_history(paper_trader):
     history = paper_trader.get_trade_history()
     assert len(history) == 1
     assert history.iloc[0]['action'] == "BUY"
+
+
+def test_positions_realtime_fallback(monkeypatch, temp_db_path):
+    pt = PaperTrader(db_path=temp_db_path, initial_capital=1000000, use_realtime_fallback=True)
+    try:
+        cursor = pt.conn.cursor()
+        cursor.execute(
+            "INSERT INTO positions (ticker, quantity, entry_price, entry_date, current_price, unrealized_pnl, stop_price, highest_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            ("RT", 10, 100.0, "2024-01-01", 0.0, 0.0, 0.0, 100.0),
+        )
+        pt.conn.commit()
+
+        def fake_fetch(ticker, period="5d", interval="1d", ttl_seconds=None):
+            return pd.DataFrame({"Close": [120.0]})
+
+        monkeypatch.setattr("src.data_loader.fetch_realtime_data", fake_fetch)
+
+        positions = pt.get_positions(use_realtime_fallback=True)
+        assert positions.loc["RT", "current_price"] == 120.0
+        assert positions.loc["RT", "market_value"] == 1200.0
+    finally:
+        pt.close()
+
+
+def test_balance_upsert_matches_recalc(monkeypatch, temp_db_path):
+    """リアルタイム補完で計算した総資産がbalanceに保存されることを検証"""
+    pt = PaperTrader(db_path=temp_db_path, initial_capital=1000000, use_realtime_fallback=True)
+    try:
+        cursor = pt.conn.cursor()
+        cursor.execute(
+            "INSERT INTO positions (ticker, quantity, entry_price, entry_date, current_price, unrealized_pnl, stop_price, highest_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            ("EQ", 5, 200.0, "2024-01-01", 0.0, 0.0, 0.0, 200.0),
+        )
+        pt.conn.commit()
+
+        def fake_fetch(ticker, period="5d", interval="1d", ttl_seconds=None):
+            return pd.DataFrame({"Close": [250.0]})
+
+        monkeypatch.setattr("src.data_loader.fetch_realtime_data", fake_fetch)
+
+        pt.update_daily_equity()
+        balance = pt.get_current_balance(use_realtime_fallback=False)
+
+        assert balance["total_equity"] == balance["cash"] + 5 * 250.0
+    finally:
+        pt.close()

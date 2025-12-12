@@ -7,6 +7,8 @@ from datetime import datetime
 from typing import Dict, List, Any, Optional
 from pathlib import Path
 
+import yfinance as yf
+
 from src.strategies import Strategy, Order, OrderType
 from src.broker import Broker, Position as BrokerPosition
 
@@ -158,7 +160,8 @@ class LiveTradingEngine:
         strategies: Dict[str, Strategy], 
         tickers: List[str],
         enable_risk_guard: bool = True,
-        initial_portfolio_value: float = 100_000.0
+        initial_portfolio_value: float = 100_000.0,
+        vol_symbol: str = "^VIX",
     ):
         self.broker = broker
         self.strategies = strategies
@@ -166,6 +169,8 @@ class LiveTradingEngine:
         self.is_running = False
         self.interval_seconds = 60 # Run every minute
         self.emergency_stop = False
+        self.vol_symbol = vol_symbol
+        self._last_vix_level: Optional[float] = None
         
         # Initialize RiskGuard
         if enable_risk_guard:
@@ -185,6 +190,40 @@ class LiveTradingEngine:
         from src.data_loader import fetch_realtime_data
         return fetch_realtime_data(ticker)
 
+    def _get_vix_level(self) -> Optional[float]:
+        """最新のVIX/代替ボラ指標を取得。失敗時は最後の成功値を返す。"""
+        # 候補シンボルを設定で上書き可能に
+        fallback_list = [self.vol_symbol]
+        # 設定ファイルからリストを読み込む簡易対応（存在しなければ従来通り）
+        try:
+            with open("config.json", "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+            vol_list = cfg.get("volatility_symbols")
+            if isinstance(vol_list, list) and vol_list:
+                fallback_list = [str(s) for s in vol_list if s]
+        except Exception:
+            pass
+
+        if "^VIX" not in fallback_list:
+            fallback_list.append("^VIX")
+        if "^VXO" not in fallback_list:
+            fallback_list.append("^VXO")
+
+        for sym in fallback_list:
+            try:
+                vix = yf.Ticker(sym)
+                hist = vix.history(period="5d", interval="1d")
+                if hist is None or hist.empty or "Close" not in hist.columns:
+                    continue
+                val = float(hist["Close"].iloc[-1])
+                self._last_vix_level = val
+                return val
+            except Exception as exc:
+                logger.debug(f"Failed to fetch volatility symbol {sym}: {exc}")
+                continue
+
+        return self._last_vix_level
+
     def run_cycle(self):
         """Execute one trading cycle with risk checks."""
         if self.emergency_stop:
@@ -193,11 +232,12 @@ class LiveTradingEngine:
             
         logger.info("Starting trading cycle...")
         current_prices = {}
-        
+
         # Risk Guard: Check if trading should be halted
         if self.risk_guard:
             portfolio_value = self.broker.get_portfolio_value({})
-            should_halt, reason = self.risk_guard.should_halt_trading(portfolio_value)
+            vix_level = self._get_vix_level()
+            should_halt, reason = self.risk_guard.should_halt_trading(portfolio_value, vix_level)
             if should_halt:
                 logger.critical(f"🚨 Trading halted: {reason}")
                 self.emergency_stop = True

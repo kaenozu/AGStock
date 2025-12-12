@@ -2,6 +2,8 @@
 
 import asyncio
 import logging
+import time
+import os
 from datetime import datetime, timedelta
 from typing import Any, Awaitable, Callable, Dict, Mapping, Optional, Sequence, TypeVar
 
@@ -67,6 +69,11 @@ def _create_cache_instance() -> Optional[CacheManager]:
 
 
 _cache_instance: Optional[CacheManager] = _create_cache_instance()
+_realtime_cache: Dict[str, tuple[float, pd.DataFrame]] = {}
+try:
+    _DEFAULT_REALTIME_TTL = int(os.getenv("REALTIME_TTL_SECONDS", "30"))
+except Exception:
+    _DEFAULT_REALTIME_TTL = 30
 
 
 def _get_cache() -> Optional[CacheManager]:
@@ -404,3 +411,50 @@ def fetch_market_summary() -> tuple[pd.DataFrame, Dict[str, Any]]:
         )
 
     return summary_df, stats
+
+
+DEFAULT_BACKOFF = int(os.getenv("REALTIME_BACKOFF_SECONDS", "1"))
+
+
+@retry_with_backoff(retries=2, backoff_in_seconds=DEFAULT_BACKOFF)
+def fetch_realtime_data(
+    ticker: str,
+    period: str = "5d",
+    interval: str = "1m",
+    ttl_seconds: Optional[int] = None,
+) -> pd.DataFrame:
+    """ライトウェイトなリアルタイム価格取得（ライブ取引用）。短期キャッシュ付き。"""
+    if not ticker:
+        return pd.DataFrame()
+
+    ttl = ttl_seconds if ttl_seconds is not None else _DEFAULT_REALTIME_TTL
+
+    cache_key = f"{ticker}::{period}::{interval}"
+    now = time.time()
+    cached = _realtime_cache.get(cache_key)
+    if cached:
+        cached_ts, cached_df = cached
+        if now - cached_ts <= ttl:
+            return cached_df.copy()
+
+    try:
+        df = yf.download(
+            ticker,
+            period=period,
+            interval=interval,
+            auto_adjust=True,
+            progress=False,
+        )
+    except Exception as exc:
+        logger.error("Realtime fetch failed for %s: %s", ticker, exc)
+        return pd.DataFrame()
+
+    if df is None or df.empty:
+        return pd.DataFrame()
+
+    if isinstance(df, pd.Series):
+        df = df.to_frame()
+
+    df.dropna(inplace=True)
+    _realtime_cache[cache_key] = (now, df)
+    return df.copy()

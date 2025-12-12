@@ -68,7 +68,41 @@ class TestLiveTradingEngine(unittest.TestCase):
         # Signal is 1 (BUY), default qty 10
         self.assertIn("TEST", broker.positions)
         self.assertEqual(broker.positions["TEST"].quantity, 10)
-        
+
+        if os.path.exists("test_engine_state.json"):
+            os.remove("test_engine_state.json")
+
+    def test_vix_fallback_sequence(self):
+        """カスタムシンボル失敗時に^VIXへフォールバックし、さらにキャッシュを使う"""
+        calls = []
+
+        class FakeTicker:
+            def __init__(self, symbol):
+                calls.append(symbol)
+                self.symbol = symbol
+
+            def history(self, period, interval):
+                if self.symbol == "CUSTOM":
+                    return pd.DataFrame()  # simulate empty -> failure
+                if self.symbol == "^VIX":
+                    return pd.DataFrame({"Close": [12.3]})
+                raise ValueError("unexpected symbol")
+
+        with patch("src.live_trading.yf.Ticker", FakeTicker):
+            broker = PaperBroker(state_file="test_engine_state.json")
+            engine = LiveTradingEngine(broker, {}, [], vol_symbol="CUSTOM")
+            vix = engine._get_vix_level()
+            assert vix == 12.3
+            assert calls == ["CUSTOM", "^VIX"]
+
+            # Next call when providers fail should return cached last value
+            def raising_history(self, period, interval):
+                raise RuntimeError("fail")
+
+            FakeTicker.history = raising_history
+            vix_cached = engine._get_vix_level()
+            assert vix_cached == 12.3
+
         if os.path.exists("test_engine_state.json"):
             os.remove("test_engine_state.json")
 
