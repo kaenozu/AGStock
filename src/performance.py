@@ -367,9 +367,9 @@ class PerformanceAnalyzer:
             
             # Add month names for display
             month_names = {
-                1: '1朁E, 2: '2朁E, 3: '3朁E, 4: '4朁E,
-                5: '5朁E, 6: '6朁E, 7: '7朁E, 8: '8朁E,
-                9: '9朁E, 10: '10朁E, 11: '11朁E, 12: '12朁E
+                1: '1月', 2: '2月', 3: '3月', 4: '4月',
+                5: '5月', 6: '6月', 7: '7月', 8: '8月',
+                9: '9月', 10: '10月', 11: '11月', 12: '12月'
             }
             monthly['month_name'] = monthly['month'].map(month_names)
             
