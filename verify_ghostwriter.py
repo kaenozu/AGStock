@@ -2,8 +2,10 @@
 Verify Ghostwriter
 レポート生成機能をテストする
 """
-import sys
+
 import os
+import sys
+
 sys.path.insert(0, os.getcwd())
 
 from src.ghostwriter import Ghostwriter

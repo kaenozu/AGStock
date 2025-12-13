@@ -2,11 +2,14 @@
 
 このモジュールは、バックテストエンジンからの信号を受けて、取引注文を実行する機能を提供します。
 """
-import pandas as pd
+
+from typing import Any, Dict, List, Optional, Union
+
 import numpy as np
-from typing import Dict, Any, Union, List, Optional
-from src.strategies.base import Order, OrderType
+import pandas as pd
+
 from src.logger_config import logger
+from src.strategies.base import Order, OrderType
 
 
 class BacktestExecutor:
@@ -78,21 +81,19 @@ class BacktestExecutor:
                     trailing_stop_levels[ticker] = max(trailing_stop_levels[ticker], new_stop)
 
                 # トレーリングストップチェック
-                if (
-                    trailing_stop
-                    and trailing_stop_levels[ticker] > 0
-                    and today_low <= trailing_stop_levels[ticker]
-                ):
-                    trades.append({
-                        "ticker": ticker,
-                        "entry_date": None,
-                        "exit_date": None,  # この関数外で設定
-                        "entry_price": entry,
-                        "exit_price": trailing_stop_levels[ticker],
-                        "return": (trailing_stop_levels[ticker] - entry) / entry,
-                        "type": "Long",
-                        "reason": "Trailing Stop",
-                    })
+                if trailing_stop and trailing_stop_levels[ticker] > 0 and today_low <= trailing_stop_levels[ticker]:
+                    trades.append(
+                        {
+                            "ticker": ticker,
+                            "entry_date": None,
+                            "exit_date": None,  # この関数外で設定
+                            "entry_price": entry,
+                            "exit_price": trailing_stop_levels[ticker],
+                            "return": (trailing_stop_levels[ticker] - entry) / entry,
+                            "type": "Long",
+                            "reason": "Trailing Stop",
+                        }
+                    )
                     cash += holdings[ticker] * trailing_stop_levels[ticker]
                     holdings[ticker] = 0.0
                     entry_prices[ticker] = 0.0
@@ -102,24 +103,23 @@ class BacktestExecutor:
                     return cash, holdings, entry_prices, exit_executed, trades
 
             # 利確チェック
-            if (
-                take_profit
-                and (
-                    (position > 0 and (today_high - entry) / entry >= take_profit) or
-                    (position < 0 and (entry - today_low) / entry >= take_profit)
-                )
+            if take_profit and (
+                (position > 0 and (today_high - entry) / entry >= take_profit)
+                or (position < 0 and (entry - today_low) / entry >= take_profit)
             ):
                 take_profit_price = entry * (1 + take_profit) if position > 0 else entry * (1 - take_profit)
-                trades.append({
-                    "ticker": ticker,
-                    "entry_date": None,
-                    "exit_date": None,  # この関数外で設定
-                    "entry_price": entry,
-                    "exit_price": take_profit_price,
-                    "return": take_profit if position > 0 else -take_profit,
-                    "type": "Long" if position > 0 else "Short",
-                    "reason": "Take Profit",
-                })
+                trades.append(
+                    {
+                        "ticker": ticker,
+                        "entry_date": None,
+                        "exit_date": None,  # この関数外で設定
+                        "entry_price": entry,
+                        "exit_price": take_profit_price,
+                        "return": take_profit if position > 0 else -take_profit,
+                        "type": "Long" if position > 0 else "Short",
+                        "reason": "Take Profit",
+                    }
+                )
                 cash += (
                     holdings[ticker] * take_profit_price
                     if position > 0
@@ -133,29 +133,24 @@ class BacktestExecutor:
                 return cash, holdings, entry_prices, exit_executed, trades
 
             # 損切チェック
-            if (
-                stop_loss
-                and (
-                    (position > 0 and (entry - today_low) / entry >= stop_loss) or
-                    (position < 0 and (today_high - entry) / entry >= stop_loss)
-                )
+            if stop_loss and (
+                (position > 0 and (entry - today_low) / entry >= stop_loss)
+                or (position < 0 and (today_high - entry) / entry >= stop_loss)
             ):
                 stop_price = entry * (1 - stop_loss) if position > 0 else entry * (1 + stop_loss)
-                trades.append({
-                    "ticker": ticker,
-                    "entry_date": None,
-                    "exit_date": None,  # この関数外で設定
-                    "entry_price": entry,
-                    "exit_price": stop_price,
-                    "return": -stop_loss if position > 0 else stop_loss,
-                    "type": "Long" if position > 0 else "Short",
-                    "reason": "Stop Loss",
-                })
-                cash += (
-                    holdings[ticker] * stop_price
-                    if position > 0
-                    else (entry - stop_price) * abs(holdings[ticker])
+                trades.append(
+                    {
+                        "ticker": ticker,
+                        "entry_date": None,
+                        "exit_date": None,  # この関数外で設定
+                        "entry_price": entry,
+                        "exit_price": stop_price,
+                        "return": -stop_loss if position > 0 else stop_loss,
+                        "type": "Long" if position > 0 else "Short",
+                        "reason": "Stop Loss",
+                    }
                 )
+                cash += holdings[ticker] * stop_price if position > 0 else (entry - stop_price) * abs(holdings[ticker])
                 holdings[ticker] = 0.0
                 entry_prices[ticker] = 0.0
                 trailing_stop_levels[ticker] = 0.0
@@ -168,15 +163,17 @@ class BacktestExecutor:
             if position > 0 and signal == -1:  # ロングポジションをクローズ
                 entry = entry_prices[ticker]
                 ret = (exec_price - entry) / entry
-                trades.append({
-                    "ticker": ticker,
-                    "entry_date": None,
-                    "exit_date": None,  # この関数外で設定
-                    "entry_price": entry,
-                    "exit_price": exec_price,
-                    "return": ret,
-                    "type": "Long",
-                })
+                trades.append(
+                    {
+                        "ticker": ticker,
+                        "entry_date": None,
+                        "exit_date": None,  # この関数外で設定
+                        "entry_price": entry,
+                        "exit_price": exec_price,
+                        "return": ret,
+                        "type": "Long",
+                    }
+                )
                 cash += holdings[ticker] * exec_price
                 holdings[ticker] = 0.0
                 entry_prices[ticker] = 0.0
@@ -184,15 +181,17 @@ class BacktestExecutor:
             elif position < 0 and signal == 1:  # ショートポジションをクローズ
                 entry = entry_prices[ticker]
                 ret = (entry - exec_price) / entry
-                trades.append({
-                    "ticker": ticker,
-                    "entry_date": None,
-                    "exit_date": None,  # この関数外で設定
-                    "entry_price": entry,
-                    "exit_price": exec_price,
-                    "return": ret,
-                    "type": "Short",
-                })
+                trades.append(
+                    {
+                        "ticker": ticker,
+                        "entry_date": None,
+                        "exit_date": None,  # この関数外で設定
+                        "entry_price": entry,
+                        "exit_price": exec_price,
+                        "return": ret,
+                        "type": "Short",
+                    }
+                )
                 cash += (entry - exec_price) * abs(holdings[ticker])
                 holdings[ticker] = 0.0
                 entry_prices[ticker] = 0.0
@@ -244,15 +243,17 @@ class BacktestExecutor:
                         else:
                             ret = (entry - fill_price) / entry
                             trade_type = "Short"
-                        trades.append({
-                            "ticker": ticker,
-                            "entry_date": None,
-                            "exit_date": None,  # 関数外で設定
-                            "entry_price": entry,
-                            "exit_price": fill_price,
-                            "return": ret,
-                            "type": trade_type,
-                        })
+                        trades.append(
+                            {
+                                "ticker": ticker,
+                                "entry_date": None,
+                                "exit_date": None,  # 関数外で設定
+                                "entry_price": entry,
+                                "exit_price": fill_price,
+                                "return": ret,
+                                "type": trade_type,
+                            }
+                        )
                         cash += (
                             holdings[ticker] * fill_price
                             if holdings[ticker] > 0

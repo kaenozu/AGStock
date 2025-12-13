@@ -1,4 +1,5 @@
 import pandas as pd
+
 from src.execution import ExecutionEngine
 from src.portfolio_rebalancer import PortfolioRebalancer
 
@@ -21,9 +22,9 @@ class DummyPaperTrader:
 
 
 def test_execution_sell_skips_missing_ticker(monkeypatch):
-    positions = pd.DataFrame([
-        {"ticker": "HOLD", "quantity": 10, "entry_price": 100, "current_price": 110}
-    ]).set_index("ticker", drop=False)
+    positions = pd.DataFrame([{"ticker": "HOLD", "quantity": 10, "entry_price": 100, "current_price": 110}]).set_index(
+        "ticker", drop=False
+    )
     pt = DummyPaperTrader(positions)
     engine = ExecutionEngine(pt)
     monkeypatch.setattr(engine, "check_risk", lambda: True)
@@ -35,19 +36,23 @@ def test_execution_sell_skips_missing_ticker(monkeypatch):
 
 
 def test_rebalancer_skips_empty_ticker_and_generates_signal():
-    positions = pd.DataFrame([
-        {"ticker": None, "quantity": 10, "current_price": 100},
-        {"ticker": "AAA", "quantity": 10, "current_price": 10},
-    ]).set_index("ticker", drop=False)
+    positions = pd.DataFrame(
+        [
+            {"ticker": None, "quantity": 10, "current_price": 100},
+            {"ticker": "AAA", "quantity": 10, "current_price": 10},
+        ]
+    ).set_index("ticker", drop=False)
     pt = DummyPaperTrader(positions, total_equity=1000, cash=200)
 
     logger_messages = []
-    rebal = PortfolioRebalancer({
-        "rebalance": {
-            "max_single_position": 5.0,  # 5% を超えたらリバランス
-            "max_region": {"japan": 100.0, "us": 100.0, "europe": 100.0}
+    rebal = PortfolioRebalancer(
+        {
+            "rebalance": {
+                "max_single_position": 5.0,  # 5% を超えたらリバランス
+                "max_region": {"japan": 100.0, "us": 100.0, "europe": 100.0},
+            }
         }
-    })
+    )
 
     analysis = rebal.analyze_portfolio(pt, logger_messages.append)
 

@@ -2,8 +2,10 @@
 Verify Trends
 マルチタイムフレームトレンドの挙動を確認する
 """
-import sys
+
 import os
+import sys
+
 sys.path.insert(0, os.getcwd())
 
 from src.dashboard_utils import get_multi_timeframe_trends

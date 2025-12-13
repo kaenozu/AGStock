@@ -3,15 +3,17 @@
 このモジュールは、株価データと取引戦略に基づいて取引シミュレーションを実行する核となる機能を提供します。
 """
 
-import pandas as pd
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 import numpy as np
-from typing import Dict, Any, Union, List, Optional, Tuple
-from src.strategies import Strategy, Order, OrderType
+import pandas as pd
+
+from src.strategies import Order, OrderType, Strategy
 
 
 class TradeSimulatorCore:
     """取引シミュレーションの核心ロジックを提供するクラス"""
-    
+
     def __init__(
         self,
         initial_capital: float = 100_000,
@@ -35,9 +37,14 @@ class TradeSimulatorCore:
         target_amount = portfolio_value * alloc
         return target_amount / exec_price if exec_price != 0 else 0.0
 
-    def _calculate_portfolio_value(self, cash: float, holdings: Dict[str, float], 
-                                  aligned_data: Dict[str, pd.DataFrame], 
-                                  index: int, final_calc: bool = False) -> float:
+    def _calculate_portfolio_value(
+        self,
+        cash: float,
+        holdings: Dict[str, float],
+        aligned_data: Dict[str, pd.DataFrame],
+        index: int,
+        final_calc: bool = False,
+    ) -> float:
         """ポートフォリオ価値を計算"""
         current_portfolio_value = cash
         for t in aligned_data:
@@ -45,7 +52,9 @@ class TradeSimulatorCore:
                 if holdings[t] > 0:  # ロンポジション
                     current_portfolio_value += holdings[t] * aligned_data[t]["Close"].iloc[index]
                 else:  # ショートポジション
-                    entry_price_val = self.entry_prices[t]  # 修正：entry_pricesはインスタンス変数として定義する必要がある
+                    entry_price_val = self.entry_prices[
+                        t
+                    ]  # 修正：entry_pricesはインスタンス変数として定義する必要がある
                     current_price_val = aligned_data[t]["Close"].iloc[index]
                     profit = (entry_price_val - current_price_val) * abs(holdings[t])
                     current_portfolio_value += profit
@@ -63,8 +72,9 @@ class TradeSimulatorCore:
                 break
         return position_state
 
-    def _create_trade_record(self, ticker: str, reason: str, entry: float, 
-                           exec_price: float, trade_type: str, date) -> Dict[str, Any]:
+    def _create_trade_record(
+        self, ticker: str, reason: str, entry: float, exec_price: float, trade_type: str, date
+    ) -> Dict[str, Any]:
         """取引記録を作成"""
         return {
             "ticker": ticker,

@@ -3,16 +3,16 @@
 このモジュールは、バックテストの結果からパフォーマンス指標やリスク指標を計算する機能を提供します。
 """
 
-import pandas as pd
+from typing import Any, Dict, List
+
 import numpy as np
-from typing import Dict, Any, List
+import pandas as pd
+
 from src.logger_config import logger
 
 
 def calculate_performance_metrics(
-    equity_curve: pd.Series,
-    trades: List[Dict[str, Any]],
-    initial_capital: float
+    equity_curve: pd.Series, trades: List[Dict[str, Any]], initial_capital: float
 ) -> Dict[str, float]:
     """バックテスト結果からパフォーマンス指標を計算します。
 
@@ -72,10 +72,7 @@ def calculate_performance_metrics(
     }
 
 
-def calculate_risk_metrics(
-    equity_curve: pd.Series,
-    trades: List[Dict[str, Any]]
-) -> Dict[str, float]:
+def calculate_risk_metrics(equity_curve: pd.Series, trades: List[Dict[str, Any]]) -> Dict[str, float]:
     """バックテスト結果からリスク指標を計算します。
 
     Args:
@@ -134,10 +131,7 @@ def calculate_risk_metrics(
     }
 
 
-def generate_backtest_report(
-    performance_metrics: Dict[str, float],
-    risk_metrics: Dict[str, float]
-) -> str:
+def generate_backtest_report(performance_metrics: Dict[str, float], risk_metrics: Dict[str, float]) -> str:
     """バックテストレポートを生成します。
 
     Args:

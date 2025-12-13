@@ -1,9 +1,11 @@
-import os
 import io
 import json
+import os
+
 from reportlab.pdfgen import canvas
-from src.rag.pdf_loader import PDFLoader
+
 from src.llm_reasoner import get_llm_reasoner
+from src.rag.pdf_loader import PDFLoader
 
 # 1. Create Dummy PDF
 pdf_path = "mock_earnings.pdf"

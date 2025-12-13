@@ -2,15 +2,19 @@
 MoE Strategy Wrapper
 FullyAutomatedTraderからMoEシステムを利用するためのラッパークラス
 """
-import pandas as pd
+
 import logging
+
+import pandas as pd
+
 from src.moe_system import MixtureOfExperts
 
 logger = logging.getLogger(__name__)
 
+
 class MoEStrategy:
     """MoE戦略ラッパー"""
-    
+
     def __init__(self):
         self.moe = MixtureOfExperts()
         self.last_decision = {}
@@ -23,31 +27,31 @@ class MoEStrategy:
         """
         if df is None or df.empty:
             return pd.Series()
-            
+
         try:
             # 1. MoEに判断を仰ぐ（直近）
             # ticker情報は渡せないのでダミー
             decision = self.moe.get_expert_signal(df, "UNKNOWN_TICKER")
             self.last_decision = decision
-            
+
             # 2. シグナル系列作成
             signals = pd.Series(0, index=df.index)
-            
-            action = decision.get('action', 'HOLD')
+
+            action = decision.get("action", "HOLD")
             val = 0
-            if action == 'BUY':
+            if action == "BUY":
                 val = 1
-            elif action == 'SELL':
+            elif action == "SELL":
                 val = -1
-                
+
             # 最後の行にシグナルを設定
             signals.iloc[-1] = val
-            
+
             # デバッグログ
             # logger.info(f"MoE Wrapper Signal: {val} (Expert: {decision.get('expert')})")
-            
+
             return signals
-            
+
         except Exception as e:
             logger.error(f"MoE Strategy Wrapper Error: {e}")
             return pd.Series(0, index=df.index)

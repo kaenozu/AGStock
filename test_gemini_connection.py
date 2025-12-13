@@ -1,6 +1,8 @@
-import google.generativeai as genai
-import os
 import json
+import os
+
+import google.generativeai as genai
+
 
 def test_connection():
     print("Reading config...")
@@ -17,8 +19,8 @@ def test_connection():
         return
 
     genai.configure(api_key=api_key)
-    model_name = "gemini-2.0-flash" 
-    
+    model_name = "gemini-2.0-flash"
+
     print(f"Testing model: {model_name}...")
     try:
         model = genai.GenerativeModel(model_name)
@@ -27,6 +29,7 @@ def test_connection():
         print("SUCCESS: Connection verified.")
     except Exception as e:
         print(f"FAILED: {e}")
+
 
 if __name__ == "__main__":
     test_connection()

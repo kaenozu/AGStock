@@ -2,34 +2,38 @@
 Cache Manager
 Handles persistent caching using SQLite to improve performance and reduce API calls.
 """
-import sqlite3
+
 import json
-import time
 import logging
-from typing import Any, Optional
+import sqlite3
+import time
 from datetime import datetime, timedelta
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
 DB_PATH = "cache.db"
 
+
 class CacheManager:
     """SQLite-based Key-Value Cache with TTL support"""
-    
+
     def __init__(self, db_path=DB_PATH):
         self.db_path = db_path
         self._init_db()
 
     def _init_db(self):
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS cache (
                     key TEXT PRIMARY KEY,
                     value TEXT,
                     expiry REAL,
                     created_at TEXT
                 )
-            """)
+            """
+            )
             # Index on expiry for cleanup
             conn.execute("CREATE INDEX IF NOT EXISTS idx_expiry ON cache (expiry)")
 
@@ -38,14 +42,14 @@ class CacheManager:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute("SELECT value, expiry FROM cache WHERE key = ?", (key,))
             row = cursor.fetchone()
-            
+
             if row:
                 value_json, expiry = row
                 if expiry > time.time():
                     try:
                         return json.loads(value_json)
                     except json.JSONDecodeError:
-                        return value_json # Return raw if not JSON
+                        return value_json  # Return raw if not JSON
                 else:
                     # Lazy delete
                     self.delete(key)
@@ -55,12 +59,15 @@ class CacheManager:
         """Store value with TTL"""
         expiry = time.time() + ttl_seconds
         value_json = json.dumps(value, ensure_ascii=False)
-        
+
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT OR REPLACE INTO cache (key, value, expiry, created_at)
                 VALUES (?, ?, ?, ?)
-            """, (key, value_json, expiry, datetime.now().isoformat()))
+            """,
+                (key, value_json, expiry, datetime.now().isoformat()),
+            )
 
     def delete(self, key: str):
         """Remove key"""

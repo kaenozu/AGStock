@@ -4,15 +4,17 @@
 シミュレーションのロジックと結果の計算を分離することで、単一責任の原則を適用します。
 """
 
-import pandas as pd
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 import numpy as np
-from typing import Dict, Any, Union, List, Optional, Tuple
-from src.strategies import Strategy, Order, OrderType
+import pandas as pd
+
+from src.strategies import Order, OrderType, Strategy
 
 
 class TradeSimulator:
     """取引シミュレーションを行うクラス（単一責任：取引シミュレーションの実行）"""
-    
+
     def __init__(
         self,
         initial_capital: float = 100_000,
@@ -45,14 +47,14 @@ class TradeSimulator:
         trailing_stop: Optional[float] = None,
     ) -> Dict[str, Any]:
         """シミュレーションを実行
-        
+
         Args:
             data: 銘柄名と価格データの辞書
             strategy_map: 銘柄名と戦略の辞書
             stop_loss: 損切り割合
             take_profit: 利確割合
             trailing_stop: トレーリングストップ割合
-            
+
         Returns:
             シミュレーション結果
         """
@@ -107,7 +109,11 @@ class TradeSimulator:
 
                         # トレーピングストップ
                         if trailing_stop and trailing_stop > 0 and today_low <= trailing_stop_levels[ticker]:
-                            trades.append(self._create_trade_record(ticker, "Trailing Stop", entry, trailing_stop_levels[ticker], "Long", full_index[i]))
+                            trades.append(
+                                self._create_trade_record(
+                                    ticker, "Trailing Stop", entry, trailing_stop_levels[ticker], "Long", full_index[i]
+                                )
+                            )
                             cash += holdings[ticker] * trailing_stop_levels[ticker]
                             holdings[ticker] = 0.0
                             entry_prices[ticker] = 0.0
@@ -119,7 +125,11 @@ class TradeSimulator:
                         # 利確
                         elif take_profit and (today_high - entry) / entry >= take_profit:
                             take_profit_price = entry * (1 + take_profit)
-                            trades.append(self._create_trade_record(ticker, "Take Profit", entry, take_profit_price, "Long", full_index[i]))
+                            trades.append(
+                                self._create_trade_record(
+                                    ticker, "Take Profit", entry, take_profit_price, "Long", full_index[i]
+                                )
+                            )
                             cash += holdings[ticker] * take_profit_price
                             holdings[ticker] = 0.0
                             entry_prices[ticker] = 0.0
@@ -131,7 +141,9 @@ class TradeSimulator:
                         # 損切
                         elif stop_loss and (entry - today_low) / entry >= stop_loss:
                             stop_price = entry * (1 - stop_loss)
-                            trades.append(self._create_trade_record(ticker, "Stop Loss", entry, stop_price, "Long", full_index[i]))
+                            trades.append(
+                                self._create_trade_record(ticker, "Stop Loss", entry, stop_price, "Long", full_index[i])
+                            )
                             cash += holdings[ticker] * stop_price
                             holdings[ticker] = 0.0
                             entry_prices[ticker] = 0.0
@@ -142,20 +154,42 @@ class TradeSimulator:
 
                 # 整数信号ロジック
                 if isinstance(today_sig, (int, np.integer)):
-                    exit_executed = self._process_integer_signals(today_sig, ticker, holdings, entry_prices, exec_price, trades, cash, exit_executed)
+                    exit_executed = self._process_integer_signals(
+                        today_sig, ticker, holdings, entry_prices, exec_price, trades, cash, exit_executed
+                    )
 
                 # Orderオブジェクトロジック
                 if isinstance(today_sig, Order):
-                    exit_executed = self._process_order_signals(today_sig, ticker, holdings, entry_prices, exec_price, 
-                                                                trades, cash, current_portfolio_value, 
-                                                                df, trailing_stop, highest_prices, trailing_stop_levels, exit_executed)
+                    exit_executed = self._process_order_signals(
+                        today_sig,
+                        ticker,
+                        holdings,
+                        entry_prices,
+                        exec_price,
+                        trades,
+                        cash,
+                        current_portfolio_value,
+                        df,
+                        trailing_stop,
+                        highest_prices,
+                        trailing_stop_levels,
+                        exit_executed,
+                    )
 
                 # 整数信号による新規ポジション
                 if not exit_executed and isinstance(today_sig, (int, np.integer)):
-                    holdings, cash, entry_prices, highest_prices, trailing_stop_levels = \
-                        self._process_new_positions(today_sig, ticker, holdings, cash, exec_price, 
-                                                   current_portfolio_value, entry_prices, 
-                                                   highest_prices, trailing_stop, trailing_stop_levels)
+                    holdings, cash, entry_prices, highest_prices, trailing_stop_levels = self._process_new_positions(
+                        today_sig,
+                        ticker,
+                        holdings,
+                        cash,
+                        exec_price,
+                        current_portfolio_value,
+                        entry_prices,
+                        highest_prices,
+                        trailing_stop,
+                        trailing_stop_levels,
+                    )
 
             # ポ場総額計算
             end_of_day_value = self._calculate_portfolio_value(cash, holdings, aligned_data, i, final_calc=True)
@@ -166,7 +200,9 @@ class TradeSimulator:
             position_history.append(position_state)
 
         # 終値評価
-        final_portfolio_value = self._calculate_portfolio_value(cash, holdings, aligned_data, len(full_index)-1, final_calc=True)
+        final_portfolio_value = self._calculate_portfolio_value(
+            cash, holdings, aligned_data, len(full_index) - 1, final_calc=True
+        )
 
         return {
             "signals": signals_map,
@@ -217,21 +253,25 @@ class TradeSimulator:
             "reason": reason,
         }
 
-    def _process_integer_signals(self, today_sig, ticker, holdings, entry_prices, exec_price, trades, cash, exit_executed):
+    def _process_integer_signals(
+        self, today_sig, ticker, holdings, entry_prices, exec_price, trades, cash, exit_executed
+    ):
         """整数信号の処理"""
         position = holdings[ticker]
         if position > 0 and today_sig == -1:  # ポンポジションをクローズ
             entry = entry_prices[ticker]
             ret = (exec_price - entry) / entry
-            trades.append({
-                "ticker": ticker,
-                "entry_date": None,
-                "exit_date": full_index[i + 1],
-                "entry_price": entry,
-                "exit_price": exec_price,
-                "return": ret,
-                "type": "Long",
-            })
+            trades.append(
+                {
+                    "ticker": ticker,
+                    "entry_date": None,
+                    "exit_date": full_index[i + 1],
+                    "entry_price": entry,
+                    "exit_price": exec_price,
+                    "return": ret,
+                    "type": "Long",
+                }
+            )
             cash += holdings[ticker] * exec_price
             holdings[ticker] = 0.0
             entry_prices[ticker] = 0.0
@@ -239,24 +279,39 @@ class TradeSimulator:
         elif position < 0 and today_sig == 1:  # ショートポジションをクローズ
             entry = entry_prices[ticker]
             ret = (entry - exec_price) / entry
-            trades.append({
-                "ticker": ticker,
-                "entry_date": None,
-                "exit_date": full_index[i + 1],
-                "entry_price": entry,
-                "exit_price": exec_price,
-                "return": ret,
-                "type": "Short",
-            })
+            trades.append(
+                {
+                    "ticker": ticker,
+                    "entry_date": None,
+                    "exit_date": full_index[i + 1],
+                    "entry_price": entry,
+                    "exit_price": exec_price,
+                    "return": ret,
+                    "type": "Short",
+                }
+            )
             cash += (entry - exec_price) * abs(holdings[ticker])
             holdings[ticker] = 0.0
             entry_prices[ticker] = 0.0
             exit_executed = True
         return exit_executed
 
-    def _process_order_signals(self, today_sig, ticker, holdings, entry_prices, exec_price, 
-                              trades, cash, current_portfolio_value, df, 
-                              trailing_stop, highest_prices, trailing_stop_levels, exit_executed):
+    def _process_order_signals(
+        self,
+        today_sig,
+        ticker,
+        holdings,
+        entry_prices,
+        exec_price,
+        trades,
+        cash,
+        current_portfolio_value,
+        df,
+        trailing_stop,
+        highest_prices,
+        trailing_stop_levels,
+        exit_executed,
+    ):
         """Orderオブジェクト信号の処理"""
         if not today_sig.ticker:
             today_sig.ticker = ticker
@@ -288,7 +343,11 @@ class TradeSimulator:
         if should_execute:
             if today_sig.action.upper() == "BUY":
                 if holdings[ticker] == 0:
-                    qty = today_sig.quantity if today_sig.quantity else self._size_position(ticker, current_portfolio_value, fill_price)
+                    qty = (
+                        today_sig.quantity
+                        if today_sig.quantity
+                        else self._size_position(ticker, current_portfolio_value, fill_price)
+                    )
                     holdings[ticker] = qty
                     entry_prices[ticker] = fill_price
                     highest_prices[ticker] = fill_price
@@ -303,24 +362,36 @@ class TradeSimulator:
                     else:
                         ret = (entry - fill_price) / entry
                         trade_type = "Short"
-                    trades.append({
-                        "ticker": ticker,
-                        "entry_date": None,
-                        "exit_date": full_index[i + 1],
-                        "entry_price": entry,
-                        "exit_price": fill_price,
-                        "return": ret,
-                        "type": trade_type,
-                    })
+                    trades.append(
+                        {
+                            "ticker": ticker,
+                            "entry_date": None,
+                            "exit_date": full_index[i + 1],
+                            "entry_price": entry,
+                            "exit_price": fill_price,
+                            "return": ret,
+                            "type": trade_type,
+                        }
+                    )
                     holdings[ticker] = 0.0
                     entry_prices[ticker] = 0.0
                     exit_executed = True
 
         return exit_executed
 
-    def _process_new_positions(self, today_sig, ticker, holdings, cash, exec_price, 
-                              current_portfolio_value, entry_prices, 
-                              highest_prices, trailing_stop, trailing_stop_levels):
+    def _process_new_positions(
+        self,
+        today_sig,
+        ticker,
+        holdings,
+        cash,
+        exec_price,
+        current_portfolio_value,
+        entry_prices,
+        highest_prices,
+        trailing_stop,
+        trailing_stop_levels,
+    ):
         """新規ポジション処理"""
         if holdings[ticker] == 0 and today_sig == 1:
             # ポンポジションオープン
