@@ -1,17 +1,20 @@
 """
 Optuna Tuner for LightGBM
 """
-import optuna
-import lightgbm as lgb
-from sklearn.model_selection import cross_val_score, KFold
-from sklearn.metrics import accuracy_score
+
 import logging
+
+import lightgbm as lgb
+import optuna
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import KFold, cross_val_score
 
 logger = logging.getLogger(__name__)
 
+
 class OptunaTuner:
     """Auto-tuner for LightGBM using Optuna"""
-    
+
     def __init__(self, n_trials=20):
         self.n_trials = n_trials
         self.best_params = None
@@ -19,14 +22,14 @@ class OptunaTuner:
     def optimize_lightgbm(self, X, y):
         """Run optimization"""
         logger.info("Starting Optuna optimization...")
-        
+
         study = optuna.create_study(direction="maximize")
         study.optimize(lambda trial: self._objective(trial, X, y), n_trials=self.n_trials)
-        
+
         self.best_params = study.best_params
         logger.info(f"Optimization finished. Best params: {self.best_params}")
         logger.info(f"Best accuracy: {study.best_value}")
-        
+
         return self.best_params
 
     def _objective(self, trial, X, y):
@@ -44,14 +47,14 @@ class OptunaTuner:
             "bagging_freq": trial.suggest_int("bagging_freq", 1, 7),
             "min_child_samples": trial.suggest_int("min_child_samples", 5, 100),
             "learning_rate": trial.suggest_float("learning_rate", 1e-3, 0.1, log=True),
-            "n_estimators": trial.suggest_int("n_estimators", 50, 500)
+            "n_estimators": trial.suggest_int("n_estimators", 50, 500),
         }
 
         # 3-Fold Cross Validation
         cv = KFold(n_splits=3, shuffle=True, random_state=42)
-        
+
         # Use LightGBM scikit-learn API for easier CV integration
         model = lgb.LGBMClassifier(**param)
         scores = cross_val_score(model, X, y, cv=cv, scoring="accuracy")
-        
+
         return scores.mean()

@@ -42,9 +42,7 @@ class ColorTokens:
         if missing:
             raise KeyError(f"Missing states: {', '.join(sorted(missing))}")
 
-        undefined_tokens = [
-            state for state, token in self.state_map.items() if token not in self.tokens
-        ]
+        undefined_tokens = [state for state, token in self.state_map.items() if token not in self.tokens]
         if undefined_tokens:
             raise KeyError(f"Undefined tokens for states: {', '.join(sorted(undefined_tokens))}")
         return True
@@ -87,11 +85,7 @@ class PerformanceFilter:
         else:
             start, end = cls._start_date_for_period(period, now), now
 
-        filtered = [
-            point
-            for point in series
-            if point.value is not None and start <= point.date <= end
-        ]
+        filtered = [point for point in series if point.value is not None and start <= point.date <= end]
         return sorted(filtered, key=lambda p: p.date)
 
 
@@ -363,4 +357,3 @@ class MetricTooltipCatalog:
         if unit == "absolute" or unit == "ratio":
             return f"{value:.{precision}f}"
         raise ValueError(f"Unknown unit '{unit}' for metric '{metric}'")
-

@@ -8,7 +8,6 @@
 import logging
 from typing import Optional
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -53,11 +52,7 @@ class DataLoadError(AGStockException):
             ticker (Optional[str]): 関連する銘柄コード
             details (Optional[dict]): エラーに関する追加の詳細情報
         """
-        super().__init__(
-            message=message,
-            error_code="DATA_LOAD_ERROR",
-            details={**(details or {}), "ticker": ticker}
-        )
+        super().__init__(message=message, error_code="DATA_LOAD_ERROR", details={**(details or {}), "ticker": ticker})
 
 
 class RiskManagementError(AGStockException):
@@ -75,9 +70,7 @@ class RiskManagementError(AGStockException):
             details (Optional[dict]): エラーに関する追加の詳細情報
         """
         super().__init__(
-            message=message,
-            error_code="RISK_MANAGEMENT_ERROR",
-            details={**(details or {}), "risk_type": risk_type}
+            message=message, error_code="RISK_MANAGEMENT_ERROR", details={**(details or {}), "risk_type": risk_type}
         )
 
 
@@ -96,9 +89,7 @@ class StrategyError(AGStockException):
             details (Optional[dict]): エラーに関する追加の詳細情報
         """
         super().__init__(
-            message=message,
-            error_code="STRATEGY_ERROR",
-            details={**(details or {}), "strategy_name": strategy_name}
+            message=message, error_code="STRATEGY_ERROR", details={**(details or {}), "strategy_name": strategy_name}
         )
 
 
@@ -108,7 +99,9 @@ class ExecutionError(AGStockException):
     取引の実行処理で発生する例外を表します。
     """
 
-    def __init__(self, message: str, ticker: Optional[str] = None, action: Optional[str] = None, details: Optional[dict] = None):
+    def __init__(
+        self, message: str, ticker: Optional[str] = None, action: Optional[str] = None, details: Optional[dict] = None
+    ):
         """ExecutionErrorの初期化
 
         Args:
@@ -120,7 +113,7 @@ class ExecutionError(AGStockException):
         super().__init__(
             message=message,
             error_code="EXECUTION_ERROR",
-            details={**(details or {}), "ticker": ticker, "action": action}
+            details={**(details or {}), "ticker": ticker, "action": action},
         )
 
 
@@ -139,9 +132,7 @@ class ConfigurationError(AGStockException):
             details (Optional[dict]): エラーに関する追加の詳細情報
         """
         super().__init__(
-            message=message,
-            error_code="CONFIGURATION_ERROR",
-            details={**(details or {}), "config_key": config_key}
+            message=message, error_code="CONFIGURATION_ERROR", details={**(details or {}), "config_key": config_key}
         )
 
 
@@ -160,9 +151,7 @@ class BacktestError(AGStockException):
             details (Optional[dict]): エラーに関する追加の詳細情報
         """
         super().__init__(
-            message=message,
-            error_code="BACKTEST_ERROR",
-            details={**(details or {}), "strategy_name": strategy_name}
+            message=message, error_code="BACKTEST_ERROR", details={**(details or {}), "strategy_name": strategy_name}
         )
 
 
@@ -180,8 +169,4 @@ class CacheError(AGStockException):
             cache_key (Optional[str]): 関連するキャッシュキー
             details (Optional[dict]): エラーに関する追加の詳細情報
         """
-        super().__init__(
-            message=message,
-            error_code="CACHE_ERROR",
-            details={**(details or {}), "cache_key": cache_key}
-        )
+        super().__init__(message=message, error_code="CACHE_ERROR", details={**(details or {}), "cache_key": cache_key})

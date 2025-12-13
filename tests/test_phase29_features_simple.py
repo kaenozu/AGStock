@@ -5,12 +5,14 @@ Phase 29-1: 特徴量エンジニアリング簡易検証スクリプト
 """
 
 import sys
-sys.path.insert(0, 'c:\\gemini-thinkpad\\AGStock')
 
-import pandas as pd
+sys.path.insert(0, "c:\\gemini-thinkpad\\AGStock")
+
 import numpy as np
-from src.data_loader import fetch_stock_data
+import pandas as pd
+
 from src.advanced_features import generate_phase29_features
+from src.data_loader import fetch_stock_data
 
 print("=" * 60)
 print("Phase 29-1: 特徴量エンジニアリング検証")
@@ -40,11 +42,22 @@ print(f"✓ 追加された特徴量数: {len(df_features.columns) - len(df.colu
 # 新しい特徴量の確認
 print("\n追加された主要特徴量:")
 new_features = [
-    'Historical_Volatility', 'Volatility_Regime', 'Volatility_Change',
-    'ROC_5', 'ROC_10', 'ROC_20',
-    'Stoch_K', 'Stoch_D', 'Williams_R', 'Ultimate_Osc',
-    'Close_lag_1', 'Close_lag_5', 'Close_lag_10',
-    'Close_std_5', 'Close_skew_10', 'Close_kurt_20'
+    "Historical_Volatility",
+    "Volatility_Regime",
+    "Volatility_Change",
+    "ROC_5",
+    "ROC_10",
+    "ROC_20",
+    "Stoch_K",
+    "Stoch_D",
+    "Williams_R",
+    "Ultimate_Osc",
+    "Close_lag_1",
+    "Close_lag_5",
+    "Close_lag_10",
+    "Close_std_5",
+    "Close_skew_10",
+    "Close_kurt_20",
 ]
 
 found_count = 0
@@ -61,8 +74,8 @@ print(f"  欠損値: {df_features.isna().sum().sum()}")
 print(f"  無限大: {np.isinf(df_features.select_dtypes(include=[np.number])).sum().sum()}")
 
 # ボラティリティレジームの分布
-if 'Volatility_Regime' in df_features.columns:
-    regime_counts = df_features['Volatility_Regime'].value_counts()
+if "Volatility_Regime" in df_features.columns:
+    regime_counts = df_features["Volatility_Regime"].value_counts()
     print("\nボラティリティレジーム分布:")
     print(f"  低ボラティリティ (0): {regime_counts.get(0, 0)}日")
     print(f"  中ボラティリティ (1): {regime_counts.get(1, 0)}日")

@@ -1,6 +1,7 @@
+import os
 import subprocess
 import sys
-import os
+
 
 def run_command(command, description):
     print(f"Running {description}...")
@@ -11,11 +12,12 @@ def run_command(command, description):
     print(f"✅ {description} PASSED")
     return True
 
+
 def main():
-    print("="*40)
+    print("=" * 40)
     print(" Running Quality Assurance Checks")
-    print("="*40)
-    
+    print("=" * 40)
+
     # 1. Static Type Check
     # Using specific files to avoid overwhelming errors from legacy code for now
     mypy_cmd = "mypy src/execution.py fully_automated_trader.py --explicit-package-bases"
@@ -28,8 +30,9 @@ def main():
     test_cmd = f"{sys.executable} -m unittest discover tests"
     if not run_command(test_cmd, "Unit Tests"):
         sys.exit(1)
-        
+
     print("\n✅ All checks finished successfully!")
+
 
 if __name__ == "__main__":
     main()

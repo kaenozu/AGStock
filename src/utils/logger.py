@@ -1,14 +1,12 @@
-import logging
 import datetime
+import logging
 import os
 
 _loggers = {}
 
+
 def setup_logger(
-    name: str, 
-    log_dir: str = "logs", 
-    log_file_name: str = "app.log", 
-    level: str = "INFO"
+    name: str, log_dir: str = "logs", log_file_name: str = "app.log", level: str = "INFO"
 ) -> logging.Logger:
     """
     指定された名前でロガーをセットアップし、ファイルハンドラとコンソールハンドラを追加します。
@@ -24,36 +22,36 @@ def setup_logger(
     logger.setLevel(level)
     logger.propagate = False  # 他のロガーへの伝播を停止
 
-    formatter = logging.Formatter(
-        "[{asctime}] [{levelname}] {message}", 
-        style='{'
-    )
+    formatter = logging.Formatter("[{asctime}] [{levelname}] {message}", style="{")
 
     # ファイルハンドラ
-    file_handler = logging.FileHandler(log_file_path, encoding='utf-8')
+    file_handler = logging.FileHandler(log_file_path, encoding="utf-8")
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
     # コンソールハンドラ (Windowsのcp932対応)
     stream_handler = logging.StreamHandler()
     stream_handler.setFormatter(formatter)
-    
+
     # Windowsのコンソールがcp932エンコーディングの場合にUnicodeEncodeErrorを避けるためのラッパー
-    if os.name == 'nt':
+    if os.name == "nt":
+
         class SafeStreamHandler(logging.StreamHandler):
             def emit(self, record):
                 try:
                     super().emit(record)
                 except UnicodeEncodeError:
-                    record.msg = record.msg.encode('cp932', errors='ignore').decode('cp932')
+                    record.msg = record.msg.encode("cp932", errors="ignore").decode("cp932")
                     super().emit(record)
+
         stream_handler = SafeStreamHandler()
         stream_handler.setFormatter(formatter)
 
     logger.addHandler(stream_handler)
-    
+
     _loggers[name] = logger
     return logger
+
 
 def get_logger(name: str) -> logging.Logger:
     """
@@ -63,6 +61,7 @@ def get_logger(name: str) -> logging.Logger:
     if name not in _loggers:
         raise ValueError(f"Logger '{name}' has not been set up. Call setup_logger first.")
     return _loggers[name]
+
 
 # 例: アプリケーション全体のデフォルトロガー
 # setup_logger("app", log_file_name="app.log")

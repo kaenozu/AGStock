@@ -35,7 +35,7 @@ def retry_with_backoff(retries: int = 3, backoff_in_seconds: int = 1):
                             exc,
                         )
                         raise exc
-                    sleep = backoff_in_seconds * 2 ** attempt
+                    sleep = backoff_in_seconds * 2**attempt
                     logger.warning(
                         "Function %s failed: %s. Retrying in %ss...",
                         func.__name__,

@@ -1,14 +1,17 @@
 """
 formattersのテスト
 """
-import pytest
-import pandas as pd
+
 from datetime import datetime
-from src.formatters import (
-    format_currency, format_percentage, format_number, format_large_number,
-    format_date, get_risk_level, get_sentiment_label, truncate_text,
-    style_dataframe_currency, style_dataframe_percentage, format_currency_jp
-)
+
+import pandas as pd
+import pytest
+
+from src.formatters import (format_currency, format_currency_jp, format_date,
+                            format_large_number, format_number,
+                            format_percentage, get_risk_level,
+                            get_sentiment_label, style_dataframe_currency,
+                            style_dataframe_percentage, truncate_text)
 
 
 def test_format_currency_basic():
@@ -35,7 +38,7 @@ def test_format_currency_none():
 
 def test_format_currency_nan():
     """NaN値のテスト"""
-    assert format_currency(float('nan')) == "N/A"
+    assert format_currency(float("nan")) == "N/A"
 
 
 def test_format_percentage_basic():
@@ -179,40 +182,32 @@ def test_truncate_text_none():
 
 def test_style_dataframe_currency():
     """DataFrameの通貨スタイリングテスト"""
-    df = pd.DataFrame({
-        'Amount': [1000, 2000, 3000],
-        'Value': [500, 1500, 2500]
-    })
-    
-    styled = style_dataframe_currency(df, ['Amount', 'Value'])
-    
-    assert styled['Amount'].iloc[0] == "¥1,000"
-    assert styled['Value'].iloc[1] == "¥1,500"
+    df = pd.DataFrame({"Amount": [1000, 2000, 3000], "Value": [500, 1500, 2500]})
+
+    styled = style_dataframe_currency(df, ["Amount", "Value"])
+
+    assert styled["Amount"].iloc[0] == "¥1,000"
+    assert styled["Value"].iloc[1] == "¥1,500"
 
 
 def test_style_dataframe_currency_missing_column():
     """存在しないカラムのテスト"""
-    df = pd.DataFrame({
-        'Amount': [1000, 2000]
-    })
-    
-    styled = style_dataframe_currency(df, ['Amount', 'NonExistent'])
-    
-    assert 'Amount' in styled.columns
-    assert 'NonExistent' not in styled.columns
+    df = pd.DataFrame({"Amount": [1000, 2000]})
+
+    styled = style_dataframe_currency(df, ["Amount", "NonExistent"])
+
+    assert "Amount" in styled.columns
+    assert "NonExistent" not in styled.columns
 
 
 def test_style_dataframe_percentage():
     """DataFrameのパーセンテージスタイリングテスト"""
-    df = pd.DataFrame({
-        'Return': [0.05, 0.10, -0.03],
-        'Ratio': [0.15, 0.20, 0.25]
-    })
-    
-    styled = style_dataframe_percentage(df, ['Return', 'Ratio'])
-    
-    assert styled['Return'].iloc[0] == "5.00%"
-    assert styled['Ratio'].iloc[1] == "20.00%"
+    df = pd.DataFrame({"Return": [0.05, 0.10, -0.03], "Ratio": [0.15, 0.20, 0.25]})
+
+    styled = style_dataframe_percentage(df, ["Return", "Ratio"])
+
+    assert styled["Return"].iloc[0] == "5.00%"
+    assert styled["Ratio"].iloc[1] == "20.00%"
 
 
 def test_format_currency_jp_small():
@@ -237,4 +232,4 @@ def test_format_currency_jp_none():
 
 def test_format_currency_jp_nan():
     """日本円フォーマット：NaN値のテスト"""
-    assert format_currency_jp(float('nan')) == "N/A"
+    assert format_currency_jp(float("nan")) == "N/A"

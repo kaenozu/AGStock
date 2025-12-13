@@ -1,12 +1,12 @@
 """BacktestingAnalyzerのテストモジュール。"""
-import pytest
-import pandas as pd
+
 import numpy as np
-from src.backtesting.analyzer import (
-    calculate_performance_metrics,
-    calculate_risk_metrics,
-    generate_backtest_report
-)
+import pandas as pd
+import pytest
+
+from src.backtesting.analyzer import (calculate_performance_metrics,
+                                      calculate_risk_metrics,
+                                      generate_backtest_report)
 
 
 def test_calculate_performance_metrics():
@@ -14,13 +14,7 @@ def test_calculate_performance_metrics():
     # サンプルデータ作成
     dates = pd.date_range(start="2023-01-01", end="2023-02-01", freq="D")
     equity_curve = pd.Series(np.linspace(1_000_000, 1_200_000, len(dates)), index=dates)
-    trades = [
-        {"return": 0.05},
-        {"return": -0.02},
-        {"return": 0.03},
-        {"return": -0.01},
-        {"return": 0.08}
-    ]
+    trades = [{"return": 0.05}, {"return": -0.02}, {"return": 0.03}, {"return": -0.01}, {"return": 0.08}]
     initial_capital = 1_000_000
 
     metrics = calculate_performance_metrics(equity_curve, trades, initial_capital)
@@ -61,13 +55,7 @@ def test_calculate_risk_metrics():
     # サンプルデータ作成
     dates = pd.date_range(start="2023-01-01", end="2023-02-01", freq="D")
     equity_curve = pd.Series(np.random.randn(len(dates)).cumsum() + 1_000_000, index=dates)
-    trades = [
-        {"return": 0.02},
-        {"return": -0.03},
-        {"return": -0.01},
-        {"return": 0.01},
-        {"return": -0.05}
-    ]
+    trades = [{"return": 0.02}, {"return": -0.03}, {"return": -0.01}, {"return": 0.01}, {"return": -0.05}]
 
     metrics = calculate_risk_metrics(equity_curve, trades)
 
@@ -103,7 +91,7 @@ def test_generate_backtest_report():
         "avg_return": 0.02,
         "max_drawdown": 0.1,
         "sharpe_ratio": 1.5,
-        "total_trades": 10
+        "total_trades": 10,
     }
 
     risk_metrics = {
@@ -111,7 +99,7 @@ def test_generate_backtest_report():
         "cvar_5": -0.05,
         "avg_trade_pnl": 0.01,
         "avg_loss_per_trade": -0.02,
-        "max_loss_per_trade": -0.05
+        "max_loss_per_trade": -0.05,
     }
 
     report = generate_backtest_report(perf_metrics, risk_metrics)

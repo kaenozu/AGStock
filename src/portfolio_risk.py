@@ -4,10 +4,13 @@ Portfolio Risk Analysis Module
 
 集中度、セクター分散、リスク警告を計算
 """
-import pandas as pd
-from typing import Dict, List, Tuple
-import yfinance as yf
+
 from functools import lru_cache
+from typing import Dict, List, Tuple
+
+import pandas as pd
+import yfinance as yf
+
 
 class PortfolioRiskAnalyzer:
     """ポートフォリオのリスク特性を計算"""
@@ -32,43 +35,33 @@ class PortfolioRiskAnalyzer:
             }
         """
         if positions.empty:
-            return {
-                'herfindahl_index': 0.0,
-                'top_position_pct': 0.0,
-                'top_ticker': None,
-                'is_concentrated': False
-            }
+            return {"herfindahl_index": 0.0, "top_position_pct": 0.0, "top_ticker": None, "is_concentrated": False}
 
         # 時価評価額で計算
-        if 'market_value' not in positions.columns:
-            positions['market_value'] = positions['current_price'] * positions['quantity']
+        if "market_value" not in positions.columns:
+            positions["market_value"] = positions["current_price"] * positions["quantity"]
 
-        total_value = positions['market_value'].sum()
+        total_value = positions["market_value"].sum()
 
         if total_value == 0:
-            return {
-                'herfindahl_index': 0.0,
-                'top_position_pct': 0.0,
-                'top_ticker': None,
-                'is_concentrated': False
-            }
+            return {"herfindahl_index": 0.0, "top_position_pct": 0.0, "top_ticker": None, "is_concentrated": False}
 
         # 各ポジションの割合
-        positions['weight'] = positions['market_value'] / total_value
+        positions["weight"] = positions["market_value"] / total_value
 
         # Herfindahl Index (HHI) = Σ(weight^2)
-        hhi = (positions['weight'] ** 2).sum()
+        hhi = (positions["weight"] ** 2).sum()
 
         # 最大ポジション
-        top_idx = positions['market_value'].idxmax()
+        top_idx = positions["market_value"].idxmax()
         top_position = positions.loc[top_idx]
-        top_pct = top_position['weight']
+        top_pct = top_position["weight"]
 
         return {
-            'herfindahl_index': hhi,
-            'top_position_pct': top_pct,
-            'top_ticker': top_position['ticker'],
-            'is_concentrated': top_pct > self.concentration_threshold
+            "herfindahl_index": hhi,
+            "top_position_pct": top_pct,
+            "top_ticker": top_position["ticker"],
+            "is_concentrated": top_pct > self.concentration_threshold,
         }
 
     @lru_cache(maxsize=128)
@@ -85,9 +78,9 @@ class PortfolioRiskAnalyzer:
         try:
             stock = yf.Ticker(ticker)
             info = stock.info
-            return info.get('sector', 'Unknown')
+            return info.get("sector", "Unknown")
         except Exception:
-            return 'Unknown'
+            return "Unknown"
 
     def check_sector_diversification(self, positions: pd.DataFrame) -> Dict:
         """
@@ -107,33 +100,33 @@ class PortfolioRiskAnalyzer:
         """
         if positions.empty:
             return {
-                'sector_distribution': {},
-                'top_sector': None,
-                'top_sector_pct': 0.0,
-                'is_sector_concentrated': False,
-                'num_sectors': 0
+                "sector_distribution": {},
+                "top_sector": None,
+                "top_sector_pct": 0.0,
+                "is_sector_concentrated": False,
+                "num_sectors": 0,
             }
 
         # 時価評価額で計算
-        if 'market_value' not in positions.columns:
-            positions['market_value'] = positions['current_price'] * positions['quantity']
+        if "market_value" not in positions.columns:
+            positions["market_value"] = positions["current_price"] * positions["quantity"]
 
-        total_value = positions['market_value'].sum()
+        total_value = positions["market_value"].sum()
 
         if total_value == 0:
             return {
-                'sector_distribution': {},
-                'top_sector': None,
-                'top_sector_pct': 0.0,
-                'is_sector_concentrated': False,
-                'num_sectors': 0
+                "sector_distribution": {},
+                "top_sector": None,
+                "top_sector_pct": 0.0,
+                "is_sector_concentrated": False,
+                "num_sectors": 0,
             }
 
         # セクター情報を取り得
-        positions['sector'] = positions['ticker'].apply(self._get_sector)
+        positions["sector"] = positions["ticker"].apply(self._get_sector)
 
         # セクター別集中
-        sector_values = positions.groupby('sector')['market_value'].sum()
+        sector_values = positions.groupby("sector")["market_value"].sum()
         sector_distribution = (sector_values / total_value).to_dict()
 
         # 最大セクター
@@ -141,11 +134,11 @@ class PortfolioRiskAnalyzer:
         top_sector_pct = sector_values.max() / total_value
 
         return {
-            'sector_distribution': sector_distribution,
-            'top_sector': top_sector,
-            'top_sector_pct': top_sector_pct,
-            'is_sector_concentrated': top_sector_pct > self.sector_threshold,
-            'num_sectors': len(sector_distribution)
+            "sector_distribution": sector_distribution,
+            "top_sector": top_sector,
+            "top_sector_pct": top_sector_pct,
+            "is_sector_concentrated": top_sector_pct > self.sector_threshold,
+            "num_sectors": len(sector_distribution),
         }
 
     def get_risk_alerts(self, positions: pd.DataFrame) -> List[Dict]:
@@ -165,32 +158,30 @@ class PortfolioRiskAnalyzer:
 
         # 集中度チェック
         concentration = self.calculate_concentration(positions)
-        if concentration['is_concentrated']:
-            alerts.append({
-                'level': 'warning',
-                'message': f"⚠️ {concentration['top_ticker']} が{concentration['top_position_pct']:.1%} を占めています（推奨: 30%以下）"
-            })
+        if concentration["is_concentrated"]:
+            alerts.append(
+                {
+                    "level": "warning",
+                    "message": f"⚠️ {concentration['top_ticker']} が{concentration['top_position_pct']:.1%} を占めています（推奨: 30%以下）",
+                }
+            )
 
         # セクター分散チェック
         sector_div = self.check_sector_diversification(positions)
-        if sector_div['is_sector_concentrated']:
-            alerts.append({
-                'level': 'warning',
-                'message': f"⚠️ {sector_div['top_sector']} セクターが{sector_div['top_sector_pct']:.1%} を占めています（推奨: 50%以下）"
-            })
+        if sector_div["is_sector_concentrated"]:
+            alerts.append(
+                {
+                    "level": "warning",
+                    "message": f"⚠️ {sector_div['top_sector']} セクターが{sector_div['top_sector_pct']:.1%} を占めています（推奨: 50%以下）",
+                }
+            )
 
         # ポジション数チェック
         num_positions = len(positions)
         if num_positions == 1:
-            alerts.append({
-                'level': 'warning',
-                'message': "⚠️ ポジションが銘柄のみです。分散投資を推奨します"
-            })
+            alerts.append({"level": "warning", "message": "⚠️ ポジションが銘柄のみです。分散投資を推奨します"})
         elif num_positions >= 2 and num_positions <= 3:
-            alerts.append({
-                'level': 'info',
-                'message': f"ℹ️ ポジション数: {num_positions}銘柄（推奨: 5-10銘柄）"
-            })
+            alerts.append({"level": "info", "message": f"ℹ️ ポジション数: {num_positions}銘柄（推奨: 5-10銘柄）"})
 
         return alerts
 
@@ -208,7 +199,7 @@ class PortfolioRiskAnalyzer:
             return 0.0
 
         concentration = self.calculate_concentration(positions)
-        hhi = concentration['herfindahl_index']
+        hhi = concentration["herfindahl_index"]
 
         # HHIを0-100スコアに変換
         # HHI = 1.0 (完全集中) -> Score = 0
@@ -216,7 +207,7 @@ class PortfolioRiskAnalyzer:
 
         n = len(positions)
         min_hhi = 1.0 / n  # 完全分散時のHHI
-        max_hhi = 1.0      # 完全集中時のHHI
+        max_hhi = 1.0  # 完全集中時のHHI
 
         # 正規化してスコア化: HHIが低いほどスコアが高い
         if max_hhi - min_hhi == 0:

@@ -1,23 +1,26 @@
-import os
 import json
 import logging
-from typing import List, Dict, Any, Optional
+import os
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
 # Try to import google.generativeai
 try:
     import google.generativeai as genai
+
     HAS_GEMINI = True
 except ImportError:
     HAS_GEMINI = False
     genai = None
     logger.warning("google.generativeai not installed. LLM features will use mock data.")
 
+
 class LLMAnalyzer:
     """
     Analyzes financial data using Large Language Models (Gemini).
     """
+
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
         self.model = None
@@ -26,7 +29,7 @@ class LLMAnalyzer:
         if HAS_GEMINI and self.api_key:
             try:
                 genai.configure(api_key=self.api_key)
-                self.model = genai.GenerativeModel('gemini-pro')
+                self.model = genai.GenerativeModel("gemini-pro")
                 self.is_active = True
                 logger.info("LLMAnalyzer initialized with Gemini API.")
             except Exception as e:
@@ -45,7 +48,7 @@ class LLMAnalyzer:
                 "score": 0.5,
                 "reasoning": "No news available for analysis.",
                 "risks": [],
-                "catalysts": []
+                "catalysts": [],
             }
 
         if self.is_active and self.model:
@@ -59,7 +62,7 @@ class LLMAnalyzer:
         """
         # Prepare prompt
         news_text = "\n".join([f"- {item.get('title', '')} ({item.get('publisher', '')})" for item in news_list[:10]])
-        
+
         prompt = f"""
         You are a senior financial analyst. Analyze the following recent news headlines for {ticker}.
         
@@ -75,7 +78,7 @@ class LLMAnalyzer:
         
         Output ONLY valid JSON.
         """
-        
+
         try:
             response = self.model.generate_content(prompt)
             text = response.text
@@ -84,7 +87,7 @@ class LLMAnalyzer:
                 text = text.replace("```json", "").replace("```", "")
             elif text.startswith("```"):
                 text = text.replace("```", "")
-                
+
             return json.loads(text)
         except Exception as e:
             logger.error(f"Gemini analysis failed: {e}")
@@ -97,13 +100,13 @@ class LLMAnalyzer:
         # Simple keyword based mock
         bullish_keywords = ["up", "rise", "gain", "profit", "growth", "high", "buy", "outperform"]
         bearish_keywords = ["down", "fall", "loss", "drop", "low", "sell", "underperform", "risk"]
-        
+
         score = 0.5
         found_bullish = []
         found_bearish = []
-        
+
         for item in news_list:
-            title = item.get('title', '').lower()
+            title = item.get("title", "").lower()
             for kw in bullish_keywords:
                 if kw in title:
                     score += 0.05
@@ -112,20 +115,20 @@ class LLMAnalyzer:
                 if kw in title:
                     score -= 0.05
                     found_bearish.append(kw)
-        
+
         score = max(0.0, min(1.0, score))
-        
+
         if score > 0.6:
             sentiment = "Bullish"
         elif score < 0.4:
             sentiment = "Bearish"
         else:
             sentiment = "Neutral"
-            
+
         return {
             "sentiment": sentiment,
             "score": score,
             "reasoning": f"Mock Analysis: Detected {len(found_bullish)} positive and {len(found_bearish)} negative keywords in {len(news_list)} headlines.",
             "risks": ["Market volatility (Mock)", "Sector rotation (Mock)"],
-            "catalysts": ["Earnings surprise (Mock)", "New product launch (Mock)"]
+            "catalysts": ["Earnings surprise (Mock)", "New product launch (Mock)"],
         }

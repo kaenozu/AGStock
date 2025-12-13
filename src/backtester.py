@@ -1,7 +1,9 @@
-import pandas as pd
+from typing import Any, Dict, List, Optional, Union
+
 import numpy as np
-from typing import Dict, Any, Union, List, Optional
-from src.strategies import Strategy, Order, OrderType
+import pandas as pd
+
+from src.strategies import Order, OrderType, Strategy
 
 
 class Backtester:
@@ -64,10 +66,10 @@ class Backtester:
             return None
         if isinstance(data, pd.DataFrame) and data.empty:
             return None
-        
+
         # Track if single DataFrame input for backward compatibility
         single_asset_mode = isinstance(data, pd.DataFrame)
-        
+
         # Normalise inputs
         if isinstance(data, pd.DataFrame):
             data_map = {"Asset": data}
@@ -128,7 +130,7 @@ class Backtester:
                         # Which simplifies to: (entry_price - current_price) * abs(shares)
                         entry_price_val = entry_prices[t]
                         current_price_val = aligned_data[t]["Close"].iloc[i]
-                        profit =  (entry_price_val - current_price_val) * abs(holdings[t])
+                        profit = (entry_price_val - current_price_val) * abs(holdings[t])
                         current_portfolio_value += profit
 
             for ticker, df in aligned_data.items():
@@ -145,24 +147,30 @@ class Backtester:
                     # Update highest price for trailing stop
                     if position > 0:  # Long position
                         highest_prices[ticker] = max(highest_prices[ticker], today_high)
-                        
+
                         # Update trailing stop level if set
                         if trailing_stop and trailing_stop > 0:
                             new_stop = highest_prices[ticker] * (1 - trailing_stop)
                             trailing_stop_levels[ticker] = max(trailing_stop_levels[ticker], new_stop)
-                        
+
                         # Check trailing stop
-                        if trailing_stop and trailing_stop_levels[ticker] > 0 and today_low <= trailing_stop_levels[ticker]:
-                            trades.append({
-                                "ticker": ticker,
-                                "entry_date": None,
-                                "exit_date": full_index[i],
-                                "entry_price": entry,
-                                "exit_price": trailing_stop_levels[ticker],
-                                "return": (trailing_stop_levels[ticker] - entry) / entry,
-                                "type": "Long",
-                                "reason": "Trailing Stop",
-                            })
+                        if (
+                            trailing_stop
+                            and trailing_stop_levels[ticker] > 0
+                            and today_low <= trailing_stop_levels[ticker]
+                        ):
+                            trades.append(
+                                {
+                                    "ticker": ticker,
+                                    "entry_date": None,
+                                    "exit_date": full_index[i],
+                                    "entry_price": entry,
+                                    "exit_price": trailing_stop_levels[ticker],
+                                    "return": (trailing_stop_levels[ticker] - entry) / entry,
+                                    "type": "Long",
+                                    "reason": "Trailing Stop",
+                                }
+                            )
                             cash += holdings[ticker] * trailing_stop_levels[ticker]
                             holdings[ticker] = 0.0
                             entry_prices[ticker] = 0.0
@@ -170,19 +178,21 @@ class Backtester:
                             highest_prices[ticker] = 0.0
                             exit_executed = True
                             continue
-                        
+
                         # Check take profit
                         elif take_profit and (today_high - entry) / entry >= take_profit:
-                            trades.append({
-                                "ticker": ticker,
-                                "entry_date": None,
-                                "exit_date": full_index[i],
-                                "entry_price": entry,
-                                "exit_price": entry * (1 + take_profit),
-                                "return": take_profit,
-                                "type": "Long",
-                                "reason": "Take Profit",
-                            })
+                            trades.append(
+                                {
+                                    "ticker": ticker,
+                                    "entry_date": None,
+                                    "exit_date": full_index[i],
+                                    "entry_price": entry,
+                                    "exit_price": entry * (1 + take_profit),
+                                    "return": take_profit,
+                                    "type": "Long",
+                                    "reason": "Take Profit",
+                                }
+                            )
                             cash += holdings[ticker] * (entry * (1 + take_profit))
                             holdings[ticker] = 0.0
                             entry_prices[ticker] = 0.0
@@ -190,19 +200,21 @@ class Backtester:
                             highest_prices[ticker] = 0.0
                             exit_executed = True
                             continue
-                        
+
                         # Check stop loss
                         elif stop_loss and (entry - today_low) / entry >= stop_loss:
-                            trades.append({
-                                "ticker": ticker,
-                                "entry_date": None,
-                                "exit_date": full_index[i],
-                                "entry_price": entry,
-                                "exit_price": entry * (1 - stop_loss),
-                                "return": -stop_loss,
-                                "type": "Long",
-                                "reason": "Stop Loss",
-                            })
+                            trades.append(
+                                {
+                                    "ticker": ticker,
+                                    "entry_date": None,
+                                    "exit_date": full_index[i],
+                                    "entry_price": entry,
+                                    "exit_price": entry * (1 - stop_loss),
+                                    "return": -stop_loss,
+                                    "type": "Long",
+                                    "reason": "Stop Loss",
+                                }
+                            )
                             cash += holdings[ticker] * (entry * (1 - stop_loss))
                             holdings[ticker] = 0.0
                             entry_prices[ticker] = 0.0
@@ -216,15 +228,17 @@ class Backtester:
                     if position > 0 and today_sig == -1:
                         entry = entry_prices[ticker]
                         ret = (exec_price - entry) / entry
-                        trades.append({
-                            "ticker": ticker,
-                            "entry_date": None,
-                            "exit_date": full_index[i + 1],
-                            "entry_price": entry,
-                            "exit_price": exec_price,
-                            "return": ret,
-                            "type": "Long",
-                        })
+                        trades.append(
+                            {
+                                "ticker": ticker,
+                                "entry_date": None,
+                                "exit_date": full_index[i + 1],
+                                "entry_price": entry,
+                                "exit_price": exec_price,
+                                "return": ret,
+                                "type": "Long",
+                            }
+                        )
                         cash += holdings[ticker] * exec_price
                         holdings[ticker] = 0.0
                         entry_prices[ticker] = 0.0
@@ -232,15 +246,17 @@ class Backtester:
                     elif position < 0 and today_sig == 1:
                         entry = entry_prices[ticker]
                         ret = (entry - exec_price) / entry
-                        trades.append({
-                            "ticker": ticker,
-                            "entry_date": None,
-                            "exit_date": full_index[i + 1],
-                            "entry_price": entry,
-                            "exit_price": exec_price,
-                            "return": ret,
-                            "type": "Short",
-                        })
+                        trades.append(
+                            {
+                                "ticker": ticker,
+                                "entry_date": None,
+                                "exit_date": full_index[i + 1],
+                                "entry_price": entry,
+                                "exit_price": exec_price,
+                                "return": ret,
+                                "type": "Short",
+                            }
+                        )
                         # For short, cash update is PnL: (entry - exit) * shares
                         cash += (entry - exec_price) * abs(holdings[ticker])
                         holdings[ticker] = 0.0
@@ -252,11 +268,11 @@ class Backtester:
                     # Ensure ticker attribute is set
                     if not today_sig.ticker:
                         today_sig.ticker = ticker
-                    
+
                     # Determine if order should execute based on type
                     should_execute = False
                     fill_price = exec_price
-                    
+
                     if today_sig.type == OrderType.MARKET:
                         should_execute = True
                     elif today_sig.type == OrderType.LIMIT:
@@ -285,13 +301,17 @@ class Backtester:
                             if df["Low"].iloc[i + 1] <= today_sig.price:
                                 should_execute = True
                                 fill_price = min(today_sig.price, exec_price)
-                    
+
                     # Execute order if conditions met
                     if should_execute:
                         # BUY action
                         if today_sig.action.upper() == "BUY":
                             if holdings[ticker] == 0:
-                                qty = today_sig.quantity if today_sig.quantity else self._size_position(ticker, current_portfolio_value, fill_price)
+                                qty = (
+                                    today_sig.quantity
+                                    if today_sig.quantity
+                                    else self._size_position(ticker, current_portfolio_value, fill_price)
+                                )
                                 holdings[ticker] = qty
                                 entry_prices[ticker] = fill_price
                                 # Initialize trailing stop tracking
@@ -308,15 +328,17 @@ class Backtester:
                                 else:
                                     ret = (entry - fill_price) / entry
                                     trade_type = "Short"
-                                trades.append({
-                                    "ticker": ticker,
-                                    "entry_date": None,
-                                    "exit_date": full_index[i + 1],
-                                    "entry_price": entry,
-                                    "exit_price": fill_price,
-                                    "return": ret,
-                                    "type": trade_type,
-                                })
+                                trades.append(
+                                    {
+                                        "ticker": ticker,
+                                        "entry_date": None,
+                                        "exit_date": full_index[i + 1],
+                                        "entry_price": entry,
+                                        "exit_price": fill_price,
+                                        "return": ret,
+                                        "type": trade_type,
+                                    }
+                                )
                                 holdings[ticker] = 0.0
                                 entry_prices[ticker] = 0.0
                                 exit_executed = True
@@ -352,7 +374,7 @@ class Backtester:
                         profit = (entry_price_val - current_price_val) * abs(holdings[t])
                         end_of_day_value += profit
             portfolio_value_history.append(end_of_day_value)
-            
+
             # Record position state: 1 if long, -1 if short, 0 if flat
             position_state = 0
             for h in holdings.values():
@@ -390,8 +412,10 @@ class Backtester:
         max_drawdown = drawdown.max() if not drawdown.empty else 0.0
         daily_returns = equity_curve.pct_change().dropna()
         sharpe_ratio = (
-            np.sqrt(252) * daily_returns.mean() / daily_returns.std()
-        ) if len(daily_returns) > 0 and daily_returns.std() > 0 else 0.0
+            (np.sqrt(252) * daily_returns.mean() / daily_returns.std())
+            if len(daily_returns) > 0 and daily_returns.std() > 0
+            else 0.0
+        )
         # Add final position state
         final_position_state = 0
         for h in holdings.values():
@@ -402,9 +426,9 @@ class Backtester:
                 final_position_state = -1
                 break
         position_history.append(final_position_state)
-        
+
         positions = pd.Series(position_history, index=full_index)
-        
+
         # Adjust signals format for backward compatibility
         if single_asset_mode:
             # Single asset: return Series directly
@@ -412,7 +436,7 @@ class Backtester:
         else:
             # Multi-asset: return Dict
             result_signals = signals_map
-        
+
         return {
             "total_return": total_return,
             "final_value": final_portfolio_value,

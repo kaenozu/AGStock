@@ -68,15 +68,52 @@ run_unified_dashboard.bat
 # 依存関係インストール
 pip install -r requirements.txt
 
-# 環境変数設定（任意）
+# 環境変数ファイルの設定（任意）
 cp .env.example .env
-# .envファイルを編集してAPIキーを設定
+# .envファイルを編集してAPIキー等を設定
+# 詳細な設定は「環境変数一覧」セクションを参照
+
+# 実行時設定ファイルの作成（任意）
+cp config.json.example config.json
+# config.jsonファイルを編集して実行時設定をカスタマイズ
+# 設定例: ボラティリティ指標、リスク許容度など
+# 詳細な設定は「設定ファイル」セクションを参照
 
 # 起動
 streamlit run app.py
 ```
 
 ブラウザで `http://localhost:8501` にアクセス
+
+---
+
+## ⚙️ 設定ファイル
+
+このセクションでは、`config.json` で設定可能な項目について説明します。
+
+### 設定例
+
+```json
+{
+  "volatility_symbols": [
+    "^VIX",
+    "^VXO"
+  ],
+  "risk_limits": {
+    "max_daily_loss_pct": -5.0,
+    "max_position_size_pct": 10.0,
+    "max_volatility_threshold": 40.0
+  },
+  "trading_settings": {
+    "default_position_size_usd": 10000,
+    "min_stock_price_threshold": 5.0
+  }
+}
+```
+
+- `volatility_symbols`: ボラティリティ指標として使用する銘柄を設定します。
+- `risk_limits`: リスク管理のための制限を設定します。
+- `trading_settings`: 取引時の設定を定義します。
 
 ---
 
@@ -133,6 +170,20 @@ streamlit run weekend_advisor.py
 - **リスク許容度**: `config.json`で設定
 - **アラート閾値**: UIから簡単に変更可能
 - **ポートフォリオ制約**: 相関・セクター露出の上限
+
+---
+
+## ⚙️ 環境変数一覧
+
+以下の環境変数でシステムの動作をカスタマイズできます:
+
+- `REALTIME_TTL_SECONDS`: リアルタイムデータのキャッシュ有効期限（デフォルト: 30秒）
+- `REALTIME_BACKOFF_SECONDS`: リアルタイムデータ取得時のリトライ間隔（デフォルト: 1秒）
+- `PAPER_TRADER_REALTIME_FALLBACK`: ペーパートレードでリアルタイム価格を使用するか（デフォルト: false）
+- `PAPER_TRADER_REFRESH_INTERVAL`: ペーパートレードの価格更新間隔（秒、デフォルト: 300秒）
+
+> **注意**: 環境変数は `.env` ファイルで設定することを推奨します。このファイルはAPIキーなどの機密情報を含むため、`.gitignore` でバージョン管理から除外されています。
+> 設定ファイル（`config.json`）は実行時の設定を保存するためのもので、環境変数とは異なります。
 
 ---
 

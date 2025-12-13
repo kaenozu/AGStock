@@ -1,24 +1,28 @@
-import pandas as pd
-from enum import Enum
-from typing import Optional, Dict, Any
 from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Dict, Optional
+
+import pandas as pd
+
 
 class OrderType(Enum):
     MARKET = "MARKET"
     LIMIT = "LIMIT"
     STOP = "STOP"
 
+
 @dataclass
 class Order:
     ticker: str
     type: OrderType
-    action: str # 'BUY' or 'SELL'
+    action: str  # 'BUY' or 'SELL'
     quantity: float
-    price: Optional[float] = None # Limit or Stop price
+    price: Optional[float] = None  # Limit or Stop price
     stop_loss: Optional[float] = None
     take_profit: Optional[float] = None
-    trailing_stop_pct: Optional[float] = None # For trailing stop logic
-    expiry: str = "GTC" # Good Till Cancelled or DAY
+    trailing_stop_pct: Optional[float] = None  # For trailing stop logic
+    expiry: str = "GTC"  # Good Till Cancelled or DAY
+
 
 class Strategy:
     def __init__(self, name: str, trend_period: int = 200) -> None:
@@ -28,19 +32,19 @@ class Strategy:
     def apply_trend_filter(self, df: pd.DataFrame, signals: pd.Series) -> pd.Series:
         if self.trend_period <= 0:
             return signals
-        
-        trend_sma = df['Close'].rolling(window=self.trend_period).mean()
-        
+
+        trend_sma = df["Close"].rolling(window=self.trend_period).mean()
+
         filtered_signals = signals.copy()
-        
+
         # Filter Longs: Can only Buy if Close > SMA(200)
-        long_condition = df['Close'] > trend_sma
+        long_condition = df["Close"] > trend_sma
         filtered_signals.loc[(signals == 1) & (~long_condition)] = 0
-        
+
         # Filter Shorts: Can only Short if Close < SMA(200)
-        short_condition = df['Close'] < trend_sma
+        short_condition = df["Close"] < trend_sma
         filtered_signals.loc[(signals == -1) & (~short_condition)] = 0
-        
+
         return filtered_signals
 
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
@@ -53,15 +57,12 @@ class Strategy:
         """
         signals = self.generate_signals(df)
         if signals.empty:
-            return {'signal': 0, 'confidence': 0.0}
-            
+            return {"signal": 0, "confidence": 0.0}
+
         # Get the latest signal (for the last available date)
         last_signal = signals.iloc[-1]
-        
-        return {
-            'signal': int(last_signal),
-            'confidence': 1.0 if last_signal != 0 else 0.0
-        }
+
+        return {"signal": int(last_signal), "confidence": 1.0 if last_signal != 0 else 0.0}
 
     def get_signal_explanation(self, signal: int) -> str:
         if signal == 1:

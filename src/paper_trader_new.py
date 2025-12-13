@@ -4,13 +4,15 @@
 SQLiteデータベースを使用してポジション、残高、および注成履歴を管理します。
 """
 
-import sqlite3
-import pandas as pd
 import datetime
-from typing import Dict, Optional
 import json
 import logging
+import sqlite3
 from pathlib import Path
+from typing import Dict, Optional
+
+import pandas as pd
+
 from src.data_loader import fetch_stock_data
 from src.helpers import retry_with_backoff
 
@@ -39,9 +41,9 @@ class PaperTrader:
                 # or just as a fallback.
                 config_path = Path("config.json")
                 if config_path.exists():
-                    with open(config_path, 'r', encoding='utf-8') as f:
+                    with open(config_path, "r", encoding="utf-8") as f:
                         config = json.load(f)
-                    initial_capital = config.get('paper_trading', {}).get('initial_capital', 1000000)
+                    initial_capital = config.get("paper_trading", {}).get("initial_capital", 1000000)
                 else:
                     initial_capital = 1000000  # Default 1M JPY
             except Exception as e:
@@ -57,26 +59,31 @@ class PaperTrader:
         cursor = self.conn.cursor()
 
         # Create accounts table
-        cursor.execute('''
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS accounts (
                 id INTEGER PRIMARY KEY,
                 initial_capital REAL,
                 current_balance REAL
             )
-        ''')
+        """
+        )
 
         # Create positions table
-        cursor.execute('''
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS positions (
                 id INTEGER PRIMARY KEY,
                 ticker TEXT UNIQUE,
                 quantity INTEGER,
                 avg_price REAL
             )
-        ''')
+        """
+        )
 
         # Create orders table
-        cursor.execute('''
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS orders (
                 id INTEGER PRIMARY KEY,
                 ticker TEXT,
@@ -85,15 +92,19 @@ class PaperTrader:
                 price REAL,
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
             )
-        ''')
+        """
+        )
 
         # Initialize account balance if not exists
-        cursor.execute('SELECT COUNT(*) FROM accounts')
+        cursor.execute("SELECT COUNT(*) FROM accounts")
         if cursor.fetchone()[0] == 0:
-            cursor.execute('''
+            cursor.execute(
+                """
                 INSERT INTO accounts (initial_capital, current_balance)
                 VALUES (?, ?)
-            ''', (self.initial_capital, self.initial_capital))
+            """,
+                (self.initial_capital, self.initial_capital),
+            )
 
         self.conn.commit()
 
@@ -104,7 +115,7 @@ class PaperTrader:
             float: Current cash balance.
         """
         cursor = self.conn.cursor()
-        cursor.execute('SELECT current_balance FROM accounts LIMIT 1')
+        cursor.execute("SELECT current_balance FROM accounts LIMIT 1")
         result = cursor.fetchone()
         return result[0] if result else 0.0
 
@@ -119,11 +130,11 @@ class PaperTrader:
                                           Returns {'quantity': 0, 'avg_price': 0.0} if no position.
         """
         cursor = self.conn.cursor()
-        cursor.execute('SELECT quantity, avg_price FROM positions WHERE ticker = ?', (ticker,))
+        cursor.execute("SELECT quantity, avg_price FROM positions WHERE ticker = ?", (ticker,))
         result = cursor.fetchone()
         if result:
-            return {'quantity': result[0], 'avg_price': result[1]}
-        return {'quantity': 0, 'avg_price': 0.0}
+            return {"quantity": result[0], "avg_price": result[1]}
+        return {"quantity": 0, "avg_price": 0.0}
 
     def execute_order(self, order: Order) -> bool:
         """Execute a trade order.
@@ -139,7 +150,7 @@ class PaperTrader:
             position = self.get_position(order.ticker)
 
             cost = order.quantity * order.price
-            if order.action == 'BUY':
+            if order.action == "BUY":
                 if cost > balance:
                     logger.warning(f"Insufficient balance for order: {order}")
                     return False
@@ -147,24 +158,27 @@ class PaperTrader:
                 # Update balance
                 new_balance = balance - cost
                 cursor = self.conn.cursor()
-                cursor.execute('UPDATE accounts SET current_balance = ? WHERE id = 1', (new_balance,))
+                cursor.execute("UPDATE accounts SET current_balance = ? WHERE id = 1", (new_balance,))
 
                 # Update position (average down/cost)
-                new_quantity = position['quantity'] + order.quantity
-                if position['quantity'] > 0:
+                new_quantity = position["quantity"] + order.quantity
+                if position["quantity"] > 0:
                     new_avg_price = (
-                        (position['quantity'] * position['avg_price']) + (order.quantity * order.price)
+                        (position["quantity"] * position["avg_price"]) + (order.quantity * order.price)
                     ) / new_quantity
                 else:
                     new_avg_price = order.price
 
-                cursor.execute('''
+                cursor.execute(
+                    """
                     INSERT OR REPLACE INTO positions (ticker, quantity, avg_price)
                     VALUES (?, ?, ?)
-                ''', (order.ticker, new_quantity, new_avg_price))
+                """,
+                    (order.ticker, new_quantity, new_avg_price),
+                )
 
-            elif order.action == 'SELL':
-                if order.quantity > position['quantity']:
+            elif order.action == "SELL":
+                if order.quantity > position["quantity"]:
                     logger.warning(f"Trying to sell more than owned: {order}")
                     return False
 
@@ -172,23 +186,29 @@ class PaperTrader:
                 proceeds = order.quantity * order.price
                 new_balance = balance + proceeds
                 cursor = self.conn.cursor()
-                cursor.execute('UPDATE accounts SET current_balance = ? WHERE id = 1', (new_balance,))
+                cursor.execute("UPDATE accounts SET current_balance = ? WHERE id = 1", (new_balance,))
 
                 # Update position
-                new_quantity = position['quantity'] - order.quantity
+                new_quantity = position["quantity"] - order.quantity
                 if new_quantity == 0:
-                    cursor.execute('DELETE FROM positions WHERE ticker = ?', (order.ticker,))
+                    cursor.execute("DELETE FROM positions WHERE ticker = ?", (order.ticker,))
                 else:
-                    cursor.execute('''
+                    cursor.execute(
+                        """
                         UPDATE positions SET quantity = ?
                         WHERE ticker = ?
-                    ''', (new_quantity, order.ticker))
+                    """,
+                        (new_quantity, order.ticker),
+                    )
 
             # Log order
-            cursor.execute('''
+            cursor.execute(
+                """
                 INSERT INTO orders (ticker, action, quantity, price)
                 VALUES (?, ?, ?, ?)
-            ''', (order.ticker, order.action, order.quantity, order.price))
+            """,
+                (order.ticker, order.action, order.quantity, order.price),
+            )
 
             self.conn.commit()
             logger.info(f"Executed order: {order}")
@@ -222,7 +242,7 @@ class PaperTrader:
         total_value = balance
 
         cursor = self.conn.cursor()
-        cursor.execute('SELECT ticker, quantity FROM positions WHERE quantity > 0')
+        cursor.execute("SELECT ticker, quantity FROM positions WHERE quantity > 0")
         positions = cursor.fetchall()
 
         for ticker, quantity in positions:
@@ -235,5 +255,6 @@ class PaperTrader:
         """Close the database connection."""
         if self.conn:
             self.conn.close()
+
 
 # END

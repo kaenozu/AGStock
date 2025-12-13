@@ -1,7 +1,8 @@
 import json
+
 import yaml
 
-from src.utils.config_loader import load_config_from_yaml, DEFAULT_CONFIG
+from src.utils.config_loader import DEFAULT_CONFIG, load_config_from_yaml
 
 
 def test_loads_valid_yaml(tmp_path):

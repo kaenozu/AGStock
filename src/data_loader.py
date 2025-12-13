@@ -2,13 +2,21 @@
 
 import asyncio
 import logging
+import os
+import time
 from datetime import datetime, timedelta
-from typing import Any, Awaitable, Callable, Dict, Mapping, Optional, Sequence, TypeVar
+from typing import (Any, Awaitable, Callable, Dict, Mapping, Optional,
+                    Sequence, TypeVar)
 
 import pandas as pd
 import streamlit as st
 import yfinance as yf
 
+from src.constants import (CRYPTO_PAIRS, DEFAULT_REALTIME_BACKOFF_SECONDS,
+                           DEFAULT_REALTIME_TTL_SECONDS, FUNDAMENTAL_CACHE_TTL,
+                           FX_PAIRS, JP_STOCKS, MARKET_SUMMARY_CACHE_KEY,
+                           MARKET_SUMMARY_TTL, MINIMUM_DATA_POINTS,
+                           STALE_DATA_MAX_AGE)
 from src.data_manager import DataManager
 from src.helpers import retry_with_backoff
 
@@ -16,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 try:
     from src.async_data_loader import AsyncDataLoader
+
     ASYNC_AVAILABLE = True
 except ImportError:
     AsyncDataLoader = None  # type: ignore[assignment]
@@ -24,6 +33,7 @@ except ImportError:
 
 try:
     from src.cache_manager import CacheManager
+
     HAS_PERSISTENT_CACHE = True
 except ImportError:
     CacheManager = None  # type: ignore[assignment]
@@ -32,30 +42,50 @@ except ImportError:
 T = TypeVar("T")
 
 CRYPTO_PAIRS = [
-    "BTC-USD", "ETH-USD", "XRP-USD", "SOL-USD", "DOGE-USD",
-    "BNB-USD", "ADA-USD", "MATIC-USD", "DOT-USD", "LTC-USD",
+    "BTC-USD",
+    "ETH-USD",
+    "XRP-USD",
+    "SOL-USD",
+    "DOGE-USD",
+    "BNB-USD",
+    "ADA-USD",
+    "MATIC-USD",
+    "DOT-USD",
+    "LTC-USD",
 ]
 
 FX_PAIRS = [
-    "USDJPY=X", "EURUSD=X", "GBPUSD=X", "AUDUSD=X",
-    "USDCAD=X", "USDCHF=X", "EURJPY=X", "GBPJPY=X",
+    "USDJPY=X",
+    "EURUSD=X",
+    "GBPUSD=X",
+    "AUDUSD=X",
+    "USDCAD=X",
+    "USDCHF=X",
+    "EURJPY=X",
+    "GBPJPY=X",
 ]
 
 JP_STOCKS = [
-    "7203.T", "9984.T", "6758.T", "8035.T", "6861.T",
-    "6098.T", "4063.T", "6367.T", "6501.T", "7974.T",
-    "9432.T", "8306.T", "7267.T", "4502.T", "6954.T",
+    "7203.T",
+    "9984.T",
+    "6758.T",
+    "8035.T",
+    "6861.T",
+    "6098.T",
+    "4063.T",
+    "6367.T",
+    "6501.T",
+    "7974.T",
+    "9432.T",
+    "8306.T",
+    "7267.T",
+    "4502.T",
+    "6954.T",
 ]
-
-STALE_DATA_MAX_AGE = timedelta(days=2)
-MINIMUM_DATA_POINTS = 50
-MARKET_SUMMARY_CACHE_KEY = "market_summary_snapshot"
-MARKET_SUMMARY_TTL = 1800
-FUNDAMENTAL_CACHE_TTL = 86400
 
 
 # シングルトンキャッシュインスタンスの作成
-def _create_cache_instance() -> Optional[CacheManager]:
+def _create_cache_instance():
     """キャッシュマネージャーのインスタンスを作成"""
     if HAS_PERSISTENT_CACHE and CacheManager is not None:
         try:
@@ -67,6 +97,11 @@ def _create_cache_instance() -> Optional[CacheManager]:
 
 
 _cache_instance: Optional[CacheManager] = _create_cache_instance()
+_realtime_cache: Dict[str, tuple[float, pd.DataFrame]] = {}
+try:
+    _DEFAULT_REALTIME_TTL = int(os.getenv("REALTIME_TTL_SECONDS", str(DEFAULT_REALTIME_TTL_SECONDS)))
+except Exception:
+    _DEFAULT_REALTIME_TTL = DEFAULT_REALTIME_TTL_SECONDS
 
 
 def _get_cache() -> Optional[CacheManager]:
@@ -162,10 +197,11 @@ def _download_and_cache_missing(
     except Exception as exc:
         logger.error("Error downloading data for %s: %s", tickers, exc)
         from .errors import DataLoadError
+
         raise DataLoadError(
             message=f"Failed to download data for tickers: {tickers}",
             ticker=",".join(tickers) if tickers else None,
-            details={"period": period, "interval": interval, "original_error": str(exc)}
+            details={"period": period, "interval": interval, "original_error": str(exc)},
         ) from exc
 
     if raw.empty:
@@ -185,10 +221,11 @@ def _download_and_cache_missing(
         except Exception as exc:
             logger.error("Error saving/loading data for %s: %s", ticker, exc)
             from .errors import DataLoadError
+
             raise DataLoadError(
                 message=f"Failed to save/load data for ticker: {ticker}",
                 ticker=ticker,
-                details={"original_error": str(exc)}
+                details={"original_error": str(exc)},
             ) from exc
 
     return updated
@@ -404,3 +441,50 @@ def fetch_market_summary() -> tuple[pd.DataFrame, Dict[str, Any]]:
         )
 
     return summary_df, stats
+
+
+DEFAULT_BACKOFF = int(os.getenv("REALTIME_BACKOFF_SECONDS", str(DEFAULT_REALTIME_BACKOFF_SECONDS)))
+
+
+@retry_with_backoff(retries=2, backoff_in_seconds=DEFAULT_BACKOFF)
+def fetch_realtime_data(
+    ticker: str,
+    period: str = "5d",
+    interval: str = "1m",
+    ttl_seconds: Optional[int] = None,
+) -> pd.DataFrame:
+    """ライトウェイトなリアルタイム価格取得（ライブ取引用）。短期キャッシュ付き。"""
+    if not ticker:
+        return pd.DataFrame()
+
+    ttl = ttl_seconds if ttl_seconds is not None else _DEFAULT_REALTIME_TTL
+
+    cache_key = f"{ticker}::{period}::{interval}"
+    now = time.time()
+    cached = _realtime_cache.get(cache_key)
+    if cached:
+        cached_ts, cached_df = cached
+        if now - cached_ts <= ttl:
+            return cached_df.copy()
+
+    try:
+        df = yf.download(
+            ticker,
+            period=period,
+            interval=interval,
+            auto_adjust=True,
+            progress=False,
+        )
+    except Exception as exc:
+        logger.error("Realtime fetch failed for %s: %s", ticker, exc)
+        return pd.DataFrame()
+
+    if df is None or df.empty:
+        return pd.DataFrame()
+
+    if isinstance(df, pd.Series):
+        df = df.to_frame()
+
+    df.dropna(inplace=True)
+    _realtime_cache[cache_key] = (now, df)
+    return df.copy()

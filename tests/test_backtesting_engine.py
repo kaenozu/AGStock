@@ -1,7 +1,9 @@
 """BacktestEngineのテストモジュール。"""
-import pytest
-import pandas as pd
+
 import numpy as np
+import pandas as pd
+import pytest
+
 from src.backtesting.engine import BacktestEngine
 from src.strategies import SMACrossoverStrategy
 
@@ -10,24 +12,23 @@ from src.strategies import SMACrossoverStrategy
 def sample_data():
     """サンプル株価データを作成するフィクスチャ"""
     dates = pd.date_range(start="2023-01-01", end="2023-02-01", freq="D")
-    df = pd.DataFrame({
-        "Open": np.random.rand(len(dates)) * 100 + 100,
-        "High": np.random.rand(len(dates)) * 100 + 102,
-        "Low": np.random.rand(len(dates)) * 100 + 98,
-        "Close": np.random.rand(len(dates)) * 100 + 100,
-        "Volume": np.random.rand(len(dates)) * 1000000 + 500000,
-    }, index=dates)
+    df = pd.DataFrame(
+        {
+            "Open": np.random.rand(len(dates)) * 100 + 100,
+            "High": np.random.rand(len(dates)) * 100 + 102,
+            "Low": np.random.rand(len(dates)) * 100 + 98,
+            "Close": np.random.rand(len(dates)) * 100 + 100,
+            "Volume": np.random.rand(len(dates)) * 1000000 + 500000,
+        },
+        index=dates,
+    )
     return df
 
 
 @pytest.fixture
 def backtest_engine():
     """BacktestEngineのインスタンスを作成するフィクスチャ"""
-    return BacktestEngine(
-        initial_capital=1_000_000,
-        commission=0.001,
-        slippage=0.001
-    )
+    return BacktestEngine(initial_capital=1_000_000, commission=0.001, slippage=0.001)
 
 
 def test_backtest_engine_initialization(backtest_engine):
@@ -39,10 +40,7 @@ def test_backtest_engine_initialization(backtest_engine):
 def test_run_backtest_single_asset(backtest_engine, sample_data):
     """単一資産のバックテストが正常に実行されることを確認"""
     strategy = SMACrossoverStrategy(short_window=5, long_window=20)
-    result = backtest_engine.run(
-        data=sample_data,
-        strategy=strategy
-    )
+    result = backtest_engine.run(data=sample_data, strategy=strategy)
 
     assert result is not None
     assert "total_return" in result

@@ -4,15 +4,18 @@
 実際の日本株データを使用して予測精度向上を検証します。
 """
 
-import sys
 import os
+import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import pandas as pd
-import numpy as np
-from datetime import datetime
 import warnings
-warnings.filterwarnings('ignore')
+from datetime import datetime
+
+import numpy as np
+import pandas as pd
+
+warnings.filterwarnings("ignore")
 
 print("=" * 80)
 print("実データバックテスト - Phase 29 + Phase 30-1 効果測定")
@@ -21,9 +24,9 @@ print(f"開始時刻: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
 # テスト対象銘柄（日本の主要株）
 test_tickers = [
-    '7203.T',  # トヨタ自動車
-    '6758.T',  # ソニーグループ
-    '9984.T',  # ソフトバンクグループ
+    "7203.T",  # トヨタ自動車
+    "6758.T",  # ソニーグループ
+    "9984.T",  # ソフトバンクグループ
 ]
 
 print(f"\nテスト対象銘柄: {', '.join(test_tickers)}")
@@ -36,20 +39,21 @@ print("=" * 80)
 
 try:
     from src.data_loader import fetch_stock_data
-    
+
     print("実データ取得中...")
     data_map = fetch_stock_data(test_tickers, period="2y")
-    
+
     print("\n✅ データ取得成功:")
     for ticker in test_tickers:
         if ticker in data_map and not data_map[ticker].empty:
             print(f"   {ticker}: {len(data_map[ticker])} 日分")
         else:
             print(f"   {ticker}: データなし")
-    
+
 except Exception as e:
     print(f"❌ データ取得エラー: {e}")
     import traceback
+
     traceback.print_exc()
     data_map = {}
 
@@ -63,53 +67,53 @@ baseline_results = []
 for ticker in test_tickers:
     if ticker not in data_map or data_map[ticker].empty:
         continue
-    
+
     try:
         df = data_map[ticker].copy()
-        
+
         # 基本的な特徴量のみ（Phase 29なし）
         from src.features import add_technical_indicators
-        
+
         df_with_features = add_technical_indicators(df)
-        
+
         # NaN削除
         df_with_features = df_with_features.dropna()
-        
+
         if len(df_with_features) < 100:
             print(f"   {ticker}: データ不足（{len(df_with_features)}日）")
             continue
-        
+
         # 訓練/テスト分割（70/30）
         train_size = int(len(df_with_features) * 0.7)
         train_df = df_with_features.iloc[:train_size]
         test_df = df_with_features.iloc[train_size:]
-        
+
         # シンプルな戦略でシグナル生成
         from src.strategies import LightGBMStrategy
-        
+
         strategy = LightGBMStrategy(lookback_days=60, threshold=0.005)
-        
+
         # 訓練
         train_signals = strategy.generate_signals(train_df)
-        
+
         # テスト
         test_signals = strategy.generate_signals(test_df)
-        
+
         # 精度計算
         if not test_signals.empty and len(test_signals) > 10:
             # 実際の価格変動
-            actual_returns = test_df['Close'].pct_change().shift(-1)
-            
+            actual_returns = test_df["Close"].pct_change().shift(-1)
+
             correct = 0
             total = 0
-            
+
             for i in range(len(test_signals) - 1):
                 signal = test_signals.iloc[i]
                 actual = actual_returns.iloc[i]
-                
+
                 if pd.isna(actual):
                     continue
-                
+
                 if signal == 1 and actual > 0:
                     correct += 1
                     total += 1
@@ -120,17 +124,19 @@ for ticker in test_tickers:
                     continue
                 else:
                     total += 1
-            
+
             accuracy = (correct / total * 100) if total > 0 else 50
-            
-            baseline_results.append({
-                'ticker': ticker,
-                'accuracy': accuracy,
-                'correct': correct,
-                'total': total,
-                'features': len(df_with_features.columns)
-            })
-            
+
+            baseline_results.append(
+                {
+                    "ticker": ticker,
+                    "accuracy": accuracy,
+                    "correct": correct,
+                    "total": total,
+                    "features": len(df_with_features.columns),
+                }
+            )
+
             print(f"\n   {ticker}:")
             print(f"      正解率: {accuracy:.2f}%")
             print(f"      予測数: {total}")
@@ -138,13 +144,13 @@ for ticker in test_tickers:
             print(f"      特徴量数: {len(df_with_features.columns)}")
         else:
             print(f"   {ticker}: シグナル不足")
-            
+
     except Exception as e:
         print(f"   {ticker}: エラー - {e}")
 
 # ベースライン平均
 if baseline_results:
-    baseline_avg = np.mean([r['accuracy'] for r in baseline_results])
+    baseline_avg = np.mean([r["accuracy"] for r in baseline_results])
     print(f"\n✅ ベースライン平均正解率: {baseline_avg:.2f}%")
 else:
     baseline_avg = 50
@@ -160,55 +166,55 @@ phase29_results = []
 for ticker in test_tickers:
     if ticker not in data_map or data_map[ticker].empty:
         continue
-    
+
     try:
         df = data_map[ticker].copy()
-        
+
         # Phase 29の高度な特徴量
         from src.advanced_features import generate_phase29_features
-        
+
         df_advanced = generate_phase29_features(df)
-        
+
         # NaN削除
         df_advanced = df_advanced.dropna()
-        
+
         if len(df_advanced) < 100:
             print(f"   {ticker}: データ不足（{len(df_advanced)}日）")
             continue
-        
+
         print(f"\n   {ticker}:")
         print(f"      Phase 29特徴量数: {len(df_advanced.columns)}")
-        
+
         # 訓練/テスト分割
         train_size = int(len(df_advanced) * 0.7)
         train_df = df_advanced.iloc[:train_size]
         test_df = df_advanced.iloc[train_size:]
-        
+
         # 戦略
         from src.strategies import LightGBMStrategy
-        
+
         strategy = LightGBMStrategy(lookback_days=60, threshold=0.005)
-        
+
         # 訓練
         train_signals = strategy.generate_signals(train_df)
-        
+
         # テスト
         test_signals = strategy.generate_signals(test_df)
-        
+
         # 精度計算
         if not test_signals.empty and len(test_signals) > 10:
-            actual_returns = test_df['Close'].pct_change().shift(-1)
-            
+            actual_returns = test_df["Close"].pct_change().shift(-1)
+
             correct = 0
             total = 0
-            
+
             for i in range(len(test_signals) - 1):
                 signal = test_signals.iloc[i]
                 actual = actual_returns.iloc[i]
-                
+
                 if pd.isna(actual):
                     continue
-                
+
                 if signal == 1 and actual > 0:
                     correct += 1
                     total += 1
@@ -219,30 +225,26 @@ for ticker in test_tickers:
                     continue
                 else:
                     total += 1
-            
+
             accuracy = (correct / total * 100) if total > 0 else 50
-            
-            phase29_results.append({
-                'ticker': ticker,
-                'accuracy': accuracy,
-                'correct': correct,
-                'total': total
-            })
-            
+
+            phase29_results.append({"ticker": ticker, "accuracy": accuracy, "correct": correct, "total": total})
+
             print(f"      正解率: {accuracy:.2f}%")
             print(f"      予測数: {total}")
             print(f"      正解数: {correct}")
         else:
             print("      シグナル不足")
-            
+
     except Exception as e:
         print(f"   {ticker}: エラー - {e}")
         import traceback
+
         traceback.print_exc()
 
 # Phase 29平均
 if phase29_results:
-    phase29_avg = np.mean([r['accuracy'] for r in phase29_results])
+    phase29_avg = np.mean([r["accuracy"] for r in phase29_results])
     print(f"\n✅ Phase 29-1平均正解率: {phase29_avg:.2f}%")
     print(f"   ベースラインとの差: +{phase29_avg - baseline_avg:.2f}%")
 else:
@@ -259,56 +261,51 @@ phase30_results = []
 for ticker in test_tickers:
     if ticker not in data_map or data_map[ticker].empty:
         continue
-    
+
     try:
         df = data_map[ticker].copy()
-        
+
         # レジーム検出
-        from src.regime_detector import MarketRegimeDetector
         from src.dynamic_risk_manager import DynamicRiskManager
-        
+        from src.regime_detector import MarketRegimeDetector
+
         detector = MarketRegimeDetector()
         regime = detector.detect_regime(df)
-        
+
         risk_manager = DynamicRiskManager(detector)
         params = risk_manager.update_parameters(df)
-        
+
         print(f"\n   {ticker}:")
         print(f"      レジーム: {regime}")
         print(f"      損切り: {params['stop_loss']*100:.2f}%")
         print(f"      利確: {params['take_profit']*100:.2f}%")
-        
+
         # レジーム別のボーナス（実証データに基づく推定）
         regime_bonus = {
-            'trending_up': 1.12,      # +12%
-            'trending_down': 1.05,    # +5%
-            'ranging': 1.03,          # +3%
-            'high_volatility': 1.08,  # +8%
-            'low_volatility': 1.05    # +5%
+            "trending_up": 1.12,  # +12%
+            "trending_down": 1.05,  # +5%
+            "ranging": 1.03,  # +3%
+            "high_volatility": 1.08,  # +8%
+            "low_volatility": 1.05,  # +5%
         }
-        
+
         bonus = regime_bonus.get(regime, 1.05)
-        
+
         # Phase 29の結果にボーナスを適用
         base_accuracy = phase29_avg
         adjusted_accuracy = base_accuracy * bonus
-        
-        phase30_results.append({
-            'ticker': ticker,
-            'regime': regime,
-            'bonus': bonus,
-            'accuracy': adjusted_accuracy
-        })
-        
+
+        phase30_results.append({"ticker": ticker, "regime": regime, "bonus": bonus, "accuracy": adjusted_accuracy})
+
         print(f"      レジーム別ボーナス: {(bonus - 1) * 100:.1f}%")
         print(f"      調整後正解率: {adjusted_accuracy:.2f}%")
-        
+
     except Exception as e:
         print(f"   {ticker}: エラー - {e}")
 
 # Phase 30平均
 if phase30_results:
-    phase30_avg = np.mean([r['accuracy'] for r in phase30_results])
+    phase30_avg = np.mean([r["accuracy"] for r in phase30_results])
     print(f"\n✅ Phase 30-1平均正解率: {phase30_avg:.2f}%")
     print(f"   ベースラインとの差: +{phase30_avg - baseline_avg:.2f}%")
 else:

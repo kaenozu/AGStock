@@ -1,5 +1,6 @@
 import pandas as pd
 import ta
+
 from .base import Strategy
 
 
@@ -8,7 +9,7 @@ class TechnicalStrategy(Strategy):
 
     def _validate_dataframe(self, df: pd.DataFrame) -> bool:
         """DataFrameの検証"""
-        return df is not None and not df.empty and 'Close' in df.columns
+        return df is not None and not df.empty and "Close" in df.columns
 
     def _create_signals_series(self, df: pd.DataFrame) -> pd.Series:
         """シグナル用のSeriesを作成"""
@@ -31,8 +32,8 @@ class SMACrossoverStrategy(TechnicalStrategy):
 
         signals = self._create_signals_series(df)
 
-        short_sma = df['Close'].rolling(window=self.short_window).mean()
-        long_sma = df['Close'].rolling(window=self.long_window).mean()
+        short_sma = df["Close"].rolling(window=self.short_window).mean()
+        long_sma = df["Close"].rolling(window=self.long_window).mean()
 
         # Golden Cross
         signals.loc[(short_sma > long_sma) & (short_sma.shift(1) <= long_sma.shift(1))] = 1
@@ -45,7 +46,9 @@ class SMACrossoverStrategy(TechnicalStrategy):
         if signal == 1:
             return "短期移動平均線が長期移動平均線を上抜けました（ゴールデンクロス）。上昇トレンドの始まりを示唆しています。"
         elif signal == -1:
-            return "短期移動平均線が長期移動平均線を下抜けました（デッドクロス）。下落トレンドの始まりを示唆しています。"
+            return (
+                "短期移動平均線が長期移動平均線を下抜けました（デッドクロス）。下落トレンドの始まりを示唆しています。"
+            )
         return "明確なトレンド転換シグナルは出ていません。"
 
 
@@ -60,7 +63,7 @@ class RSIStrategy(TechnicalStrategy):
         if not self._validate_dataframe(df):
             return pd.Series(dtype=int)
 
-        rsi_indicator = ta.momentum.RSIIndicator(close=df['Close'], window=self.period)
+        rsi_indicator = ta.momentum.RSIIndicator(close=df["Close"], window=self.period)
         rsi = rsi_indicator.rsi()
         signals = self._create_signals_series(df)
 
@@ -94,16 +97,16 @@ class BollingerBandsStrategy(TechnicalStrategy):
         if not self._validate_dataframe(df):
             return pd.Series(dtype=int)
 
-        bollinger = ta.volatility.BollingerBands(close=df['Close'], window=self.length, window_dev=self.std)
+        bollinger = ta.volatility.BollingerBands(close=df["Close"], window=self.length, window_dev=self.std)
         lower_band = bollinger.bollinger_lband()
         upper_band = bollinger.bollinger_hband()
 
         signals = self._create_signals_series(df)
 
         # Buy: Touch Lower
-        signals.loc[df['Close'] < lower_band] = 1
+        signals.loc[df["Close"] < lower_band] = 1
         # Sell: Touch Upper
-        signals.loc[df['Close'] > upper_band] = -1
+        signals.loc[df["Close"] > upper_band] = -1
 
         return self._apply_standard_trend_filter(df, signals)
 
@@ -127,20 +130,20 @@ class CombinedStrategy(TechnicalStrategy):
             return pd.Series(dtype=int)
 
         # RSI
-        rsi = ta.momentum.RSIIndicator(close=df['Close'], window=self.rsi_period).rsi()
+        rsi = ta.momentum.RSIIndicator(close=df["Close"], window=self.rsi_period).rsi()
 
         # BB
-        bb = ta.volatility.BollingerBands(close=df['Close'], window=self.bb_length, window_dev=self.bb_std)
+        bb = ta.volatility.BollingerBands(close=df["Close"], window=self.bb_length, window_dev=self.bb_std)
         lower_band = bb.bollinger_lband()
         upper_band = bb.bollinger_hband()
 
         signals = self._create_signals_series(df)
 
         # Buy: RSI < 30 AND Close < Lower Band
-        signals.loc[(rsi < 30) & (df['Close'] < lower_band)] = 1
+        signals.loc[(rsi < 30) & (df["Close"] < lower_band)] = 1
 
         # Sell: RSI > 70 AND Close > Upper Band
-        signals.loc[(rsi > 70) & (df['Close'] > upper_band)] = -1
+        signals.loc[(rsi > 70) & (df["Close"] > upper_band)] = -1
 
         return self._apply_standard_trend_filter(df, signals)
 
