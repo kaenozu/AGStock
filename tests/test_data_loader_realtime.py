@@ -20,4 +20,3 @@ def test_fetch_realtime_data_uses_cache(monkeypatch):
 
     assert calls["count"] == 1
     assert not df1.empty and not df2.empty
-

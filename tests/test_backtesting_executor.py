@@ -1,7 +1,9 @@
 """BacktestExecutorのテストモジュール。"""
-import pytest
-import pandas as pd
+
 import numpy as np
+import pandas as pd
+import pytest
+
 from src.backtesting.executor import BacktestExecutor
 from src.strategies import Order, OrderType
 
@@ -20,14 +22,8 @@ def test_executor_initialization(executor):
 
 def test_execute_market_buy_order(executor):
     """市場注文（買い）の執行テスト"""
-    signal = Order(
-        ticker="7203.T",
-        type=OrderType.MARKET,
-        action="BUY",
-        quantity=100,
-        price=None  # 市場価格で執行
-    )
-    
+    signal = Order(ticker="7203.T", type=OrderType.MARKET, action="BUY", quantity=100, price=None)  # 市場価格で執行
+
     # 適当な初期状態
     holdings = {"7203.T": 0.0}
     entry_prices = {"7203.T": 0.0}
@@ -46,8 +42,22 @@ def test_execute_market_buy_order(executor):
     current_portfolio_value = 1_000_000
 
     cash, holdings, entry_prices, exit_executed, trades = executor.execute_order(
-        signal, holdings, entry_prices, cash, exec_price, ticker, today_high, today_low,
-        aligned_data, trailing_stop, stop_loss, take_profit, trades, trailing_stop_levels, highest_prices, current_portfolio_value
+        signal,
+        holdings,
+        entry_prices,
+        cash,
+        exec_price,
+        ticker,
+        today_high,
+        today_low,
+        aligned_data,
+        trailing_stop,
+        stop_loss,
+        take_profit,
+        trades,
+        trailing_stop_levels,
+        highest_prices,
+        current_portfolio_value,
     )
 
     # 買い注文が執行されたことを確認
@@ -60,13 +70,7 @@ def test_execute_market_buy_order(executor):
 
 def test_execute_market_sell_order(executor):
     """市場注文（売り）の執行テスト"""
-    signal = Order(
-        ticker="7203.T",
-        type=OrderType.MARKET,
-        action="SELL",
-        quantity=100,
-        price=None  # 市場価格で執行
-    )
+    signal = Order(ticker="7203.T", type=OrderType.MARKET, action="SELL", quantity=100, price=None)  # 市場価格で執行
 
     # 売却するための初期状態（保有している）
     holdings = {"7203.T": 100.0}
@@ -90,8 +94,22 @@ def test_execute_market_sell_order(executor):
     # よって、保有株数が0でなければ売り注文は実行される
     # 今回は保有株数100の状態でSELL信号を送れば、クローズになるはず
     cash, holdings, entry_prices, exit_executed, trades = executor.execute_order(
-        signal, holdings, entry_prices, cash, exec_price, ticker, today_high, today_low,
-        aligned_data, trailing_stop, stop_loss, take_profit, trades, trailing_stop_levels, highest_prices, current_portfolio_value
+        signal,
+        holdings,
+        entry_prices,
+        cash,
+        exec_price,
+        ticker,
+        today_high,
+        today_low,
+        aligned_data,
+        trailing_stop,
+        stop_loss,
+        take_profit,
+        trades,
+        trailing_stop_levels,
+        highest_prices,
+        current_portfolio_value,
     )
 
     # 売り注文が執行されたことを確認

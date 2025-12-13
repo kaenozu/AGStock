@@ -12,9 +12,10 @@
 
 import json
 import os
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
-from dataclasses import dataclass, field
+
 from .errors import ConfigurationError
 
 
@@ -42,15 +43,12 @@ class TradingConfig:
         """初期化後の検証を行う"""
         # データ型の検証
         if not isinstance(self.initial_capital, (int, float)) or self.initial_capital <= 0:
-            raise ConfigurationError(
-                message="Initial capital must be a positive number",
-                config_key="initial_capital"
-            )
+            raise ConfigurationError(message="Initial capital must be a positive number", config_key="initial_capital")
 
         if not isinstance(self.paper_trading_initial_capital, (int, float)) or self.paper_trading_initial_capital <= 0:
             raise ConfigurationError(
                 message="Paper trading initial capital must be a positive number",
-                config_key="paper_trading_initial_capital"
+                config_key="paper_trading_initial_capital",
             )
 
 
@@ -92,13 +90,13 @@ class ConfigManager:
                 raise ConfigurationError(
                     message=f"Failed to parse config file: {self.config_path}",
                     config_key="config_file",
-                    details={"file_path": str(self.config_path), "original_error": str(e)}
+                    details={"file_path": str(self.config_path), "original_error": str(e)},
                 ) from e
             except Exception as e:
                 raise ConfigurationError(
                     message=f"Failed to load config file: {self.config_path}",
                     config_key="config_file",
-                    details={"file_path": str(self.config_path), "original_error": str(e)}
+                    details={"file_path": str(self.config_path), "original_error": str(e)},
                 ) from e
 
         return self._validate_and_create_config()
@@ -111,25 +109,15 @@ class ConfigManager:
         """
         return {
             "initial_capital": 1000000.0,
-            "paper_trading": {
-                "initial_capital": 1000000.0
-            },
+            "paper_trading": {"initial_capital": 1000000.0},
             "risk_management": {
                 "daily_loss_limit_pct": -5.0,
                 "max_position_size_pct": 10.0,
                 "max_vix": 40.0,
-                "max_drawdown_limit_pct": -20.0
+                "max_drawdown_limit_pct": -20.0,
             },
-            "mini_stock": {
-                "enabled": True,
-                "unit_size": 1,
-                "min_order_amount": 500.0,
-                "spread_rate": 0.0022
-            },
-            "backtest": {
-                "default_period": "2y",
-                "default_interval": "1d"
-            }
+            "mini_stock": {"enabled": True, "unit_size": 1, "min_order_amount": 500.0, "spread_rate": 0.0022},
+            "backtest": {"default_period": "2y", "default_interval": "1d"},
         }
 
     def _validate_and_create_config(self) -> TradingConfig:
@@ -143,10 +131,7 @@ class ConfigManager:
             required_keys = ["initial_capital"]
             for key in required_keys:
                 if key not in self.config_data:
-                    raise ConfigurationError(
-                        message=f"Missing required configuration key: {key}",
-                        config_key=key
-                    )
+                    raise ConfigurationError(message=f"Missing required configuration key: {key}", config_key=key)
 
             # 各セクションの検証
             paper_trading = self.config_data.get("paper_trading", {})
@@ -160,7 +145,7 @@ class ConfigManager:
                 paper_trading_initial_capital=paper_trading.get("initial_capital", 1000000.0),
                 risk_management=risk_management,
                 mini_stock=mini_stock,
-                backtest=backtest
+                backtest=backtest,
             )
 
             return config
@@ -171,7 +156,7 @@ class ConfigManager:
             raise ConfigurationError(
                 message="Invalid configuration format",
                 config_key="config_validation",
-                details={"original_error": str(e)}
+                details={"original_error": str(e)},
             ) from e
 
     def get(self, key: str, default: Any = None) -> Any:
@@ -233,7 +218,7 @@ class ConfigManager:
             raise ConfigurationError(
                 message=f"Failed to save config file: {path}",
                 config_key="config_save",
-                details={"file_path": str(path), "original_error": str(e)}
+                details={"file_path": str(path), "original_error": str(e)},
             ) from e
 
 

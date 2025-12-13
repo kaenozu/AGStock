@@ -2,28 +2,21 @@
 
 import asyncio
 import logging
-import time
 import os
+import time
 from datetime import datetime, timedelta
-from typing import Any, Awaitable, Callable, Dict, Mapping, Optional, Sequence, TypeVar
-
-from src.constants import (
-    DEFAULT_REALTIME_TTL_SECONDS,
-    DEFAULT_REALTIME_BACKOFF_SECONDS,
-    STALE_DATA_MAX_AGE,
-    MINIMUM_DATA_POINTS,
-    MARKET_SUMMARY_CACHE_KEY,
-    MARKET_SUMMARY_TTL,
-    FUNDAMENTAL_CACHE_TTL,
-    CRYPTO_PAIRS,
-    FX_PAIRS,
-    JP_STOCKS,
-)
+from typing import (Any, Awaitable, Callable, Dict, Mapping, Optional,
+                    Sequence, TypeVar)
 
 import pandas as pd
 import streamlit as st
 import yfinance as yf
 
+from src.constants import (CRYPTO_PAIRS, DEFAULT_REALTIME_BACKOFF_SECONDS,
+                           DEFAULT_REALTIME_TTL_SECONDS, FUNDAMENTAL_CACHE_TTL,
+                           FX_PAIRS, JP_STOCKS, MARKET_SUMMARY_CACHE_KEY,
+                           MARKET_SUMMARY_TTL, MINIMUM_DATA_POINTS,
+                           STALE_DATA_MAX_AGE)
 from src.data_manager import DataManager
 from src.helpers import retry_with_backoff
 
@@ -31,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 try:
     from src.async_data_loader import AsyncDataLoader
+
     ASYNC_AVAILABLE = True
 except ImportError:
     AsyncDataLoader = None  # type: ignore[assignment]
@@ -39,6 +33,7 @@ except ImportError:
 
 try:
     from src.cache_manager import CacheManager
+
     HAS_PERSISTENT_CACHE = True
 except ImportError:
     CacheManager = None  # type: ignore[assignment]
@@ -47,22 +42,50 @@ except ImportError:
 T = TypeVar("T")
 
 CRYPTO_PAIRS = [
-    "BTC-USD", "ETH-USD", "XRP-USD", "SOL-USD", "DOGE-USD",
-    "BNB-USD", "ADA-USD", "MATIC-USD", "DOT-USD", "LTC-USD",
+    "BTC-USD",
+    "ETH-USD",
+    "XRP-USD",
+    "SOL-USD",
+    "DOGE-USD",
+    "BNB-USD",
+    "ADA-USD",
+    "MATIC-USD",
+    "DOT-USD",
+    "LTC-USD",
 ]
 
 FX_PAIRS = [
-    "USDJPY=X", "EURUSD=X", "GBPUSD=X", "AUDUSD=X",
-    "USDCAD=X", "USDCHF=X", "EURJPY=X", "GBPJPY=X",
+    "USDJPY=X",
+    "EURUSD=X",
+    "GBPUSD=X",
+    "AUDUSD=X",
+    "USDCAD=X",
+    "USDCHF=X",
+    "EURJPY=X",
+    "GBPJPY=X",
 ]
 
 JP_STOCKS = [
-    "7203.T", "9984.T", "6758.T", "8035.T", "6861.T",
-    "6098.T", "4063.T", "6367.T", "6501.T", "7974.T",
-    "9432.T", "8306.T", "7267.T", "4502.T", "6954.T",
+    "7203.T",
+    "9984.T",
+    "6758.T",
+    "8035.T",
+    "6861.T",
+    "6098.T",
+    "4063.T",
+    "6367.T",
+    "6501.T",
+    "7974.T",
+    "9432.T",
+    "8306.T",
+    "7267.T",
+    "4502.T",
+    "6954.T",
+]
+
 
 # シングルトンキャッシュインスタンスの作成
-def _create_cache_instance() -> Optional[CacheManager]:
+def _create_cache_instance():
     """キャッシュマネージャーのインスタンスを作成"""
     if HAS_PERSISTENT_CACHE and CacheManager is not None:
         try:
@@ -174,10 +197,11 @@ def _download_and_cache_missing(
     except Exception as exc:
         logger.error("Error downloading data for %s: %s", tickers, exc)
         from .errors import DataLoadError
+
         raise DataLoadError(
             message=f"Failed to download data for tickers: {tickers}",
             ticker=",".join(tickers) if tickers else None,
-            details={"period": period, "interval": interval, "original_error": str(exc)}
+            details={"period": period, "interval": interval, "original_error": str(exc)},
         ) from exc
 
     if raw.empty:
@@ -197,10 +221,11 @@ def _download_and_cache_missing(
         except Exception as exc:
             logger.error("Error saving/loading data for %s: %s", ticker, exc)
             from .errors import DataLoadError
+
             raise DataLoadError(
                 message=f"Failed to save/load data for ticker: {ticker}",
                 ticker=ticker,
-                details={"original_error": str(exc)}
+                details={"original_error": str(exc)},
             ) from exc
 
     return updated

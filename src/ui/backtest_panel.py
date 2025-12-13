@@ -2,10 +2,14 @@
 Backtest Panel UI Module
 Handles the Historical Validation tab.
 """
+
 import streamlit as st
-from src.constants import MARKETS, TICKER_NAMES
+
 from src.backtest_engine import HistoricalBacktester
-from src.strategies import RSIStrategy, BollingerBandsStrategy, CombinedStrategy, DividendStrategy
+from src.constants import MARKETS, TICKER_NAMES
+from src.strategies import (BollingerBandsStrategy, CombinedStrategy,
+                            DividendStrategy, RSIStrategy)
+
 
 def render_backtest_panel(sidebar_config):
     """
@@ -20,9 +24,15 @@ def render_backtest_panel(sidebar_config):
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        hist_ticker = st.selectbox("検証銘柄", ticker_list, format_func=lambda x: f"{x} - {TICKER_NAMES.get(x, '')}", key="hist_ticker")
+        hist_ticker = st.selectbox(
+            "検証銘柄", ticker_list, format_func=lambda x: f"{x} - {TICKER_NAMES.get(x, '')}", key="hist_ticker"
+        )
     with col2:
-        hist_strategy = st.selectbox("戦略", ["RSIStrategy", "BollingerBandsStrategy", "CombinedStrategy", "DividendStrategy"], key="hist_strategy")
+        hist_strategy = st.selectbox(
+            "戦略",
+            ["RSIStrategy", "BollingerBandsStrategy", "CombinedStrategy", "DividendStrategy"],
+            key="hist_strategy",
+        )
     with col3:
         hist_years = st.slider("検証期間 (年)", 1, 10, 10, key="hist_years")
 
@@ -33,13 +43,13 @@ def render_backtest_panel(sidebar_config):
                     "RSIStrategy": RSIStrategy,
                     "BollingerBandsStrategy": BollingerBandsStrategy,
                     "CombinedStrategy": CombinedStrategy,
-                    "DividendStrategy": DividendStrategy
+                    "DividendStrategy": DividendStrategy,
                 }
-                
+
                 # Instantiate strategy? BacktestEngine might expect class or instance.
                 # Checking logic: hb.run_test(..., strategy_class, ...)
                 # Assuming run_test instantiates it.
-                
+
                 hb = HistoricalBacktester()
                 results = hb.run_test(hist_ticker, strategy_map[hist_strategy], years=hist_years)
 
@@ -55,13 +65,15 @@ def render_backtest_panel(sidebar_config):
                     m4.metric("勝率", f"{results['win_rate']:.1%}")
 
                     # Benchmark Comparison
-                    bh_cagr = results['buy_hold_cagr']
-                    delta_cagr = results['cagr'] - bh_cagr
-                    st.info(f"参考: Buy & Hold (ガチホ) の CAGR は {bh_cagr:.2%} です。戦略による改善効果: {delta_cagr:+.2%}")
+                    bh_cagr = results["buy_hold_cagr"]
+                    delta_cagr = results["cagr"] - bh_cagr
+                    st.info(
+                        f"参考: Buy & Hold (ガチホ) の CAGR は {bh_cagr:.2%} です。戦略による改善効果: {delta_cagr:+.2%}"
+                    )
 
                     # Equity Curve
                     st.subheader("資産推移")
-                    equity_curve = results['equity_curve']
+                    equity_curve = results["equity_curve"]
                     equity_df = equity_curve.to_frame(name="Strategy")
                     st.line_chart(equity_df, use_container_width=True)
 

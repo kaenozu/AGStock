@@ -1,15 +1,11 @@
 from src.trading.runner import run_daily_routine
 
 # ページ設定
-st.set_page_config(
-    page_title="AGStock",
-    page_icon="💰",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
+st.set_page_config(page_title="AGStock", page_icon="💰", layout="wide", initial_sidebar_state="collapsed")
 
 # カスタムCSS - 超シンプル
-st.markdown("""
+st.markdown(
+    """
 <style>
     /* 全体 */
     .main {
@@ -81,27 +77,31 @@ st.markdown("""
         font-size: 1.2rem;
     }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
+
 
 def show_main_dashboard():
     """メインダッシュボード"""
     pt = PaperTrader()
     balance = pt.get_current_balance()
     positions = pt.get_positions()
-    
+
     # ヘッダー: 総資産
-    total_equity = balance['total_equity']
+    total_equity = balance["total_equity"]
     initial_capital = pt.initial_capital
     total_pnl = total_equity - initial_capital
     total_pnl_pct = (total_pnl / initial_capital) * 100 if initial_capital > 0 else 0
-    
+
     st.title("💰 AGStock")
-    
+
     # 大きく総資産を表示
     color_class = "positive" if total_pnl >= 0 else "negative"
     emoji = "📈" if total_pnl >= 0 else "📉"
-    
-    st.markdown(f"""
+
+    st.markdown(
+        f"""
     <div style="text-align: center; padding: 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; color: white; margin-bottom: 2rem;">
         <div style="font-size: 1.2rem; opacity: 0.9;">あなたの資産</div>
         <div class="big-number">{format_currency(total_equity)}</div>
@@ -111,113 +111,126 @@ def show_main_dashboard():
             </span>
         </div>
     </div>
-    """, unsafe_allow_html=True)
-    
+    """,
+        unsafe_allow_html=True,
+    )
+
     # ステータス
     st.markdown("### 🎯 今日のステータス")
-    
+
     col1, col2, col3 = st.columns(3)
-    
+
     with col1:
         st.markdown('<div class="status-ok">✅ システム正常稼働中</div>', unsafe_allow_html=True)
-    
+
     with col2:
         now = datetime.now()
         if now.weekday() < 5:  # 平日
             st.markdown('<div class="status-ok">⏰ 次回取引: 今日 15:30</div>', unsafe_allow_html=True)
         else:
             st.markdown('<div class="status-warning">⏰ 次回取引: 月曜 15:30</div>', unsafe_allow_html=True)
-    
+
     with col3:
         num_positions = len(positions)
         st.markdown(f'<div class="status-ok">📊 保有銘柄: {num_positions}件</div>', unsafe_allow_html=True)
-    
+
     st.markdown("---")
-    
+
     # 本日の取引状況
     st.markdown("### 📊 本日の取引状況")
-    
+
     from datetime import datetime as dt
+
     history = pt.get_trade_history()
-    
+
     today_trades_exist = False
-    
-    if not history.empty and 'timestamp' in history.columns:
+
+    if not history.empty and "timestamp" in history.columns:
         # 今日の取引をフィルター
         try:
-            history['timestamp'] = pd.to_datetime(history['timestamp'])
+            history["timestamp"] = pd.to_datetime(history["timestamp"])
             today = dt.now().date()
-            today_trades = history[history['timestamp'].dt.date == today]
-            
+            today_trades = history[history["timestamp"].dt.date == today]
+
             if not today_trades.empty:
                 today_trades_exist = True
-                buy_count = len(today_trades[today_trades['action'] == 'BUY'])
-                sell_count = len(today_trades[today_trades['action'] == 'SELL'])
-                
+                buy_count = len(today_trades[today_trades["action"] == "BUY"])
+                sell_count = len(today_trades[today_trades["action"] == "SELL"])
+
                 col1, col2, col3 = st.columns(3)
-                
+
                 with col1:
-                    st.markdown(f"""
+                    st.markdown(
+                        f"""
                     <div class="card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
                         <div style="font-size: 1.1rem; font-weight: bold; margin-bottom: 0.5rem;">✅ 本日の取引</div>
                         <div style="font-size: 2rem; font-weight: bold;">{len(today_trades)}件</div>
                         <div style="font-size: 1rem; margin-top: 0.3rem;">買い: {buy_count}件 | 売り: {sell_count}件</div>
                     </div>
-                    """, unsafe_allow_html=True)
-                
+                    """,
+                        unsafe_allow_html=True,
+                    )
+
                 with col2:
                     latest = today_trades.iloc[-1]
-                    company_name = TICKER_NAMES.get(latest['ticker'], latest['ticker'])
-                    action_emoji = "🟢" if latest['action'] == 'BUY' else "🔴"
-                    
-                    st.markdown(f"""
+                    company_name = TICKER_NAMES.get(latest["ticker"], latest["ticker"])
+                    action_emoji = "🟢" if latest["action"] == "BUY" else "🔴"
+
+                    st.markdown(
+                        f"""
                     <div class="card">
                         <div style="font-size: 1.1rem; font-weight: bold; margin-bottom: 0.5rem;">最新の取引</div>
                         <div style="font-size: 1.3rem; font-weight: bold;">{action_emoji} {company_name}</div>
                         <div style="font-size: 0.9rem; color: #666; margin-top: 0.3rem;">{latest['timestamp'].strftime('%H:%M')} | {latest['quantity']}株</div>
                     </div>
-                    """, unsafe_allow_html=True)
-                
+                    """,
+                        unsafe_allow_html=True,
+                    )
+
                 with col3:
                     daily_pnl = 0
-                    if 'realized_pnl' in today_trades.columns:
-                        daily_pnl = today_trades['realized_pnl'].sum()
-                    
+                    if "realized_pnl" in today_trades.columns:
+                        daily_pnl = today_trades["realized_pnl"].sum()
+
                     pnl_color = "#10b981" if daily_pnl >= 0 else "#ef4444"
                     pnl_emoji = "📈" if daily_pnl >= 0 else "📉"
-                    
-                    st.markdown(f"""
+
+                    st.markdown(
+                        f"""
                     <div class="card">
                         <div style="font-size: 1.1rem; font-weight: bold; margin-bottom: 0.5rem;">本日の損益</div>
                         <div style="font-size: 2rem; font-weight: bold; color: {pnl_color};">{format_currency(daily_pnl, show_sign=True)}</div>
                         <div style="font-size: 1.3rem; margin-top: 0.3rem;">{pnl_emoji}</div>
                     </div>
-                    """, unsafe_allow_html=True)
+                    """,
+                        unsafe_allow_html=True,
+                    )
         except Exception as e:
             st.error(f"取引履歴の表示中にエラーが発生しました: {e}")
-            
+
     if not today_trades_exist:
         signal_count = 0
         last_run_time = "不明"
-        
+
         if os.path.exists("logs/auto_trader.log"):
             try:
                 with open("logs/auto_trader.log", "r", encoding="utf-8", errors="ignore") as f:
                     lines = f.readlines()
                     for line in reversed(lines[-100:]):
                         if "検出シグナル数:" in line or "signal" in line.lower():
-                            match = re.search(r'(\d+)', line)
+                            match = re.search(r"(\d+)", line)
                             if match:
                                 signal_count = int(match.group(1))
                                 break
                         if "自動トレーダー" in line and "終了" in line:
-                            time_match = re.search(r'\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\]', line)
+                            time_match = re.search(r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\]", line)
                             if time_match:
                                 last_run_time = time_match.group(1)
             except Exception:
                 pass
-        
-        st.markdown(f"""
+
+        st.markdown(
+            f"""
         <div class="card" style="background: #fef3c7; border-left: 4px solid #f59e0b;">
             <div style="font-size: 1.3rem; font-weight: bold; color: #92400e; margin-bottom: 0.5rem;">📅 本日の取引: なし</div>
             <div style="color: #78350f; font-size: 1rem; line-height: 1.6;">
@@ -229,90 +242,103 @@ def show_main_dashboard():
                 💡 <strong>補足:</strong> AIが全銘柄を分析した結果、現在の市場状況では「買い」と判断できる銘柄がありませんでした。
             </div>
         </div>
-        """, unsafe_allow_html=True)
-    
+        """,
+            unsafe_allow_html=True,
+        )
+
     st.markdown("---")
-    
+
     st.markdown("### 💼 資産配分")
-    
+
     if not positions.empty:
-        stock_value = (positions['quantity'] * positions['current_price']).sum()
+        stock_value = (positions["quantity"] * positions["current_price"]).sum()
     else:
         stock_value = 0
-    
-    cash_value = balance['cash']
-    total = balance['total_equity']
-    
+
+    cash_value = balance["cash"]
+    total = balance["total_equity"]
+
     stock_pct = (stock_value / total * 100) if total > 0 else 0
     cash_pct = (cash_value / total * 100) if total > 0 else 0
-    
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
-        st.markdown(f"""
+        st.markdown(
+            f"""
         <div class="card">
             <div style="font-size: 1.1rem; font-weight: bold; margin-bottom: 0.5rem;">💵 現金</div>
             <div style="font-size: 2rem; font-weight: bold; color: #3b82f6;">{format_currency(cash_value)}</div>
             <div style="font-size: 1.2rem; color: #666; margin-top: 0.3rem;">{cash_pct:.1f}%</div>
         </div>
-        """, unsafe_allow_html=True)
-    
+        """,
+            unsafe_allow_html=True,
+        )
+
     with col2:
-        st.markdown(f"""
+        st.markdown(
+            f"""
         <div class="card">
             <div style="font-size: 1.1rem; font-weight: bold; margin-bottom: 0.5rem;">📊 株式</div>
             <div style="font-size: 2rem; font-weight: bold; color: #8b5cf6;">{format_currency(stock_value)}</div>
             <div style="font-size: 1.2rem; color: #666; margin-top: 0.3rem;">{stock_pct:.1f}%</div>
         </div>
-        """, unsafe_allow_html=True)
-    
+        """,
+            unsafe_allow_html=True,
+        )
+
     if total > 0:
-        fig = go.Figure(data=[go.Pie(
-            labels=['現金', '株式'],
-            values=[cash_value, stock_value],
-            hole=0.4,
-            marker=dict(colors=['#3b82f6', '#8b5cf6']),
-            textinfo='label+percent',
-            textfont=dict(size=14)
-        )])
-        
+        fig = go.Figure(
+            data=[
+                go.Pie(
+                    labels=["現金", "株式"],
+                    values=[cash_value, stock_value],
+                    hole=0.4,
+                    marker=dict(colors=["#3b82f6", "#8b5cf6"]),
+                    textinfo="label+percent",
+                    textfont=dict(size=14),
+                )
+            ]
+        )
+
         fig.update_layout(showlegend=False, height=250, margin=dict(l=20, r=20, t=20, b=20))
         st.plotly_chart(fig, use_container_width=True)
-    
+
     st.markdown("---")
-    
+
     st.markdown("### 💼 保有銘柄")
-    
+
     if positions.empty:
         st.info("まだ銘柄を保有していません。次回の自動取引（15:30）をお待ちください。")
     else:
         for idx, pos in positions.iterrows():
-            ticker = pos.get('ticker', idx)
-            quantity = pos.get('quantity', 0)
-            unrealized_pnl = pos.get('unrealized_pnl', 0)
-            unrealized_pnl_pct = pos.get('unrealized_pnl_pct', 0)
-            current_price = pos.get('current_price', 0)
-            entry_date = pos.get('entry_date', '')
-            entry_price = pos.get('entry_price', 0)
-            
+            ticker = pos.get("ticker", idx)
+            quantity = pos.get("quantity", 0)
+            unrealized_pnl = pos.get("unrealized_pnl", 0)
+            unrealized_pnl_pct = pos.get("unrealized_pnl_pct", 0)
+            current_price = pos.get("current_price", 0)
+            entry_date = pos.get("entry_date", "")
+            entry_price = pos.get("entry_price", 0)
+
             company_name = TICKER_NAMES.get(ticker, ticker)
-            
+
             if entry_date:
                 try:
                     date_obj = datetime.fromisoformat(str(entry_date))
-                    formatted_date = date_obj.strftime('%Y/%m/%d')
+                    formatted_date = date_obj.strftime("%Y/%m/%d")
                 except Exception:
                     formatted_date = str(entry_date)
             else:
-                formatted_date = '不明'
-            
+                formatted_date = "不明"
+
             card_class = "stock-profit" if unrealized_pnl >= 0 else "stock-loss"
             emoji = "🟢" if unrealized_pnl >= 0 else "🔴"
-            
+
             col_info, col_pred = st.columns([3, 1])
-            
+
             with col_info:
-                st.markdown(f"""
+                st.markdown(
+                    f"""
                 <div class="stock-item {card_class}">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
@@ -332,32 +358,37 @@ def show_main_dashboard():
                         </div>
                     </div>
                 </div>
-                """, unsafe_allow_html=True)
-            
+                """,
+                    unsafe_allow_html=True,
+                )
+
             with col_pred:
                 if st.button(f"🔮 未来予測\n({ticker})", key=f"pred_{ticker}", use_container_width=True):
                     with st.spinner("AIが未来を計算中..."):
                         try:
                             data_map = fetch_stock_data([ticker], period="2y")
                             df = data_map.get(ticker)
-                            
+
                             predictor = EnhancedEnsemblePredictor()
                             result = predictor.predict_trajectory(df, days_ahead=5)
-                            
+
                             if "error" in result:
                                 st.error(f"予測エラー: {result['error']}")
                             else:
-                                trend = result['trend']
-                                peak_day = result['peak_day']
-                                peak_price = result['peak_price']
-                                change_pct = result['change_pct']
-                                
+                                trend = result["trend"]
+                                peak_day = result["peak_day"]
+                                peak_price = result["peak_price"]
+                                change_pct = result["change_pct"]
+
                                 trend_emoji = "📈" if trend == "UP" else "📉" if trend == "DOWN" else "➡️"
-                                trend_text = "上昇トレンド" if trend == "UP" else "下落トレンド" if trend == "DOWN" else "横ばい"
-                                
+                                trend_text = (
+                                    "上昇トレンド" if trend == "UP" else "下落トレンド" if trend == "DOWN" else "横ばい"
+                                )
+
                                 st.success(f"予測完了: {ticker}")
-                                
-                                st.markdown(f"""
+
+                                st.markdown(
+                                    f"""
                                 <div style="background: #f0f9ff; padding: 10px; border-radius: 8px; border: 1px solid #bae6fd; font-size: 0.9rem;">
                                     <div style="font-weight: bold; color: #0369a1; margin-bottom: 5px;">🤖 AI未来予測 (5日間)</div>
                                     <div>方向感: <strong>{trend_emoji} {trend_text}</strong></div>
@@ -367,13 +398,15 @@ def show_main_dashboard():
                                         (@ {format_currency(peak_price)})
                                     </div>
                                 </div>
-                                """, unsafe_allow_html=True)
-                                
+                                """,
+                                    unsafe_allow_html=True,
+                                )
+
                         except Exception as e:
                             st.error(f"エラー: {e}")
-    
+
     st.markdown("---")
-    
+
     st.columns(1)
     if st.button("🚀 今すぐ取引", use_container_width=True, type="primary"):
         with st.spinner("市場をスキャン中..."):

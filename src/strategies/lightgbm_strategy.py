@@ -4,20 +4,27 @@ from typing import Dict
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
-from .base import Strategy
 
+from .base import Strategy
 
 try:
     from src.features import add_advanced_features, add_macro_features
 except ImportError:
     # Forward declaration or dummy if circular import
-    def add_advanced_features(df): return df
-    def add_macro_features(df, macro): return df
+    def add_advanced_features(df):
+        return df
+
+    def add_macro_features(df, macro):
+        return df
+
 
 try:
     from src.data_loader import fetch_macro_data
 except ImportError:
-    def fetch_macro_data(period="5y"): return {}
+
+    def fetch_macro_data(period="5y"):
+        return {}
+
 
 try:
     from src.optimization.optuna_tuner import OptunaTuner
@@ -37,9 +44,25 @@ class LightGBMStrategy(Strategy):
         self.model = None
         self.default_positive_threshold = 0.60
         self.default_negative_threshold = 0.40
-        self.feature_cols = ['ATR', 'BB_Width', 'RSI', 'MACD', 'MACD_Signal', 'MACD_Diff',
-                             'Dist_SMA_20', 'Dist_SMA_50', 'Dist_SMA_200', 'OBV', 'Volume_Change',
-                             'USDJPY_Ret', 'USDJPY_Corr', 'SP500_Ret', 'SP500_Corr', 'US10Y_Ret', 'US10Y_Corr']
+        self.feature_cols = [
+            "ATR",
+            "BB_Width",
+            "RSI",
+            "MACD",
+            "MACD_Signal",
+            "MACD_Diff",
+            "Dist_SMA_20",
+            "Dist_SMA_50",
+            "Dist_SMA_200",
+            "OBV",
+            "Volume_Change",
+            "USDJPY_Ret",
+            "USDJPY_Corr",
+            "SP500_Ret",
+            "SP500_Corr",
+            "US10Y_Ret",
+            "US10Y_Corr",
+        ]
         self.explainer = None
 
     def _generate_signals_from_probs(self, probs: pd.Series, upper: float, lower: float) -> pd.Series:
@@ -110,7 +133,7 @@ class LightGBMStrategy(Strategy):
         """Return SHAP values for the latest prediction"""
         if self.model is None:
             return {}
-            
+
         try:
             import shap
 
@@ -118,29 +141,29 @@ class LightGBMStrategy(Strategy):
             data = add_advanced_features(df)
             macro_data = fetch_macro_data(period="5y")
             data = add_macro_features(data, macro_data)
-            
+
             if data.empty:
                 return {}
-               
+
             latest_data = data[self.feature_cols].iloc[[-1]]
-            
+
             # Create explainer if not cached (TreeExplainer is efficient)
             if self.explainer is None:
                 self.explainer = shap.TreeExplainer(self.model)
-                
+
             shap_values = self.explainer.shap_values(latest_data)
-            
+
             # Handle list output for binary classification
             if isinstance(shap_values, list):
                 vals = shap_values[1][0]  # Positive class
             else:
                 vals = shap_values[0]
-                
+
             explanation = dict(zip(self.feature_cols, vals))
             # Sort by absolute impact
             sorted_expl = dict(sorted(explanation.items(), key=lambda item: abs(item[1]), reverse=True))
             return sorted_expl
-            
+
         except ImportError:
             logger.warning("SHAP not installed")
             return {}
@@ -155,44 +178,44 @@ class LightGBMStrategy(Strategy):
         except ImportError:
             logger.warning("LightGBM not installed. Returning empty signals.")
             return pd.Series(0, index=df.index)
-        
+
         # タイムゾーンの不一致を防ぐためにインデックスをtimezone-naiveにする
         if df.index.tz is not None:
             df = df.copy()
             df.index = df.index.tz_localize(None)
-            
+
         data = add_advanced_features(df)
         macro_data = fetch_macro_data(period="5y")
         data = add_macro_features(data, macro_data)
-        
+
         min_required = self.lookback_days + 50
         if len(data) < min_required:
             return pd.Series(0, index=df.index)
-            
+
         signals = pd.Series(0, index=df.index)
         retrain_period = 60
         start_idx = self.lookback_days
         end_idx = len(data)
         current_idx = start_idx
-        
+
         while current_idx < end_idx:
             train_end = current_idx
             train_start = max(0, train_end - 1000)
             train_df = data.iloc[train_start:train_end].dropna()
-            
+
             pred_end = min(current_idx + retrain_period, end_idx)
             test_df = data.iloc[current_idx:pred_end].dropna()
-            
+
             if train_df.empty or test_df.empty:
                 current_idx += retrain_period
                 continue
-                
+
             X_train = train_df[self.feature_cols]
-            y_train = (train_df['Return_1d'] > 0).astype(int)
-            
+            y_train = (train_df["Return_1d"] > 0).astype(int)
+
             # Default params
-            params = {'objective': 'binary', 'metric': 'binary_logloss', 'verbosity': -1, 'seed': 42}
-            
+            params = {"objective": "binary", "metric": "binary_logloss", "verbosity": -1, "seed": 42}
+
             # Auto-Tune if enabled (and enough data)
             if self.auto_tune and len(train_df) > 200:
                 try:
@@ -206,7 +229,7 @@ class LightGBMStrategy(Strategy):
                         self.best_params = best_params  # Cache for display
                 except Exception as e:
                     logger.error(f"Optuna tuning failed: {e}")
-            
+
             train_data = lgb.Dataset(X_train, label=y_train)
             self.model = lgb.train(params, train_data, num_boost_round=100)
 
@@ -221,7 +244,7 @@ class LightGBMStrategy(Strategy):
                     self.model.predict(calibration_df[self.feature_cols]),
                     index=calibration_df.index,
                 )
-                calibration_y = (calibration_df['Return_1d'] > 0).astype(int)
+                calibration_y = (calibration_df["Return_1d"] > 0).astype(int)
                 calibrated_upper, calibrated_lower = self._calibrate_thresholds(
                     calibration_probs,
                     calibration_y,
@@ -236,13 +259,11 @@ class LightGBMStrategy(Strategy):
             X_test = test_df[self.feature_cols]
             if not X_test.empty:
                 preds = pd.Series(self.model.predict(X_test), index=X_test.index)
-                chunk_signals = self._generate_signals_from_probs(
-                    preds, calibrated_upper, calibrated_lower
-                )
+                chunk_signals = self._generate_signals_from_probs(preds, calibrated_upper, calibrated_lower)
                 signals.loc[chunk_signals.index] = chunk_signals
-            
+
             current_idx += retrain_period
-            
+
         return signals
 
     def get_signal_explanation(self, signal: int) -> str:

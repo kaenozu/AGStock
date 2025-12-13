@@ -16,617 +16,417 @@
 - シナリオ分析とストレステスト
 """
 
-import pandas as pd
-import numpy as np
-import tensorflow as tf
-from typing import Dict, List, Optional, Tuple
 import logging
+from typing import Dict, List, Optional, Tuple
 
-from src.future_predictor import FuturePredictor
-from src.lgbm_predictor import LGBMPredictor
-from src.prophet_predictor import ProphetPredictor
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+
+from src.advanced_ensemble import create_model_diversity_ensemble
+from src.advanced_models import AdvancedModels
+# 新しい高度な機能のインポート
+from src.continual_learning import (ConceptDriftDetector,
+                                    ContinualLearningSystem)
+from src.data_preprocessing import preprocess_for_prediction
+from src.enhanced_features import generate_enhanced_features
 from src.fundamental_analyzer import FundamentalAnalyzer
-
+from src.future_predictor import FuturePredictor
+from src.hyperparameter_optimizer import MultiModelOptimizer
+from src.lgbm_predictor import LGBMPredictor
+from src.mlops_manager import MLopsManager
+from src.multi_asset_analytics import MultiAssetPredictor
+from src.prophet_predictor import ProphetPredictor
+from src.realtime_analytics import RealTimeAnalyticsPipeline
+from src.risk_adjusted_prediction import RiskAdjustedPredictor
+from src.scenario_analyzer import ScenarioBasedPredictor
+from src.sentiment_analytics import SentimentEnhancedPredictor
 # 新しい実装のインポート
 from src.transformer_predictor import TransformerPredictor
-from src.advanced_models import AdvancedModels
-from src.enhanced_features import generate_enhanced_features
-from src.hyperparameter_optimizer import MultiModelOptimizer
-from src.advanced_ensemble import AdvancedEnsemble, create_model_diversity_ensemble
-from src.data_preprocessing import preprocess_for_prediction
-
-# 新しい高度な機能のインポート
-from src.continual_learning import ContinualLearningSystem, ConceptDriftDetector
-from src.multi_asset_analytics import MultiAssetPredictor
 from src.xai_explainer import XAIFramework
-from src.realtime_analytics import RealTimeAnalyticsPipeline
-from src.sentiment_analytics import SentimentEnhancedPredictor
-from src.risk_adjusted_prediction import RiskAdjustedPredictor
-from src.mlops_manager import MLopsManager
-from src.scenario_analyzer import ScenarioBasedPredictor
 
 logger = logging.getLogger(__name__)
 
 
 class EnhancedEnsemblePredictor:
-    """高度なアンサンブル予測器（統合されたAI予測システム）"""
+    """
+    高度なアンサンブル予測器
+    - 既存の複数モデルを統合
+    - 新しい高度な機能を活用
+    - より高精度な予測を実現
+    """
 
     def __init__(self):
-        # 既存モデル
-        self.lstm_predictor = FuturePredictor()
+        self.transformer_predictor = TransformerPredictor()
+        self.advanced_models = AdvancedModels()
         self.lgbm_predictor = LGBMPredictor()
         self.prophet_predictor = ProphetPredictor()
-        self.fundamental_analyzer = FundamentalAnalyzer()
-
-        # 新しいモデル
-        self.transformer_predictor = TransformerPredictor()
-
-        # 基本重み（新実装では動的重み付けが可能）
-        self.base_weights = {
-            'lstm': 0.20,
-            'lgbm': 0.20,
-            'prophet': 0.15,
-            'transformer': 0.20,  # 新規追加
-            'attention_lstm': 0.15,  # 新規追加
-            'cnn_lstm': 0.10  # 新規追加
-        }
-
-        # 新しいモデルインスタンス
-        self.advanced_models = {}
-        self.optimizer = None
-        self.ensemble_method = 'stacking'  # 'stacking', 'dynamic', 'diversity', 'confidence'
-
-        # 特徴量エンジニアリングの設定
-        self.use_enhanced_features = True
-        self.use_preprocessing = True
-
-        # 新しい高度な機能の初期化
-        self.continual_learning = ContinualLearningSystem(base_model=self.lstm_predictor)
+        self.future_predictor = FuturePredictor()
+        self.sentiment_predictor = SentimentEnhancedPredictor()
+        self.risk_predictor = RiskAdjustedPredictor()
         self.multi_asset_predictor = MultiAssetPredictor()
-        self.xai_framework = None  # 後で初期化
-        self.realtime_pipeline = None  # 後で初期化
-        self.sentiment_predictor = SentimentEnhancedPredictor(self)
-        self.risk_predictor = RiskAdjustedPredictor(self)
+        self.scenario_predictor = ScenarioBasedPredictor()
+        self.realtime_pipeline = RealTimeAnalyticsPipeline()
         self.mlops_manager = MLopsManager()
-        self.scenario_predictor = ScenarioBasedPredictor(self)
-
-        # 概念ドリフト検出器
         self.concept_drift_detector = ConceptDriftDetector()
+        self.continual_learning_system = ContinualLearningSystem()
+        self.fundamental_analyzer = FundamentalAnalyzer()
+        self.xai_framework = XAIFramework()
 
-        # 予測履歴（継続的学習用）
-        self.prediction_history = []
-        self.performance_history = []
+        # アンサンブル統合器
+        self.ensemble_strategy = "stacking"  # または "dynamic_weighting", "diversity" など
+        self.advanced_ensemble = None
+        self.diversity_ensemble = create_model_diversity_ensemble()
+        self.hyperparameter_optimizer = MultiModelOptimizer()
+        self.is_fitted = False
 
-        # リートフォリオ最適化用
-        self.portfolio_weights = {}
+        # 継続的学習の設定
+        self.drift_threshold = 0.1  # 概念ドリフト検出のしきい値
+        self.retrain_interval = 30  # 再学習の間隔（日）
+        self.last_retrain_date = None
 
-        # センチメントスコアキャッシュ
-        self.sentiment_cache = {}
+        self.logger = logging.getLogger(self.__class__.__name__)
 
-        logger.info("Enhanced Ensemble Predictor initialized with all advanced features")
-
-    def _prepare_advanced_models(self, df: pd.DataFrame, days_ahead: int) -> Dict[str, any]:
-        """新しいモデルの準備と学習"""
-        models = {}
-        
-        try:
-            # 前処理と拡張特徴量の適用
-            if self.use_preprocessing:
-                df_processed, scaler = preprocess_for_prediction(df.copy())
-            else:
-                df_processed = df.copy()
-            
-            if self.use_enhanced_features:
-                df_features = generate_enhanced_features(df_processed)
-            else:
-                df_features = df_processed
-            
-            # 数値カラムのみを抽出
-            numeric_cols = df_features.select_dtypes(include=[np.number]).columns.tolist()
-            feature_cols = [col for col in numeric_cols if col != 'Close']  # ターゲット以外
-            
-            if len(feature_cols) < 1:
-                logger.warning("Not enough features for advanced models")
-                return models
-            
-            # 特徴量とターゲットの準備
-            feature_data = df_features[feature_cols].values
-            target_data = df_features['Close'].values
-            
-            # 過去データからシーケンスを作成
-            sequence_length = min(30, len(df_features) // 3)  # 十分なデータがある場合
-            if sequence_length < 5:
-                logger.warning("Insufficient data for sequence models")
-                return models
-            
-            X, y = [], []
-            for i in range(sequence_length, len(feature_data) - days_ahead + 1):
-                X.append(feature_data[i - sequence_length:i])
-                y.append(target_data[i + days_ahead - 1])
-            
-            if len(X) < 2:  # 少なくとも2つのサンプルが必要
-                logger.warning("Not enough samples for model training")
-                return models
-            
-            X = np.array(X, dtype=np.float32)
-            y = np.array(y, dtype=np.float32)
-            
-            # AdvancedModelsからモデルを構築
-            input_shape = (None, sequence_length, len(feature_cols))
-            
-            # Attention LSTM
-            try:
-                models['attention_lstm'] = AdvancedModels.build_attention_lstm(input_shape, days_ahead)
-                # 学習
-                models['attention_lstm'].fit(X, y, epochs=10, batch_size=16, verbose=0)
-            except Exception as e:
-                logger.warning(f"Failed to build Attention LSTM: {e}")
-            
-            # CNN-LSTM
-            try:
-                models['cnn_lstm'] = AdvancedModels.build_cnn_lstm(input_shape, days_ahead)
-                # 学習
-                models['cnn_lstm'].fit(X, y, epochs=10, batch_size=16, verbose=0)
-            except Exception as e:
-                logger.warning(f"Failed to build CNN-LSTM: {e}")
-            
-            # もう1つのTransformerモデル
-            try:
-                models['nbeats'] = AdvancedModels.build_nbeats(input_shape, days_ahead)
-                # 学習
-                models['nbeats'].fit(X, y, epochs=10, batch_size=16, verbose=0)
-            except Exception as e:
-                logger.warning(f"Failed to build N-BEATS: {e}")
-            
-        except Exception as e:
-            logger.error(f"Error preparing advanced models: {e}")
-        
-        return models
-
-    def predict_trajectory(
-        self,
-        df: pd.DataFrame,
-        days_ahead: int = 5,
-        ticker: Optional[str] = None,
-        fundamentals: Optional[Dict] = None,
-        enable_sentiment: bool = True,
-        enable_risk_adjustment: bool = True,
-        enable_scenario_analysis: bool = True,
-        enable_continual_learning: bool = True,
-        enable_xai: bool = True
-    ) -> Dict:
+    def _prepare_features(self, data: pd.DataFrame, ticker: str, fundamentals: Dict = None) -> pd.DataFrame:
         """
-        高度なアンサンブル予測を実行（統合AI予測システム）
-
-        Args:
-            df: 価格データ
-            days_ahead: 予測日数
-            ticker: ティッカーシンボル（ファンダメンタルズ分析用）
-            fundamentals: ファンダメンタルズデータ（オプション）
-            enable_sentiment: センチメント分析を有効にするか
-            enable_risk_adjustment: リートフォリオリスク調整を有効にするか
-            enable_scenario_analysis: シナリオ分析を有効にするか
-            enable_continual_learning: 継続的学習を有効にするか
-            enable_xai: XAI機能を有効にするか
+        予測に使用する特徴量を準備
+        - 価格ベース特徴量
+        - 拡張特徴量
+        - ファンダメンタルズ
+        - センチメント
+        - マクロ経済指標
         """
-        try:
-            # 事前準備
-            current_price = df['Close'].iloc[-1]
-            prediction_start_time = pd.Timestamp.now()
+        # 既存の特徴量エンジニアリング
+        features = generate_enhanced_features(data)
 
-            # 1. センチメント分析（有効な場合）
-            sentiment_features = {}
-            if enable_sentiment and ticker:
-                sentiment_result = self.sentiment_predictor.predict_with_sentiment(ticker, df.values[-10:])
-                sentiment_features = sentiment_result.get('sentiment_features', {})
-                sentiment_adjustment = sentiment_result.get('sentiment_impact', 0.0)
-                logger.info(f"Sentiment analysis applied for {ticker}, impact: {sentiment_adjustment:.4f}")
-            else:
-                sentiment_adjustment = 0.0
+        # ファンダメンタルズ特徴量を追加
+        if fundamentals:
+            for key, value in fundamentals.items():
+                features[key] = value
 
-            # 2. ファンダメンタルズ分析（利用可能な場合）
-            fundamental_result = None
-            confidence_multiplier = 1.0
+        # センチメント特徴量を追加（簡略化）
+        if hasattr(self.sentiment_predictor, 'get_sentiment_features'):
+            sentiment_features = self.sentiment_predictor.get_sentiment_features(ticker)
+            for key, value in sentiment_features.items():
+                features[f"sentiment_{key}"] = value
 
-            if ticker and fundamentals:
-                fundamental_result = self.fundamental_analyzer.analyze(ticker, fundamentals)
-                confidence_multiplier = fundamental_result['confidence_multiplier']
-                logger.info(f"{ticker}: ファンダメンタルズ評価={fundamental_result['valuation']}, "
-                          f"スコア={fundamental_result['score']}")
+        # マクロ経済特徴量を追加（簡略化）
+        # 例: VIX, USD/JPY, SP500, etc.
+        # これらのデータはリアルタイムで取得するか、事前にキャッシュしておく必要がある
 
-            # 3. 各既存モデルで予測を実行
-            predictions = {}
+        # 時系列特徴量を追加（日付から）
+        features['day_of_week'] = data.index.dayofweek
+        features['month'] = data.index.month
+        features['quarter'] = data.index.quarter
 
-            # LSTM予測
-            lstm_result = self.lstm_predictor.predict_trajectory(df, days_ahead)
-            if "error" not in lstm_result:
-                predictions['lstm'] = lstm_result
-                logger.info(f"LSTM予測: {lstm_result['trend']} ({lstm_result['change_pct']:+.1f}%)")
-            else:
-                logger.warning(f"LSTM prediction failed: {lstm_result['error']}")
+        # トレンド・ボラティリティ・取引高などの市場状態特徴量
+        # ... 既存の特徴量計算ロジック ...
 
-            # LightGBM予測
-            lgbm_result = self.lgbm_predictor.predict_trajectory(df, days_ahead)
-            if "error" not in lgbm_result:
-                predictions['lgbm'] = lgbm_result
-                logger.info(f"LightGBM予測: {lgbm_result['trend']} ({lgbm_result['change_pct']:+.1f}%)")
-            else:
-                logger.warning(f"LightGBM prediction failed: {lgbm_result['error']}")
+        # レジーム検出特徴量
+        # ...
 
-            # Prophet予測
-            prophet_result = self.prophet_predictor.predict_trajectory(df, days_ahead)
-            if "error" not in prophet_result:
-                predictions['prophet'] = prophet_result
-                logger.info(f"Prophet予測: {prophet_result['trend']} ({prophet_result['change_pct']:+.1f}%)")
-            else:
-                logger.warning(f"Prophet prediction failed: {prophet_result['error']}")
+        # 前処理（スケーリング、欠損値処理など）
+        features = preprocess_for_prediction(features)
 
-            # Transformer予測
-            transformer_result = self.transformer_predictor.predict_trajectory(df, days_ahead)
-            if "error" not in transformer_result:
-                predictions['transformer'] = transformer_result
-                logger.info(f"Transformer予測: {transformer_result['trend']} ({transformer_result['change_pct']:+.1f}%)")
-            else:
-                logger.warning(f"Transformer prediction failed: {transformer_result['error']}")
+        return features
 
-            # 4. 新しい高度なモデルで予測を実行
-            advanced_models = self._prepare_advanced_models(df, days_ahead)
-
-            for model_name, model in advanced_models.items():
-                try:
-                    # 予測の実行
-                    recent_data = df.tail(30)[['Open', 'High', 'Low', 'Close', 'Volume']].dropna()
-                    if len(recent_data) >= 30:
-                        # シーケンスデータの準備
-                        X_recent = recent_data.values
-                        # 前処理が必要な場合はここで行う
-
-                        # モデル予測
-                        pred = model.predict(X_recent.reshape(1, X_recent.shape[0], X_recent.shape[1]))
-                        pred_values = pred[0]  # days_aheadの値
-
-                        # 結果をフォーマット
-                        predictions[model_name] = {
-                            'current_price': current_price,
-                            'predictions': pred_values.tolist(),
-                            'peak_price': max(pred_values),
-                            'trend': 'UP' if pred_values[-1] > current_price * 1.01 else 'DOWN' if pred_values[-1] < current_price * 0.99 else 'FLAT',
-                            'change_pct': (pred_values[-1] - current_price) / current_price * 100
-                        }
-
-                        logger.info(f"{model_name}予測: {predictions[model_name]['trend']} ({predictions[model_name]['change_pct']:+.1f}%)")
-                except Exception as e:
-                    logger.warning(f"{model_name} prediction failed: {e}")
-
-            # 5. ベースライン予測（SMA）
-            sma_result = self._predict_sma(df, days_ahead)
-            predictions['sma'] = sma_result
-            logger.info(f"SMA予測: {sma_result['trend']} ({sma_result['change_pct']:+.1f}%)")
-
-            # 6. 予測が1つもない場合はエラー
-            if len(predictions) < 1:
-                return {"error": "全てのモデルが予測に失敗しました"}
-
-            # 7. 高度なアンサンブル方法の選択と実施
-            if len(predictions) >= 2:  # 2つ以上の予測がある場合
-                # アンサンブル用のデータ準備
-                available_models = list(predictions.keys())
-
-                # 結果の統合（最初は単純平均）
-                # 将来的にはAdvancedEnsembleを使用して高度な統合
-                all_preds = []
-                for model_name in available_models:
-                    all_preds.append(predictions[model_name]['predictions'])
-
-                # 平均を計算
-                if all_preds:
-                    all_preds = np.array(all_preds)
-                    avg_preds = np.mean(all_preds, axis=0)
-                else:
-                    return {"error": "有効な予測がありません"}
-            else:
-                # 1つだけ予測がある場合はそれを使用
-                model_name = list(predictions.keys())[0]
-                avg_preds = np.array(predictions[model_name]['predictions'])
-
-            # 8. センチメント調整
-            sentiment_adj_preds = avg_preds + (avg_preds * sentiment_adjustment)
-
-            # 9. ファンダメンタルズで調整
-            adjustment_factor = (sentiment_adj_preds - current_price) / current_price
-            fundamental_adj_preds = current_price + (adjustment_factor * current_price * confidence_multiplier)
-
-            # 10. リートフォリオリスク調整（有効な場合）
-            if enable_risk_adjustment:
-                risk_adj_result = self.risk_predictor.predict_with_risk_adjustment(
-                    df.values[-20:],  # 最近の価格データ
-                    df['Close'].pct_change().dropna().values[-252:],  # 1年分のリターンデータ
-                    investment_horizon=days_ahead
-                )
-
-                # リートフォリオリターン調整
-                risk_factor = risk_adj_result.get('risk_factor', 1.0)
-                risk_adjusted_preds = fundamental_adj_preds * risk_factor
-
-                logger.info(f"Risk-adjusted predictions applied with factor: {risk_factor:.4f}")
-            else:
-                risk_adjusted_preds = fundamental_adj_preds
-
-            # 11. シナリオ分析（有効な場合）
-            scenario_analysis_result = {}
-            if enable_scenario_analysis and ticker:
-                scenario_result = self.scenario_predictor.predict_with_scenarios(
-                    ticker, df, days_ahead
-                )
-                scenario_analysis_result = {
-                    'scenario_risk_assessment': scenario_result.get('scenario_risk_assessment', {}),
-                    'historical_comparisons': scenario_result.get('historical_comparisons', {}),
-                }
-
-                # シナリオリスクに基づく追加調整
-                scenario_risk_score = scenario_analysis_result['scenario_risk_assessment'].get('scenario_risk_score', 0.0)
-                scenario_adjustment = 1.0 - scenario_risk_score * 0.1  # シナリオリスクが高いほど予測を控えめに
-                scenario_adjusted_preds = risk_adjusted_preds * scenario_adjustment
-            else:
-                scenario_adjusted_preds = risk_adjusted_preds
-
-            # 12. 結果の整形
-            final_predictions = scenario_adjusted_preds
-            peak_price = max(final_predictions)
-            peak_day_idx = list(final_predictions).index(peak_price)
-
-            trend = "FLAT"
-            if final_predictions[-1] > current_price * 1.01:
-                trend = "UP"
-            elif final_predictions[-1] < current_price * 0.99:
-                trend = "DOWN"
-
-            # 各モデルのトレンド集計
-            trend_votes = {'UP': 0, 'DOWN': 0, 'FLAT': 0}
-            for model_result in predictions.values():
-                trend_votes[model_result['trend']] += 1
-
-            # 13. 予測結果の保存（継続的学習用）
-            if enable_continual_learning:
-                self.prediction_history.append({
-                    'timestamp': prediction_start_time,
-                    'ticker': ticker,
-                    'expected_direction': trend,
-                    'expected_change': (final_predictions[-1] - current_price) / current_price * 100,
-                    'actual_outcome': None,  # 実際の結果は後で更新
-                    'confidence': 0.8  # 仮の信頼度
-                })
-
-            # 14. XAI分析（有効な場合）
-            xai_explanation = {}
-            if enable_xai and len(df) > 0:
-                # XAIフレームワークの初期化（初回のみ）
-                if self.xai_framework is None:
-                    X_train = df[['Open', 'High', 'Low', 'Close', 'Volume']].fillna(0).values[-50:]
-                    self.xai_framework = XAIFramework(self, X_train)
-
-                # XAIによる説明
-                try:
-                    feature_names = ['Open', 'High', 'Low', 'Close', 'Volume']
-                    X_instance = df[feature_names].fillna(0).values[-1:].astype(np.float32)
-                    xai_explanation = self.xai_framework.explain_prediction(X_instance, 'all', feature_names)
-                except Exception as xe:
-                    logger.warning(f"XAI explanation failed: {xe}")
-
-            # 15. 概念ドリフト検出
-            if len(self.performance_history) > 10:
-                latest_performance = self.performance_history[-1] if self.performance_history else 0.0
-                historical_avg_perf = np.mean(self.performance_history[:-1])
-
-                drift_detected = self.concept_drift_detector.update_and_check(abs(latest_performance - historical_avg_perf))
-                if drift_detected:
-                    logger.warning(f"Concept drift detected for {ticker}!")
-                    # ドリフト検出時の対応
-                    # TODO: モデルの再学習や重みの再調整ロジックを追加
-
-            return {
-                "current_price": current_price,
-                "predictions": final_predictions.tolist(),
-                "peak_price": peak_price,
-                "peak_day": peak_day_idx + 1,
-                "trend": trend,
-                "change_pct": (final_predictions[-1] - current_price) / current_price * 100,
-                "details": {
-                    "models_used": list(predictions.keys()),
-                    "trend_votes": trend_votes,
-                    "lstm_trend": predictions.get('lstm', {}).get('trend', 'N/A'),
-                    "lgbm_trend": predictions.get('lgbm', {}).get('trend', 'N/A'),
-                    "prophet_trend": predictions.get('prophet', {}).get('trend', 'N/A'),
-                    "transformer_trend": predictions.get('transformer', {}).get('trend', 'N/A'),
-                    "sma_trend": predictions.get('sma', {}).get('trend', 'N/A'),
-                    "fundamental": fundamental_result,
-                    "enhanced_models_used": [name for name in advanced_models.keys() if name in predictions],
-                    "sentiment_analysis": sentiment_features,
-                    "scenario_analysis": scenario_analysis_result,
-                    "risk_adjustment": risk_adj_result if enable_risk_adjustment else {},
-                    "xai_explanation": xai_explanation,
-                    "prediction_confidence": 0.8,  # 仮の信頼度（実際にはXAIやリスク指標から計算）
-                    "execution_time": (pd.Timestamp.now() - prediction_start_time).total_seconds()
-                }
-            }
-
-        except Exception as e:
-            logger.error(f"Enhanced Ensemble prediction error: {e}")
-            import traceback
-            traceback.print_exc()
-            return {"error": str(e)}
-
-    def update_prediction_performance(self, ticker: str, actual_return: float):
-        """予測性能の更新（継続的学習用）"""
-        # 最近の予測を検索して実際の結果と照合
-        for prediction in reversed(self.prediction_history):
-            if prediction['ticker'] == ticker and prediction['actual_outcome'] is None:
-                prediction['actual_outcome'] = actual_return
-                # 性能の計算（簡単化）
-                expected_return = prediction['expected_change']
-                performance = abs(actual_return - expected_return)  # 差分の絶対値
-                self.performance_history.append(performance)
-
-                # 性能履歴を保存（最新100件まで）
-                if len(self.performance_history) > 100:
-                    self.performance_history = self.performance_history[-100:]
-
-                logger.info(f"Updated prediction performance for {ticker}: Expected={expected_return:.2f}%, Actual={actual_return:.2f}%")
-                break
-
-    def get_portfolio_prediction(self, tickers_data: Dict[str, pd.DataFrame], weights: Dict[str, float], days_ahead: int = 5) -> Dict[str, Any]:
-        """ポートフォリオ全体の予測"""
-        portfolio_predictions = {}
-        total_weight = sum(weights.values())
-
-        for ticker, df in tickers_data.items():
-            weight = weights.get(ticker, 0.0) / total_weight
-            if weight <= 0:
-                continue
-
-            # 各銘柄の予測
-            prediction = self.predict_trajectory(df, days_ahead=days_ahead, ticker=ticker)
-            if 'error' not in prediction:
-                portfolio_predictions[ticker] = {
-                    'prediction': prediction,
-                    'weight': weight,
-                    'weighted_return': prediction['change_pct'] * weight
-                }
-
-        if not portfolio_predictions:
-            return {"error": "No valid predictions for portfolio"}
-
-        # ポ合ポートフォリオリターン
-        total_weighted_return = sum(
-            item['weighted_return'] for item in portfolio_predictions.values()
-        )
-
-        # ポ合リスク（簡略化）
-        individual_returns = [item['weighted_return'] for item in portfolio_predictions.values()]
-        portfolio_volatility = np.std(individual_returns) if len(individual_returns) > 1 else 0.0
-
-        return {
-            'portfolio_return_prediction': total_weighted_return,
-            'portfolio_volatility': portfolio_volatility,
-            'individual_predictions': portfolio_predictions,
-            'tickers_analyzed': list(portfolio_predictions.keys()),
-            'prediction_date': pd.Timestamp.now().isoformat()
-        }
-
-    def run_monte_carlo_portfolio_simulation(self, tickers_data: Dict[str, pd.DataFrame], weights: Dict[str, float], n_simulations: int = 1000) -> Dict[str, Any]:
-        """モンテカルロ法によるポートフォリオシミュレーション"""
-        from src.scenario_analyzer import MonteCarloSimulator
-
-        # 各資産のリターンデータを準備
-        returns_data = {}
-        initial_prices = []
-        weights_list = []
-
-        for ticker, df in tickers_data.items():
-            if ticker in weights:
-                returns_data[ticker] = df['Close'].pct_change().dropna().values
-                initial_prices.append(df['Close'].iloc[-1])
-                weights_list.append(weights[ticker])
-
-        if not returns_data:
-            return {"error": "No valid return data for Monte Carlo simulation"}
-
-        # 総額の重みで正規化
-        total_weight = sum(weights_list)
-        weights_array = np.array(weights_list) / total_weight
-
-        # 共分散行列の計算
-        returns_df = pd.DataFrame(returns_data)
-        cov_matrix = returns_df.cov().values
-        expected_returns = returns_df.mean().values
-
-        # シミュレーション実行
-        simulator = MonteCarloSimulator(n_simulations=n_simulations)
-        portfolio_paths, asset_paths = simulator.simulate_portfolio(
-            weights=weights_array,
-            expected_returns=expected_returns,
-            covariance_matrix=cov_matrix,
-            initial_prices=np.array(initial_prices),
-            time_horizon=1.0,  # 1年
-            time_steps=252
-        )
-
-        analysis_result = simulator.analyze_simulation_results(portfolio_paths)
-
-        return {
-            'simulation_analysis': analysis_result,
-            'simulated_portfolio_paths': portfolio_paths,
-            'simulated_asset_paths': asset_paths,
-            'simulation_parameters': {
-                'n_simulations': n_simulations,
-                'time_horizon_years': 1.0,
-                'time_steps': 252
-            }
-        }
-
-    def start_realtime_monitoring(self, tickers: List[str]):
-        """リアルタイム監視の開始"""
-        if self.realtime_pipeline is None:
-            self.realtime_pipeline = RealTimeAnalyticsPipeline(self)
-            self.realtime_pipeline.setup_pipeline(tickers, update_frequency='1min')
-
-        self.realtime_pipeline.start_pipeline()
-        logger.info(f"Started real-time monitoring for {len(tickers)} tickers")
-
-    def stop_realtime_monitoring(self):
-        """リアルタイム監視の停止"""
-        if self.realtime_pipeline:
-            self.realtime_pipeline.stop_pipeline()
-            logger.info("Stopped real-time monitoring")
-
-    def get_system_status(self) -> Dict[str, Any]:
-        """システム全体の状態を取得"""
-        return {
-            'prediction_history_count': len(self.prediction_history),
-            'performance_history_count': len(self.performance_history),
-            'sentiment_cache_size': len(self.sentiment_cache),
-            'portfolio_weights_count': len(self.portfolio_weights),
-            'concept_drift_detector_status': self.concept_drift_detector is not None,
-            'mlops_manager_status': self.mlops_manager is not None,
-            'xai_framework_initialized': self.xai_framework is not None,
-            'realtime_pipeline_active': self.realtime_pipeline.is_active if self.realtime_pipeline else False,
-            'latest_prediction_timestamp': self.prediction_history[-1]['timestamp'].isoformat() if self.prediction_history else None
-        }
-
-    def _predict_sma(self, df: pd.DataFrame, days_ahead: int) -> Dict:
+    def _prepare_advanced_models(self, data: pd.DataFrame, ticker: str):
         """
-        単純移動平均に基づく予測（ベースライン）
-        直近のモメンタムを単純に延長する
+        新しい高度なモデルを準備・学習
         """
-        current_price = df['Close'].iloc[-1]
+        # 各モデルに適した特徴量を準備
+        X = self._prepare_features(data, ticker)
+        # ターゲット変数（例:翌日の終値変化率）
+        y = data['Close'].pct_change().shift(-1).dropna()
+        X = X.iloc[:-1]  # 最後の行を除く（yに合わせる）
 
-        # 直近5日間の平均変化率
-        recent_returns = df['Close'].pct_change().tail(5).mean()
+        # Transformerモデルの準備
+        self.transformer_predictor.prepare_model(X, y, sequence_length=60)
 
-        # 変化率が極端にならないようにクリップ (-3% ~ +3%)
-        recent_returns = np.clip(recent_returns, -0.03, 0.03)
+        # AdvancedModelsの準備
+        self.advanced_models.prepare_models(X, y)
 
-        predictions = []
-        price = current_price
+        # LGBMPredictorの準備
+        self.lgbm_predictor.prepare_model(X, y)
 
-        for _ in range(days_ahead):
-            price = price * (1 + recent_returns)
-            predictions.append(price)
+        # ProphetPredictorの準備（これは時系列そのもので学習）
+        self.prophet_predictor.prepare_model(data[['Close']])
 
-        trend = "FLAT"
-        if predictions[-1] > current_price * 1.01:
+        # FuturePredictorの準備
+        self.future_predictor.prepare_model(X, y)
+
+        # SentimentEnhancedPredictorの準備
+        self.sentiment_predictor.prepare_model(X, y)
+
+        # RiskAdjustedPredictorの準備
+        self.risk_predictor.prepare_model(X, y)
+
+        # MultiAssetPredictorの準備
+        self.multi_asset_predictor.prepare_model(X, y)
+
+        # ScenarioBasedPredictorの準備
+        self.scenario_predictor.prepare_model(X, y)
+
+        # RealTimeAnalyticsPipelineの準備
+        self.realtime_pipeline.prepare_model(X, y)
+
+        # 概念ドリフト検出器の準備
+        self.concept_drift_detector.prepare_model(X, y)
+
+        # 継続的学習システムの準備
+        self.continual_learning_system.prepare_model(X, y)
+
+        # ファンダメンタルアナライザーの準備（これは静的）
+        # ...
+
+        self.logger.info("Advanced models prepared.")
+
+    def fit(self, data: pd.DataFrame, ticker: str, fundamentals: Dict = None):
+        """
+        モデルを学習
+        - 全ての高度なモデルを学習
+        - アンサンブル統合器も学習
+        """
+        self.logger.info(f"Fitting EnhancedEnsemblePredictor for {ticker}")
+
+        # 特徴量の準備
+        X = self._prepare_features(data, ticker, fundamentals)
+        y = data['Close'].pct_change().shift(-1).dropna()
+        X = X.iloc[:-1]  # 最後の行を除く（yに合わせる）
+
+        # 各高度なモデルを学習
+        self._prepare_advanced_models(data, ticker)
+
+        # 各モデルの学習
+        self.transformer_predictor.fit(X, y)
+        self.advanced_models.fit(X, y)
+        self.lgbm_predictor.fit(X, y)
+        # Prophetはfitではなくprepare_modelでモデルを準備している
+        self.prophet_predictor.fit(X, y)
+        self.future_predictor.fit(X, y)
+        self.sentiment_predictor.fit(X, y)
+        self.risk_predictor.fit(X, y)
+        self.multi_asset_predictor.fit(X, y)
+        self.scenario_predictor.fit(X, y)
+        self.realtime_pipeline.fit(X, y)
+
+        # アンサンブル統合器の学習
+        # 1. 各モデルの予測値を特徴量として使用する（Stacking）
+        base_predictions = []
+        base_predictions.append(self.transformer_predictor.predict(X))
+        base_predictions.append(self.advanced_models.predict(X))
+        base_predictions.append(self.lgbm_predictor.predict(X))
+        base_predictions.append(self.prophet_predictor.predict(X))
+        base_predictions.append(self.future_predictor.predict(X))
+        base_predictions.append(self.sentiment_predictor.predict(X))
+        base_predictions.append(self.risk_predictor.predict(X))
+        base_predictions.append(self.multi_asset_predictor.predict(X))
+        base_predictions.append(self.scenario_predictor.predict(X))
+        base_predictions.append(self.realtime_pipeline.predict(X))
+
+        # 予測値を特徴量として使用する場合の形状を確認（通常は (n_samples,) が各モデルから期待される）
+        # Stacking用に予測値を結合 (n_samples, n_models)
+        X_meta = np.column_stack(base_predictions)
+
+        # Stackingのメタモデルを学習
+        from sklearn.linear_model import Ridge
+        meta_model = Ridge(alpha=1.0)
+        meta_model.fit(X_meta, y)
+
+        # または、動的重み付け、多様性ベースのアンサンブル手法を使用
+        # ここでは例として StackingEnsemble を使用
+        from src.advanced_ensemble import StackingEnsemble
+        base_models = [
+            self.transformer_predictor,
+            self.advanced_models,
+            self.lgbm_predictor,
+            self.prophet_predictor,
+            self.future_predictor,
+            self.sentiment_predictor,
+            self.risk_predictor,
+            self.multi_asset_predictor,
+            self.scenario_predictor,
+            self.realtime_pipeline,
+        ]
+        self.advanced_ensemble = StackingEnsemble(base_models=base_models, meta_model=meta_model)
+
+        # モデル全体の学習完了
+        self.is_fitted = True
+
+        # MLOpsマネージャーに学習済みモデルを登録（仮）
+        self.mlops_manager.log_model(self.advanced_ensemble, model_name=f"EnhancedEnsemble_{ticker}")
+
+        self.logger.info(f"EnhancedEnsemblePredictor fitted for {ticker}")
+
+    def predict_trajectory(self, data: pd.DataFrame, days_ahead: int = 5, ticker: str = "unknown", fundamentals: Dict = None) -> Dict:
+        """
+        今後の価格変動を予測（軌跡）
+        - `days_ahead` 日先までの予測を返す
+        - 方向性（UP/DOWN/FLAT）と価格変動率を返す
+        - 予測の信頼度や説明可能性も返す
+        """
+        if not self.is_fitted:
+            self.logger.warning("Model is not fitted yet. Fitting now...")
+            self.fit(data, ticker, fundamentals)
+
+        self.logger.info(f"Predicting trajectory for {ticker} over {days_ahead} days.")
+
+        # 予測の信頼度や説明可能性を格納する辞書
+        prediction_details = {}
+
+        # 1. 各モデルの予測を取得
+        X = self._prepare_features(data, ticker, fundamentals)
+        current_features = X.iloc[-1:].values  # 最新の特徴量
+
+        # 1-1. Transformer予測
+        transformer_pred = self.transformer_predictor.predict_point(current_features)
+        prediction_details['transformer'] = transformer_pred
+
+        # 1-2. AdvancedModels予測
+        advanced_pred = self.advanced_models.predict_point(current_features)
+        prediction_details['advanced_models'] = advanced_pred
+
+        # 1-3. LGBM予測
+        lgbm_pred = self.lgbm_predictor.predict_point(current_features)
+        prediction_details['lgbm'] = lgbm_pred
+
+        # ... 他のモデルの予測も同様に取得 ...
+
+        # 2. アンサンブル予測
+        ensemble_pred = None
+        if self.advanced_ensemble:
+            # Stackingアンサンブルの予測
+            ensemble_pred = self.advanced_ensemble.predict(current_features)
+        else:
+            # 均等重みアンサンブル（フォールバック）
+            predictions = [transformer_pred, advanced_pred, lgbm_pred]
+            ensemble_pred = np.mean(predictions, axis=0)
+
+        # 3. 価格変動率から価格に変換（現在価格を基準）
+        current_price = data['Close'].iloc[-1]
+        predicted_changes = ensemble_pred  # これは価格変動率の予測値（例: 0.01 は 1% 上昇）
+        predicted_price = current_price * (1 + predicted_changes)
+
+        # 4. 方向性の判断（UP/DOWN/FLAT）
+        if predicted_changes > 0.01:  # 例: 1%以上上昇でUP
             trend = "UP"
-        elif predictions[-1] < current_price * 0.99:
+        elif predicted_changes < -0.01:  # 例: 1%以上下落でDOWN
             trend = "DOWN"
+        else:
+            trend = "FLAT"
 
-        return {
-            "current_price": current_price,
-            "predictions": predictions,
-            "peak_price": max(predictions),
+        # 5. 信頼度の計算（例: 各モデル予測の標準偏差）
+        model_predictions = [pred for pred in prediction_details.values()]
+        if len(model_predictions) > 1:
+            std_dev = np.std(model_predictions, axis=0)
+            confidence = 1.0 / (1.0 + std_dev)  # 標準偏差が小さいほど信頼度が高い（簡略化）
+        else:
+            confidence = 0.5  # 単一モデルの場合は中間の信頼度
+
+        # 6. XAIによる説明可能性
+        explanations = self.xai_framework.explain_prediction(
+            model=self.advanced_ensemble,
+            X=current_features,
+            prediction=predicted_changes
+        )
+
+        # 7. ファンダメンタルズ評価
+        fundamental_score = self.fundamental_analyzer.analyze(ticker) if self.fundamental_analyzer else None
+
+        # 8. リスク調整された予測（オプション）
+        risk_adjusted_pred = self.risk_predictor.adjust_prediction(
+            prediction=predicted_changes,
+            features=current_features
+        ) if self.risk_predictor else predicted_changes
+
+        # 9. シナリオ分析（オプション）
+        scenario_analysis = self.scenario_predictor.analyze(
+            features=current_features,
+            base_prediction=predicted_changes
+        ) if self.scenario_predictor else None
+
+        # 10. 継続的学習と概念ドリフト検出
+        # 実際には、このメソッド内で新しいデータポイントを検出・学習するロジックが必要
+        # ここでは簡略化し、ドリフト検出のみ
+        drift_detected = False
+        if self.concept_drift_detector:
+            drift_detected = self.concept_drift_detector.detect(X.iloc[-10:])  # 最新10点で検出
+
+        result = {
+            "predictions": [predicted_price],  # 現在の実装では単一の価格予測
+            "predicted_price": predicted_price,
+            "predicted_change_pct": predicted_changes * 100,  # %
             "trend": trend,
-            "change_pct": (predictions[-1] - current_price) / current_price * 100
+            "confidence": confidence,
+            "details": {
+                "models_used": list(prediction_details.keys()),
+                "trend_votes": {k: "UP" if v > 0 else "DOWN" for k, v in prediction_details.items()},
+                "explanations": explanations,
+                "fundamental": fundamental_score,
+                "risk_adjusted_prediction": risk_adjusted_pred,
+                "scenario_analysis": scenario_analysis,
+                "drift_detected": drift_detected,
+            },
+            "timestamp": pd.Timestamp.now()
         }
 
+        # 価格変動率を複数日分予測するには、再帰的に特徴量を更新しながら予測するなど、
+        # より複雑なロジックが必要（例: Multi-step prediction）
+        # 以下はその簡略版
 
-# 既存のEnsemblePredictorを新しい実装で置き換えるか、エイリアスを設定
-EnhancedEnsemblePredictor = EnhancedEnsemblePredictor
+        # days_ahead が1より大きい場合は、将来の特徴量をシミュレートして予測
+        if days_ahead > 1:
+            future_predictions = [predicted_price]
+            last_price = predicted_price
+            for _ in range(1, days_ahead):
+                # シミュレートされた価格で特徴量を再計算（これは簡略化）
+                # 実際には、価格変動だけでなくボラティリティ、取引高なども予測する必要がある
+                # ここでは、単に前日の価格を使用して特徴量を計算（非現実的）
+                # 例: last_price を使用して仮想のOHLCVデータを生成し、特徴量を計算
+                # この部分は非常に複雑で、現実的なシミュレーションが必要
+
+                # 仮の特徴量計算（実際には不可能）
+                # next_features = generate_future_features(last_price, days_ahead=1)
+                # next_pred = self.advanced_ensemble.predict(next_features)
+                # next_price = last_price * (1 + next_pred)
+                # future_predictions.append(next_price)
+
+                # 簡単のため、days_ahead > 1 の場合も現在の予測を延長
+                future_predictions.append(last_price)
+
+            result["predictions"] = future_predictions
+
+        return result
+
+    def update(self, new_data: pd.DataFrame, ticker: str, fundamentals: Dict = None):
+        """
+        新しいデータでモデルを更新（継続的学習）
+        """
+        self.logger.info(f"Updating model with new data for {ticker}")
+
+        # 概念ドリフトの検出
+        if self.concept_drift_detector:
+            drift = self.concept_drift_detector.detect(new_data)
+            if drift:
+                self.logger.info("Concept drift detected, retraining required.")
+                # ここで再学習ロジックを実行
+                # self.fit(...) を呼ぶか、部分学習（partial_fit）を実装
+                self.fit(new_data, ticker, fundamentals)
+                return  # 更新後はこれで終了
+
+        # 継続的学習システムを使用してモデルを更新
+        if self.continual_learning_system:
+            self.continual_learning_system.update(new_data, ticker, fundamentals)
+
+        # オプション: 定期的に再学習
+        from datetime import datetime
+        today = datetime.now().date()
+        if self.last_retrain_date is None or (today - self.last_retrain_date).days >= self.retrain_interval:
+            self.logger.info("Scheduled retraining.")
+            # self.fit(...) を呼ぶ
+            # self.fit(new_data, ticker, fundamentals) # 古いデータも含めて再学習
+            # または、最新のデータのみで学習し、履歴を更新
+            # self.fit(new_data.tail(self.retrain_interval), ticker, fundamentals)
+            self.last_retrain_date = today
+
+        self.logger.info(f"Model updated for {ticker}")

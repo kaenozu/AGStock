@@ -1,16 +1,18 @@
-from pypdf import PdfReader
-from typing import List, Optional
 import io
+from typing import List, Optional
+
+from pypdf import PdfReader
+
 
 class PDFLoader:
     """PDF content extractor for RAG"""
-    
+
     @staticmethod
     def extract_text_from_file(uploaded_file) -> str:
         """Extract text from a Streamlit UploadedFile object"""
         if not uploaded_file:
             return ""
-            
+
         try:
             # Read PDF from bytes
             reader = PdfReader(uploaded_file)

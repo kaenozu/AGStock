@@ -1,101 +1,94 @@
 """
-ポ�Eトフォリオリスク刁E��モジュール
+ポートフォリオリスクリスクモジュール
 Portfolio Risk Analysis Module
 
-雁E��度、セクター刁E��、リスク警告を計箁E
+集中度、セクター分散、リスク警告を計算する
 """
-import pandas as pd
-from typing import Dict, List, Tuple
-import yfinance as yf
+
 from functools import lru_cache
+from typing import Dict, List, Tuple
+
+import pandas as pd
+import yfinance as yf
+
 
 class PortfolioRiskAnalyzer:
-    """ポ�Eトフォリオのリスク持E��を計箁E""
-    
+    """ポートフォリオのリスク指標を計算する"""
+
     def __init__(self):
         self.concentration_threshold = 0.30  # 30%
         self.sector_threshold = 0.50  # 50%
-    
+
     def calculate_concentration(self, positions: pd.DataFrame) -> Dict:
         """
-        ポ�Eトフォリオの雁E��度を計箁E
-        
+        ポートフォリオの集中度を計算する
+
         Args:
             positions: PaperTrader.get_positions()の戻り値
-            
+
         Returns:
             dict: {
-                'herfindahl_index': float,  # 0-1, 1に近いほど雁E��
-                'top_position_pct': float,  # 最大ポジションの割吁E
+                'herfindahl_index': float,  # 0-1, 1に近いほど集中
+                'top_position_pct': float,  # 最大ポジションの割合
                 'top_ticker': str,          # 最大ポジションの銘柄
-                'is_concentrated': bool     # 閾値趁E��フラグ
+                'is_concentrated': bool     # 閾値超過フラグ
             }
         """
         if positions.empty:
-            return {
-                'herfindahl_index': 0.0,
-                'top_position_pct': 0.0,
-                'top_ticker': None,
-                'is_concentrated': False
-            }
-        
-        # 時価評価額で計箁E
-        if 'market_value' not in positions.columns:
-            positions['market_value'] = positions['current_price'] * positions['quantity']
-        
-        total_value = positions['market_value'].sum()
-        
+            return {"herfindahl_index": 0.0, "top_position_pct": 0.0, "top_ticker": None, "is_concentrated": False}
+
+        # 時価評価額で計算
+        if "market_value" not in positions.columns:
+            positions["market_value"] = positions["current_price"] * positions["quantity"]
+
+        total_value = positions["market_value"].sum()
+
         if total_value == 0:
-            return {
-                'herfindahl_index': 0.0,
-                'top_position_pct': 0.0,
-                'top_ticker': None,
-                'is_concentrated': False
-            }
-        
-        # 吁E�Eジションの割吁E
-        positions['weight'] = positions['market_value'] / total_value
-        
+            return {"herfindahl_index": 0.0, "top_position_pct": 0.0, "top_ticker": None, "is_concentrated": False}
+
+        # 各ポジションの割合
+        positions["weight"] = positions["market_value"] / total_value
+
         # Herfindahl Index (HHI) = Σ(weight^2)
-        hhi = (positions['weight'] ** 2).sum()
-        
+        hhi = (positions["weight"] ** 2).sum()
+
         # 最大ポジション
-        top_idx = positions['market_value'].idxmax()
+        top_idx = positions["market_value"].idxmax()
         top_position = positions.loc[top_idx]
-        top_pct = top_position['weight']
-        
+        top_pct = top_position["weight"]
+
         return {
-            'herfindahl_index': hhi,
-            'top_position_pct': top_pct,
-            'top_ticker': top_position['ticker'],
-            'is_concentrated': top_pct > self.concentration_threshold
+            "herfindahl_index": hhi,
+            "top_position_pct": top_pct,
+            "top_ticker": top_position["ticker"],
+            "is_concentrated": top_pct > self.concentration_threshold,
         }
-    
+
     @lru_cache(maxsize=128)
     def _get_sector(self, ticker: str) -> str:
         """
-        銘柄のセクターを取得（キャチE��ュ付き�E�E
-        
+        銘柄のセクターを取得（キャッシュ付き）
+
         Args:
-            ticker: 銘柄コーチE
-            
+            ticker: 銘柄コード
+
         Returns:
-            str: セクター名（取得失敗時は'Unknown'�E�E
+            str: セクター名（取得失敗時は'Unknown'）
         """
         try:
             stock = yf.Ticker(ticker)
             info = stock.info
-            return info.get('sector', 'Unknown')
+            return info.get("sector", "Unknown")
         except Exception:
-            return 'Unknown'
-    
+            return "Unknown"
+
     def check_sector_diversification(self, positions: pd.DataFrame) -> Dict:
         """
-        セクター刁E��を�E极E
-        
+        セクター分散を評価する
+
         Args:
             positions: PaperTrader.get_positions()の戻り値
-            
+
         Returns:
             dict: {
                 'sector_distribution': dict,  # {sector: percentage}
@@ -107,120 +100,118 @@ class PortfolioRiskAnalyzer:
         """
         if positions.empty:
             return {
-                'sector_distribution': {},
-                'top_sector': None,
-                'top_sector_pct': 0.0,
-                'is_sector_concentrated': False,
-                'num_sectors': 0
+                "sector_distribution": {},
+                "top_sector": None,
+                "top_sector_pct": 0.0,
+                "is_sector_concentrated": False,
+                "num_sectors": 0,
             }
-        
-        # 時価評価額で計箁E
-        if 'market_value' not in positions.columns:
-            positions['market_value'] = positions['current_price'] * positions['quantity']
-        
-        total_value = positions['market_value'].sum()
-        
+
+        # 時価評価額で計算
+        if "market_value" not in positions.columns:
+            positions["market_value"] = positions["current_price"] * positions["quantity"]
+
+        total_value = positions["market_value"].sum()
+
         if total_value == 0:
             return {
-                'sector_distribution': {},
-                'top_sector': None,
-                'top_sector_pct': 0.0,
-                'is_sector_concentrated': False,
-                'num_sectors': 0
+                "sector_distribution": {},
+                "top_sector": None,
+                "top_sector_pct": 0.0,
+                "is_sector_concentrated": False,
+                "num_sectors": 0,
             }
-        
-        # セクター惁E��を取征E
-        positions['sector'] = positions['ticker'].apply(self._get_sector)
-        
-        # セクター別雁E��E
-        sector_values = positions.groupby('sector')['market_value'].sum()
+
+        # セクター情報を取得
+        positions["sector"] = positions["ticker"].apply(self._get_sector)
+
+        # セクター別集中
+        sector_values = positions.groupby("sector")["market_value"].sum()
         sector_distribution = (sector_values / total_value).to_dict()
-        
+
         # 最大セクター
         top_sector = sector_values.idxmax()
         top_sector_pct = sector_values.max() / total_value
-        
+
         return {
-            'sector_distribution': sector_distribution,
-            'top_sector': top_sector,
-            'top_sector_pct': top_sector_pct,
-            'is_sector_concentrated': top_sector_pct > self.sector_threshold,
-            'num_sectors': len(sector_distribution)
+            "sector_distribution": sector_distribution,
+            "top_sector": top_sector,
+            "top_sector_pct": top_sector_pct,
+            "is_sector_concentrated": top_sector_pct > self.sector_threshold,
+            "num_sectors": len(sector_distribution),
         }
-    
+
     def get_risk_alerts(self, positions: pd.DataFrame) -> List[Dict]:
         """
-        リスク警告を生�E
-        
+        リスク警告を生成する
+
         Args:
             positions: PaperTrader.get_positions()の戻り値
-            
+
         Returns:
             list: [{'level': 'warning'|'info', 'message': str}, ...]
         """
         alerts = []
-        
+
         if positions.empty:
             return alerts
-        
-        # 雁E��度チェチE��
+
+        # 集中度チェック
         concentration = self.calculate_concentration(positions)
-        if concentration['is_concentrated']:
-            alerts.append({
-                'level': 'warning',
-                'message': f"⚠�E�E{concentration['top_ticker']} ぁE{concentration['top_position_pct']:.1%} を占めてぁE��す（推奨: 30%以下！E
-            })
-        
-        # セクター刁E��チェチE��
+        if concentration["is_concentrated"]:
+            alerts.append(
+                {
+                    "level": "warning",
+                    "message": f"⚠️ {concentration['top_ticker']} が{concentration['top_position_pct']:.1%} を占めています（推奨: 30%以下）",
+                }
+            )
+
+        # セクター分散チェック
         sector_div = self.check_sector_diversification(positions)
-        if sector_div['is_sector_concentrated']:
-            alerts.append({
-                'level': 'warning',
-                'message': f"⚠�E�E{sector_div['top_sector']} セクターぁE{sector_div['top_sector_pct']:.1%} を占めてぁE��す（推奨: 50%以下！E
-            })
-        
-        # ポジション数チェチE��
+        if sector_div["is_sector_concentrated"]:
+            alerts.append(
+                {
+                    "level": "warning",
+                    "message": f"⚠️ {sector_div['top_sector']} セクターが{sector_div['top_sector_pct']:.1%} を占めています（推奨: 50%以下）",
+                }
+            )
+
+        # ポジション数チェック
         num_positions = len(positions)
         if num_positions == 1:
-            alerts.append({
-                'level': 'warning',
-                'message': "⚠�E�EポジションぁE銘柄のみです。�E散投賁E��推奨しまぁE
-            })
+            alerts.append({"level": "warning", "message": "⚠️ ポジションが銘柄のみです。分散投資を推奨します"})
         elif num_positions >= 2 and num_positions <= 3:
-            alerts.append({
-                'level': 'info',
-                'message': f"ℹ�E�Eポジション数: {num_positions}銘柄�E�推奨: 5-10銘柄�E�E
-            })
-        
+            alerts.append({"level": "info", "message": f"ℹ️ ポジション数: {num_positions}銘柄。推奨: 5-10銘柄。"})
+
         return alerts
-    
+
     def calculate_concentration_score(self, positions: pd.DataFrame) -> float:
         """
-        雁E��度スコアを計算！E-100、E��いほど刁E��されてぁE���E�E
-        
+        集中度スコアを計算。0-100、低いほど分散されております。
+
         Args:
             positions: PaperTrader.get_positions()の戻り値
-            
+
         Returns:
             float: 0-100のスコア
         """
         if positions.empty or len(positions) == 0:
             return 0.0
-        
+
         concentration = self.calculate_concentration(positions)
-        hhi = concentration['herfindahl_index']
-        
-        # HHIめE-100スコアに変換
-        # HHI = 1.0 (完�E雁E��) -> Score = 0
-        # HHI = 1/N (完�E刁E��) -> Score = 100
-        
+        hhi = concentration["herfindahl_index"]
+
+        # HHIを0-100スコアに変換
+        # HHI = 1.0 (完全集中) -> Score = 0
+        # HHI = 1/N (完全分散) -> Score = 100
+
         n = len(positions)
-        min_hhi = 1.0 / n  # 完�E刁E��時�EHHI
-        max_hhi = 1.0      # 完�E雁E��時�EHHI
-        
-        # 正規化�E�送E��: HHIが低いほどスコアが高い�E�E
+        min_hhi = 1.0 / n  # 完全分散時のHHI
+        max_hhi = 1.0  # 完全集中時のHHI
+
+        # 正規化して: HHIが低いほどスコアが高い。
         if max_hhi - min_hhi == 0:
             return 100.0
-        
+
         score = ((max_hhi - hhi) / (max_hhi - min_hhi)) * 100
         return max(0.0, min(100.0, score))

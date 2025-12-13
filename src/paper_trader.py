@@ -1,24 +1,29 @@
-import os
-import time
-import sqlite3
-import pandas as pd
 import datetime
-from typing import Dict, Optional, Tuple
 import json
 import logging
+import os
+import sqlite3
+import time
 from pathlib import Path
+from typing import Dict, Optional, Tuple
 
-from src.constants import (
-    DEFAULT_PAPER_TRADER_REFRESH_INTERVAL,
-    PAPER_TRADER_REALTIME_FALLBACK_DEFAULT
-)
+import pandas as pd
+
+from src.constants import (DEFAULT_PAPER_TRADER_REFRESH_INTERVAL,
+                           PAPER_TRADER_REALTIME_FALLBACK_DEFAULT)
 from src.data_loader import fetch_stock_data
 from src.helpers import retry_with_backoff
 
 logger = logging.getLogger(__name__)
 
+
 class PaperTrader:
-    def __init__(self, db_path: str = "paper_trading.db", initial_capital: float = None, use_realtime_fallback: Optional[bool] = None):
+    def __init__(
+        self,
+        db_path: str = "paper_trading.db",
+        initial_capital: float = None,
+        use_realtime_fallback: Optional[bool] = None,
+    ):
         self.db_path = db_path
         self._last_price_update_ts: float = 0.0
 
@@ -29,9 +34,9 @@ class PaperTrader:
                 # or just as a fallback.
                 config_path = Path("config.json")
                 if config_path.exists():
-                    with open(config_path, 'r', encoding='utf-8') as f:
+                    with open(config_path, "r", encoding="utf-8") as f:
                         config = json.load(f)
-                    initial_capital = config.get('paper_trading', {}).get('initial_capital', 1000000)
+                    initial_capital = config.get("paper_trading", {}).get("initial_capital", 1000000)
                 else:
                     initial_capital = 1000000  # Default 1M JPY
             except Exception as e:
@@ -108,7 +113,7 @@ class PaperTrader:
     def _get_latest_balance(self) -> Tuple[Optional[str], float, float]:
         """balanceテーブルの最新レコードを取得"""
         cursor = self.conn.cursor()
-        cursor.execute('SELECT date, cash, total_equity FROM balance ORDER BY date DESC LIMIT 1')
+        cursor.execute("SELECT date, cash, total_equity FROM balance ORDER BY date DESC LIMIT 1")
         row = cursor.fetchone()
         if row:
             date, cash, total_equity = row
@@ -118,12 +123,14 @@ class PaperTrader:
     def _upsert_balance(self, date_str: str, cash: float, total_equity: float) -> None:
         """balanceテーブルに当日のスナップショットを保存"""
         cursor = self.conn.cursor()
-        cursor.execute('SELECT COUNT(*) FROM balance WHERE date = ?', (date_str,))
+        cursor.execute("SELECT COUNT(*) FROM balance WHERE date = ?", (date_str,))
         exists = cursor.fetchone()[0] > 0
         if exists:
-            cursor.execute('UPDATE balance SET cash = ?, total_equity = ? WHERE date = ?', (cash, total_equity, date_str))
+            cursor.execute(
+                "UPDATE balance SET cash = ?, total_equity = ? WHERE date = ?", (cash, total_equity, date_str)
+            )
         else:
-            cursor.execute('INSERT INTO balance VALUES (?, ?, ?)', (date_str, cash, total_equity))
+            cursor.execute("INSERT INTO balance VALUES (?, ?, ?)", (date_str, cash, total_equity))
         self.conn.commit()
 
     def _initialize_database(self):
@@ -132,16 +139,19 @@ class PaperTrader:
             cursor = self.conn.cursor()
 
             # Account balance table
-            cursor.execute('''
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS balance (
                     date TEXT PRIMARY KEY,
                     cash REAL,
                     total_equity REAL
                 )
-            ''')
+            """
+            )
 
             # Positions table
-            cursor.execute('''
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS positions (
                     ticker TEXT PRIMARY KEY,
                     quantity INTEGER,
@@ -152,18 +162,20 @@ class PaperTrader:
                     stop_price REAL DEFAULT 0,
                     highest_price REAL DEFAULT 0
                 )
-            ''')
+            """
+            )
 
             # Migration: Check columns
             try:
-                cursor.execute('SELECT stop_price, highest_price FROM positions LIMIT 1')
+                cursor.execute("SELECT stop_price, highest_price FROM positions LIMIT 1")
             except sqlite3.OperationalError:
                 logger.warning("Migrating database: adding stop_price and highest_price columns")
-                cursor.execute('ALTER TABLE positions ADD COLUMN stop_price REAL DEFAULT 0')
-                cursor.execute('ALTER TABLE positions ADD COLUMN highest_price REAL DEFAULT 0')
+                cursor.execute("ALTER TABLE positions ADD COLUMN stop_price REAL DEFAULT 0")
+                cursor.execute("ALTER TABLE positions ADD COLUMN highest_price REAL DEFAULT 0")
 
             # Orders/Trades history
-            cursor.execute('''
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS orders (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     date TEXT,
@@ -175,16 +187,18 @@ class PaperTrader:
                     realized_pnl REAL DEFAULT 0,
                     reason TEXT
                 )
-            ''')
+            """
+            )
 
             self.conn.commit()
 
             # Initialize balance if empty
-            cursor.execute('SELECT COUNT(*) FROM balance')
+            cursor.execute("SELECT COUNT(*) FROM balance")
             if cursor.fetchone()[0] == 0:
                 today = datetime.date.today().isoformat()
-                cursor.execute('INSERT INTO balance VALUES (?, ?, ?)',
-                            (today, self.initial_capital, self.initial_capital))
+                cursor.execute(
+                    "INSERT INTO balance VALUES (?, ?, ?)", (today, self.initial_capital, self.initial_capital)
+                )
                 self.conn.commit()
         except Exception as e:
             logger.error(f"Database initialization error: {e}")
@@ -204,38 +218,47 @@ class PaperTrader:
                 logger.error(f"Failed to sync balance snapshot: {e}")
 
         return {
-            'cash': cash,
-            'total_equity': total_equity,
-            'invested_amount': invested_amount,
-            'unrealized_pnl': unrealized_pnl
+            "cash": cash,
+            "total_equity": total_equity,
+            "invested_amount": invested_amount,
+            "unrealized_pnl": unrealized_pnl,
         }
 
     def get_positions(self, use_realtime_fallback: bool = False) -> pd.DataFrame:
         """Get current open positions with calculated market values"""
         try:
-            df = pd.read_sql_query('SELECT * FROM positions', self.conn)
+            df = pd.read_sql_query("SELECT * FROM positions", self.conn)
         except Exception:
             return pd.DataFrame()
 
         if df.empty:
             # Return empty with expected columns
-            empty_df = pd.DataFrame(columns=['ticker', 'quantity', 'entry_price', 'current_price',
-                                       'unrealized_pnl', 'market_value', 'unrealized_pnl_pct'])
+            empty_df = pd.DataFrame(
+                columns=[
+                    "ticker",
+                    "quantity",
+                    "entry_price",
+                    "current_price",
+                    "unrealized_pnl",
+                    "market_value",
+                    "unrealized_pnl_pct",
+                ]
+            )
             # Ensure index is set even for empty df if downstream expects it
-            return empty_df.set_index('ticker', drop=False) if not empty_df.empty else empty_df
+            return empty_df.set_index("ticker", drop=False) if not empty_df.empty else empty_df
 
         # Add calculated columns
         def _safe_price(row, fallback_prices: Dict[str, float]):
-            price = row.get('current_price', 0.0)
+            price = row.get("current_price", 0.0)
             try:
                 price = float(price or 0.0)
             except Exception:
                 price = 0.0
             if pd.isna(price) or price <= 0:
-                price = fallback_prices.get(str(row.get('ticker')), 0.0)
+                price = fallback_prices.get(str(row.get("ticker")), 0.0)
             if pd.isna(price) or price <= 0:
                 try:
-                    price = float(row.get('entry_price', 0.0) or 0.0)
+                    price = float(row.get("entry_price", 0.0) or 0.0)
                 except Exception:
                     price = 0.0
             return price
@@ -243,51 +266,56 @@ class PaperTrader:
         fallback_prices: Dict[str, float] = {}
         if use_realtime_fallback:
             from src.data_loader import fetch_realtime_data
-            for t in df['ticker'].tolist():
+
+            for t in df["ticker"].tolist():
                 try:
                     rt = fetch_realtime_data(t, period="5d", interval="1d")
-                    if rt is not None and not rt.empty and 'Close' in rt.columns:
-                        fallback_prices[t] = float(rt['Close'].iloc[-1])
+                    if rt is not None and not rt.empty and "Close" in rt.columns:
+                        fallback_prices[t] = float(rt["Close"].iloc[-1])
                 except Exception as exc:
                     logger.debug(f"Realtime price fallback failed for {t}: {exc}")
 
-        df['current_price'] = df.apply(lambda r: _safe_price(r, fallback_prices), axis=1)
+        df["current_price"] = df.apply(lambda r: _safe_price(r, fallback_prices), axis=1)
 
         if use_realtime_fallback and fallback_prices:
             try:
                 cursor = self.conn.cursor()
                 for _, row in df.iterrows():
-                    ticker = row['ticker']
+                    ticker = row["ticker"]
                     if ticker in fallback_prices:
-                        cp = float(row['current_price'])
-                        unreal = (cp - float(row['entry_price'])) * int(row['quantity'])
+                        cp = float(row["current_price"])
+                        unreal = (cp - float(row["entry_price"])) * int(row["quantity"])
                         cursor.execute(
-                            'UPDATE positions SET current_price = ?, unrealized_pnl = ? WHERE ticker = ?',
-                            (cp, unreal, ticker)
+                            "UPDATE positions SET current_price = ?, unrealized_pnl = ? WHERE ticker = ?",
+                            (cp, unreal, ticker),
                         )
                 self.conn.commit()
             except Exception as exc:
                 logger.debug(f"Persisting realtime prices failed: {exc}")
-        df['market_value'] = df['quantity'] * df['current_price']
-        df['unrealized_pnl'] = (df['current_price'] - df['entry_price']) * df['quantity']
+        df["market_value"] = df["quantity"] * df["current_price"]
+        df["unrealized_pnl"] = (df["current_price"] - df["entry_price"]) * df["quantity"]
         # Avoid division by zero
-        df['unrealized_pnl_pct'] = df.apply(
-            lambda x: ((x['current_price'] - x['entry_price']) / x['entry_price'] * 100) if x['entry_price'] != 0 else 0,
-            axis=1
+        df["unrealized_pnl_pct"] = df.apply(
+            lambda x: (
+                ((x["current_price"] - x["entry_price"]) / x["entry_price"] * 100) if x["entry_price"] != 0 else 0
+            ),
+            axis=1,
         )
-        return df.set_index('ticker', drop=False)
+        return df.set_index("ticker", drop=False)
 
     def get_trade_history(self, limit: int = 50) -> pd.DataFrame:
         """Get recent trade history"""
         try:
-            return pd.read_sql_query(f'SELECT * FROM orders ORDER BY date DESC LIMIT {limit}', self.conn, parse_dates=['date', 'timestamp'])
+            return pd.read_sql_query(
+                f"SELECT * FROM orders ORDER BY date DESC LIMIT {limit}", self.conn, parse_dates=["date", "timestamp"]
+            )
         except Exception:
             return pd.DataFrame()
 
     def get_equity_history(self) -> pd.DataFrame:
         """Get historical equity balance"""
         try:
-            return pd.read_sql_query('SELECT * FROM balance ORDER BY date ASC', self.conn, parse_dates=['date'])
+            return pd.read_sql_query("SELECT * FROM balance ORDER BY date ASC", self.conn, parse_dates=["date"])
         except Exception:
             return pd.DataFrame()
 
@@ -309,30 +337,33 @@ class PaperTrader:
         if positions.empty:
             return
 
-        tickers = positions['ticker'].tolist()
+        tickers = positions["ticker"].tolist()
         if not tickers:
             return
 
         try:
-            data_map = fetch_stock_data(tickers, period="5d") # Short period is enough for current price
+            data_map = fetch_stock_data(tickers, period="5d")  # Short period is enough for current price
 
             cursor = self.conn.cursor()
             updated = False
 
             for _, pos in positions.iterrows():
-                ticker = pos['ticker']
+                ticker = pos["ticker"]
                 if ticker in data_map and not data_map[ticker].empty:
-                    current_price = data_map[ticker]['Close'].iloc[-1]
-                    if hasattr(current_price, 'item'):
+                    current_price = data_map[ticker]["Close"].iloc[-1]
+                    if hasattr(current_price, "item"):
                         current_price = current_price.item()
 
-                    unrealized_pnl = (float(current_price) - float(pos['entry_price'])) * int(pos['quantity'])
+                    unrealized_pnl = (float(current_price) - float(pos["entry_price"])) * int(pos["quantity"])
 
-                    cursor.execute('''
+                    cursor.execute(
+                        """
                         UPDATE positions
                         SET current_price = ?, unrealized_pnl = ?
                         WHERE ticker = ?
-                    ''', (current_price, unrealized_pnl, ticker))
+                    """,
+                        (current_price, unrealized_pnl, ticker),
+                    )
                     updated = True
 
             if updated:
@@ -340,11 +371,13 @@ class PaperTrader:
                 self._last_price_update_ts = now_ts
             else:
                 self._last_price_update_ts = now_ts
-            logger.debug(f"Positions price refresh completed. last_update={self._last_price_update_ts}, refreshed={updated}")
+            logger.debug(
+                f"Positions price refresh completed. last_update={self._last_price_update_ts}, refreshed={updated}"
+            )
 
         except Exception as e:
             logger.error(f"Failed to update position prices: {e}")
-            raise e # Propagation for retry
+            raise e  # Propagation for retry
 
     def execute_trade(self, ticker: str, action: str, quantity: int, price: float, reason: str = "Signal") -> bool:
         """Execute a buy or sell trade."""
@@ -359,13 +392,13 @@ class PaperTrader:
 
             if action == "BUY":
                 cost = quantity * price
-                if cost > balance['cash']:
+                if cost > balance["cash"]:
                     logger.warning(f"Insufficient cash to buy {quantity} shares of {ticker}")
                     return False
 
-                new_cash = balance['cash'] - cost
+                new_cash = balance["cash"] - cost
 
-                cursor.execute('SELECT quantity, entry_price FROM positions WHERE ticker = ?', (ticker,))
+                cursor.execute("SELECT quantity, entry_price FROM positions WHERE ticker = ?", (ticker,))
                 existing = cursor.fetchone()
 
                 if existing:
@@ -375,24 +408,30 @@ class PaperTrader:
                     # Weighted average price
                     new_avg_price = ((old_qty * old_price) + (quantity * price)) / new_qty
 
-                    cursor.execute('''
+                    cursor.execute(
+                        """
                         UPDATE positions
                         SET quantity = ?, entry_price = ?, current_price = ?
                         WHERE ticker = ?
-                    ''', (new_qty, new_avg_price, price, ticker))
+                    """,
+                        (new_qty, new_avg_price, price, ticker),
+                    )
                 else:
                     # New position
-                    cursor.execute('''
+                    cursor.execute(
+                        """
                         INSERT INTO positions (ticker, quantity, entry_price, entry_date, current_price, unrealized_pnl, stop_price, highest_price)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (ticker, quantity, price, today, price, 0.0, 0.0, price))
+                    """,
+                        (ticker, quantity, price, today, price, 0.0, 0.0, price),
+                    )
 
                 # Update balance
-                cursor.execute('UPDATE balance SET cash = ? WHERE date = (SELECT MAX(date) FROM balance)', (new_cash,))
+                cursor.execute("UPDATE balance SET cash = ? WHERE date = (SELECT MAX(date) FROM balance)", (new_cash,))
                 logger.info(f"[BUY] Executed: {ticker} x {quantity} @ {price}")
 
             elif action == "SELL":
-                cursor.execute('SELECT quantity, entry_price FROM positions WHERE ticker = ?', (ticker,))
+                cursor.execute("SELECT quantity, entry_price FROM positions WHERE ticker = ?", (ticker,))
                 existing = cursor.fetchone()
 
                 if not existing or existing[0] < quantity:
@@ -403,24 +442,27 @@ class PaperTrader:
                 proceeds = quantity * price
                 realized_pnl = (price - entry_price) * quantity
 
-                new_cash = balance['cash'] + proceeds
+                new_cash = balance["cash"] + proceeds
 
                 if old_qty == quantity:
-                    cursor.execute('DELETE FROM positions WHERE ticker = ?', (ticker,))
+                    cursor.execute("DELETE FROM positions WHERE ticker = ?", (ticker,))
                 else:
                     new_qty = old_qty - quantity
-                    cursor.execute('UPDATE positions SET quantity = ? WHERE ticker = ?', (new_qty, ticker))
+                    cursor.execute("UPDATE positions SET quantity = ? WHERE ticker = ?", (new_qty, ticker))
 
                 # Update balance
-                cursor.execute('UPDATE balance SET cash = ? WHERE date = (SELECT MAX(date) FROM balance)', (new_cash,))
+                cursor.execute("UPDATE balance SET cash = ? WHERE date = (SELECT MAX(date) FROM balance)", (new_cash,))
                 logger.info(f"[SELL] Executed: {ticker} x {quantity} @ {price} (PnL: {realized_pnl})")
 
             # Log trade
             realized_pnl_value = realized_pnl if action == "SELL" else 0
-            cursor.execute('''
+            cursor.execute(
+                """
                 INSERT INTO orders (date, timestamp, ticker, action, quantity, price, realized_pnl, reason)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (today, now, ticker, action, quantity, price, realized_pnl_value, reason))
+            """,
+                (today, now, ticker, action, quantity, price, realized_pnl_value, reason),
+            )
 
             self.conn.commit()
             return True
@@ -449,11 +491,14 @@ class PaperTrader:
         """Update stop price and highest price for a position."""
         try:
             cursor = self.conn.cursor()
-            cursor.execute('''
+            cursor.execute(
+                """
                 UPDATE positions
                 SET stop_price = ?, highest_price = ?
                 WHERE ticker = ?
-            ''', (stop_price, highest_price, ticker))
+            """,
+                (stop_price, highest_price, ticker),
+            )
             self.conn.commit()
         except Exception as e:
             logger.error(f"Stop update failed: {e}")

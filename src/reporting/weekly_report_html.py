@@ -2,46 +2,50 @@
 週次パフォーマンスレポート - 個人投資家向け
 HTML形式でレポートを生成し、LINE/Discordで送信可能
 """
-import pandas as pd
+
+import json
 from datetime import datetime, timedelta
 from pathlib import Path
-import json
-from src.paper_trader import PaperTrader
+
+import pandas as pd
+
 from src.formatters import format_currency, format_percentage
+from src.paper_trader import PaperTrader
+
 
 def generate_html_report(pt: PaperTrader, start_date: datetime, end_date: datetime) -> str:
     """HTML形式のレポートを生成"""
-    
+
     balance = pt.get_current_balance()
     initial_capital = pt.initial_capital
-    total_return = (balance['total_equity'] - initial_capital) / initial_capital
-    
+    total_return = (balance["total_equity"] - initial_capital) / initial_capital
+
     # 取引履歴
     history = pt.get_trade_history()
-    time_col = 'timestamp' if 'timestamp' in history.columns else 'date'
+    time_col = "timestamp" if "timestamp" in history.columns else "date"
     if time_col in history.columns:
         history[time_col] = pd.to_datetime(history[time_col])
         week_trades = history[history[time_col] >= start_date]
     else:
         week_trades = history
-    
+
     # 統計計算
-    buy_count = len(week_trades[week_trades['action'] == 'BUY'])
-    sell_count = len(week_trades[week_trades['action'] == 'SELL'])
-    
+    buy_count = len(week_trades[week_trades["action"] == "BUY"])
+    sell_count = len(week_trades[week_trades["action"] == "SELL"])
+
     # 勝率計算
-    closed_trades = history[history['action'] == 'SELL'].copy()
-    if not closed_trades.empty and 'realized_pnl' in closed_trades.columns:
-        wins = len(closed_trades[closed_trades['realized_pnl'] > 0])
+    closed_trades = history[history["action"] == "SELL"].copy()
+    if not closed_trades.empty and "realized_pnl" in closed_trades.columns:
+        wins = len(closed_trades[closed_trades["realized_pnl"] > 0])
         total_closed = len(closed_trades)
         win_rate = wins / total_closed if total_closed > 0 else 0
     else:
         win_rate = 0
         total_closed = 0
-    
+
     # ポジション
     positions = pt.get_positions()
-    
+
     # HTML生成
     html = f"""
 <!DOCTYPE html>
@@ -173,13 +177,14 @@ def generate_html_report(pt: PaperTrader, start_date: datetime, end_date: dateti
 """
     return html
 
+
 def generate_positions_table(positions: pd.DataFrame) -> str:
     """ポジションテーブルのHTML生成"""
     if positions.empty:
         return "<p>現在ポジションはありません</p>"
-    
-    positions_sorted = positions.sort_values('unrealized_pnl', ascending=False)
-    
+
+    positions_sorted = positions.sort_values("unrealized_pnl", ascending=False)
+
     html = """
     <table>
         <thead>
@@ -194,17 +199,17 @@ def generate_positions_table(positions: pd.DataFrame) -> str:
         </thead>
         <tbody>
     """
-    
+
     for idx, pos in positions_sorted.head(10).iterrows():
-        ticker = pos.get('ticker', idx)
-        qty = pos.get('quantity', 0)
-        entry = pos.get('entry_price', 0)
-        current = pos.get('current_price', 0)
-        pnl = pos.get('unrealized_pnl', 0)
-        pnl_pct = pos.get('unrealized_pnl_pct', 0)
-        
-        pnl_class = 'positive' if pnl >= 0 else 'negative'
-        
+        ticker = pos.get("ticker", idx)
+        qty = pos.get("quantity", 0)
+        entry = pos.get("entry_price", 0)
+        current = pos.get("current_price", 0)
+        pnl = pos.get("unrealized_pnl", 0)
+        pnl_pct = pos.get("unrealized_pnl_pct", 0)
+
+        pnl_class = "positive" if pnl >= 0 else "negative"
+
         html += f"""
             <tr>
                 <td>{ticker}</td>
@@ -215,20 +220,22 @@ def generate_positions_table(positions: pd.DataFrame) -> str:
                 <td class="{pnl_class}">{format_percentage(pnl_pct/100)}</td>
             </tr>
         """
-    
+
     html += """
         </tbody>
     </table>
     """
-    
+
     return html
+
 
 def send_to_line(report_summary: str):
     """LINE Notifyで送信"""
     try:
         from src.smart_notifier import SmartNotifier
+
         notifier = SmartNotifier()
-        
+
         message = f"""📊 週次レポート
 
 {report_summary}
@@ -240,56 +247,58 @@ def send_to_line(report_summary: str):
     except Exception as e:
         print(f"⚠️  LINE送信失敗: {e}")
 
+
 def main():
     """メイン処理"""
     print("=" * 70)
     print("  📊 週次パフォーマンスレポート生成")
     print("=" * 70)
-    
+
     pt = PaperTrader()
     end_date = datetime.now()
     start_date = end_date - timedelta(days=7)
-    
+
     # HTMLレポート生成
     print("\n📝 HTMLレポートを生成中...")
     html_content = generate_html_report(pt, start_date, end_date)
-    
+
     # ファイル保存
     reports_dir = Path("reports")
     reports_dir.mkdir(exist_ok=True)
-    
+
     filename = f"weekly_report_{datetime.now().strftime('%Y%m%d')}.html"
     filepath = reports_dir / filename
-    
-    with open(filepath, 'w', encoding='utf-8') as f:
+
+    with open(filepath, "w", encoding="utf-8") as f:
         f.write(html_content)
-    
+
     print(f"✅ レポート保存: {filepath}")
-    
+
     # サマリー作成
     balance = pt.get_current_balance()
     initial_capital = pt.initial_capital
-    total_return = (balance['total_equity'] - initial_capital) / initial_capital
-    
+    total_return = (balance["total_equity"] - initial_capital) / initial_capital
+
     summary = f"""総資産: {format_currency(balance['total_equity'])}
 収益率: {format_percentage(total_return)}
 期間: {start_date.strftime('%Y-%m-%d')} 〜 {end_date.strftime('%Y-%m-%d')}"""
-    
+
     # 設定確認
     config_path = Path("config.json")
     if config_path.exists():
-        with open(config_path, 'r', encoding='utf-8') as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             config = json.load(f)
-        
-        if config.get('notifications', {}).get('enabled', False):
-            print("\n📱 通知を送信しますか? (y/n): ", end='')
+
+        if config.get("notifications", {}).get("enabled", False):
+            print("\n📱 通知を送信しますか? (y/n): ", end="")
             response = input().strip().lower()
-            if response == 'y':
+            if response == "y":
                 send_to_line(summary)
-    
+
     print("\n" + "=" * 70)
     print(f"  ✅ 完了! ブラウザで {filepath} を開いてください")
     print("=" * 70)
+
 
 if __name__ == "__main__":
     try:
@@ -297,4 +306,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ エラーが発生しました: {e}")
         import traceback
+
         traceback.print_exc()

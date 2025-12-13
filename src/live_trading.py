@@ -1,24 +1,27 @@
-import pandas as pd
-import numpy as np
-import time
-import logging
 import json
+import logging
+import time
 from datetime import datetime
-from typing import Dict, List, Any, Optional
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
+import numpy as np
+import pandas as pd
 import yfinance as yf
 
-from src.strategies import Strategy, Order, OrderType
-from src.broker import Broker, Position as BrokerPosition
-from src.constants import DEFAULT_VOLATILITY_SYMBOL, FALLBACK_VOLATILITY_SYMBOLS
+from src.broker import Broker
+from src.broker import Position as BrokerPosition
+from src.constants import (DEFAULT_VOLATILITY_SYMBOL,
+                           FALLBACK_VOLATILITY_SYMBOLS)
+from src.strategies import Order, OrderType, Strategy
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Alias for backward compatibility
 Position = BrokerPosition
+
 
 class PaperBroker(Broker):
     """
@@ -26,6 +29,7 @@ class PaperBroker(Broker):
     Manages cash, positions, and order execution.
     Persists state to a JSON file (local storage).
     """
+
     def __init__(self, initial_capital: float = 100_000.0, state_file: str = "paper_trading_state.json"):
         self.initial_capital = initial_capital
         self.state_file = state_file
@@ -33,21 +37,19 @@ class PaperBroker(Broker):
         self.positions: Dict[str, Position] = {}
         self.trade_history: List[Dict[str, Any]] = []
         self.orders: List[Dict[str, Any]] = []
-        
+
         self.load_state()
 
     def load_state(self):
         if Path(self.state_file).exists():
             try:
-                with open(self.state_file, 'r') as f:
+                with open(self.state_file, "r") as f:
                     data = json.load(f)
-                    
+
                 self.cash = data.get("cash", self.initial_capital)
                 self.trade_history = data.get("trade_history", [])
                 positions_data = data.get("positions", {})
-                self.positions = {
-                    ticker: Position(**pos_data) for ticker, pos_data in positions_data.items()
-                }
+                self.positions = {ticker: Position(**pos_data) for ticker, pos_data in positions_data.items()}
                 logger.info(f"Loaded paper trading state. Cash: {self.cash}")
             except Exception as e:
                 logger.error(f"Failed to load state: {e}")
@@ -60,21 +62,21 @@ class PaperBroker(Broker):
                 "cash": self.cash,
                 "positions": {t: p.to_dict() for t, p in self.positions.items()},
                 "trade_history": self.trade_history,
-                "last_updated": datetime.now().isoformat()
+                "last_updated": datetime.now().isoformat(),
             }
-            with open(self.state_file, 'w') as f:
+            with open(self.state_file, "w") as f:
                 json.dump(data, f, indent=2)
         except Exception as e:
             logger.error(f"Failed to save state: {e}")
-    
+
     def get_cash(self) -> float:
         """Returns available cash (Broker interface method)."""
         return self.cash
-    
+
     def get_positions(self) -> Dict[str, Position]:
         """Returns current positions (Broker interface method)."""
         return self.positions
-    
+
     def get_trade_history(self) -> List[Dict[str, Any]]:
         """Returns trade history (Broker interface method)."""
         return self.trade_history
@@ -82,7 +84,7 @@ class PaperBroker(Broker):
     def get_portfolio_value(self, current_prices: Dict[str, float]) -> float:
         positions_value = 0.0
         for ticker, pos in self.positions.items():
-            price = current_prices.get(ticker, pos.current_price) # Use last known if current not available
+            price = current_prices.get(ticker, pos.current_price)  # Use last known if current not available
             if price > 0:
                 positions_value += pos.quantity * price
                 # Update position current price for display
@@ -100,7 +102,7 @@ class PaperBroker(Broker):
             cost = order.quantity * current_price
             if self.cash >= cost:
                 self.cash -= cost
-                
+
                 # Update position
                 if order.ticker in self.positions:
                     pos = self.positions[order.ticker]
@@ -112,9 +114,9 @@ class PaperBroker(Broker):
                         ticker=order.ticker,
                         quantity=order.quantity,
                         average_entry_price=current_price,
-                        current_price=current_price
+                        current_price=current_price,
                     )
-                
+
                 self._log_trade(order, current_price, timestamp)
                 logger.info(f"BUY EXECUTED: {order.ticker} x {order.quantity} @ {current_price}")
             else:
@@ -126,35 +128,39 @@ class PaperBroker(Broker):
                 if pos.quantity >= order.quantity:
                     proceeds = order.quantity * current_price
                     self.cash += proceeds
-                    
+
                     pos.quantity -= order.quantity
                     if pos.quantity <= 0:
                         del self.positions[order.ticker]
-                    
+
                     self._log_trade(order, current_price, timestamp)
                     logger.info(f"SELL EXECUTED: {order.ticker} x {order.quantity} @ {current_price}")
                 else:
                     logger.warning(f"Insufficient position for SELL {order.ticker}")
             else:
                 logger.warning(f"No position found for SELL {order.ticker}")
-        
+
         self.save_state()
 
     def _log_trade(self, order: Order, price: float, timestamp: datetime):
-        self.trade_history.append({
-            "timestamp": timestamp.isoformat(),
-            "ticker": order.ticker,
-            "action": order.action,
-            "quantity": order.quantity,
-            "price": price,
-            "type": order.type.name if hasattr(order.type, 'name') else str(order.type)
-        })
+        self.trade_history.append(
+            {
+                "timestamp": timestamp.isoformat(),
+                "ticker": order.ticker,
+                "action": order.action,
+                "quantity": order.quantity,
+                "price": price,
+                "type": order.type.name if hasattr(order.type, "name") else str(order.type),
+            }
+        )
+
 
 class LiveTradingEngine:
     """
     Orchestrates the live trading process.
     Fetches data, runs strategies, and sends orders to the broker.
     """
+
     def __init__(
         self,
         broker: Broker,
@@ -168,19 +174,20 @@ class LiveTradingEngine:
         self.strategies = strategies
         self.tickers = tickers
         self.is_running = False
-        self.interval_seconds = 60 # Run every minute
+        self.interval_seconds = 60  # Run every minute
         self.emergency_stop = False
         self.vol_symbol = vol_symbol
         self._last_vix_level: Optional[float] = None
-        
+
         # Initialize RiskGuard
         if enable_risk_guard:
             from src.risk_guard import RiskGuard
+
             self.risk_guard = RiskGuard(
                 initial_portfolio_value=initial_portfolio_value,
                 daily_loss_limit_pct=-5.0,
                 max_position_size_pct=10.0,
-                max_vix=40.0
+                max_vix=40.0,
             )
         else:
             self.risk_guard = None
@@ -189,6 +196,7 @@ class LiveTradingEngine:
         # This will be replaced by the actual data_loader function
         # For now, we import it inside the method to avoid circular imports if any
         from src.data_loader import fetch_realtime_data
+
         return fetch_realtime_data(ticker)
 
     def _get_vix_level(self) -> Optional[float]:
@@ -239,7 +247,7 @@ class LiveTradingEngine:
         if self.emergency_stop:
             logger.warning("⛔ Emergency stop active - cycle skipped")
             return
-            
+
         logger.info("Starting trading cycle...")
         current_prices = {}
 
@@ -252,17 +260,17 @@ class LiveTradingEngine:
                 logger.critical(f"🚨 Trading halted: {reason}")
                 self.emergency_stop = True
                 return
-        
+
         for ticker in self.tickers:
             try:
                 df = self.fetch_realtime_data(ticker)
                 if df is None or df.empty:
                     logger.warning(f"No data for {ticker}")
                     continue
-                
-                current_price = df['Close'].iloc[-1]
+
+                current_price = df["Close"].iloc[-1]
                 current_prices[ticker] = current_price
-                
+
                 # Run strategy
                 strategy = self.strategies.get(ticker)
                 if strategy:
@@ -270,28 +278,28 @@ class LiveTradingEngine:
                     # Note: Strategies usually expect a history. fetch_realtime_data should return enough history.
                     signals = strategy.generate_signals(df)
                     latest_signal = signals.iloc[-1] if not signals.empty else 0
-                    
+
                     # Process signal
                     # This is a simplified logic. In a real system, we'd handle Order objects more robustly.
                     # Here we assume the strategy might return an int or an Order object.
-                    
+
                     if isinstance(latest_signal, Order):
                         # If it's an Order object, we need to check if it matches current conditions
                         # For Market orders, execute immediately.
-                        # For Limit/Stop, we'd need an Order Book in the Broker. 
+                        # For Limit/Stop, we'd need an Order Book in the Broker.
                         # For simplicity in Phase 1, we execute Market orders immediately.
                         if latest_signal.type == OrderType.MARKET:
-                             self.broker.execute_order(latest_signal, current_price, datetime.now())
-                    
+                            self.broker.execute_order(latest_signal, current_price, datetime.now())
+
                     elif isinstance(latest_signal, (int, np.integer)):
                         # Legacy integer signal support
-                        qty = 10 # Default quantity for int signals
-                        if latest_signal == 1: # BUY
-                             order = Order(ticker=ticker, action="BUY", quantity=qty, type=OrderType.MARKET, price=0)
-                             self.broker.execute_order(order, current_price, datetime.now())
-                        elif latest_signal == -1: # SELL
-                             order = Order(ticker=ticker, action="SELL", quantity=qty, type=OrderType.MARKET, price=0)
-                             self.broker.execute_order(order, current_price, datetime.now())
+                        qty = 10  # Default quantity for int signals
+                        if latest_signal == 1:  # BUY
+                            order = Order(ticker=ticker, action="BUY", quantity=qty, type=OrderType.MARKET, price=0)
+                            self.broker.execute_order(order, current_price, datetime.now())
+                        elif latest_signal == -1:  # SELL
+                            order = Order(ticker=ticker, action="SELL", quantity=qty, type=OrderType.MARKET, price=0)
+                            self.broker.execute_order(order, current_price, datetime.now())
 
             except Exception as e:
                 logger.error(f"Error processing {ticker}: {e}")
