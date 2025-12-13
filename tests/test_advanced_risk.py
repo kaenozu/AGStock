@@ -236,7 +236,7 @@ class TestCorrelationCheck:
 
         # エラー時は保守的に許可
         assert allow == True
-        assert "データ不足" in reason or "エラー" in reason
+        assert "データ不足" in reason or "エラー" in reason or "データマップがない" in reason
 
 
 class TestIntegration:

@@ -14,14 +14,37 @@ from typing import Dict, Optional, Tuple
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
-import tensorflow as tf
 from sklearn.preprocessing import MinMaxScaler
-from tensorflow import keras
-from tensorflow.keras import layers
-
-warnings.filterwarnings("ignore")
 
 logger = logging.getLogger(__name__)
+
+# Lazy/Safe Import for TensorFlow
+try:
+    import tensorflow as tf
+    from tensorflow import keras
+    from tensorflow.keras import layers
+    TF_AVAILABLE = True
+except ImportError:
+    logger.warning("TensorFlow not available. Advanced models will not be usable.")
+    TF_AVAILABLE = False
+    # Define mocks to allow class definition without errors
+    class MockKeras:
+        class Model: pass
+    keras = MockKeras
+    class MockLayers:
+        class Layer: pass
+        class LSTM: pass
+        class Dense: pass
+        class Dropout: pass
+        class Conv1D: pass
+        class MaxPooling1D: pass
+        class GlobalMaxPooling1D: pass
+        class GlobalAveragePooling1D: pass
+        class BatchNormalization: pass
+        def __getattr__(self, name): return object
+    layers = MockLayers()
+
+warnings.filterwarnings("ignore")
 
 
 class AttentionLayer(layers.Layer):
