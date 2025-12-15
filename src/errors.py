@@ -134,6 +134,7 @@ class ConfigurationError(AGStockException):
         super().__init__(
             message=message, error_code="CONFIGURATION_ERROR", details={**(details or {}), "config_key": config_key}
         )
+        self.config_key = config_key
 
 
 class BacktestError(AGStockException):

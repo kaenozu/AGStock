@@ -303,12 +303,18 @@ class PaperTrader:
         )
         return df.set_index("ticker", drop=False)
 
-    def get_trade_history(self, limit: int = 50) -> pd.DataFrame:
-        """Get recent trade history"""
+    def get_trade_history(self, limit: int = 50, start_date: Optional[datetime.date] = None) -> pd.DataFrame:
+        """Get trade history. If start_date is provided, it takes priority over limit."""
         try:
-            return pd.read_sql_query(
-                f"SELECT * FROM orders ORDER BY date DESC LIMIT {limit}", self.conn, parse_dates=["date", "timestamp"]
-            )
+            if start_date:
+                query = "SELECT * FROM orders WHERE date >= ? ORDER BY date DESC"
+                params = (start_date.isoformat(),)
+            else:
+                safe_limit = max(int(limit), 1)
+                query = f"SELECT * FROM orders ORDER BY date DESC LIMIT {safe_limit}"
+                params = ()
+
+            return pd.read_sql_query(query, self.conn, params=params, parse_dates=["date", "timestamp"])
         except Exception:
             return pd.DataFrame()
 

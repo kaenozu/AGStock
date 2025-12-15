@@ -9,13 +9,10 @@
 
 import logging
 import warnings
-from typing import Dict, Optional, Tuple
+from typing import Tuple
 
-import lightgbm as lgb
 import numpy as np
-import pandas as pd
 import tensorflow as tf
-from sklearn.preprocessing import MinMaxScaler
 from tensorflow import keras
 from tensorflow.keras import layers
 
@@ -413,6 +410,33 @@ class AdvancedModels:
 
         model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001), loss="mse", metrics=["mae"])
 
+        return model
+
+    @staticmethod
+    def build_gru_model(input_shape: Tuple[int, int]) -> keras.Model:
+        """シンプルなGRUモデル（テスト用）"""
+        model = keras.Sequential(
+            [
+                layers.Input(shape=input_shape),
+                layers.GRU(64, return_sequences=False),
+                layers.Dense(32, activation="relu"),
+                layers.Dense(1, activation="linear"),
+            ]
+        )
+        model.compile(optimizer="adam", loss="mse")
+        return model
+
+    @staticmethod
+    def build_attention_lstm_model(input_shape: Tuple[int, int]) -> keras.Model:
+        """Attention付きLSTM（単一出力、テスト用）"""
+        inputs = layers.Input(shape=input_shape)
+        x = layers.LSTM(64, return_sequences=True)(inputs)
+        x = AttentionLayer()(x)
+        x = layers.GlobalMaxPooling1D()(x)
+        x = layers.Dense(32, activation="relu")(x)
+        outputs = layers.Dense(1, activation="linear")(x)
+        model = keras.Model(inputs, outputs)
+        model.compile(optimizer="adam", loss="mse")
         return model
 
     @staticmethod

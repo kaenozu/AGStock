@@ -248,9 +248,15 @@ def process_downloaded_data(
         source_key = column_map.get(ticker, ticker)
 
         if is_multi_index:
-            if source_key not in raw_data.columns.get_level_values(0):
+            levels0 = set(raw_data.columns.get_level_values(0))
+            levels1 = set(raw_data.columns.get_level_values(1))
+
+            if source_key in levels0:
+                df = raw_data[source_key].copy()
+            elif source_key in levels1:
+                df = raw_data.xs(source_key, axis=1, level=1, drop_level=True).copy()
+            else:
                 continue
-            df = raw_data[source_key].copy()
         else:
             if len(tickers) > 1:
                 if source_key not in raw_data.columns:
@@ -282,6 +288,47 @@ def parse_period(period: str) -> datetime:
         days = int(period[:-1])
         return now - timedelta(days=days)
     return now - timedelta(days=730)
+
+
+def _sanitize_price_history(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    軽量なデータサニタイズ:
+    - 日付順ソート・重複除去
+    - 未来日付の除外
+    - 価格列の外れ値クリップ (1%/99%分位)
+    """
+    if df is None or df.empty:
+        return df
+
+    clean = df.copy()
+
+    # DatetimeIndexに揃える
+    if not isinstance(clean.index, pd.DatetimeIndex):
+        try:
+            clean.index = pd.to_datetime(clean.index)
+        except Exception:
+            return df
+
+    clean = clean[~clean.index.duplicated(keep="last")]
+    clean = clean.sort_index()
+    idx = clean.index
+    if idx.tzinfo is not None:
+        clean.index = idx.tz_convert(None)
+
+    now = pd.Timestamp.utcnow()
+    clean = clean[clean.index <= now + pd.Timedelta(minutes=1)]
+
+    price_cols = [c for c in ["Open", "High", "Low", "Close", "Adj Close"] if c in clean.columns]
+    for col in price_cols:
+        try:
+            q_low = clean[col].quantile(0.01)
+            q_hi = clean[col].quantile(0.99)
+            if pd.notna(q_low) and pd.notna(q_hi):
+                clean[col] = clean[col].clip(lower=q_low, upper=q_hi)
+        except Exception as exc:
+            logger.debug("Price clip failed for %s: %s", col, exc)
+
+    return clean
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
@@ -317,6 +364,10 @@ def fetch_stock_data(
 
     downloaded = _download_and_cache_missing(need_refresh, period, interval, start_date, db)
     result.update(downloaded)
+
+    # Sanitize to avoid leaks/outliers
+    for t, df in list(result.items()):
+        result[t] = _sanitize_price_history(df)
 
     return result
 

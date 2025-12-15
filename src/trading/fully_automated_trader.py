@@ -22,9 +22,20 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 from src.agents.committee import InvestmentCommittee
 from src.backup_manager import BackupManager
 from src.cache_config import install_cache
-from src.constants import NIKKEI_225_TICKERS, SP500_TICKERS, STOXX50_TICKERS
-from src.data_loader import (fetch_fundamental_data, fetch_stock_data,
-                             get_latest_price)
+from src.constants import (
+    DEFAULT_VOLATILITY_SYMBOL,
+    FALLBACK_VOLATILITY_SYMBOLS,
+    NIKKEI_225_TICKERS,
+    SP500_TICKERS,
+    STOXX50_TICKERS,
+)
+from src.data_loader import (
+    CRYPTO_PAIRS,
+    FX_PAIRS,
+    fetch_fundamental_data,
+    fetch_stock_data,
+    get_latest_price,
+)
 from src.dynamic_risk_manager import DynamicRiskManager
 from src.dynamic_stop import DynamicStopManager
 from src.execution import ExecutionEngine
@@ -40,6 +51,8 @@ from src.utils.logger import get_logger, setup_logger
 
 # Create logger
 logger = logging.getLogger(__name__)
+
+DEFAULT_PORTFOLIO_TARGETS = {"japan": 40, "us": 30, "europe": 10, "crypto": 10, "fx": 10}
 
 
 class FullyAutomatedTrader:
@@ -59,6 +72,9 @@ class FullyAutomatedTrader:
         # コアコンポーネント
         self.pt = PaperTrader()
         self.notifier = SmartNotifier(self.config)  # Combined usage
+
+        # ボラティリティ指標キャッシュ
+        self._last_vix_level: Optional[float] = None
 
         # バックアップマネージャー
         self.backup_manager: Optional[BackupManager] = None
@@ -92,10 +108,8 @@ class FullyAutomatedTrader:
         self.risk_config: Dict[str, Any] = self.config.get("auto_trading", {})
         self.max_daily_trades: int = int(self.risk_config.get("max_daily_trades", 5))
 
-        # ポートフォリオ配分目標
-        self.target_japan_pct: float = 50.0
-        self.target_us_pct: float = 30.0
-        self.target_europe_pct: float = 20.0
+        # ポートフォリオ配分目標（configから取得、未設定時はデフォルト）
+        self._load_portfolio_targets()
 
         self.allow_small_mid_cap: bool = True
         self.backup_enabled: bool = True
@@ -113,6 +127,24 @@ class FullyAutomatedTrader:
             self.log(f"高度リスク管理モジュールの初期化エラー: {e}", "WARNING")
 
         self.log("フル自動トレーダー初期化完了")
+
+    def _load_portfolio_targets(self) -> None:
+        """config.json から地域別ターゲット配分を読み込み"""
+        portfolio_targets = self.config.get("portfolio_targets", DEFAULT_PORTFOLIO_TARGETS)
+        self.target_japan_pct = float(portfolio_targets.get("japan", DEFAULT_PORTFOLIO_TARGETS["japan"]))
+        self.target_us_pct = float(portfolio_targets.get("us", DEFAULT_PORTFOLIO_TARGETS["us"]))
+        self.target_europe_pct = float(portfolio_targets.get("europe", DEFAULT_PORTFOLIO_TARGETS["europe"]))
+        self.target_crypto_pct = float(portfolio_targets.get("crypto", DEFAULT_PORTFOLIO_TARGETS["crypto"]))
+        self.target_fx_pct = float(portfolio_targets.get("fx", DEFAULT_PORTFOLIO_TARGETS["fx"]))
+        total_pct = (
+            self.target_japan_pct
+            + self.target_us_pct
+            + self.target_europe_pct
+            + self.target_crypto_pct
+            + self.target_fx_pct
+        )
+        if abs(total_pct - 100.0) > 0.5:
+            self.log(f"ポートフォリオ配分の合計が100%ではありません: {total_pct:.1f}% (警告)", "WARNING")
 
     def load_config(self, config_path: str) -> Dict[str, Any]:
         """設定ファイルを読み込み"""
@@ -186,6 +218,82 @@ class FullyAutomatedTrader:
             self.log(f"日次損益計算エラー: {e}", "WARNING")
             return 0.0
 
+    def calculate_monthly_pnl(self, history_limit: int = 1000) -> float:
+        """当月の損益を計算"""
+        try:
+            today = datetime.date.today()
+            month_start = datetime.date(today.year, today.month, 1)
+            history = self.pt.get_trade_history(limit=history_limit, start_date=month_start)
+            if history.empty:
+                return 0.0
+
+            if "timestamp" not in history.columns:
+                self.log("取引履歴にtimestampカラムがありません（monthly_pnl計算スキップ）", "WARNING")
+                return 0.0
+
+            if not pd.api.types.is_datetime64_any_dtype(history["timestamp"]):
+                history["timestamp"] = pd.to_datetime(history["timestamp"], errors="coerce")
+
+            history = history.dropna(subset=["timestamp"])
+            if history.empty:
+                return 0.0
+
+            month_trades = history[history["timestamp"].dt.date >= month_start]
+
+            if month_trades.empty or "realized_pnl" not in month_trades.columns:
+                return 0.0
+
+            return float(month_trades["realized_pnl"].sum())
+        except Exception as e:
+            self.log(f"月次損益計算エラー: {e}", "WARNING")
+            return 0.0
+
+    def _get_vix_level(self) -> Optional[float]:
+        """
+        最新のVIX/代替ボラ指標を取得。失敗時は最後の成功値を返す。
+        - config.volatility_symbols にリストがあれば優先
+        - market_indices.vix があれば先頭に使う
+        """
+        fallback_list: List[str] = []
+        try:
+            cfg_vix = self.config.get("market_indices", {}).get("vix")
+            if cfg_vix:
+                fallback_list.append(str(cfg_vix))
+        except Exception:
+            pass
+
+        try:
+            vol_list = self.config.get("volatility_symbols")
+            if vol_list and isinstance(vol_list, list) and all(isinstance(s, str) for s in vol_list if s):
+                fallback_list.extend([str(s) for s in vol_list if s])
+        except Exception:
+            pass
+
+        if not fallback_list:
+            fallback_list = [DEFAULT_VOLATILITY_SYMBOL]
+
+        # Ensure defaults are present for safety
+        for sym in FALLBACK_VOLATILITY_SYMBOLS:
+            if sym not in fallback_list:
+                fallback_list.append(sym)
+
+        for sym in fallback_list:
+            try:
+                import yfinance as yf
+
+                vix = yf.Ticker(sym)
+                hist = vix.history(period="5d", interval="1d")
+                if hist is None or hist.empty or "Close" not in hist.columns:
+                    continue
+                val = float(hist["Close"].iloc[-1])
+                self._last_vix_level = val
+                return val
+            except Exception as exc:
+                self.log(f"ボラティリティ指標取得失敗: {sym} ({exc})", "WARNING")
+                continue
+
+        return self._last_vix_level
+
     def is_safe_to_trade(self) -> Tuple[bool, str]:
         """取引が安全か確認"""
         # 1. 日次損失制限チェック
@@ -201,19 +309,13 @@ class FullyAutomatedTrader:
             return False, f"日次損失制限を超過: {daily_loss_pct:.2f}%"
 
         # 2. 市場ボラティリティチェック
-        try:
-            import yfinance as yf
-
-            vix_ticker = self.config.get("market_indices", {}).get("vix", "^VIX")
-            vix = yf.Ticker(vix_ticker)
-            vix_data = vix.history(period="1d")
-            if not vix_data.empty:
-                current_vix = float(vix_data["Close"].iloc[-1])
-                max_vix = float(self.risk_config.get("max_vix", 40.0))
-                if current_vix > max_vix:
-                    return False, f"市場ボラティリティが高すぎます (VIX: {current_vix:.1f})"
-        except Exception:
-            pass  # VIXデータ取得失敗時は続行
+        vix_level = self._get_vix_level()
+        max_vix = float(self.risk_config.get("max_vix", 40.0))
+        if vix_level is not None:
+            if vix_level > max_vix:
+                return False, f"市場ボラティリティが高すぎます (VIX: {vix_level:.1f})"
+        else:
+            self.log("VIX取得に失敗しました（キャッシュも無し）: ボラティリティチェックをスキップ", "WARNING")
 
         # 3. 残高チェック
         if cash < 10000:  # 最低1万円
@@ -487,6 +589,13 @@ class FullyAutomatedTrader:
         europe_count = 10 if europe_pct < self.target_europe_pct else 5
         tickers.extend(STOXX50_TICKERS[:europe_count])
 
+        # クリプト / FX は assets フラグで制御
+        assets_cfg = self.config.get("assets", {})
+        if assets_cfg.get("crypto", False):
+            tickers.extend(CRYPTO_PAIRS)
+        if assets_cfg.get("fx", False):
+            tickers.extend(FX_PAIRS)
+
         return tickers
 
     def filter_by_market_cap(self, ticker: str, fundamentals: Optional[Dict[str, Any]]) -> bool:
@@ -515,16 +624,20 @@ class FullyAutomatedTrader:
         self.log("市場スキャン開始...")
 
         # センチメント分析
+        allow_buy = True
+        sentiment_penalty = 1.0
         try:
             sa = SentimentAnalyzer()
             sentiment = sa.get_market_sentiment()
             self.log(f"市場センチメント: {sentiment['label']} ({sentiment['score']:.2f})")
 
-            # ネガティブセンチメント時はBUYを抑制
-            allow_buy = sentiment["score"] >= -0.2
+            score = float(sentiment.get("score", 0.0))
+            if score < -0.35:
+                sentiment_penalty = 0.5
+            elif score < -0.15:
+                sentiment_penalty = 0.75
         except Exception as e:
             self.log(f"センチメント分析エラー: {e}", "WARNING")
-            allow_buy = True
 
         # 対象銘柄（グローバル分散）
         tickers = self.get_target_tickers()
@@ -584,6 +697,29 @@ class FullyAutomatedTrader:
                             continue
 
                         latest_price = get_latest_price(df)
+                        if latest_price is None or latest_price <= 0:
+                            continue
+
+                        # Kelly Criterion に基づく数量計算（センチメントで抑制）
+                        try:
+                            win_rate = float(self.config.get("kelly_win_rate", 0.55))
+                            win_loss_ratio = float(self.config.get("kelly_win_loss_ratio", 1.5))
+                            kelly_fraction = self.kelly_criterion.calculate_size(win_rate, win_loss_ratio)
+                        except Exception:
+                            kelly_fraction = 0.1
+
+                        kelly_fraction = max(0.0, kelly_fraction * sentiment_penalty)
+                        balance = self.pt.get_current_balance()
+                        equity = float(balance.get("total_equity", 0.0))
+                        cash = float(balance.get("cash", equity))
+                        position_value = min(equity, cash) * kelly_fraction
+
+                        unit_size = self.engine.get_japan_unit_size() if ticker.endswith(".T") else 1
+                        quantity = int(position_value // (latest_price * unit_size)) * unit_size
+
+                        if quantity <= 0:
+                            self.log(f"  {ticker}: ケリー計算で数量0のためスキップ", "WARNING")
+                            continue
 
                         # 地域を判定
                         if ticker in NIKKEI_225_TICKERS:
@@ -600,6 +736,8 @@ class FullyAutomatedTrader:
                                 "confidence": 0.85,
                                 "price": latest_price,
                                 "strategy": strategy_name,
+                                "quantity": quantity,
+                                "kelly_fraction": kelly_fraction,
                                 "reason": f"{strategy_name}による買いシグナル（{region}）",
                             }
                         )
@@ -681,7 +819,7 @@ class FullyAutomatedTrader:
             "date": today.strftime("%Y-%m-%d"),
             "total_value": float(balance.get("total_equity", 0.0)),
             "daily_pnl": daily_pnl,
-            "monthly_pnl": 0,  # TODO: 月次損益計算
+            "monthly_pnl": self.calculate_monthly_pnl(),
             "win_rate": win_rate,
             "signals": signals_info,
             "top_performer": "計算中",

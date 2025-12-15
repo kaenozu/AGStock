@@ -4,7 +4,7 @@ Wavelet変換、FFT、セクター相関などの高度な特徴量を追加
 """
 
 import logging
-from typing import List, Optional
+from typing import List
 
 import numpy as np
 import pandas as pd

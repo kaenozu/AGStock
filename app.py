@@ -140,6 +140,14 @@ def main():
             else:
                 st.caption("ボタンを押して最新データを取得")
 
+            # Health status
+            if getattr(streamer, "last_update", None):
+                st.caption(
+                    f"最終更新: {streamer.last_update.strftime('%H:%M:%S')} / 失敗回数: {streamer.failure_count}"
+                )
+            if getattr(streamer, "last_error", None):
+                st.warning(f"前回エラー: {streamer.last_error}")
+
         except Exception as e:
             st.error(f"Error: {e}")
 

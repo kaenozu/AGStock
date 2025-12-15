@@ -136,10 +136,14 @@ def render_news_analyst():
 
                     pdf_text = PDFLoader.extract_text_from_file(uploaded_file)
 
-                    if len(pdf_text) < 100:
+                    if not pdf_text or pdf_text.startswith("Error extracting PDF"):
+                        st.error("テキストを抽出できませんでした。画像ベースPDFや破損ファイルの可能性があります。")
+                    elif len(pdf_text) < 100:
                         st.error("テキストを抽出できませんでした（画像ベースのPDFの可能性があります）。")
                     else:
                         st.info(f"テキスト抽出完了: {len(pdf_text)} 文字")
+                        if len(pdf_text) < 200:
+                            st.warning("抽出テキストが短いです。OCR済みのPDFを推奨します。")
 
                         # 2. Analyze
                         # Dynamically add method if needed or use ask() for now,

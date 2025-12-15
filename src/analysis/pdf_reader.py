@@ -1,7 +1,8 @@
 import logging
-from typing import Dict, Optional
+from typing import Dict
 
-from pypdf import PdfReader
+from src.rag.pdf_loader import PDFLoader
+from src.llm_reasoner import get_llm_reasoner
 
 logger = logging.getLogger(__name__)
 
@@ -20,18 +21,10 @@ class PDFExtractor:
         Returns:
             Extracted text content as string.
         """
-        try:
-            reader = PdfReader(file_stream)
-            text = ""
-            for page in reader.pages:
-                text += page.extract_text() + "\n"
-            return text
-        except Exception as e:
-            logger.error(f"Error extracting PDF text: {e}")
-            raise e
-
-
-from src.llm_reasoner import get_llm_reasoner
+        text = PDFLoader.extract_text(file_stream, return_error_message=True)
+        if not text:
+            logger.error("PDF extraction returned no text. The PDF may be image-based or corrupted.")
+        return text
 
 
 class EarningsAnalyzer:
