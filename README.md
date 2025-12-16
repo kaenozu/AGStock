@@ -99,6 +99,9 @@ streamlit run app.py
     "^VIX",
     "^VXO"
   ],
+  "market_indices": {
+    "vix": "^VIX"  // 取得優先シンボル（失敗時は volatilty_symbols の順にフォールバック）
+  },
   "risk_limits": {
     "max_daily_loss_pct": -5.0,
     "max_position_size_pct": 10.0,
@@ -112,6 +115,7 @@ streamlit run app.py
 ```
 
 - `volatility_symbols`: ボラティリティ指標として使用する銘柄を設定します。
+- `market_indices.vix`: VIX取得で最初に試すシンボル。失敗時は`volatility_symbols`の順にフォールバックし、キャッシュが無い場合は警告の上スキップします。
 - `risk_limits`: リスク管理のための制限を設定します。
 - `trading_settings`: 取引時の設定を定義します。
 
@@ -181,6 +185,18 @@ streamlit run weekend_advisor.py
 - `REALTIME_BACKOFF_SECONDS`: リアルタイムデータ取得時のリトライ間隔（デフォルト: 1秒）
 - `PAPER_TRADER_REALTIME_FALLBACK`: ペーパートレードでリアルタイム価格を使用するか（デフォルト: false）
 - `PAPER_TRADER_REFRESH_INTERVAL`: ペーパートレードの価格更新間隔（秒、デフォルト: 300秒）
+- `USE_DEMO_DATA`: `1/true` でダッシュボード・PDFレポートをデモデータで動作（オフライン検証向け）
+- `REPORT_HTML_OUTPUT`: PDFレポート生成時にHTMLも出力したい場合のパス
+- `REPORT_THEME`: `light` / `dark`（レポートの色味）
+- `REPORT_FONT`: レポート用フォント（例: Meiryo）
+- `TRADING_SCENARIO`: `conservative` / `neutral` / `aggressive`（ポジションサイズ・DD閾値を自動調整）
+- `MAX_PER_TICKER_PCT` / `MAX_PER_SECTOR_PCT`: 銘柄・セクターごとの最大エクスポージャー上限（0.25 = 25% など）
+- `SAFE_MODE`: `1/true` で新規BUYを抑制する安全モード
+- `QUIET_HOURS`: 通知の静音時間帯（例: `22:00-07:00`）
+- `HEALTH_ENDPOINTS`: APIヘルスチェック対象のカンマ区切りURL（例: `https://example.com/ping`）
+- `OPENAI_API_KEY`/`AGSTOCK_OPENAI_API_KEY`: AI分析用キー（未設定時はフォールバック文言）
+- `ANALYST_MODEL`/`ANALYST_MAX_TOKENS`/`ANALYST_TIMEOUT`/`ANALYST_QUIET`: AI Analystのモデル/トークン/タイムアウト/静音モード設定
+- `DEMO_SEED`: デモデータの乱数シード（再現性確保用）
 
 > **注意**: 環境変数は `.env` ファイルで設定することを推奨します。このファイルはAPIキーなどの機密情報を含むため、`.gitignore` でバージョン管理から除外されています。
 > 設定ファイル（`config.json`）は実行時の設定を保存するためのもので、環境変数とは異なります。

@@ -11,6 +11,13 @@ import streamlit as st
 
 from src.data_loader import fetch_stock_data, get_latest_price
 from src.paper_trader import PaperTrader
+from src import demo_data
+import os
+
+
+def _demo_mode() -> bool:
+    env_flag = os.getenv("USE_DEMO_DATA", "")
+    return bool(st.session_state.get("use_demo_data")) or env_flag.lower() in {"1", "true", "yes"}
 
 
 def check_and_execute_missed_trades():
@@ -20,6 +27,10 @@ def check_and_execute_missed_trades():
     ダッシュボードの起動時に呼び出すことで、
     15:30に起動していなくても自動取引を補完します。
     """
+    if _demo_mode():
+        st.info("デモモード: 自動取引チェックはスキップしています。")
+        return
+
     # セッション状態で1回だけ実行
     if "auto_trade_checked" in st.session_state:
         return
@@ -81,6 +92,9 @@ def get_multi_timeframe_trends(ticker: str) -> dict:
     Get trend analysis for multiple timeframes (Short, Medium, Long).
     """
     try:
+        if _demo_mode():
+            return {"short": "up", "medium": "neutral", "long": "up"}
+
         # Fetch data (1 year to calculate long term MA)
         data_map = fetch_stock_data([ticker], period="2y")  # Fetch a bit more to be safe
         if ticker not in data_map or data_map[ticker].empty:
@@ -140,6 +154,14 @@ def get_market_regime(ticker: str = "^N225") -> dict:
     Uses Nikkei 225 as default market proxy.
     """
     try:
+        if _demo_mode():
+            return {
+                "regime": "demo",
+                "description": "デモモード（疑似データ）",
+                "strategy_desc": "学習・デモ用。実取引は行われません。",
+                "trends": {"short": "up", "medium": "neutral", "long": "up"},
+            }
+
         trends = get_multi_timeframe_trends(ticker)
 
         regime = "ranging"

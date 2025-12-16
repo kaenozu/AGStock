@@ -451,3 +451,189 @@ class Backtester:
             "total_trades": len(trades),
             "num_trades": len(trades),
         }
+
+    def _run_simulation_loop(
+        self,
+        full_index,
+        aligned_data,
+        data_map,
+        cash,
+        holdings,
+        entry_prices,
+        trades,
+        portfolio_value_history,
+        position_history,
+        trailing_stop_levels,
+        highest_prices,
+        stop_loss,
+        take_profit,
+        trailing_stop
+    ):
+        """Simulation loop extracted from run method to reduce complexity."""
+        # Main simulation loop (skip last day – no next open price)
+        for i in range(len(full_index) - 1):
+            # Portfolio market-to-market value for sizing decisions
+            # For short positions, calculate value as: entry_price - current_price
+            current_portfolio_value = cash
+            for t in data_map:
+                if holdings[t] != 0 and not pd.isna(aligned_data[t]["Close"].iloc[i]):
+                    if holdings[t] > 0:  # Long position
+                        current_portfolio_value += holdings[t] * aligned_data[t]["Close"].iloc[i]
+                    else:  # Short position
+                        # Short value = entry_price * abs(shares) - current_price * abs(shares)
+                        # Which simplifies to: (entry_price - current_price) * abs(shares)
+                        entry_price_val = entry_prices[t]
+                        current_price_val = aligned_data[t]["Close"].iloc[i]
+                        profit = (entry_price_val - current_price_val) * abs(holdings[t])
+                        current_portfolio_value += profit
+
+            for ticker, df in aligned_data.items():
+                today_sig = df["Signal"].iloc[i]
+                exec_price = df["Open"].iloc[i + 1]
+                position = holdings[ticker]
+                exit_executed = False
+                today_high = df["High"].iloc[i]
+                today_low = df["Low"].iloc[i]
+
+                # ----- CHECK STOP LOSS / TAKE PROFIT / TRAILING STOP -----
+                if position != 0:
+                    entry = entry_prices[ticker]
+                    # Update highest price for trailing stop
+                    if position > 0:  # Long position
+                        highest_prices[ticker] = max(highest_prices[ticker], today_high)
+
+                        # Update trailing stop level if set
+                        if trailing_stop and trailing_stop > 0:
+                            new_stop = highest_prices[ticker] * (1 - trailing_stop)
+                            trailing_stop_levels[ticker] = max(trailing_stop_levels[ticker], new_stop)
+
+                        # Check trailing stop
+                        if (
+                            trailing_stop
+                            and trailing_stop > 0
+                            and trailing_stop_levels[ticker] > 0
+                            and today_low <= trailing_stop_levels[ticker]
+                        ):
+                            trades.append(
+                                {
+                                    "ticker": ticker,
+                                    "entry_date": None,
+                                    "exit_date": full_index[i],
+                                    "entry_price": entry,
+                                    "exit_price": trailing_stop_levels[ticker],
+                                    "return": (trailing_stop_levels[ticker] - entry) / entry,
+                                    "type": "Long",
+                                    "reason": "Trailing Stop",
+                                }
+                            )
+                            cash += holdings[ticker] * trailing_stop_levels[ticker]
+                            holdings[ticker] = 0.0
+                            entry_prices[ticker] = 0.0
+                            trailing_stop_levels[ticker] = 0.0
+                            highest_prices[ticker] = 0.0
+                            exit_executed = True
+                            continue
+
+                        # Check take profit
+                        elif take_profit and (today_high - entry) / entry >= take_profit:
+                            trades.append(
+                                {
+                                    "ticker": ticker,
+                                    "entry_date": None,
+                                    "exit_date": full_index[i],
+                                    "entry_price": entry,
+                                    "exit_price": entry * (1 + take_profit),
+                                    "return": take_profit,
+                                    "type": "Long",
+                                    "reason": "Take Profit",
+                                }
+                            )
+                            cash += holdings[ticker] * (entry * (1 + take_profit))
+                            holdings[ticker] = 0.0
+                            entry_prices[ticker] = 0.0
+                            trailing_stop_levels[ticker] = 0.0
+                            highest_prices[ticker] = 0.0
+                            exit_executed = True
+                            continue
+
+                        # Check stop loss
+                        elif stop_loss and (entry - today_low) / entry >= stop_loss:
+                            trades.append(
+                                {
+                                    "ticker": ticker,
+                                    "entry_date": None,
+                                    "exit_date": full_index[i],
+                                    "entry_price": entry,
+                                    "exit_price": max(today_low, entry * (1 - stop_loss)),
+                                    "return": (max(today_low, entry * (1 - stop_loss)) - entry) / entry,
+                                    "type": "Long",
+                                    "reason": "Stop Loss",
+                                }
+                            )
+                            cash += holdings[ticker] * max(today_low, entry * (1 - stop_loss))
+                            holdings[ticker] = 0.0
+                            entry_prices[ticker] = 0.0
+                            trailing_stop_levels[ticker] = 0.0
+                            highest_prices[ticker] = 0.0
+                            exit_executed = True
+                            continue
+
+                # ----- PROCESS ORDERS FROM SIGNALS -----
+                if isinstance(today_sig, Order):
+                    # Order-based strategy
+                    if today_sig.side == OrderSide.BUY and position == 0:
+                        # Enter long
+                        # Use fixed fraction of portfolio for now
+                        # In the original, it was a fixed amount (e.g., 100 shares)
+                        # Let's keep the same logic here.
+                        size = today_sig.size
+                        cost = exec_price * size
+                        if cash >= cost:
+                            cash -= cost
+                            holdings[ticker] = size
+                            entry_prices[ticker] = exec_price
+                            highest_prices[ticker] = exec_price
+                    elif today_sig.side == OrderSide.SELL and position > 0:
+                        # Exit long
+                        cash += position * exec_price
+                        holdings[ticker] = 0.0
+                        entry_prices[ticker] = 0.0
+                        trailing_stop_levels[ticker] = 0.0
+                        highest_prices[ticker] = 0.0
+                else:
+                    # Integer-based strategy
+                    # 1: Enter/exit long
+                    # -1: Exit long, enter short (currently unsupported)
+                    # 0: Hold
+                    if today_sig == 1 and position == 0:
+                        # Enter long
+                        # Use fixed fraction of portfolio for now
+                        # In the original, it was a fixed amount (e.g., 100 shares)
+                        # Let's keep the same logic here.
+                        shares = 100  # Fixed lot size for this example
+                        cost = exec_price * shares
+                        if cash >= cost:
+                            cash -= cost
+                            holdings[ticker] = shares
+                            entry_prices[ticker] = exec_price
+                            highest_prices[ticker] = exec_price
+                    elif (today_sig == -1 or today_sig == 1) and position != 0:
+                        # Exit any existing position
+                        cash += position * exec_price
+                        holdings[ticker] = 0.0
+                        entry_prices[ticker] = 0.0
+                        trailing_stop_levels[ticker] = 0.0
+                        highest_prices[ticker] = 0.0
+
+            # Record values
+            portfolio_value_history.append(current_portfolio_value)
+            # A simple aggregate position (long/flat) for the whole portfolio
+            total_holdings_value = sum(
+                holdings[t] * aligned_data[t]["Close"].iloc[i] if holdings[t] != 0 else 0.0 for t in data_map
+            )
+            if total_holdings_value > 0:
+                position_history.append(1)
+            elif total_holdings_value < 0:
+                position_history.append(-1)
+            else:
+                position_history.append(0)

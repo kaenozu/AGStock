@@ -44,47 +44,65 @@ class AsyncDataLoader:
             (ticker, DataFrame) のタプル
         """
         try:
-            # まずDBキャッシュをチェック
-            end_date = datetime.now()
-            start_date = self._parse_period(period, end_date)
+            # 1. キャッシュを確認
+            cached_result = self._check_and_return_cache(ticker, period)
+            if cached_result:
+                return cached_result
 
-            cached_df = self.db.load_data(ticker, start_date=start_date.strftime("%Y-%m-%d"))
+            # 2. データをダウンロード
+            df = await self._download_and_validate_data(ticker, period, interval)
 
-            # キャッシュが最新かチェック（DataFrameであることを確認）
-            if isinstance(cached_df, pd.DataFrame) and not cached_df.empty:
-                try:
-                    latest_cached = pd.to_datetime(cached_df.index[-1]).date()
-                    if latest_cached >= (datetime.now() - timedelta(days=1)).date():
-                        logger.info(f"Using cached data for {ticker}")
-                        return (ticker, cached_df)
-                except Exception as e:
-                    logger.warning(f"Error checking cache date for {ticker}: {e}")
-
-            # キャッシュがない、または古い場合はダウンロード
-            # yfinanceは同期的なので、executor内で実行
-            loop = asyncio.get_event_loop()
-            df = await loop.run_in_executor(None, self._download_yfinance, ticker, period, interval)
-
-            # ダウンロード結果の型チェック
-            if not isinstance(df, pd.DataFrame):
-                if df is not None:
-                    logger.error(f"Downloaded non-DataFrame for {ticker}: {type(df)}")
-                return (ticker, None)
-
-            if df is not None and not df.empty:
-                # DBに保存
-                try:
-                    self.db.save_data(df, ticker)
-                    logger.info(f"Downloaded and cached data for {ticker}")
-                except Exception as e:
-                    logger.error(f"Error saving data for {ticker}: {e}")
-                return (ticker, df)
-            else:
-                logger.warning(f"No data retrieved for {ticker}")
-                return (ticker, None)
+            # 3. データをDBに保存し、結果を返す
+            return self._save_and_return_data(ticker, df)
 
         except Exception as e:
             logger.error(f"Error fetching {ticker}: {e}")
+            return (ticker, None)
+
+    def _check_and_return_cache(self, ticker: str, period: str) -> Optional[tuple[str, pd.DataFrame]]:
+        """DBのキャッシュを確認し、最新であれば返す"""
+        # まずDBキャッシュをチェック
+        end_date = datetime.now()
+        start_date = self._parse_period(period, end_date)
+
+        cached_df = self.db.load_data(ticker, start_date=start_date.strftime("%Y-%m-%d"))
+
+        # キャッシュが最新かチェック（DataFrameであることを確認）
+        if isinstance(cached_df, pd.DataFrame) and not cached_df.empty:
+            try:
+                latest_cached = pd.to_datetime(cached_df.index[-1]).date()
+                if latest_cached >= (datetime.now() - timedelta(days=1)).date():
+                    logger.info(f"Using cached data for {ticker}")
+                    return (ticker, cached_df)
+            except Exception as e:
+                logger.warning(f"Error checking cache date for {ticker}: {e}")
+        return None
+
+    async def _download_and_validate_data(self, ticker: str, period: str, interval: str) -> Optional[pd.DataFrame]:
+        """yfinanceからデータをダウンロードし、型をチェックする"""
+        # yfinanceは同期的なので、executor内で実行
+        loop = asyncio.get_event_loop()
+        df = await loop.run_in_executor(None, self._download_yfinance, ticker, period, interval)
+
+        # ダウンロード結果の型チェック
+        if not isinstance(df, pd.DataFrame):
+            if df is not None:
+                logger.error(f"Downloaded non-DataFrame for {ticker}: {type(df)}")
+            return None
+        return df
+
+    def _save_and_return_data(self, ticker: str, df: Optional[pd.DataFrame]) -> tuple[str, Optional[pd.DataFrame]]:
+        """データをDBに保存し、(ticker, df)を返す"""
+        if df is not None and not df.empty:
+            # DBに保存
+            try:
+                self.db.save_data(df, ticker)
+                logger.info(f"Downloaded and cached data for {ticker}")
+            except Exception as e:
+                logger.error(f"Error saving data for {ticker}: {e}")
+            return (ticker, df)
+        else:
+            logger.warning(f"No data retrieved for {ticker}")
             return (ticker, None)
 
     def _download_yfinance(self, ticker: str, period: str, interval: str = "1d") -> Optional[pd.DataFrame]:

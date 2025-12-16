@@ -1,8 +1,12 @@
 import json
 import logging
-from typing import Any, Dict, List, Optional
+import os
+import time
+from typing import Any, Dict, List, Optional, Tuple
 
 from src.paper_trader import PaperTrader
+from src.data_loader import fetch_fundamental_data, fetch_external_data
+from src.utils.health import quick_health_check
 
 logger = logging.getLogger(__name__)
 
@@ -11,13 +15,24 @@ class ExecutionEngine:
     def __init__(self, paper_trader: PaperTrader, real_broker: Any = None, config_path: str = "config.json") -> None:
         self.pt = paper_trader
         self.real_broker = real_broker
-        self.max_position_size_pct: float = 0.20  # Max 20% of equity per stock
-        self.max_drawdown_limit: float = 0.15  # Stop trading if DD > 15%
+        self.max_position_size_pct: float = 0.20  # Max 20% of equity per stock (overridden by scenario)
+        self.max_drawdown_limit: float = 0.15  # Stop trading if DD > 15% (overridden by scenario)
+        self.vol_slowdown_threshold: float = 30.0
+        self.scenario: str = "neutral"
+        self.scenario_presets: Dict[str, Dict[str, float]] = {
+            "conservative": {"max_position_size_pct": 0.10, "max_drawdown_limit": 0.10, "vol_slowdown_threshold": 22},
+            "neutral": {"max_position_size_pct": 0.20, "max_drawdown_limit": 0.15, "vol_slowdown_threshold": 28},
+            "aggressive": {"max_position_size_pct": 0.30, "max_drawdown_limit": 0.20, "vol_slowdown_threshold": 32},
+        }
+        self.exposure_limits: Dict[str, float] = {"max_per_ticker_pct": 0.25, "max_per_sector_pct": 0.35}
+        self.health_endpoints: List[str] = []
+        self._sector_cache: Dict[str, str] = {}
 
         # ミニ株設定を読み込み
         self.config: Dict[str, Any] = self._load_config(config_path)
         self.mini_stock_config: Dict[str, Any] = self.config.get("mini_stock", {})
         self.mini_stock_enabled: bool = self.mini_stock_config.get("enabled", False)
+        self._load_risk_overrides()
 
     def _load_config(self, config_path: str) -> Dict[str, Any]:
         """設定ファイルを読み込み"""
@@ -27,6 +42,31 @@ class ExecutionEngine:
         except Exception as e:
             logger.error(f"Failed to load config: {e}")
             return {}
+
+    def _load_risk_overrides(self) -> None:
+        """config/envに基づきシナリオ・エクスポージャー・APIヘルスを設定。"""
+        risk_conf = self.config.get("auto_trading", {})
+        self.scenario = os.getenv("TRADING_SCENARIO", risk_conf.get("scenario", self.scenario))
+
+        self.exposure_limits["max_per_ticker_pct"] = float(
+            os.getenv(
+                "MAX_PER_TICKER_PCT",
+                risk_conf.get("max_per_ticker_pct", self.exposure_limits["max_per_ticker_pct"]),
+            )
+        )
+        self.exposure_limits["max_per_sector_pct"] = float(
+            os.getenv(
+                "MAX_PER_SECTOR_PCT",
+                risk_conf.get("max_per_sector_pct", self.exposure_limits["max_per_sector_pct"]),
+            )
+        )
+
+        health_conf = self.config.get("health", {})
+        endpoints = health_conf.get("latency_endpoints", [])
+        if isinstance(endpoints, list):
+            self.health_endpoints = [str(e) for e in endpoints if e]
+
+        self._apply_scenario(self.scenario)
 
     def get_japan_unit_size(self) -> int:
         """日本株の売買単位を取得（ミニ株対応）"""
@@ -74,6 +114,120 @@ class ExecutionEngine:
 
         return True
 
+    def _apply_scenario(self, scenario: str) -> None:
+        preset = self.scenario_presets.get(scenario.lower())
+        if not preset:
+            return
+        self.scenario = scenario
+        self.max_position_size_pct = float(preset.get("max_position_size_pct", self.max_position_size_pct))
+        self.max_drawdown_limit = float(preset.get("max_drawdown_limit", self.max_drawdown_limit))
+        self.vol_slowdown_threshold = float(preset.get("vol_slowdown_threshold", self.vol_slowdown_threshold))
+
+    def set_scenario(self, scenario: str) -> None:
+        """外部UIからシナリオを切り替えるためのメソッド"""
+        self._apply_scenario(scenario)
+        logger.info("Scenario switched to %s", scenario)
+
+    def _current_drawdown(self) -> float:
+        balance = self.pt.get_current_balance()
+        equity = float(balance.get("total_equity", 0.0))
+        if equity <= 0 or self.pt.initial_capital <= 0:
+            return 0.0
+        return (self.pt.initial_capital - equity) / self.pt.initial_capital
+
+    def _get_sector(self, ticker: str) -> Optional[str]:
+        if ticker in self._sector_cache:
+            return self._sector_cache[ticker]
+        try:
+            info = fetch_fundamental_data(ticker)
+            sector = info.get("sector") or info.get("industry") if isinstance(info, dict) else None
+            if sector:
+                self._sector_cache[ticker] = sector
+            return sector
+        except Exception:
+            return None
+
+    def _check_exposure_limit(self, ticker: str, qty: int, price: float) -> Tuple[bool, str]:
+        equity = float(self.pt.get_current_balance().get("total_equity", 0.0))
+        if equity <= 0:
+            return True, ""
+
+        value = qty * price
+        positions = self.pt.get_positions()
+        ticker_value = 0.0
+        sector_value = 0.0
+
+        if not positions.empty and "ticker" in positions.columns:
+            if "market_value" in positions.columns:
+                ticker_value = float(positions.loc[positions["ticker"] == ticker, "market_value"].sum())
+            else:
+                row = positions.loc[positions["ticker"] == ticker]
+                if not row.empty and {"quantity", "current_price"}.issubset(row.columns):
+                    ticker_value = float((row["quantity"] * row["current_price"]).sum())
+            sector = self._get_sector(ticker)
+            if sector:
+                current_sector_tickers = positions["ticker"].tolist()
+                for tkr in current_sector_tickers:
+                    same_sector = self._get_sector(tkr) == sector
+                    if same_sector:
+                        if "market_value" in positions.columns:
+                            sector_value += float(positions.loc[positions["ticker"] == tkr, "market_value"].sum())
+                        elif {"quantity", "current_price"}.issubset(positions.columns):
+                            sel = positions.loc[positions["ticker"] == tkr]
+                            sector_value += float((sel["quantity"] * sel["current_price"]).sum())
+        # 追加分を加味
+        ticker_after = (ticker_value + value) / equity
+        if ticker_after > self.exposure_limits["max_per_ticker_pct"]:
+            return False, f"{ticker} exposure {ticker_after:.1%} exceeds limit"
+
+        if sector_value > 0:
+            sector_after = (sector_value + value) / equity
+            if sector_after > self.exposure_limits["max_per_sector_pct"]:
+                return False, f"Sector exposure {sector_after:.1%} exceeds limit"
+
+        return True, ""
+
+    def _volatility_slowdown_factor(self) -> float:
+        """VIXやドローダウンを加味してポジションを縮小。"""
+        factor = 1.0
+        dd = self._current_drawdown()
+        if dd > 0.05:
+            factor *= max(0.5, 1.0 - dd)  # 5%以上のDDで縮小
+
+        vix_level = None
+        try:
+            ext = fetch_external_data(period="5d")
+            vix_df = ext.get("VIX")
+            if vix_df is not None and not vix_df.empty:
+                vix_level = float(vix_df["Close"].iloc[-1])
+        except Exception:
+            vix_level = None
+
+        if vix_level and vix_level > self.vol_slowdown_threshold:
+            factor *= 0.6  # 高ボラ期は40%縮小
+
+        return max(factor, 0.25)
+
+    def _cvar_adjustment(self) -> float:
+        """
+        エクイティ履歴から単純なCVaR(下方5%平均)を計算し、ポジションサイズ係数を返す。
+        負のCVaRが大きいほど縮小。
+        """
+        try:
+            eq_df = pd.DataFrame(self.pt.get_equity_history(), columns=["date", "total_equity"])
+            if eq_df.empty:
+                return 1.0
+            eq_df["return"] = eq_df["total_equity"].pct_change()
+            rets = eq_df["return"].dropna().tail(60)
+            if rets.empty:
+                return 1.0
+            cutoff = np.quantile(rets, 0.05)
+            cvar = rets[rets <= cutoff].mean() if not rets[rets <= cutoff].empty else cutoff
+            # 例えば -3% のCVaRなら 0.97 の係数
+            return max(0.4, 1.0 + cvar)
+        except Exception:
+            return 1.0
+
     def calculate_position_size(self, ticker: str, price: float, confidence: float = 1.0) -> int:
         """Calculates the number of shares to buy based on risk management."""
         balance = self.pt.get_current_balance()
@@ -82,6 +236,8 @@ class ExecutionEngine:
 
         target_amount = equity * self.max_position_size_pct
         target_amount *= confidence
+        target_amount *= self._volatility_slowdown_factor()
+        target_amount *= self._cvar_adjustment()
         target_amount = min(target_amount, cash)
 
         if target_amount <= 0:
@@ -111,8 +267,28 @@ class ExecutionEngine:
         """Executes a list of trade signals. Returns a list of executed trades."""
         executed_trades: List[Dict[str, Any]] = []
 
+        health = quick_health_check(endpoints=self.health_endpoints)
+        if not health.get("disk_ok", True) or not health.get("memory_ok", True):
+            logger.error("Environment health check failed (disk/memory). Trading skipped.")
+            return executed_trades
+        if not health.get("api_ok", True):
+            logger.warning("API health degraded; skipping trades for safety.")
+            return executed_trades
+
+        if os.getenv("SAFE_MODE", "").lower() in {"1", "true", "yes", "on"}:
+            logger.warning("SAFE_MODE is ON. BUY orders are suppressed.")
+            # SELLは許可、BUYはスキップ
+            signals = [s for s in signals if s.get("action") == "SELL"]
+
         if not self.check_risk():
             return executed_trades
+
+        def _retry_trade(func) -> bool:
+            for attempt in range(3):
+                if func():
+                    return True
+                time.sleep(1)
+            return False
 
         for signal in signals:
             ticker = signal.get("ticker")
@@ -134,6 +310,11 @@ class ExecutionEngine:
                     qty = self.calculate_position_size(ticker, price, confidence)
 
                 if qty > 0:
+                    ok, reason = self._check_exposure_limit(ticker, qty, price)
+                    if not ok:
+                        logger.warning("Exposure limit hit: %s", reason)
+                        continue
+
                     if self.real_broker:
                         logger.info(f"🚀 REAL TRADE: BUY {qty} {ticker} @ {price}")
                         try:
@@ -150,8 +331,10 @@ class ExecutionEngine:
                                 {"ticker": ticker, "action": "BUY", "quantity": qty, "price": price, "reason": reason}
                             )
                     else:
-                        success = self.pt.execute_trade(
-                            ticker, "BUY", qty, price, reason=f"{reason} (Conf: {confidence:.2f})"
+                        success = _retry_trade(
+                            lambda: self.pt.execute_trade(
+                                ticker, "BUY", qty, price, reason=f"{reason} (Conf: {confidence:.2f})"
+                            )
                         )
                         if success:
                             logger.info(f"EXECUTED: BUY {qty} {ticker} @ {price}")
@@ -173,7 +356,7 @@ class ExecutionEngine:
                         logger.warning("⚠️ 実取引の売り注文は未実装のためスキップします（安全のため）")
                         success = False
                     else:
-                        success = self.pt.execute_trade(ticker, "SELL", qty, price, reason=reason)
+                        success = _retry_trade(lambda: self.pt.execute_trade(ticker, "SELL", qty, price, reason=reason))
                         if success:
                             logger.info(f"EXECUTED: SELL {qty} {ticker} @ {price}")
                             executed_trades.append(

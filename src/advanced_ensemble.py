@@ -10,16 +10,12 @@
 
 import logging
 import warnings
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
-import lightgbm as lgb
 import numpy as np
-import tensorflow as tf
-from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import TimeSeriesSplit
-from tensorflow import keras
 
 warnings.filterwarnings("ignore")
 
@@ -220,12 +216,6 @@ def create_model_diversity_ensemble():
         MultiStepLSTM,
         NBeatsNet,
         create_advanced_model,
-    )
-    from .enhanced_features import (
-        add_advanced_technical_features,
-        add_external_features,
-        add_market_regime_features,
-        add_regime_features,
     )
     from .hyperparameter_optimizer import MultiModelOptimizer
 

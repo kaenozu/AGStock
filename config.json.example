@@ -3,6 +3,9 @@
     "^VIX",
     "^VXO"
   ],
+  "market_indices": {
+    "vix": "^VIX"
+  },
   "risk_limits": {
     "max_daily_loss_pct": -5.0,
     "max_position_size_pct": 10.0,

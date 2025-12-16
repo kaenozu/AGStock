@@ -7,7 +7,7 @@ Value at Risk (VaR), Conditional VaR (CVaR), ストレステスト、リスク�
 import numpy as np
 import pandas as pd
 from scipy import stats
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List
 import warnings
 
 # yfinance が使用される場合は、ここでインポート
@@ -183,7 +183,7 @@ class AdvancedRiskManager:
         if not data_map:
             # データマップがなければスキップ
             logger.warning("相関チェックにデータマップがありません。")
-            return True, "データマップがないため、相関チェックをスキップします。"
+            return True, "データ不足のため、相関チェックをスキップします。"
 
         # 各銘柄のリターンを計算
         returns_map = {}

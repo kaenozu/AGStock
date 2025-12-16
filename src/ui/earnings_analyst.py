@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 
 from src.analysis.pdf_reader import EarningsAnalyzer, PDFExtractor
+from src.rag.pdf_loader import PDFLoader
 
 
 def render_earnings_analyst():
@@ -18,7 +19,14 @@ def render_earnings_analyst():
                 try:
                     # 1. Extract Text
                     text = PDFExtractor.extract_text(uploaded_file)
-                    st.info(f"テキスト抽出完了: {len(text)} 文字")
+                    if not text or text.startswith("Error extracting PDF"):
+                        st.error("テキストを抽出できませんでした。画像ベースのPDFや破損ファイルの可能性があります。")
+                        return
+
+                    text_len = len(text)
+                    st.info(f"テキスト抽出完了: {text_len} 文字")
+                    if text_len < 200:
+                        st.warning("抽出テキストが非常に短いです。画像ベースのPDFの可能性があります。OCR済みのPDFをお試しください。")
 
                     # 2. Analyze
                     analyzer = EarningsAnalyzer()

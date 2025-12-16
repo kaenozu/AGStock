@@ -28,6 +28,7 @@ from src.advanced_models import AdvancedModels
 # 新しい高度な機能のインポート
 from src.continual_learning import (ConceptDriftDetector,
                                     ContinualLearningSystem)
+from src.data_loader import fetch_external_data
 from src.data_preprocessing import preprocess_for_prediction
 from src.enhanced_features import generate_enhanced_features
 from src.fundamental_analyzer import FundamentalAnalyzer
@@ -97,7 +98,15 @@ class EnhancedEnsemblePredictor:
         - マクロ経済指標
         """
         # 既存の特徴量エンジニアリング
-        features = generate_enhanced_features(data)
+        external_features: Dict = {}
+        try:
+            ext = fetch_external_data(period="6mo")
+            if ext and isinstance(ext, dict) and ext.get("VIX") is not None:
+                external_features["vix"] = ext["VIX"]
+        except Exception:
+            external_features = {}
+
+        features = generate_enhanced_features(data, external_features=external_features)
 
         # ファンダメンタルズ特徴量を追加
         if fundamentals:
