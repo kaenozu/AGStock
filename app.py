@@ -66,6 +66,18 @@ except FileNotFoundError:
         pass
 
 
+# Initialize Global Risk Manager
+if "risk_manager" not in st.session_state:
+    try:
+        from src.advanced_risk import AdvancedRiskManager
+        st.session_state["risk_manager"] = AdvancedRiskManager()
+        # Initialize warning flags
+        st.session_state["risk_crash_warning"] = None
+    except Exception as e:
+        st.error(f"Failed to initialize Risk Manager: {e}")
+        st.session_state["risk_manager"] = None
+
+
 def main():
     # Sidebar
     sidebar_config = render_sidebar()

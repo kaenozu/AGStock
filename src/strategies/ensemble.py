@@ -30,17 +30,23 @@ class EnsembleStrategy(Strategy):
         if strategies is None:
             # デフォルトの戦略セット
             self.strategies = [
-                # DL Strategy logic is slightly different in original file vs imported,
-                # but we will use the standard ones available.
+                # DL Strategy logic 
                 DeepLearningStrategy(),
-                LightGBMStrategy(lookback_days=60),
+                # Split LightGBM into Short and Mid term
+                LightGBMStrategy(name="LightGBM Short (60d)", lookback_days=60, use_weekly=False),
+                LightGBMStrategy(name="LightGBM Mid (1y Weekly)", lookback_days=365, use_weekly=True),
                 CombinedStrategy(),
             ]
         else:
             self.strategies = strategies
 
         # デフォルトウェイト
-        self.base_weights = {"Deep Learning (LSTM)": 1.5, "LightGBM Alpha": 1.2, "Combined (RSI + BB)": 1.0}
+        self.base_weights = {
+            "Deep Learning (LSTM)": 1.5,
+            "LightGBM Short (60d)": 1.0, 
+            "LightGBM Mid (1y Weekly)": 0.8,
+            "Combined (RSI + BB)": 1.0
+        }
 
         self.weights = self.base_weights.copy()
 

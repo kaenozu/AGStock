@@ -1,3 +1,31 @@
+import sys
+import types
+from unittest.mock import MagicMock
+
+# Mock streamlit to prevent caching issues during testing
+# This must be done before any module imports streamlit
+if "streamlit" not in sys.modules:
+    mock_st = types.ModuleType("streamlit")
+    
+    # Make cache_data a flexible pass-through decorator
+    def mock_cache_data(*args, **kwargs):
+        # Case 1: Called as @st.cache_data (no parens) -> args[0] is the function
+        if len(args) == 1 and callable(args[0]):
+            return args[0]
+        
+        # Case 2: Called as @st.cache_data(...) (with parens) -> returns a decorator
+        def decorator(func):
+            return func
+        return decorator
+    
+    mock_st.cache_data = mock_cache_data
+    # Add other common streamlit attributes used at import time if necessary
+    mock_st.session_state = {}
+    mock_st.sidebar = MagicMock()
+    mock_st.columns = MagicMock(return_value=[MagicMock(), MagicMock()])
+    
+    sys.modules["streamlit"] = mock_st
+
 import numpy as np
 import pandas as pd
 import pytest
