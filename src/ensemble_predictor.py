@@ -29,6 +29,7 @@ from src.advanced_models import AdvancedModels
 # 新しい高度な機能のインポート
 from src.continual_learning import (ConceptDriftDetector,
                                     ContinualLearningSystem)
+from src.data_loader import fetch_external_data
 from src.data_preprocessing import preprocess_for_prediction
 from src.enhanced_features import generate_enhanced_features
 from src.fundamental_analyzer import FundamentalAnalyzer
@@ -117,8 +118,16 @@ class EnhancedEnsemblePredictor:
             else:
                 df_processed = df.copy()
 
+            external_features: Dict = {}
+            try:
+                ext = fetch_external_data(period="6mo")
+                if ext and isinstance(ext, dict) and ext.get("VIX") is not None:
+                    external_features["vix"] = ext["VIX"]
+            except Exception:
+                external_features = {}
+
             if self.use_enhanced_features:
-                df_features = generate_enhanced_features(df_processed)
+                df_features = generate_enhanced_features(df_processed, external_features=external_features)
             else:
                 df_features = df_processed
 
@@ -183,6 +192,25 @@ class EnhancedEnsemblePredictor:
             logger.error(f"Error preparing advanced models: {e}")
 
         return models
+
+    def select_horizon_by_sharpe(self, performance_log: Optional[pd.DataFrame] = None) -> str:
+        """
+        直近のパフォーマンス（例: equity/return列）からシャープ比が高いホライズンを選択する簡易ルール。
+        """
+        if performance_log is None or performance_log.empty:
+            return "short"
+        perf = performance_log.copy()
+        if "return" not in perf.columns:
+            return "short"
+        perf["roll_mean"] = perf["return"].rolling(30, min_periods=5).mean()
+        perf["roll_std"] = perf["return"].rolling(30, min_periods=5).std()
+        perf["sharpe"] = perf["roll_mean"] / (perf["roll_std"] + 1e-6) * (252 ** 0.5)
+        latest = perf["sharpe"].iloc[-1]
+        if latest > 1.0:
+            return "mid"  # 5日ホライズンのような中期を優先
+        elif latest < 0:
+            return "short"  # 守り: 短期
+        return "long"
 
     def predict_trajectory(
         self,

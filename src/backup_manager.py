@@ -224,9 +224,12 @@ class BackupManager:
             最新バックアップのパス（存在しない場合はNone）
         """
         backups = self.list_backups()
-        if backups:
-            return backups[0]["path"]
-        return None
+        if not backups:
+            return None
+
+        # まず作成時刻、次にファイル名（タイムスタンプ付き）でソート
+        backups.sort(key=lambda x: (x["created"], x["filename"]), reverse=True)
+        return backups[0]["path"]
 
 
 if __name__ == "__main__":

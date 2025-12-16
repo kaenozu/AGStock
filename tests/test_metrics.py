@@ -3,6 +3,7 @@
 import time
 from unittest.mock import patch
 
+import pytest
 from src.metrics import (MetricsCollector, MetricType,
                          get_global_metrics_collector, get_metric_value,
                          increment_counter, observe_histogram,

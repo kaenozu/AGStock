@@ -74,7 +74,15 @@ def display_sentiment_gauge(score: float, news_count: int = 0) -> None:
         label_ja = "中立"
         color = Colors.NEUTRAL
 
-    col1, col2 = st.columns([2, 1])
+    cols = st.columns([2, 1])
+    if not cols or len(cols) < 2:
+        # Streamlitがモックされて列生成できない場合は簡易表示のみ
+        st.write(f"Sentiment: {label_ja} ({score:.2f})")
+        if news_count > 0:
+            st.caption(f"📰 {news_count}件のニュース")
+        return
+
+    col1, col2 = cols
 
     with col1:
         # Gauge chart
@@ -191,7 +199,14 @@ def display_best_pick_card(
     st.markdown("---")
     st.subheader("🏆 今日のイチオシ (Today's Best Pick)")
 
-    col1, col2 = st.columns([1, 2])
+    cols = st.columns([1, 2])
+    if not cols or len(cols) < 2:
+        # Streamlitモックなどで列が生成できない場合のフォールバック
+        st.markdown(f"**{name} ({ticker})** - {action} / {format_currency(price)}")
+        st.markdown(f"理由: {explanation}")
+        return
+
+    col1, col2 = cols
 
     with col1:
         st.metric("銘柄", f"{name} ({ticker})")

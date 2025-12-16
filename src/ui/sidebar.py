@@ -10,6 +10,7 @@ import streamlit as st
 from src.constants import MARKETS, TICKER_NAMES
 from src.schemas import load_config as load_config_schema
 
+from src import demo_data  # noqa: F401  # imported for side-effects if needed
 
 def load_config():
     """Load config utilizing schema validation (fallback to defaults if error)."""
@@ -66,6 +67,10 @@ def render_sidebar():
     st.sidebar.caption("最終更新: 数秒前")
 
     st.sidebar.divider()
+
+    # Demo mode toggle
+    use_demo = st.sidebar.checkbox("🧪 デモモード (オフライン向け)", value=st.session_state.get("use_demo_data", False))
+    st.session_state["use_demo_data"] = use_demo
 
     # Dark Mode Toggle
     dark_mode = st.sidebar.checkbox("🌙 ダークモード", value=True)

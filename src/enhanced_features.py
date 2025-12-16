@@ -282,6 +282,14 @@ def add_enhanced_technical_indicators(df: pd.DataFrame) -> pd.DataFrame:
         return df_out
 
     try:
+        # 0. 基本的な勢い・レンジ指標
+        df_out["RSI_14"] = ta.momentum.RSIIndicator(close=df_out["Close"], window=14).rsi()
+        df_out["ATR_14"] = ta.volatility.AverageTrueRange(
+            high=df_out["High"], low=df_out["Low"], close=df_out["Close"], window=14
+        ).average_true_range()
+        for lag in (1, 3, 5, 10):
+            df_out[f"Return_Lag_{lag}"] = df_out["Close"].pct_change(lag)
+
         # 1. バラント指標（価格とボリュームの関係）
         df_out["Chaikin_MF"] = ta.volume.ChaikinMoneyFlowIndicator(
             high=df_out["High"], low=df_out["Low"], close=df_out["Close"], volume=df_out["Volume"], window=20
@@ -358,8 +366,74 @@ def add_risk_adjusted_features(df: pd.DataFrame) -> pd.DataFrame:
     return df_out
 
 
+def _add_macro_and_sentiment_features(
+    df: pd.DataFrame, external_features: Optional[Dict[str, pd.DataFrame]] = None
+) -> pd.DataFrame:
+    """
+    VIXなどのマクロ指標やニュースセンチメントを付加。
+    external_features:
+      - vix: DataFrame (index: date, column: Close)
+      - move/us_yield/oil/fx: DataFrame
+      - sentiment: Dict or DataFrame (score/labelなど)
+    """
+    if not external_features:
+        return df
+
+    df_out = df.copy()
+    try:
+        def _append_series(key: str, prefix: str):
+            src = external_features.get(key)
+            if isinstance(src, pd.DataFrame) and not src.empty:
+                series = None
+                if "Close" in src.columns:
+                    series = src["Close"]
+                elif src.shape[1] > 0:
+                    series = src.iloc[:, 0]
+                if series is not None:
+                    series = series.reindex(df_out.index).fillna(method="ffill")
+                    df_out[f"{prefix}_Close"] = series
+                    df_out[f"{prefix}_Change"] = series.pct_change()
+
+        _append_series("vix", "VIX")
+        _append_series("move", "MOVE")
+        _append_series("us10y", "US10Y")
+        _append_series("us2y", "US2Y")
+        _append_series("usd_jpy", "USDJPY")
+        _append_series("dxy", "DXY")
+        _append_series("oil", "OIL")
+
+        sentiment = external_features.get("sentiment")
+        if isinstance(sentiment, pd.DataFrame):
+            aligned = sentiment.reindex(df_out.index).fillna(method="ffill")
+            for col in aligned.columns:
+                df_out[f"Sent_{col}"] = aligned[col]
+            # スプレッド例: news と market の差分
+            if {"news_score", "market_score"}.issubset(aligned.columns):
+                df_out["Sent_News_Spread"] = aligned["news_score"] - aligned["market_score"]
+            if {"social_score", "market_score"}.issubset(aligned.columns):
+                df_out["Sent_Social_Spread"] = aligned["social_score"] - aligned["market_score"]
+        elif isinstance(sentiment, dict):
+            for key, value in sentiment.items():
+                df_out[f"Sent_{key}"] = value
+
+        sentiment = external_features.get("sentiment")
+        if isinstance(sentiment, pd.DataFrame):
+            aligned = sentiment.reindex(df_out.index).fillna(method="ffill")
+            for col in aligned.columns:
+                df_out[f"Sent_{col}"] = aligned[col]
+        elif isinstance(sentiment, dict):
+            for key, value in sentiment.items():
+                df_out[f"Sent_{key}"] = value
+    except Exception as exc:
+        logger.warning("Failed to append macro/sentiment features: %s", exc)
+    return df_out
+
+
 def generate_enhanced_features(
-    df: pd.DataFrame, market_data: Optional[Dict[str, pd.DataFrame]] = None, ticker: Optional[str] = None
+    df: pd.DataFrame,
+    market_data: Optional[Dict[str, pd.DataFrame]] = None,
+    ticker: Optional[str] = None,
+    external_features: Optional[Dict[str, pd.DataFrame]] = None,
 ) -> pd.DataFrame:
     """
     全ての拡張特徴量を生成
@@ -399,6 +473,9 @@ def generate_enhanced_features(
     # 7. クロスセクション特徴量（市場データがある場合）
     if market_data is not None and ticker is not None:
         df_out = add_cross_sectional_features(df_out, market_data, ticker)
+
+    # 7.5. マクロ・センチメント特徴量
+    df_out = _add_macro_and_sentiment_features(df_out, external_features=external_features)
 
     # 8. ターゲットエンコーディング
     df_out = add_target_encoding_features(df_out)
