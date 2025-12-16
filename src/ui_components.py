@@ -223,6 +223,10 @@ def display_best_pick_card(
                 st.caption(f"PBR: {additional_info['PBR']:.2f}倍")
             if "ROE" in additional_info and additional_info["ROE"]:
                 st.caption(f"ROE: {format_percentage(additional_info['ROE'], decimals=1)}")
+            if "Kelly" in additional_info and additional_info["Kelly"]:
+                st.caption(f"Kelly: {additional_info['Kelly']:.2f}")
+            if "RiskRatio" in additional_info and additional_info["RiskRatio"]:
+                st.caption(f"Risk/Reward: {additional_info['RiskRatio']:.2f}")
 
     with col2:
         action_config = ACTION_TYPES.get(action.upper().replace(" (SHORT)", ""), ACTION_TYPES["HOLD"])

@@ -217,11 +217,29 @@ class PaperTrader:
             except Exception as e:
                 logger.error(f"Failed to sync balance snapshot: {e}")
 
+        # Calculate Daily PnL (Current Equity - Previous Day's Equity)
+        daily_pnl = 0.0
+        try:
+            cursor = self.conn.cursor()
+            today_str = datetime.date.today().isoformat()
+            # Get the most recent balance record strictly before today
+            cursor.execute("SELECT total_equity FROM balance WHERE date < ? ORDER BY date DESC LIMIT 1", (today_str,))
+            row = cursor.fetchone()
+            if row:
+                prev_equity = float(row[0])
+                daily_pnl = total_equity - prev_equity
+            else:
+                # If no previous history, compare with initial capital or just 0
+                daily_pnl = total_equity - self.initial_capital
+        except Exception as e:
+            logger.warning(f"Failed to calculate daily PnL: {e}")
+
         return {
             "cash": cash,
             "total_equity": total_equity,
             "invested_amount": invested_amount,
             "unrealized_pnl": unrealized_pnl,
+            "daily_pnl": daily_pnl,
         }
 
     def get_positions(self, use_realtime_fallback: bool = False) -> pd.DataFrame:
@@ -318,10 +336,19 @@ class PaperTrader:
         except Exception:
             return pd.DataFrame()
 
-    def get_equity_history(self) -> pd.DataFrame:
-        """Get historical equity balance"""
+    def get_equity_history(self, days: int = None) -> pd.DataFrame:
+        """Get historical equity balance. Optional days limit."""
         try:
-            return pd.read_sql_query("SELECT * FROM balance ORDER BY date ASC", self.conn, parse_dates=["date"])
+            query = "SELECT * FROM balance ORDER BY date ASC"
+            params = ()
+            
+            if days:
+                # Filter by last N days
+                target_date = (datetime.date.today() - datetime.timedelta(days=days)).isoformat()
+                query = "SELECT * FROM balance WHERE date >= ? ORDER BY date ASC"
+                params = (target_date,)
+                
+            return pd.read_sql_query(query, self.conn, params=params, parse_dates=["date"])
         except Exception:
             return pd.DataFrame()
 
@@ -508,6 +535,49 @@ class PaperTrader:
             self.conn.commit()
         except Exception as e:
             logger.error(f"Stop update failed: {e}")
+
+    def get_daily_summary(self, limit: int = 7) -> list:
+        """Get daily summary (date, pnl, trades)"""
+        summary = []
+        try:
+            # 1. Get Equity History to calc PnL
+            df_equity = pd.read_sql_query(
+                f"SELECT date, total_equity FROM balance ORDER BY date DESC LIMIT {limit + 1}", 
+                self.conn
+            ).sort_values("date")
+            
+            if df_equity.empty:
+                return []
+                
+            df_equity["prev_equity"] = df_equity["total_equity"].shift(1)
+            df_equity["daily_pnl"] = df_equity["total_equity"] - df_equity["prev_equity"]
+            
+            # Fill NaN for first record (if no prev) with 0 or diff from initial capital
+            # For simpler view, we drop the first one if it's purely for diff, 
+            # but user wants 'limit' days.
+            
+            # 2. Get Trade Counts
+            df_trades = pd.read_sql_query(
+                f"SELECT date, COUNT(*) as trade_count FROM orders GROUP BY date", 
+                self.conn
+            )
+            trade_map = dict(zip(df_trades["date"], df_trades["trade_count"]))
+            
+            # 3. Combine
+            # We take the last 'limit' records
+            target_df = df_equity.iloc[1:] if len(df_equity) > 1 else df_equity
+            target_df = target_df.tail(limit)
+            
+            for _, row in target_df.iterrows():
+                d = row["date"]
+                pnl = row["daily_pnl"] if pd.notna(row["daily_pnl"]) else 0.0
+                count = trade_map.get(d, 0)
+                summary.append((d, pnl, count))
+                
+        except Exception as e:
+            logger.error(f"Failed to get daily summary: {e}")
+            
+        return summary
 
     def close(self):
         """Close database connection."""

@@ -12,6 +12,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+from src.constants import TICKER_NAMES
 from src import demo_data
 from src.data_loader import fetch_external_data
 from src.paper_trader import PaperTrader
@@ -362,6 +363,9 @@ def _show_portfolio_summary():
             positions_display["保有額"] = positions_display["current_price"] * positions_display["quantity"]
             positions_display["評価損益"] = positions_display["unrealized_pnl"]
             positions_display["評価損益率"] = positions_display["unrealized_pnl_pct"]
+            
+            # Map ticker to company name
+            positions_display["company_name"] = positions_display["ticker"].map(TICKER_NAMES).fillna(positions_display["ticker"])
 
             # 列名を日本語に変換して表示
             display_df = positions_display[
@@ -543,16 +547,17 @@ def _show_stat_cards():
         st.metric("連敗数", loss_streak)
 
 
-def main():
+def create_simple_dashboard():
     """メインダッシュボード"""
-    st.set_page_config(page_title="AGStock - ダッシュボード", page_icon="📈", layout="wide")
-
+    # st.set_page_config is handled in app.py (DO NOT Call it here)
+    
     # テーマ & シナリオ (サイドバー)
+    # Note: If running inside app.py tabs, sidebar elements will appear in the main sidebar.
     theme_choice = st.sidebar.selectbox("テーマ", ["light", "navy", "dark-contrast"], index=0)
     _apply_theme(theme_choice)
     _scenario_controls()
 
-    st.title("個人投資家向けシンプルダッシュボード")
+    st.subheader("個人投資家向けシンプルダッシュボード")
 
     # ステータスバナー
     demo = _demo_mode()
@@ -627,4 +632,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    st.set_page_config(page_title="AGStock - ダッシュボード", page_icon="📈", layout="wide")
+    create_simple_dashboard()

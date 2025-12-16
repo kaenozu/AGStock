@@ -7,6 +7,31 @@ from src.constants import MARKETS, TICKER_NAMES
 from src.performance import PerformanceAnalyzer
 
 
+@st.cache_data
+def get_cached_tickers(market: str):
+    return MARKETS.get(market, [])
+
+
+def render_market_ticker_selector(key: str = "main"):
+    """
+    Cached Market & Ticker Selector Component
+    """
+    col1, col2 = st.columns(2)
+    with col1:
+        market = st.selectbox("市場を選択", list(MARKETS.keys()), key=f"market_sel_{key}")
+    
+    tickers_list = get_cached_tickers(market)
+    with col2:
+        tickers = st.multiselect(
+            "銘柄を選択 (空欄で全銘柄)", 
+            tickers_list, 
+            format_func=lambda x: f"{x} {TICKER_NAMES.get(x, '')}",
+            key=f"ticker_sel_{key}"
+        )
+    
+    return market, tickers if tickers else tickers_list
+
+
 def render_performance_tab(ticker_group, selected_market, custom_tickers, currency="JPY"):
     """
     パフォーマンス分析タブのレンダリングロジック
@@ -446,17 +471,60 @@ def render_market_scan_tab(
                         f"財務フィルタにより {original_count} 件中 {original_count - filtered_count} 件が除外されました。"
                     )
 
-            actionable_df = actionable_df.sort_values(by="Return", ascending=False)
+            # Heuristic Confidence Score calculation
+            # Base confidence 0.5 + Return contribution + Strategy bonus
+            # In production, this should come from the model's probability output.
+            def calc_confidence(row):
+                base_conf = 0.5
+                ret_contr = min(0.4, abs(row["Return"]) * 5) # Up to 0.4 from return
+                strat_bonus = 0.1 if "LightGBM" in row["Strategy"] else 0.0
+                
+                return max(0.0, min(0.99, base_conf + ret_contr + strat_bonus))
+
+            if not results_df.empty:
+                results_df["Confidence"] = results_df.apply(calc_confidence, axis=1)
+                
+                actionable_df = results_df[results_df["Action"] != "HOLD"].copy()
+
+                # Filters UI
+                col_f1, col_f2 = st.columns(2)
+                with col_f1:
+                    confidence_threshold = st.slider("信頼度スコア (Confidence)", 0.0, 1.0, 0.6, 0.05, key="conf_slider")
+                with col_f2:
+                    min_return_filter = st.slider("最小予想リターン", 0.0, 0.2, 0.01, 0.005, key="min_ret_slider")
+
+                # Apply Filters
+                actionable_df = actionable_df[
+                    (actionable_df["Return"] >= min_return_filter) &
+                    (actionable_df["Confidence"] >= confidence_threshold)
+                ]
+                
+                if actionable_df.empty:
+                    st.warning(f"フィルタリングの結果、表示できる銘柄がありません。(Confidence >= {confidence_threshold}, Return >= {min_return_filter})")
+                
+                actionable_df = actionable_df.sort_values(by="Return", ascending=False)
 
             # 1. Today's Best Pick
             if not actionable_df.empty:
                 best_pick = actionable_df.iloc[0]
 
+                # Calculate Kelly (Simplified: W - (1-W)/R, assume WinProb=0.6, R=Ratio)
+                # Need estimated risk reward.
+                upside = best_pick["Return"]
+                downside = abs(best_pick["Max Drawdown"])
+                risk_reward = upside / downside if downside > 0 else 1.0
+                win_prob = 0.55 # Conservative default
+                kelly = win_prob - (1 - win_prob) / risk_reward if risk_reward > 0 else 0
+                kelly = max(0, kelly) # No negative Kelly
+
                 # リスクレベル判定（統一版）
                 risk_level = get_risk_level(best_pick.get("Max Drawdown", -0.15))
 
                 # 追加情報の準備
-                additional_info = {}
+                additional_info = {
+                    "Kelly": kelly,
+                    "RiskRatio": risk_reward
+                }
                 if "PER" in best_pick and pd.notna(best_pick["PER"]):
                     additional_info["PER"] = best_pick["PER"]
                 if "PBR" in best_pick and pd.notna(best_pick["PBR"]):

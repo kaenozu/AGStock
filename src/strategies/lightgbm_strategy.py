@@ -35,11 +35,13 @@ logger = logging.getLogger(__name__)
 
 
 class LightGBMStrategy(Strategy):
-    def __init__(self, lookback_days=365, threshold=0.005, auto_tune=False):
-        super().__init__("LightGBM Alpha")
+    def __init__(self, lookback_days=365, threshold=0.005, auto_tune=False, use_weekly=False, name="LightGBM Alpha"):
+        # name引数を追加して、複数インスタンス（短期・中期）を区別可能にする
+        super().__init__(name)
         self.lookback_days = lookback_days
         self.threshold = threshold
         self.auto_tune = auto_tune
+        self.use_weekly = use_weekly
         self.best_params = None
         self.model = None
         self.default_positive_threshold = 0.60
@@ -62,6 +64,12 @@ class LightGBMStrategy(Strategy):
             "SP500_Corr",
             "US10Y_Ret",
             "US10Y_Corr",
+            "VIX_Ret",  # [NEW] Volatility Index
+            "VIX_Corr", # [NEW]
+            "GOLD_Ret", # [NEW] Gold (Risk off)
+            "GOLD_Corr",# [NEW]
+            "Sentiment_Score", # [NEW] News Sentiment
+            "Freq_Power", # [NEW] Frequency Domain
         ]
         self.explainer = None
 
@@ -145,6 +153,11 @@ class LightGBMStrategy(Strategy):
             if data.empty:
                 return {}
 
+            # Ensure all feature columns exist to prevent KeyErrors
+            for col in self.feature_cols:
+                if col not in data.columns:
+                    data[col] = 0.0
+
             latest_data = data[self.feature_cols].iloc[[-1]]
 
             # Create explainer if not cached (TreeExplainer is efficient)
@@ -184,16 +197,63 @@ class LightGBMStrategy(Strategy):
             df = df.copy()
             df.index = df.index.tz_localize(None)
 
-        data = add_advanced_features(df)
-        macro_data = fetch_macro_data(period="5y")
+        # Weekly Resampling Logic
+        original_idx = df.index
+        if self.use_weekly:
+            # Resample to Weekly (ending Friday)
+            # Ensure index is datetime
+            if not isinstance(df.index, pd.DatetimeIndex):
+                df.index = pd.to_datetime(df.index)
+            
+            # Logic to aggregate OHLCV
+            logic = {
+                'Open': 'first',
+                'High': 'max',
+                'Low': 'min',
+                'Close': 'last',
+                'Volume': 'sum'
+            }
+            # Add logic for other features if they exist? 
+            # Ideally features should be generated AFTER resampling to be "Weekly Features"
+            # But add_advanced_features calls rely on daily data sometimes?
+            # Actually, standard indicators (RSI, SMA) work on any timeframe if logical.
+            # So we resample OHLCV FIRST, then generate features.
+            
+            # Handle extra columns that might be needed or drop them
+            df_weekly = df.resample('W-FRI').agg(logic)
+            df_weekly = df_weekly.dropna()
+            
+            work_df = df_weekly
+        else:
+            work_df = df
+
+        data = add_advanced_features(work_df)
+        macro_data = fetch_macro_data(period="5y") # Macro data is daily usually
+        
+        # If weekly, we need macro data to be aligned or resampled?
+        # add_macro_features logic:
+        # It aligns macro data to `data` index.
+        # If `data` is weekly, it will reindex macro (daily) to weekly index?
+        # add_macro_features uses `aligned_feat = macro_feat.reindex(df.index, method="ffill")`
+        # This works perfect for weekly too (takes value at Friday).
+        
         data = add_macro_features(data, macro_data)
 
+        # Min required adjustment for Weekly
+        # lookback_days is usually "days". For weekly, we should interpret it as "periods" or scale it?
+        # User request says "lookback... separate models".
+        # If I pass lookback_days=365 for weekly, that means 365 weeks (~7 years).
+        # That's reasonable for "Mid/Long term".
+        
         min_required = self.lookback_days + 50
         if len(data) < min_required:
-            return pd.Series(0, index=df.index)
+             # If weekly, 365 weeks is A LOT of data. 
+             # Maybe default lookback should be adjusted by caller.
+             logger.warning(f"Insufficient data for {self.name}: {len(data)} < {min_required}")
+             return pd.Series(0, index=df.index)
 
-        signals = pd.Series(0, index=df.index)
-        retrain_period = 60
+        signals = pd.Series(0, index=work_df.index)
+        retrain_period = 60 # For weekly this means 60 weeks (~1 year). Acceptable.
         start_idx = self.lookback_days
         end_idx = len(data)
         current_idx = start_idx
@@ -209,6 +269,11 @@ class LightGBMStrategy(Strategy):
             if train_df.empty or test_df.empty:
                 current_idx += retrain_period
                 continue
+
+            # Ensure all feature columns exist, fill missing with 0
+            for col in self.feature_cols:
+                if col not in train_df.columns:
+                    train_df[col] = 0.0
 
             X_train = train_df[self.feature_cols]
             y_train = (train_df["Return_1d"] > 0).astype(int)
@@ -256,6 +321,11 @@ class LightGBMStrategy(Strategy):
                 self.default_positive_threshold = calibrated_upper
                 self.default_negative_threshold = calibrated_lower
 
+            # Ensure all feature columns exist in test set
+            for col in self.feature_cols:
+                if col not in test_df.columns:
+                    test_df[col] = 0.0
+
             X_test = test_df[self.feature_cols]
             if not X_test.empty:
                 preds = pd.Series(self.model.predict(X_test), index=X_test.index)
@@ -264,6 +334,17 @@ class LightGBMStrategy(Strategy):
 
             current_idx += retrain_period
 
+        if self.use_weekly:
+            # Map weekly signals back to daily
+            # ffill means: signal generated on Friday applies to next week?
+            # Or signal generated on Friday is valid from Friday?
+            # Usually we want to know "What is the signal for today?"
+            # If we are in the middle of the week, we use last known weekly signal.
+            
+            # Reindex to original daily index
+            daily_signals = signals.reindex(original_idx, method='ffill').fillna(0)
+            return daily_signals
+        
         return signals
 
     def get_signal_explanation(self, signal: int) -> str:

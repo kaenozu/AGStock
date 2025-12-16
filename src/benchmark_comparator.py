@@ -10,6 +10,10 @@ from typing import Dict
 import numpy as np
 import pandas as pd
 import yfinance as yf
+try:
+    from sklearn.metrics import roc_auc_score
+except ImportError:
+    roc_auc_score = None
 
 
 class BenchmarkComparator:
@@ -152,6 +156,51 @@ class BenchmarkComparator:
         alpha = portfolio_annual - expected_return
 
         return alpha
+
+    def calculate_sharpe_ratio(self, returns: pd.Series, risk_free_rate: float = 0.001) -> float:
+        """
+        シャープレシオを計算 (Rp - Rf) / Sigma
+        """
+        if returns.empty:
+            return 0.0
+            
+        excess_returns = returns - (risk_free_rate / 252)
+        mean_excess = excess_returns.mean() * 252
+        std_dev = returns.std() * np.sqrt(252)
+        
+        if std_dev < 1e-9:
+            return 0.0
+            
+        return mean_excess / std_dev
+
+    def calculate_auc(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
+        """
+        AUC (Area Under Curve) を計算
+        Args:
+            y_true: 正解ラベル (0 or 1)
+            y_score: 予測スコア (確率など)
+        """
+        if roc_auc_score is None:
+            self.logger.warning("sklearn not installed, cannot calculate AUC")
+            return 0.5
+            
+        try:
+            # Drop NaNs if any aligned
+            mask = ~np.isnan(y_true) & ~np.isnan(y_score)
+            if not mask.any():
+                return 0.5
+                
+            y_true_clean = y_true[mask]
+            y_score_clean = y_score[mask]
+            
+            # AUC requires at least 2 classes
+            if len(np.unique(y_true_clean)) < 2:
+                return 0.5
+                
+            return roc_auc_score(y_true_clean, y_score_clean)
+        except Exception as e:
+            self.logger.error(f"Error calculating AUC: {e}")
+            return 0.5
 
     def generate_comparison_report(self, portfolio_returns: pd.Series, benchmark_name: str = "nikkei225") -> Dict:
         """

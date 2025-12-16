@@ -4,6 +4,156 @@ from typing import Dict
 
 import pandas as pd
 import yfinance as yf
+import streamlit as st
+import sqlite3
+
+# --- Cached Computation Functions ---
+
+@st.cache_data(ttl=60)
+def _cached_calculate_cumulative_pnl(db_path: str) -> pd.DataFrame:
+    try:
+        conn = sqlite3.connect(db_path)
+        query = "SELECT date, ticker, action, quantity, price FROM orders ORDER BY date"
+        orders = pd.read_sql_query(query, conn)
+        conn.close()
+
+        if orders.empty:
+            return pd.DataFrame()
+
+        orders["date"] = pd.to_datetime(orders["date"])
+        cumulative_pnl = []
+        positions = {}
+        running_pnl = 0.0
+
+        for _, row in orders.iterrows():
+            ticker = row["ticker"]
+            action = row["action"]
+            quantity = row["quantity"]
+            price = row["price"]
+
+            if action == "BUY":
+                if ticker not in positions:
+                    positions[ticker] = []
+                positions[ticker].append({"quantity": quantity, "price": price})
+            elif action == "SELL" and ticker in positions:
+                remaining_to_sell = quantity
+                pnl = 0.0
+                while remaining_to_sell > 0 and positions[ticker]:
+                    buy_position = positions[ticker][0]
+                    sell_qty = min(buy_position["quantity"], remaining_to_sell)
+                    pnl += (price - buy_position["price"]) * sell_qty
+                    buy_position["quantity"] -= sell_qty
+                    remaining_to_sell -= sell_qty
+                    if buy_position["quantity"] == 0:
+                        positions[ticker].pop(0)
+                running_pnl += pnl
+
+            cumulative_pnl.append({"date": row["date"], "cumulative_pnl": running_pnl})
+
+        df = pd.DataFrame(cumulative_pnl)
+        return df.groupby("date").last().reset_index()
+    except Exception as e:
+        print(f"Error in cached PnL: {e}")
+        return pd.DataFrame()
+
+@st.cache_data(ttl=60)
+def _cached_strategy_performance(db_path: str) -> pd.DataFrame:
+    try:
+        conn = sqlite3.connect(db_path)
+        # Check column existence
+        cols = pd.read_sql_query("PRAGMA table_info(orders)", conn)
+        if "strategy_name" not in cols["name"].values:
+            conn.close()
+            return pd.DataFrame()
+
+        query = "SELECT strategy_name, action, quantity, price, ticker FROM orders WHERE strategy_name IS NOT NULL ORDER BY date"
+        orders = pd.read_sql_query(query, conn)
+        conn.close()
+
+        if orders.empty:
+            return pd.DataFrame()
+
+        strategies = {}
+        for strategy in orders["strategy_name"].unique():
+            strategy_orders = orders[orders["strategy_name"] == strategy]
+            positions = {}
+            trades = []
+            for _, row in strategy_orders.iterrows():
+                ticker = row["ticker"]
+                action = row["action"]
+                quantity = row["quantity"]
+                price = row["price"]
+
+                if action == "BUY":
+                    if ticker not in positions: positions[ticker] = []
+                    positions[ticker].append({"quantity": quantity, "price": price})
+                elif action == "SELL" and ticker in positions:
+                    remaining = quantity
+                    while remaining > 0 and positions[ticker]:
+                        buy_pos = positions[ticker][0]
+                        sell_qty = min(buy_pos["quantity"], remaining)
+                        profit_pct = ((price - buy_pos["price"]) / buy_pos["price"]) * 100
+                        trades.append({"profit_pct": profit_pct, "win": profit_pct > 0})
+                        buy_pos["quantity"] -= sell_qty
+                        remaining -= sell_qty
+                        if buy_pos["quantity"] == 0: positions[ticker].pop(0)
+            
+            if trades:
+                df_trades = pd.DataFrame(trades)
+                strategies[strategy] = {
+                    "trades": len(trades),
+                    "win_rate": df_trades["win"].mean(),
+                    "avg_profit": df_trades["profit_pct"].mean(),
+                    "total_pnl": df_trades["profit_pct"].sum(),
+                }
+        
+        return pd.DataFrame.from_dict(strategies, orient="index").reset_index().rename(columns={"index": "strategy"})
+    except Exception as e:
+        print(f"Error in cached strategy perf: {e}")
+        return pd.DataFrame()
+
+@st.cache_data(ttl=60)
+def _cached_ticker_performance(db_path: str) -> pd.DataFrame:
+    try:
+        conn = sqlite3.connect(db_path)
+        orders = pd.read_sql_query("SELECT ticker, action, quantity, price FROM orders ORDER BY date", conn)
+        conn.close()
+        
+        if orders.empty: return pd.DataFrame()
+        
+        tickers_performance = {}
+        for ticker in orders["ticker"].unique():
+            ticker_orders = orders[orders["ticker"] == ticker]
+            positions = []
+            trades = []
+            for _, row in ticker_orders.iterrows():
+                action = row["action"]
+                qty = row["quantity"]
+                price = row["price"]
+                if action == "BUY":
+                    positions.append({"quantity": qty, "price": price})
+                elif action == "SELL":
+                    rem = qty
+                    while rem > 0 and positions:
+                        buy = positions[0]
+                        sold = min(buy["quantity"], rem)
+                        profit_pct = ((price - buy["price"]) / buy["price"]) * 100
+                        trades.append(profit_pct)
+                        buy["quantity"] -= sold
+                        rem -= sold
+                        if buy["quantity"] == 0: positions.pop(0)
+            
+            if trades:
+                tickers_performance[ticker] = {
+                    "trades": len(trades),
+                    "avg_profit": sum(trades)/len(trades),
+                    "total_pnl": sum(trades)
+                }
+        return pd.DataFrame.from_dict(tickers_performance, orient="index").reset_index().rename(columns={"index": "ticker"})
+    except Exception as e:
+        print(f"Error in cached ticker perf: {e}")
+        return pd.DataFrame()
+
 
 
 class PerformanceAnalyzer:
@@ -31,63 +181,7 @@ class PerformanceAnalyzer:
         Returns:
             pd.DataFrame: DataFrame with date and cumulative P/L
         """
-        try:
-            conn = self._get_connection()
-
-            # Get all orders
-            query = """
-            SELECT date, ticker, action, quantity, price
-            FROM orders
-            ORDER BY date
-            """
-            orders = pd.read_sql_query(query, conn)
-            conn.close()
-
-            if orders.empty:
-                return pd.DataFrame()
-
-            # Calculate P&L for each closed position
-            orders["date"] = pd.to_datetime(orders["date"])
-            cumulative_pnl = []
-            positions = {}  # Track open positions
-            running_pnl = 0.0
-
-            for _, row in orders.iterrows():
-                ticker = row["ticker"]
-                action = row["action"]
-                quantity = row["quantity"]
-                price = row["price"]
-
-                if action == "BUY":
-                    if ticker not in positions:
-                        positions[ticker] = []
-                    positions[ticker].append({"quantity": quantity, "price": price})
-
-                elif action == "SELL" and ticker in positions:
-                    remaining_to_sell = quantity
-                    pnl = 0.0
-
-                    while remaining_to_sell > 0 and positions[ticker]:
-                        buy_position = positions[ticker][0]
-                        sell_qty = min(buy_position["quantity"], remaining_to_sell)
-                        pnl += (price - buy_position["price"]) * sell_qty
-
-                        buy_position["quantity"] -= sell_qty
-                        remaining_to_sell -= sell_qty
-
-                        if buy_position["quantity"] == 0:
-                            positions[ticker].pop(0)
-
-                    running_pnl += pnl
-
-                cumulative_pnl.append({"date": row["date"], "cumulative_pnl": running_pnl})
-
-            df = pd.DataFrame(cumulative_pnl)
-            return df.groupby("date").last().reset_index()
-
-        except Exception as e:
-            print(f"Error calculating cumulative P&L: {e}")
-            return pd.DataFrame()
+        return _cached_calculate_cumulative_pnl(self.db_path)
 
     def get_strategy_performance(self) -> pd.DataFrame:
         """
@@ -96,83 +190,7 @@ class PerformanceAnalyzer:
         Returns:
             pd.DataFrame: Strategy performance metrics
         """
-        try:
-            conn = self._get_connection()
-
-            # Check if strategy_name column exists
-            query = "PRAGMA table_info(orders)"
-            columns = pd.read_sql_query(query, conn)
-            has_strategy = "strategy_name" in columns["name"].values
-
-            if not has_strategy:
-                conn.close()
-                return pd.DataFrame()
-
-            query = """
-            SELECT strategy_name, action, quantity, price, ticker
-            FROM orders
-            WHERE strategy_name IS NOT NULL
-            ORDER BY date
-            """
-            orders = pd.read_sql_query(query, conn)
-            conn.close()
-
-            if orders.empty:
-                return pd.DataFrame()
-
-            # Group by strategy and calculate metrics
-            strategies = {}
-
-            for strategy in orders["strategy_name"].unique():
-                strategy_orders = orders[orders["strategy_name"] == strategy]
-
-                # Calculate wins/losses
-                positions = {}
-                trades = []
-
-                for _, row in strategy_orders.iterrows():
-                    ticker = row["ticker"]
-                    action = row["action"]
-                    quantity = row["quantity"]
-                    price = row["price"]
-
-                    if action == "BUY":
-                        if ticker not in positions:
-                            positions[ticker] = []
-                        positions[ticker].append({"quantity": quantity, "price": price})
-
-                    elif action == "SELL" and ticker in positions:
-                        remaining_to_sell = quantity
-
-                        while remaining_to_sell > 0 and positions[ticker]:
-                            buy_pos = positions[ticker][0]
-                            sell_qty = min(buy_pos["quantity"], remaining_to_sell)
-                            profit_pct = ((price - buy_pos["price"]) / buy_pos["price"]) * 100
-
-                            trades.append({"profit_pct": profit_pct, "win": profit_pct > 0})
-
-                            buy_pos["quantity"] -= sell_qty
-                            remaining_to_sell -= sell_qty
-
-                            if buy_pos["quantity"] == 0:
-                                positions[ticker].pop(0)
-
-                if trades:
-                    df_trades = pd.DataFrame(trades)
-                    strategies[strategy] = {
-                        "trades": len(trades),
-                        "win_rate": df_trades["win"].mean(),
-                        "avg_profit": df_trades["profit_pct"].mean(),
-                        "total_pnl": df_trades["profit_pct"].sum(),
-                    }
-
-            return (
-                pd.DataFrame.from_dict(strategies, orient="index").reset_index().rename(columns={"index": "strategy"})
-            )
-
-        except Exception as e:
-            print(f"Error calculating strategy performance: {e}")
-            return pd.DataFrame()
+        return _cached_strategy_performance(self.db_path)
 
     def get_ticker_performance(self) -> pd.DataFrame:
         """
@@ -181,66 +199,7 @@ class PerformanceAnalyzer:
         Returns:
             pd.DataFrame: Ticker performance metrics
         """
-        try:
-            conn = self._get_connection()
-            query = """
-            SELECT ticker, action, quantity, price
-            FROM orders
-            ORDER BY date
-            """
-            orders = pd.read_sql_query(query, conn)
-            conn.close()
-
-            if orders.empty:
-                return pd.DataFrame()
-
-            tickers_performance = {}
-
-            for ticker in orders["ticker"].unique():
-                ticker_orders = orders[orders["ticker"] == ticker]
-                positions = []
-                trades = []
-
-                for _, row in ticker_orders.iterrows():
-                    action = row["action"]
-                    quantity = row["quantity"]
-                    price = row["price"]
-
-                    if action == "BUY":
-                        positions.append({"quantity": quantity, "price": price})
-
-                    elif action == "SELL":
-                        remaining_to_sell = quantity
-
-                        while remaining_to_sell > 0 and positions:
-                            buy_pos = positions[0]
-                            sell_qty = min(buy_pos["quantity"], remaining_to_sell)
-                            profit_pct = ((price - buy_pos["price"]) / buy_pos["price"]) * 100
-
-                            trades.append(profit_pct)
-
-                            buy_pos["quantity"] -= sell_qty
-                            remaining_to_sell -= sell_qty
-
-                            if buy_pos["quantity"] == 0:
-                                positions.pop(0)
-
-                if trades:
-                    tickers_performance[ticker] = {
-                        "trades": len(trades),
-                        "avg_profit": sum(trades) / len(trades),
-                        "total_pnl": sum(trades),
-                    }
-
-            return (
-                pd.DataFrame.from_dict(tickers_performance, orient="index")
-                .reset_index()
-                .rename(columns={"index": "ticker"})
-            )
-
-        except Exception as e:
-            print(f"Error calculating ticker performance: {e}")
-            return pd.DataFrame()
+        return _cached_ticker_performance(self.db_path)
 
     def get_monthly_returns(self) -> pd.DataFrame:
         """
