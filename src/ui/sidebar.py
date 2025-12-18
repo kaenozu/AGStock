@@ -9,6 +9,7 @@ import streamlit as st
 
 from src.constants import MARKETS, TICKER_NAMES
 from src.schemas import load_config as load_config_schema
+from src.services.defense import activate_defense, deactivate_defense, defense_status
 
 from src import demo_data  # noqa: F401  # imported for side-effects if needed
 
@@ -36,6 +37,26 @@ def render_sidebar():
     - 💹 単位: 単元株
     """
     )
+
+    st.sidebar.divider()
+
+    # --- One-click Defense Mode ---
+    st.sidebar.subheader("🛡️ ワンクリック防御モード")
+    current_on = st.session_state.get("defense_mode", defense_status())
+    toggle = st.sidebar.checkbox("新規BUY抑制 + リスク圧縮", value=current_on)
+
+    if toggle and not current_on:
+        snapshot = activate_defense()
+        st.session_state["defense_snapshot"] = snapshot
+        st.session_state["defense_mode"] = True
+        st.sidebar.success("防御モードを適用しました")
+    elif not toggle and current_on:
+        deactivate_defense(st.session_state.get("defense_snapshot"))
+        st.session_state["defense_snapshot"] = None
+        st.session_state["defense_mode"] = False
+        st.sidebar.info("防御モードを解除しました")
+
+    st.sidebar.caption("SAFE_MODE=1, シナリオ=conservative, 銘柄/セクター上限を引き締めます。")
 
     st.sidebar.divider()
 

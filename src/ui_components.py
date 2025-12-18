@@ -82,7 +82,7 @@ def display_sentiment_gauge(score: float, news_count: int = 0) -> None:
             st.caption(f"📰 {news_count}件のニュース")
         return
 
-    col1, col2 = cols
+    col1, col2 = cols[0], cols[1]
 
     with col1:
         # Gauge chart
