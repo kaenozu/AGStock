@@ -128,11 +128,15 @@ def remove_outliers(df: pd.DataFrame, outlier_cols: List[str], method: str = "dr
     elif method == "interpolate":
         # 異常値部分を補完
         mask = any_outlier
-        for col in df_out.columns:
-            if df_out[col].dtype in ["object", "datetime64[ns]"]:
+        # 数値カラムのみを補正
+        numeric_cols = df_out.select_dtypes(include=[np.number]).columns
+        for col in numeric_cols:
+            if df_out[col].dtype == "datetime64[ns]":
                 continue
             df_out.loc[mask, col] = np.nan
-        df_out = df_out.interpolate(method="linear")
+        
+        # 数値カラムのみ補間を実行
+        df_out[numeric_cols] = df_out[numeric_cols].interpolate(method="linear")
 
     return df_out
 
@@ -394,7 +398,35 @@ def preprocess_for_prediction(df: pd.DataFrame, target_col: str = "Close") -> Tu
     # 1. 欠損値処理
     df_out = advanced_missing_value_handling(df_out)
 
+    # 1.5. カテゴリカル変数の数値化 (最優先で実行)
+    print("DEBUG: ENTERING preprocess_for_prediction")
+    for col in df_out.columns:
+        if df_out[col].dtype.name in ['object', 'category', 'string']:
+            print(f"DEBUG: Feature '{col}' is {df_out[col].dtype}. Converting...")
+            if df_out[col].dtype.name == 'category':
+                df_out[col] = df_out[col].cat.codes
+            else:
+                # まず数値変換を試みる
+                try:
+                    df_out[col] = pd.to_numeric(df_out[col])
+                except (ValueError, TypeError):
+                    # 失敗したらfactorize
+                    df_out[col] = pd.factorize(df_out[col])[0]
+                    
     # 2. 異常値検出（統計的アプローチ）
+    print("DEBUG: ENTERING preprocess_for_prediction")
+    print(f"DEBUG: df shape: {df_out.shape}")
+    print(f"DEBUG: dtypes head: {df_out.dtypes.head()}")
+    columns_with_low = []
+    for col in df_out.columns:
+        if df_out[col].dtype == 'object' or df_out[col].dtype.name == 'category':
+            print(f"DEBUG: Found non-numeric col: {col} ({df_out[col].dtype})")
+            if 'Cat' in col:
+                # Check for 'Low'
+                if df_out[col].astype(str).str.contains('Low').any():
+                    columns_with_low.append(col)
+    print(f"DEBUG: Columns containing 'Low': {columns_with_low}")
+
     numeric_cols = df_out.select_dtypes(include=[np.number]).columns.tolist()
     if target_col in numeric_cols:
         numeric_cols.remove(target_col)
@@ -407,6 +439,11 @@ def preprocess_for_prediction(df: pd.DataFrame, target_col: str = "Close") -> Tu
     df_out, leaked_cols = prevent_data_leakage(df_out)
 
     # 4. 標準化/正規化
+    # 数値カラムを再取得
+    numeric_cols = df_out.select_dtypes(include=[np.number]).columns.tolist()
+    if target_col in numeric_cols:
+        numeric_cols.remove(target_col)
+        
     scaler_cols = [col for col in df_out.columns if col in numeric_cols and col not in leaked_cols]
     scaler = TimeSeriesScaler(method="robust")
     df_out = scaler.fit_transform(df_out, scaler_cols)

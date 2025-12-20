@@ -4,18 +4,47 @@ LightGBM予測モデル
 """
 
 import logging
+from datetime import timedelta
+from typing import Dict, List, Optional, Tuple
 
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+from src.base_predictor import BasePredictor
 
 logger = logging.getLogger(__name__)
 
 
-class LGBMPredictor:
+class LGBMPredictor(BasePredictor):
     def __init__(self):
         self.model = None
+
+    def prepare_model(self, X, y):
+        """モデルの準備（LGBMでは特に必要なし）"""
+        pass
+
+    def fit(self, X, y):
+        """モデルの学習"""
+        # データチェック
+        if len(X) != len(y):
+            raise ValueError("X and y must have same length")
+            
+        self.model = lgb.LGBMRegressor(n_estimators=100, learning_rate=0.05, max_depth=5, verbose=-1)
+        self.model.fit(X, y)
+        return self
+
+    def predict(self, X):
+        """予測実行"""
+        if self.model is None:
+            raise ValueError("Model not fitted")
+        return self.model.predict(X)
+
+    def predict_point(self, current_features):
+        """単一点予測（Ensemble互換）"""
+        return self.predict(current_features)[0]
 
     def predict_trajectory(self, df: pd.DataFrame, days_ahead: int = 5) -> dict:
         """

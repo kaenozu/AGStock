@@ -174,9 +174,16 @@ def add_target_encoding_features(df: pd.DataFrame, target_col: str = "Close", wi
         df_out[f"{target_col}_Position_MA{window}"], bins=5, labels=["Very_Low", "Low", "Neutral", "High", "Very_High"]
     ).astype("category")
 
-    # カテゴリごとの過去リターンの平均（シフトして未来の情報としない）
-    category_returns = returns.groupby(df_out[f"{target_col}_Cat"]).rolling(5).mean()
-    df_out[f"{target_col}_Cat_ExpReturn"] = category_returns.groupby(level=0).shift(1)
+    # カテゴリ点ごとの過去リターンの平均（シフトして未来の情報としない）
+    try:
+        category_returns = returns.groupby(df_out[f"{target_col}_Cat"]).rolling(window=5).mean()
+        # カテゴリ内でのシフトを行い、インデックスを揃える
+        shifted_returns = category_returns.groupby(level=0).shift(1)
+        # MultiIndexの2番目のレベル（元の日付インデックス）を取り出してマージ
+        df_out[f"{target_col}_Cat_ExpReturn"] = shifted_returns.reset_index(level=0, drop=True)
+    except Exception as e:
+        logger.warning(f"Target encoding failed: {e}")
+        df_out[f"{target_col}_Cat_ExpReturn"] = 0
 
     return df_out
 
@@ -482,7 +489,15 @@ def generate_enhanced_features(
 
     # 無効値の処理
     df_out = df_out.replace([np.inf, -np.inf], np.nan)
-    df_out = df_out.fillna(method="ffill").fillna(method="bfill").fillna(0)
+    
+    # 数値列とカテゴリ列を分けて処理
+    numeric_cols = df_out.select_dtypes(include=[np.number]).columns
+    df_out[numeric_cols] = df_out[numeric_cols].fillna(method="ffill").fillna(method="bfill").fillna(0)
+    
+    # カテゴリ列などの非数値列
+    other_cols = df_out.select_dtypes(exclude=[np.number]).columns
+    if not other_cols.empty:
+        df_out[other_cols] = df_out[other_cols].fillna(method="ffill").fillna(method="bfill")
 
     logger.info(f"Generated enhanced features. New shape: {df_out.shape}")
 

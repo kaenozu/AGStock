@@ -30,6 +30,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from textblob import TextBlob
 
+from src.base_predictor import BasePredictor
+
 warnings.filterwarnings("ignore")
 
 
@@ -37,6 +39,8 @@ logger = logging.getLogger(__name__)
 
 # データベースの初期化
 DB_PATH = "data/sentiment_data.db"
+
+
 
 
 def init_sentiment_db():
@@ -577,16 +581,46 @@ class SatelliteImageAnalyzer:
         }
 
 
-class SentimentEnhancedPredictor:
+class SentimentEnhancedPredictor(BasePredictor):
     """センチメント強化予測器"""
 
-    def __init__(self, base_predictor: Any):
+    def __init__(self, base_predictor=None):
         self.base_predictor = base_predictor
         self.sentiment_integrator = AlternativeDataIntegrator()
         self.satellite_analyzer = SatelliteImageAnalyzer()
+        self.sentiment_score = 0
+        self.tokenizer = None
+        self.model = None
 
         # センチメント重みパラメータ
         self.sentiment_influence_weight = 0.2  # センチメントが予測に与える影響度
+
+    def prepare_model(self, X, y):
+        pass
+
+    def fit(self, X, y):
+        pass
+
+    def predict(self, X):
+        """標準的な予測インターフェース"""
+        # Xがデータフレームの場合は値を抽出
+        if isinstance(X, pd.DataFrame):
+            X = X.values
+
+        # 銘柄名が不明な場合はデフォルトを使用
+        ticker = "INDEX"
+
+        # 予測の実行（単一の入力またはバッチに対応）
+        if X.ndim == 1:
+            X = X.reshape(1, -1)
+
+        results = []
+        for i in range(len(X)):
+            res = self.predict_with_sentiment(ticker, X[i])
+            # sentiment_adjusted_prediction の最初の値（翌日予測）を返す
+            results.append(res["sentiment_adjusted_prediction"][0])
+
+        return np.array(results)
 
     def predict_with_sentiment(self, ticker: str, base_features: np.ndarray) -> Dict[str, Any]:
         """センチメント情報を統合した予測"""

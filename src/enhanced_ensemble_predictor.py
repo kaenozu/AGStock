@@ -58,21 +58,26 @@ class EnhancedEnsemblePredictor:
     """
 
     def __init__(self):
-        self.transformer_predictor = TransformerPredictor()
-        self.advanced_models = AdvancedModels()
+        # 1. 基本的な予測器を先に初期化
         self.lgbm_predictor = LGBMPredictor()
+        self.transformer_predictor = TransformerPredictor()
         self.prophet_predictor = ProphetPredictor()
         self.future_predictor = FuturePredictor()
-        self.sentiment_predictor = SentimentEnhancedPredictor()
-        self.risk_predictor = RiskAdjustedPredictor()
+        self.advanced_models = AdvancedModels()
+
+        # 2. 拡張予測器を初期化 (base_predictorとしてLGBMを使用)
+        self.sentiment_predictor = SentimentEnhancedPredictor(base_predictor=self.lgbm_predictor)
+        self.risk_predictor = RiskAdjustedPredictor(base_predictor=self.lgbm_predictor)
+        self.scenario_predictor = ScenarioBasedPredictor(base_predictor=self.lgbm_predictor)
+        self.realtime_pipeline = RealTimeAnalyticsPipeline(base_predictor=self.lgbm_predictor)
+
+        # 3. その他のコンポーネント
         self.multi_asset_predictor = MultiAssetPredictor()
-        self.scenario_predictor = ScenarioBasedPredictor()
-        self.realtime_pipeline = RealTimeAnalyticsPipeline()
         self.mlops_manager = MLopsManager()
         self.concept_drift_detector = ConceptDriftDetector()
-        self.continual_learning_system = ContinualLearningSystem()
+        self.continual_learning_system = ContinualLearningSystem(base_model=self.lgbm_predictor)
         self.fundamental_analyzer = FundamentalAnalyzer()
-        self.xai_framework = XAIFramework()
+        self.xai_framework = XAIFramework(model=self.lgbm_predictor)
 
         # アンサンブル統合器
         self.ensemble_strategy = "stacking"  # または "dynamic_weighting", "diversity" など
@@ -135,7 +140,7 @@ class EnhancedEnsemblePredictor:
         # ...
 
         # 前処理（スケーリング、欠損値処理など）
-        features = preprocess_for_prediction(features)
+        features, _ = preprocess_for_prediction(features)
 
         return features
 

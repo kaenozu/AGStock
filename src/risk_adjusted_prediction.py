@@ -21,6 +21,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from tensorflow import keras
 
+from src.base_predictor import BasePredictor
+
 warnings.filterwarnings("ignore")
 
 logger = logging.getLogger(__name__)
@@ -168,12 +170,40 @@ class ConditionalValueAtRiskCalculator:
 class RiskAdjustedPredictor:
     """リスク調整予測器"""
 
-    def __init__(self, base_predictor: Any, risk_free_rate: float = 0.02):
+    def __init__(self, base_predictor: Any = None, risk_free_rate: float = 0.02):
         self.base_predictor = base_predictor
         self.risk_free_rate = risk_free_rate
         self.uncertainty_estimator = BayesianUncertaintyEstimator(base_predictor)
         self.var_calculator = ValueAtRiskCalculator()
+        self.var_calculator = ValueAtRiskCalculator()
         self.cvar_calculator = ConditionalValueAtRiskCalculator()
+
+    def prepare_model(self, X, y):
+        pass
+
+    def fit(self, X, y):
+        pass
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """標準的な予測インターフェース (X: 特徴量行列)"""
+        # Xがデータフレームの場合は値を抽出
+        if isinstance(X, pd.DataFrame):
+            X = X.values
+
+        # 予測の実行（単一の入力またはバッチに対応）
+        if X.ndim == 1:
+            X = X.reshape(1, -1)
+
+        # ダミーの過去リターンデータを生成（実際にはより適切なデータが必要）
+        returns_data = np.random.normal(0.001, 0.02, 252)
+
+        results = []
+        for i in range(len(X)):
+            res = self.predict_with_risk_adjustment(X[i], returns_data)
+            # risk_adjusted_prediction の最初の値（翌日予測）を返す
+            results.append(res["risk_adjusted_prediction"][0])
+
+        return np.array(results)
 
     def predict_with_risk_adjustment(
         self, X: np.ndarray, returns_data: np.ndarray, investment_horizon: int = 5

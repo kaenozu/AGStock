@@ -5,6 +5,8 @@ from typing import Any, Dict, List, Optional
 from src.agents.base_agent import BaseAgent
 from src.agents.market_analyst import MarketAnalyst
 from src.agents.risk_manager import RiskManager
+from src.agents.risk_manager import RiskManager
+from src.enhanced_ensemble_predictor import EnhancedEnsemblePredictor
 from src.schemas import AgentAnalysis, AppConfig, TradingDecision
 
 logger = logging.getLogger(__name__)
@@ -20,6 +22,8 @@ class InvestmentCommittee:
         self.risk_manager = RiskManager(config.risk if config else None)
         self.agents: List[BaseAgent] = [self.market_analyst, self.risk_manager]
         self.last_meeting_result: Dict[str, Any] = None
+        # Initialize the advanced predictor
+        self.predictor = EnhancedEnsemblePredictor()
 
     def review_candidate(self, ticker: str, signal_data: Dict[str, Any]) -> TradingDecision:
         """
@@ -49,13 +53,52 @@ class InvestmentCommittee:
                 "vix": signal_data.get("vix", 20.0),  # Default safety
                 "daily_change": 0.0,  # Placeholder
             },
-            "portfolio": {
-                # RiskManager uses this, but might default safely if missing
-                # Ideally we should pass real portfolio state here
-                "cash": 1000000,  # Mock safe buffer
+        }
+
+        # Try to generate a real prediction report if features are available
+        pred_report = signal_data.get("prediction_report")
+        if not pred_report:
+            # If features are passed (ideal case)
+            features = signal_data.get("features")
+            if features is not None:
+                try:
+                    # self.predictor.predict_point returns a dict with 'final_prediction', 'confidence_score', etc.
+                    raw_pred = self.predictor.predict_point(features)
+                    
+                    # Convert raw_pred to the format MarketAnalyst expects
+                    current_price = signal_data.get("price", 100.0)
+                    pred_price = raw_pred.get("final_prediction", current_price)
+                    
+                    # Determine Ensemble Decision
+                    ensemble_decision = "HOLD"
+                    if pred_price > current_price * 1.005: # 0.5% threshold
+                        ensemble_decision = "UP"
+                    elif pred_price < current_price * 0.995:
+                        ensemble_decision = "DOWN"
+                        
+                    pred_report = {
+                        "ensemble_decision": ensemble_decision,
+                        "confidence": raw_pred.get("confidence_score", 0.0),
+                        "components": raw_pred.get("ensemble_signals", {}),
+                        "market_regime": raw_pred.get("market_regime", "UNKNOWN")
+                    }
+                except Exception as e:
+                    logger.warning(f"Failed to run predictor in committee: {e}")
+        
+        # Fallback if still None
+        if not pred_report:
+             pred_report = {
+                "ensemble_decision": "UNKNOWN",
+                "confidence": 0.0,
+                "components": {},
+                "market_regime": "UNKNOWN"
+            }
+
+        data["prediction_report"] = pred_report
+        data["portfolio"] = {
+                "cash": 1000000,
                 "total_equity": 1000000,
                 "positions": [],
-            },
         }
 
         result = self.hold_meeting(data)
