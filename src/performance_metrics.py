@@ -35,9 +35,10 @@ class AdvancedMetrics:
     def sharpe_ratio(self, periods: int = 252) -> float:
         """シャープレシオを計算"""
         excess_returns = self.returns - self.daily_rf_rate
-        if excess_returns.std() == 0:
+        std = excess_returns.std()
+        if std < 1e-9:
             return 0.0
-        return np.sqrt(periods) * excess_returns.mean() / excess_returns.std()
+        return np.sqrt(periods) * excess_returns.mean() / std
 
     def sortino_ratio(self, periods: int = 252) -> float:
         """ソルティノレシオを計算（下方リスクのみ考慮）"""

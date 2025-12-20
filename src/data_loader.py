@@ -18,6 +18,7 @@ from src.constants import (CRYPTO_PAIRS, DEFAULT_REALTIME_BACKOFF_SECONDS,
                            MARKET_SUMMARY_TTL, MINIMUM_DATA_POINTS,
                            STALE_DATA_MAX_AGE)
 from src.data_manager import DataManager
+from src.data_quality_guard import evaluate_dataframe
 from src.helpers import retry_with_backoff
 
 logger = logging.getLogger(__name__)
@@ -403,7 +404,11 @@ def fetch_stock_data(
 
     # Sanitize to avoid leaks/outliers
     for t, df in list(result.items()):
-        result[t] = _sanitize_price_history(df)
+        cleaned = _sanitize_price_history(df)
+        reason = evaluate_dataframe(cleaned)
+        if reason:
+            logger.warning("Data quality guard triggered for %s: %s", t, reason)
+        result[t] = cleaned
 
     return result
 

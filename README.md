@@ -85,6 +85,12 @@ streamlit run app.py
 
 ブラウザで `http://localhost:8501` にアクセス
 
+### 開発者向けチェック
+
+- 取引前ウォームアップ: `make pre-trade-check`
+- スモークテスト: `make test-smoke`
+- データ品質サマリ通知: `make notify-data-quality`（Slack/Discord/LINE設定時）
+
 ---
 
 ## ⚙️ 設定ファイル
