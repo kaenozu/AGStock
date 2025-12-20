@@ -129,9 +129,17 @@ class EnhancedEnsemblePredictor:
         # これらのデータはリアルタイムで取得するか、事前にキャッシュしておく必要がある
 
         # 時系列特徴量を追加（日付から）
-        features['day_of_week'] = data.index.dayofweek
-        features['month'] = data.index.month
-        features['quarter'] = data.index.quarter
+        # インデックスがDatetimeIndexの場合のみ時系列特徴量を追加
+        if isinstance(data.index, pd.DatetimeIndex):
+            features['day_of_week'] = data.index.dayofweek
+            features['month'] = data.index.month
+            features['quarter'] = data.index.quarter
+        else:
+            # DatetimeIndexでない場合はデフォルト値を設定
+            logger.debug(f"[EnhancedEnsemblePredictor] Index is not DatetimeIndex ({type(data.index)}), skipping temporal features")
+            features['day_of_week'] = 0
+            features['month'] = 1
+            features['quarter'] = 1
 
         # トレンド・ボラティリティ・取引高などの市場状態特徴量
         # ... 既存の特徴量計算ロジック ...

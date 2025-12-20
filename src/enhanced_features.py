@@ -119,9 +119,20 @@ def add_calendar_effects(df: pd.DataFrame) -> pd.DataFrame:
     """
     df_out = df.copy()
 
-    # インデックスが日付でない場合、変換
+    # インデックスが日付でない場合、変換を試みる
     if not isinstance(df_out.index, pd.DatetimeIndex):
-        df_out.index = pd.to_datetime(df_out.index)
+        try:
+            df_out.index = pd.to_datetime(df_out.index)
+        except (ValueError, TypeError) as e:
+            logger.warning(f"Failed to convert index to DatetimeIndex: {e}. Skipping calendar features.")
+            # カレンダー特徴量をデフォルト値で埋める
+            df_out["DayOfWeek"] = 0
+            df_out["IsWeekend"] = 0
+            df_out["IsMonthStart"] = 0
+            df_out["IsMonthEnd"] = 0
+            df_out["IsQuarterStart"] = 0
+            df_out["IsQuarterEnd"] = 0
+            return df_out
 
     # 曜日
     df_out["DayOfWeek"] = df_out.index.dayofweek
