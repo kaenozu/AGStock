@@ -41,7 +41,16 @@ class BenchmarkComparator:
             return pd.DataFrame()
 
         try:
-            data = yf.download(ticker, period=period, progress=False)
+            # yfinance.Tickerを優先して呼び出し、モックしやすくする
+            ticker_client = yf.Ticker(ticker)
+            data = ticker_client.history(period=period)
+            if data is None or data.empty:
+                data = yf.download(ticker, period=period, progress=False)
+
+            if data is None or data.empty:
+                self.logger.warning("No benchmark data fetched for %s", benchmark_name)
+                return pd.DataFrame()
+
             self.benchmark_data[benchmark_name] = data
             return data
         except Exception as e:
@@ -216,7 +225,7 @@ class BenchmarkComparator:
         # ベンチマークデータ取得
         benchmark_data = self.fetch_benchmark_data(benchmark_name)
 
-        if benchmark_data.empty:
+        if benchmark_data.empty or "Close" not in benchmark_data.columns:
             return {}
 
         # ベンチマークリターン計算
@@ -224,6 +233,9 @@ class BenchmarkComparator:
 
         # 期間を合わせる
         common_index = portfolio_returns.index.intersection(benchmark_returns.index)
+        if common_index.empty:
+            return {}
+
         portfolio_aligned = portfolio_returns.loc[common_index]
         benchmark_aligned = benchmark_returns.loc[common_index]
 

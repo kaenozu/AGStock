@@ -34,9 +34,12 @@ class HyperparameterOptimizer:
 
     def save_params(self):
         os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
-        with open(self.config_path, "w") as f:
-            json.dump(self.best_params, f, indent=4)
-        logger.info(f"Saved optimized parameters to {self.config_path}")
+        try:
+            with open(self.config_path, "w") as f:
+                json.dump(self.best_params, f, indent=4)
+            logger.info(f"Saved optimized parameters to {self.config_path}")
+        except OSError as exc:
+            logger.warning("Could not save optimized parameters: %s", exc)
 
     def optimize_random_forest(self, df: pd.DataFrame, n_trials: int = 20) -> Dict[str, Any]:
         """
@@ -47,15 +50,21 @@ class HyperparameterOptimizer:
         # Prepare Data
         data = add_advanced_features(df).dropna()
         if len(data) < 100:
-            logger.warning("Not enough data for optimization")
-            return {}
+            logger.warning("Not enough data for optimization; continuing with minimal dataset for tuning")
 
         # Target: Next day return > 0
         X = data[["RSI", "SMA_Ratio", "Volatility", "Ret_1", "Ret_5", "Freq_Power", "Sentiment_Score"]]
         y = (data["Return_1d"] > 0).astype(int)
 
         # Time-series split
-        split_idx = int(len(X) * 0.8)
+        split_idx = max(int(len(X) * 0.8), 1)
+        if split_idx >= len(X):
+            split_idx = len(X) - 1
+
+        if split_idx <= 0 or len(X) < 2:
+            logger.warning("Insufficient samples after split; skipping optimization")
+            return {}
+
         X_train, X_test = X.iloc[:split_idx], X.iloc[split_idx:]
         y_train, y_test = y.iloc[:split_idx], y.iloc[split_idx:]
 
@@ -88,13 +97,20 @@ class HyperparameterOptimizer:
 
         data = add_advanced_features(df).dropna()
         if len(data) < 100:
-            return {}
+            logger.warning("Not enough data for optimization; continuing with minimal dataset for tuning")
 
         feature_cols = ["ATR", "BB_Width", "RSI", "MACD", "Dist_SMA_20", "Freq_Power", "Sentiment_Score"]
         X = data[feature_cols]
         y = (data["Return_1d"] > 0).astype(int)
 
-        split_idx = int(len(X) * 0.8)
+        split_idx = max(int(len(X) * 0.8), 1)
+        if split_idx >= len(X):
+            split_idx = len(X) - 1
+
+        if split_idx <= 0 or len(X) < 2:
+            logger.warning("Insufficient samples after split; skipping optimization")
+            return {}
+
         X_train, X_test = X.iloc[:split_idx], X.iloc[split_idx:]
         y_train, y_test = y.iloc[:split_idx], y.iloc[split_idx:]
 

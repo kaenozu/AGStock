@@ -107,6 +107,31 @@ class SmartNotifier(Notifier):
                 except Exception:
                     pass
 
+    def send_text(self, message: str, title: str = "AGStock Alert") -> bool:
+        """
+        シンプルなテキスト通知をSlack / Discord / LINEの優先順で送信。
+        どのチャネルも設定されていない場合は False を返す。
+        """
+        sent = False
+
+        if self.notify_slack(message, title=title):
+            sent = True
+
+        if self.discord_webhook:
+            sent = self._send_discord_webhook_impl(f"{title}\n{message}", webhook_url=self.discord_webhook) or sent
+
+        if self.line_token:
+            sent = self._send_line_notify_impl(f"{title}\n{message}", token=self.line_token) or sent
+
+        return sent
+
+    def send_data_quality_summary(self, summary_lines: list[str], title: str = "Data Quality Alert") -> bool:
+        """
+        データ品質サマリをまとめて送信するヘルパー。
+        """
+        body = title + "\n" + "\n".join(summary_lines)
+        return self.send_text(body, title=title)
+
     def parse_quiet_hours(self, quiet_hours_str: str) -> tuple:
         """静穏時間を解析（例: "22:00-07:00"）"""
         try:

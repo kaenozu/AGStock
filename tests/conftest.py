@@ -128,6 +128,43 @@ def bollinger_strategy():
 @pytest.fixture
 def backtester():
     """Backtesterのインスタンス"""
-    from src.backtester import Backtester
+from src.backtester import Backtester
 
     return Backtester(initial_capital=1000000)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def mock_yfinance(monkeypatch):
+    """
+    ネットワーク依存を避けるため、yfinance をモックしてテストを安定化。
+    """
+    try:
+        import yfinance as yf  # type: ignore
+    except ImportError:
+        import types
+
+        yf = types.SimpleNamespace()
+        monkeypatch.setitem(sys.modules, "yfinance", yf)
+
+    import pandas as pd
+    import numpy as np
+
+    def _fake_history(period="1y", *args, **kwargs):
+        dates = pd.date_range(end=pd.Timestamp.today(), periods=60, freq="D")
+        base = np.linspace(100, 110, len(dates))
+        data = pd.DataFrame(
+            {"Open": base, "High": base * 1.01, "Low": base * 0.99, "Close": base, "Volume": 1_000_000},
+            index=dates,
+        )
+        return data
+
+    class _FakeTicker:
+        def __init__(self, symbol):
+            self.symbol = symbol
+
+        def history(self, period="1y", *args, **kwargs):
+            return _fake_history(period, *args, **kwargs)
+
+    # モックを適用（存在しない場合も raising=False でスキップ）
+    monkeypatch.setattr("yfinance.Ticker", _FakeTicker, raising=False)
+    monkeypatch.setattr("yfinance.download", lambda ticker, period="1y", progress=False, **_: _fake_history(period), raising=False)

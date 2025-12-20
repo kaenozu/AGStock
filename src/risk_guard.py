@@ -20,6 +20,9 @@ class RiskGuard:
         max_position_size_pct: float = 10.0,
         max_vix: float = 40.0,
         max_drawdown_limit_pct: float = -20.0,
+        max_latency_ms: float = 1500.0,
+        max_slippage_pct: float = 1.5,
+        max_consecutive_losses: int = 5,
         state_file: str = "risk_state.json",
     ):
         # Risk parameters
@@ -27,6 +30,9 @@ class RiskGuard:
         self.max_position_size_pct = max_position_size_pct
         self.max_vix = max_vix
         self.max_drawdown_limit_pct = max_drawdown_limit_pct
+        self.max_latency_ms = max_latency_ms
+        self.max_slippage_pct = max_slippage_pct
+        self.max_consecutive_losses = max_consecutive_losses
         self.state_file = state_file
 
         # State variables
@@ -35,6 +41,7 @@ class RiskGuard:
         self.circuit_breaker_triggered = False
         self.high_water_mark = initial_portfolio_value
         self.drawdown_triggered = False
+        self.consecutive_losses = 0
 
         # Load state if exists
         self.load_state()
@@ -51,6 +58,7 @@ class RiskGuard:
             "circuit_breaker_triggered": self.circuit_breaker_triggered,
             "high_water_mark": self.high_water_mark,
             "drawdown_triggered": self.drawdown_triggered,
+            "consecutive_losses": self.consecutive_losses,
         }
 
     def load_state(self):
@@ -72,6 +80,7 @@ class RiskGuard:
             self.circuit_breaker_triggered = state.get("circuit_breaker_triggered", False)
             self.high_water_mark = state.get("high_water_mark", self.high_water_mark)
             self.drawdown_triggered = state.get("drawdown_triggered", False)
+            self.consecutive_losses = state.get("consecutive_losses", 0)
 
             logger.info(f"Risk state loaded. Daily Start: {self.daily_start_value}, HWM: {self.high_water_mark}")
         except json.JSONDecodeError as e:
@@ -117,6 +126,7 @@ class RiskGuard:
             self.last_reset_date = today
             self.circuit_breaker_triggered = False  # Reset daily circuit breaker
             # Note: drawdown_triggered is NOT reset daily
+            self.consecutive_losses = 0
 
             self.save_state()
             logger.info(f"Daily tracking reset. Starting value: ${current_value:,.2f}")
@@ -177,6 +187,30 @@ class RiskGuard:
 
         return False
 
+    def record_trade_pnl(self, trade_pnl: float):
+        """
+        Update consecutive loss counter.
+        Positive PnL resets the counter; losses increment it.
+        """
+        if trade_pnl < 0:
+            self.consecutive_losses += 1
+        else:
+            self.consecutive_losses = 0
+        self.save_state()
+
+    def check_operational_health(self, latency_ms: Optional[float], slippage_pct: Optional[float]) -> Tuple[bool, str]:
+        """
+        Check infra/market micro-risk conditions (latency, slippage).
+        Returns (should_halt, reason)
+        """
+        if latency_ms is not None and latency_ms > self.max_latency_ms:
+            return True, f"Latency too high: {latency_ms:.0f}ms > {self.max_latency_ms}ms"
+        if slippage_pct is not None and slippage_pct > self.max_slippage_pct:
+            return True, f"Slippage too high: {slippage_pct:.2f}% > {self.max_slippage_pct}%"
+        if self.consecutive_losses >= self.max_consecutive_losses > 0:
+            return True, f"Too many consecutive losses: {self.consecutive_losses} >= {self.max_consecutive_losses}"
+        return False, ""
+
     def check_volatility(self, vix_level: Optional[float]) -> bool:
         """
         Check if market volatility is too high.
@@ -192,12 +226,22 @@ class RiskGuard:
         return False
 
     def should_halt_trading(
-        self, current_portfolio_value: float, vix_level: Optional[float] = None
+        self,
+        current_portfolio_value: float,
+        vix_level: Optional[float] = None,
+        latency_ms: Optional[float] = None,
+        slippage_pct: Optional[float] = None,
+        consecutive_losses: Optional[int] = None,
     ) -> Tuple[bool, str]:
         """
         Comprehensive check of all risk limits.
         Returns (should_halt, reason)
         """
+        # Update counter if caller passes current consecutive losses
+        if consecutive_losses is not None:
+            self.consecutive_losses = consecutive_losses
+            self.save_state()
+
         # Check daily loss
         if self.check_daily_loss_limit(current_portfolio_value):
             return True, f"Daily loss limit breached ({self.daily_loss_limit_pct}%)"
@@ -209,6 +253,11 @@ class RiskGuard:
         # Check volatility
         if self.check_volatility(vix_level):
             return True, f"VIX too high ({vix_level:.2f} > {self.max_vix})"
+
+        # Check operational health (latency/slippage/consecutive losses)
+        should_stop, reason = self.check_operational_health(latency_ms, slippage_pct)
+        if should_stop:
+            return True, reason
 
         return False, ""
 

@@ -16,6 +16,8 @@ from src.constants import TICKER_NAMES
 from src import demo_data
 from src.data_loader import fetch_external_data
 from src.paper_trader import PaperTrader
+from src.services.defense import defense_status
+from src.ui.playbooks import render_playbook_cards
 
 
 def format_currency_jp(amount: float) -> str:
@@ -563,7 +565,7 @@ def create_simple_dashboard():
     demo = _demo_mode()
     mode_label = "デモ" if demo else "本番"
     with st.container():
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3, col4, col5 = st.columns(5)
         with col1:
             st.info(f"モード: {mode_label}")
         with col2:
@@ -589,6 +591,14 @@ def create_simple_dashboard():
         with col4:
             scenario = st.session_state.get("scenario", os.getenv("TRADING_SCENARIO", "neutral"))
             st.success(f"シナリオ: {scenario}")
+        with col5:
+            if defense_status():
+                st.error("🛡 防御ON")
+            else:
+                st.info("🟢 通常モード")
+
+    with st.expander("🕒 時間帯プレイブック", expanded=True):
+        render_playbook_cards()
 
     # 市場状況
     with st.expander("市場状況", expanded=True):

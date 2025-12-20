@@ -29,6 +29,16 @@ install:
 test:
 	python -m pytest tests/
 
+# スモークテスト（高速サブセット）
+test-smoke:
+	python scripts/run_smoke_tests.py
+
+# 依存関係チェック（破損・不足の早期検知）
+deps:
+	pip check
+	pip show pyjwt >/dev/null || echo "Warning: pyjwt not installed (auth JWT tests may fail)"
+	pip show optuna >/dev/null || echo "Warning: optuna not installed (optimization tests may fail)"
+
 # テストをカバレッジ付きで実行
 test-cov:
 	python -m pytest tests/ --cov=src --cov-report=html --cov-report=term
@@ -47,6 +57,30 @@ format:
 
 # すべてのチェックを実行
 check: lint mypy test
+
+# 設定ファイル検証
+config-validate:
+	python scripts/validate_config.py config.json
+
+# データ品質チェック（CLI）
+data-quality:
+	python scripts/show_data_quality.py --tickers 7203.T 9984.T AAPL --period 6mo
+
+# データ品質サマリを通知（Slack/Discord/LINE設定がある場合）
+notify-data-quality:
+	python scripts/notify_data_quality.py --tickers 7203.T 9984.T AAPL --period 6mo
+
+# リスク状態スナップショット
+risk-snapshot:
+	python scripts/risk_snapshot.py
+
+# 取引前ウォームアップチェック（設定・リスク・データ品質の簡易確認）
+pre-trade-check:
+	python scripts/pre_trade_check.py
+
+# Opsサマリ通知（リスク＋データ品質をまとめて送信）
+notify-ops-summary:
+	python scripts/notify_ops_summary.py --tickers 7203.T 9984.T AAPL --period 6mo
 
 # 型チェックを実行
 mypy:
