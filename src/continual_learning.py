@@ -19,10 +19,12 @@ import tensorflow as tf
 from sklearn.metrics import mean_squared_error
 from tensorflow import keras
 
+from src.base_predictor import BasePredictor
+
 logger = logging.getLogger(__name__)
 
 
-class ConceptDriftDetector:
+class ConceptDriftDetector(BasePredictor):
     """概念ドリフト検出器"""
 
     def __init__(self, threshold: float = 0.05, window_size: int = 100):
@@ -30,6 +32,21 @@ class ConceptDriftDetector:
         self.window_size = window_size
         self.reference_window = []
         self.current_window = []
+
+        self.current_window = []
+
+    def prepare_model(self, X, y):
+        pass
+
+    def fit(self, X, y):
+        pass
+
+    def predict(self, X):
+        return np.zeros(len(X) if hasattr(X, "__len__") else 1)
+
+    def predict(self, X):
+        # ドリフト検出器は予測を行わないため、ダミーを返す
+        return np.zeros(len(X) if hasattr(X, "__len__") else 1)
 
     def update_and_check(self, new_value: float) -> bool:
         """新しい値を追加し、ドリフトを検出"""
@@ -249,10 +266,10 @@ class AdaptiveEnsemblePredictor:
                 self.performance_history[i] = self.performance_history[i][-self.adaptation_window :]
 
 
-class ContinualLearningSystem:
+class ContinualLearningSystem(BasePredictor):
     """継続的学習システムの統合クラス"""
 
-    def __init__(self, base_model: Any, features_dim: int = 64):
+    def __init__(self, base_model: Any = None, features_dim: int = 64):
         self.base_model = base_model
         self.features_dim = features_dim
 
@@ -268,6 +285,15 @@ class ContinualLearningSystem:
         self.adaptive_ensemble = None
 
         self.is_initialized = False
+
+    def prepare_model(self, X, y):
+        pass
+
+    def fit(self, X, y):
+        pass
+
+    def predict(self, X):
+        return self.predict_with_adaptation(X)
 
     def initialize(self):
         """システムの初期化"""

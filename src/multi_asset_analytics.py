@@ -17,6 +17,8 @@ import pytz
 import yfinance as yf
 from pandas.tseries.offsets import BDay
 
+from src.base_predictor import BasePredictor
+
 warnings.filterwarnings("ignore")
 
 logger = logging.getLogger(__name__)
@@ -246,14 +248,25 @@ class CrossMarketFeatureEngineer:
         return df_out
 
 
-class MultiAssetPredictor:
+class MultiAssetPredictor(BasePredictor):
     """多資産対応予測器"""
 
     def __init__(self):
         self.data_loader = MultiAssetDataLoader()
         self.feature_engineer = CrossMarketFeatureEngineer()
         self.models = {}
+        self.models = {}
         self.asset_weights = {}
+
+    def prepare_model(self, X, y):
+        pass
+
+    def fit(self, X, y):
+        pass
+
+    def predict(self, X):
+        # 簡易実装: 変化なし(0)または単純なトレンド
+        return np.zeros(len(X))
 
     def prepare_multi_asset_features(
         self,

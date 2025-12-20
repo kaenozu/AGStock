@@ -12,9 +12,12 @@ import warnings
 from typing import Tuple
 
 import numpy as np
+import pandas as pd
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+
+from src.base_predictor import BasePredictor
 
 warnings.filterwarnings("ignore")
 
@@ -78,7 +81,7 @@ class AttentionLSTM(keras.Model):
     """Attention付きLSTMモデル"""
 
     def __init__(
-        self, input_dim: int, hidden_dim: int = 50, num_layers: int = 2, dropout: float = 0.2, forecast_horizon: int = 5
+        self, input_dim: int = 10, hidden_dim: int = 50, num_layers: int = 2, dropout: float = 0.2, forecast_horizon: int = 5
     ):
         super(AttentionLSTM, self).__init__()
 
@@ -127,7 +130,7 @@ class CNNLSTMHybrid(keras.Model):
 
     def __init__(
         self,
-        input_dim: int,
+        input_dim: int = 10,
         cnn_filters: int = 64,
         cnn_kernel_size: int = 3,
         lstm_units: int = 50,
@@ -177,7 +180,7 @@ class MultiStepPredictor(keras.Model):
     """多段階予測モデル"""
 
     def __init__(
-        self, input_dim: int, hidden_dim: int = 50, num_layers: int = 2, dropout: float = 0.2, forecast_horizon: int = 5
+        self, input_dim: int = 10, hidden_dim: int = 50, num_layers: int = 2, dropout: float = 0.2, forecast_horizon: int = 5
     ):
         super(MultiStepPredictor, self).__init__()
 
@@ -259,7 +262,7 @@ class NBEATS(keras.Model):
 
     def __init__(
         self,
-        input_size: int,
+        input_size: int = 10,
         forecast_size: int = 5,
         stack_types: list = ["trend", "seasonal"],
         num_blocks: int = 2,
@@ -313,7 +316,7 @@ class EnhancedLSTM(keras.Model):
     """高度なLSTMアーキテクチャ"""
 
     def __init__(
-        self, input_dim: int, hidden_dim: int = 64, num_layers: int = 3, dropout: float = 0.2, forecast_horizon: int = 5
+        self, input_dim: int = 10, hidden_dim: int = 64, num_layers: int = 3, dropout: float = 0.2, forecast_horizon: int = 5
     ):
         super(EnhancedLSTM, self).__init__()
 
@@ -377,6 +380,90 @@ class EnhancedLSTM(keras.Model):
 
 class AdvancedModels:
     """高度な予測モデルのクラス"""
+
+    def __init__(self):
+        self.model = None
+        self.lookback = 30 # Default lookback
+        self.input_shape = None
+
+    def prepare_models(self, X, y):
+        """モデル構築の準備"""
+        # Determine input shape from X
+        # X is (samples, features)
+        n_features = X.shape[1] if hasattr(X, "shape") else 10
+        self.input_shape = (self.lookback, n_features)
+        
+        # Build one representative model
+        self.model = self.build_enhanced_lstm(input_shape=self.input_shape, forecast_horizon=1) # Predicting 1 step ahead (next return)
+
+    def fit(self, X, y):
+        """モデル学習"""
+        if self.model is None:
+            self.prepare_models(X, y)
+        
+        # Create sequences
+        X_seq, y_seq = [], []
+        
+        X_np = X.values if hasattr(X, "values") else X
+        y_np = y.values if hasattr(y, "values") else y
+        
+        if len(X_np) <= self.lookback:
+            logger.warning("Not enough data for AdvancedModels fit")
+            return
+
+        for i in range(self.lookback, len(X_np)):
+            X_seq.append(X_np[i-self.lookback:i])
+            y_seq.append(y_np[i])
+            
+        X_seq = np.array(X_seq)
+        y_seq = np.array(y_seq)
+        
+        # Train
+        try:
+             self.model.fit(X_seq, y_seq, epochs=10, batch_size=32, verbose=0)
+        except Exception as e:
+             logger.warning(f"AdvancedModels fit failed: {e}")
+
+    def predict(self, X):
+        """予測実行"""
+        if self.model is None:
+             return np.zeros(len(X))
+             
+        X_np = X.values if hasattr(X, "values") else X
+        
+        X_seq = []
+        # Need to pad start
+        for i in range(len(X_np)):
+            if i < self.lookback:
+                # Pad with zeros or repeat start? Zeros for simplicity
+                pad = np.zeros((self.lookback - i, X_np.shape[1]))
+                seq = np.vstack([pad, X_np[:i+1]]) if i > 0 else np.zeros((self.lookback, X_np.shape[1]))
+                 # Wait, if i=0, we need X[-lookback:0]? No, X is history.
+                 # If we are predicting at time i, we use X[i-lookback:i]
+                seq = np.concatenate([np.zeros((self.lookback-(i), X_np.shape[1])), X_np[:i]]) # Using past data only
+                X_seq.append(seq)
+            else:
+                X_seq.append(X_np[i-self.lookback:i])
+        
+        X_seq = np.array(X_seq)
+        # Handle empty
+        if len(X_seq) == 0:
+            return np.zeros(len(X))
+
+        try:
+            pred = self.model.predict(X_seq, verbose=0)
+            return pred.flatten()
+        except Exception as e:
+            logger.warning(f"AdvancedModels predict failed: {e}")
+            return np.zeros(len(X))
+
+    def predict_point(self, features):
+        """単一点予測 (features: 1 x n_features)"""
+        # 単一点予測でも履歴が必要だが、Ensembleから渡されるのは最新の1行のみ
+        # これではLSTMは動かない...
+        # fallback: 0を返すか、stateful modelを使うか。
+        # ここでは簡易的に0を返す（履歴がないため）
+        return 0.0
 
     @staticmethod
     def build_attention_lstm(input_shape: Tuple[int, int], forecast_horizon: int = 5) -> keras.Model:

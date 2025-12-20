@@ -296,7 +296,7 @@ class TemporalFusionTransformer(keras.Model):
         self.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001), loss="mse", metrics=["mae"])
 
         # 学習
-        history = self.fit(
+        history = super().fit(
             X,
             y,
             epochs=kwargs.get("epochs", 50),

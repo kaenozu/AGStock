@@ -34,10 +34,13 @@ class MarketAnalyst(BaseAgent):
         if market_df is not None and isinstance(market_df, pd.DataFrame) and not market_df.empty:
             regime_info = self.regime_detector.get_regime_signal(market_df)
 
-        # 2. LLM Analysis
+        # 2. Consume Quantitative Prediction Report
+        prediction_report = data.get("prediction_report", {})
+        ensemble_decision = prediction_report.get("ensemble_decision", "UNKNOWN")
+        ensemble_conf = prediction_report.get("confidence", 0.0)
+        
+        # 3. LLM Analysis
         impact = self.reasoner.analyze_market_impact(news_text, market_stats)
-
-        # Mapping rules
         sentiment = impact.get("sentiment", "NEUTRAL").upper()
 
         # Adjust sentiment based on Regime
@@ -51,18 +54,51 @@ class MarketAnalyst(BaseAgent):
             if "BEAR" in regime_name.upper() and sentiment == "BULLISH":
                 sentiment = "NEUTRAL (Dampened by Bear Trend)"
 
-        if "BULLISH" in sentiment:
-            decision = TradingDecision.BUY
-            confidence = 0.8
-        elif "BEARISH" in sentiment:
-            decision = TradingDecision.SELL
-            confidence = 0.8
+        # 4. Synthesize Decision (LLM + Quantitative)
+        # If Ensemble is strong (e.g. > 0.7), it heavily influences the decision
+        final_decision = TradingDecision.HOLD
+        final_confidence = 0.5
+        
+        qt_signal = "NEUTRAL"
+        if ensemble_decision == "UP":
+            qt_signal = "BULLISH"
+        elif ensemble_decision == "DOWN":
+            qt_signal = "BEARISH"
+            
+        # Decision Logic:
+        # If Quantitative and Qualitative (LLM) agree -> High Confidence
+        # If Disagree -> Lower confidence, lean towards Quantitative if confidence is high
+        
+        if "BULLISH" in sentiment and qt_signal == "BULLISH":
+            final_decision = TradingDecision.BUY
+            final_confidence = min(0.95, 0.6 + ensemble_conf * 0.4)
+        elif "BEARISH" in sentiment and qt_signal == "BEARISH":
+            final_decision = TradingDecision.SELL
+            final_confidence = min(0.95, 0.6 + ensemble_conf * 0.4)
+        elif qt_signal == "BULLISH" and ensemble_conf > 0.75:
+             # Strong Quant override
+            final_decision = TradingDecision.BUY
+            final_confidence = ensemble_conf
+            sentiment = f"Mixed (LLM: {sentiment}, Quant: STRONG BULLISH)"
+        elif qt_signal == "BEARISH" and ensemble_conf > 0.75:
+             # Strong Quant override
+            final_decision = TradingDecision.SELL
+            final_confidence = ensemble_conf
+            sentiment = f"Mixed (LLM: {sentiment}, Quant: STRONG BEARISH)"
         else:
-            decision = TradingDecision.HOLD
-            confidence = 0.5
+            # Fallback to simple matching or HOLD
+            if "BULLISH" in sentiment:
+                final_decision = TradingDecision.BUY
+                final_confidence = 0.6
+            elif "BEARISH" in sentiment:
+                final_decision = TradingDecision.SELL
+                final_confidence = 0.6
 
-        reasoning = f"Sentiment: {sentiment}. Key Drivers: {', '.join(impact.get('key_drivers', []))}. {impact.get('reasoning', '')}{regime_msg}"
+        components_str = ", ".join([f"{k}:{v}" for k, v in prediction_report.get("components", {}).items()])
+        quant_reasoning = f"Quant Models: {ensemble_decision} ({ensemble_conf:.2f}). Details: [{components_str}]."
+        
+        reasoning = f"Sentiment: {sentiment}. {quant_reasoning} Key Drivers: {', '.join(impact.get('key_drivers', []))}. {regime_msg}"
 
-        analysis = self._create_response(decision, confidence, reasoning)
+        analysis = self._create_response(final_decision, final_confidence, reasoning)
         self.log_analysis(analysis)
         return analysis

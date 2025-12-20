@@ -351,7 +351,7 @@ def _sanitize_price_history(df: pd.DataFrame) -> pd.DataFrame:
     if idx.tzinfo is not None:
         clean.index = idx.tz_convert(None)
 
-    now = pd.Timestamp.utcnow()
+    now = pd.Timestamp.utcnow().tz_localize(None)
     clean = clean[clean.index <= now + pd.Timedelta(minutes=1)]
 
     price_cols = [c for c in ["Open", "High", "Low", "Close", "Adj Close"] if c in clean.columns]

@@ -47,69 +47,80 @@ class PredictionBacktester:
             fundamentals = fetch_fundamental_data(ticker)
 
             # 日付範囲をフィルタ
-            start_dt = pd.to_datetime(start_date)
-            end_dt = pd.to_datetime(end_date)
+            start_dt = pd.to_datetime(start_date).tz_localize(None)
+            end_dt = pd.to_datetime(end_date).tz_localize(None)
 
+            # インデックスを確実にナイーブにする
+            if df.index.tz is not None:
+                df.index = df.index.tz_localize(None)
+            
             # バックテスト期間内の各日で予測を実行
             predictions = []
-            actuals = []
-            dates = []
 
             # 予測を行う日付リストを生成（週次でサンプリング）
             test_dates = pd.date_range(start=start_dt, end=end_dt, freq="W")
 
             for test_date in test_dates:
-                # その日までのデータで予測
-                historical_data = df[df.index < test_date]
+                try:
+                    test_date_naive = test_date.tz_localize(None) if test_date.tz else test_date
+                    logger.info(f"Processing backtest loop for test_date: {test_date_naive}")
+                    
+                    historical_data = df[df.index < test_date_naive]
+                    logger.info(f"Historical data size: {len(historical_data)}")
 
-                if len(historical_data) < 50:
-                    continue  # データ不足
+                    if len(historical_data) < 50:
+                        logger.warning(f"Insufficient historical data for {test_date_naive}: {len(historical_data)} rows. Skipping.")
+                        continue 
 
-                # 予測実行
-                result = self.predictor.predict_trajectory(
-                    historical_data, days_ahead=prediction_days, ticker=ticker, fundamentals=fundamentals
-                )
+                    # 予測実行
+                    result = self.predictor.predict_trajectory(
+                        historical_data, days_ahead=prediction_days, ticker=ticker, fundamentals=fundamentals
+                    )
 
-                if "error" in result:
-                    logger.warning(f"Prediction failed for {test_date}: {result['error']}")
+                    if "error" in result:
+                        logger.warning(f"Prediction failed for {test_date_naive}: {result['error']}")
+                        continue
+
+                    # 実際の結果を取得
+                    future_date = test_date_naive + timedelta(days=prediction_days)
+                    future_data = df[(df.index >= test_date_naive) & (df.index <= future_date)]
+                    
+                    logger.info(f"Future data size (for validation): {len(future_data)} (Goal: {prediction_days})")
+
+                    if len(future_data) < prediction_days:
+                        logger.warning(f"Insufficient future data for validation at {test_date_naive}. Skipping.")
+                        continue 
+
+                    # 予測値と実際の値を記録
+                    predicted_price = result["predictions"][-1]
+                    actual_price = future_data["Close"].iloc[-1]
+                    current_price = historical_data["Close"].iloc[-1]
+
+                    predicted_change_pct = (predicted_price - current_price) / current_price * 100
+                    actual_change_pct = (actual_price - current_price) / current_price * 100
+
+                    predictions.append(
+                        {
+                            "date": test_date_naive,
+                            "current_price": current_price,
+                            "predicted_price": predicted_price,
+                            "actual_price": actual_price,
+                            "predicted_change_pct": predicted_change_pct,
+                            "actual_change_pct": actual_change_pct,
+                            "predicted_trend": result["trend"],
+                            "actual_trend": "UP" if actual_change_pct > 1 else "DOWN" if actual_change_pct < -1 else "FLAT",
+                            "models_used": result["details"].get("models_used", []),
+                            "trend_votes": result["details"].get("trend_votes", {}),
+                            "fundamental_score": (
+                                result["details"].get("fundamental", {}).get("score", None)
+                                if result["details"].get("fundamental")
+                                else None
+                            ),
+                        }
+                    )
+                except Exception as e:
+                    logger.error(f"Error in backtest loop for {test_date}: {e}")
                     continue
-
-                # 実際の結果を取得
-                future_date = test_date + timedelta(days=prediction_days)
-                future_data = df[(df.index >= test_date) & (df.index <= future_date)]
-
-                if len(future_data) < prediction_days:
-                    continue  # 未来データ不足
-
-                # 予測値と実際の値を記録
-                predicted_price = result["predictions"][-1]
-                actual_price = future_data["Close"].iloc[-1]
-                current_price = historical_data["Close"].iloc[-1]
-
-                predicted_change_pct = (predicted_price - current_price) / current_price * 100
-                actual_change_pct = (actual_price - current_price) / current_price * 100
-
-                predictions.append(
-                    {
-                        "date": test_date,
-                        "current_price": current_price,
-                        "predicted_price": predicted_price,
-                        "actual_price": actual_price,
-                        "predicted_change_pct": predicted_change_pct,
-                        "actual_change_pct": actual_change_pct,
-                        "predicted_trend": result["trend"],
-                        "actual_trend": "UP" if actual_change_pct > 1 else "DOWN" if actual_change_pct < -1 else "FLAT",
-                        "models_used": result["details"].get("models_used", []),
-                        "trend_votes": result["details"].get("trend_votes", {}),
-                        "fundamental_score": (
-                            result["details"].get("fundamental", {}).get("score", None)
-                            if result["details"].get("fundamental")
-                            else None
-                        ),
-                    }
-                )
-
-                dates.append(test_date)
 
             if not predictions:
                 return {"error": "有効な予測データがありません"}
@@ -137,7 +148,6 @@ class PredictionBacktester:
         except Exception as e:
             logger.error(f"Backtest error: {e}")
             import traceback
-
             traceback.print_exc()
             return {"error": str(e)}
 

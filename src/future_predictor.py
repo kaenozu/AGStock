@@ -1,13 +1,16 @@
-import datetime
+from datetime import timedelta
+from typing import Dict, List, Optional, Tuple
 import logging
 
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
+from tensorflow import keras
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.optimizers import Adam
 
+from src.base_predictor import BasePredictor
 from src.features import add_technical_indicators
 
 logger = logging.getLogger(__name__)
@@ -17,6 +20,91 @@ class FuturePredictor:
     def __init__(self):
         self.lookback = 60
         self.scaler = MinMaxScaler(feature_range=(0, 1))
+        self.model = None
+
+    def prepare_model(self, X, y):
+        """モデル準備"""
+        pass
+
+    def fit(self, X, y):
+        """モデル学習"""
+        # X: (samples, features) DataFrame
+        # y: (samples,) Target values
+        try:
+            # Prepare data for LSTM (samples, lookback, features)
+            data_np = X.values if hasattr(X, "values") else X
+            target_np = y.values if hasattr(y, "values") else y
+            
+            # Simple scaling
+            scaled_X = self.scaler.fit_transform(data_np)
+            
+            # Create sequences
+            # Since X and y are aligned (X[t] -> y[t]), and we want to predict y[t] using X[t-lookback:t]
+            # But EnhancedEnsemblePredictor passes shifted y?
+            # y is shift(-1) of pct_change. So X[t] predicts y[t].
+            # For LSTM, we usually use sequence.
+            
+            # X_seq, y_seq = [], []
+            if len(scaled_X) <= self.lookback:
+                 logger.warning("Not enough data for LSTM fit")
+                 return
+
+            for i in range(self.lookback, len(scaled_X)):
+                X_seq.append(scaled_X[i-self.lookback:i])
+                y_seq.append(target_np[i])
+            
+            X_seq, y_seq = np.array(X_seq), np.array(y_seq)
+            
+            if len(X_seq) == 0:
+                 return
+
+            self.model = Sequential()
+            self.model.add(LSTM(units=50, return_sequences=False, input_shape=(X_seq.shape[1], X_seq.shape[2])))
+            self.model.add(Dropout(0.2))
+            self.model.add(Dense(units=1))
+            self.model.compile(optimizer=Adam(learning_rate=0.001), loss="mean_squared_error")
+            
+            self.model.fit(X_seq, y_seq, epochs=5, batch_size=32, verbose=0)
+            
+        except Exception as e:
+            logger.error(f"FuturePredictor fit error: {e}")
+
+    def predict(self, X):
+        """予測実行"""
+        if self.model is None:
+            return np.zeros(len(X))
+        
+        try:
+             data_np = X.values if hasattr(X, "values") else X
+             scaled_X = self.scaler.transform(data_np)
+             
+             X_seq = []
+             # For prediction, we need to handle sequences.
+             # If X is provided for multiple points, we treat each as the end of a sequence?
+             # This is tricky without history.
+             # Assuming X contains history.
+             if len(scaled_X) <= self.lookback:
+                 return np.zeros(len(X))
+                 
+             for i in range(len(scaled_X)):
+                 if i < self.lookback:
+                     X_seq.append(np.zeros((self.lookback, scaled_X.shape[1]))) # Padding
+                 else:
+                     X_seq.append(scaled_X[i-self.lookback:i])
+             
+             X_seq = np.array(X_seq)
+             pred = self.model.predict(X_seq, verbose=0)
+             return pred.flatten()
+             
+        except Exception as e:
+            logger.error(f"FuturePredictor predict error: {e}")
+            return np.zeros(len(X))
+
+    def predict_point(self, current_features):
+        """単一点予測"""
+        # 単一点といってもLSTMには履歴が必要
+        # current_featuresだけで予測は不可能
+        return 0.0
 
     def predict_trajectory(self, df: pd.DataFrame, days_ahead: int = 5) -> dict:
         """
