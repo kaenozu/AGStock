@@ -1,9 +1,19 @@
 import io
 import logging
+import re
+from datetime import datetime
 from pathlib import Path
-from typing import BinaryIO, List, Optional, Union
+from typing import BinaryIO, Dict, List, Optional, Union, Any
 
+import pandas as pd
 from pypdf import PdfReader
+
+try:
+    import pdfplumber
+    PDFPLUMBER_AVAILABLE = True
+except ImportError:
+    PDFPLUMBER_AVAILABLE = False
+    logging.warning("pdfplumber not available. Table extraction will be limited.")
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +84,156 @@ class PDFLoader:
     def extract_text_from_path(cls, file_path: Union[str, Path]) -> str:
         """Extract text from a local file path."""
         return cls.extract_text(file_path, return_error_message=True)
+
+    @classmethod
+    def extract_tables(cls, source: PdfSource, max_pages: Optional[int] = None) -> List[pd.DataFrame]:
+        """
+        Extract tables from PDF using pdfplumber
+        
+        Args:
+            source: PDF source
+            max_pages: Maximum pages to process
+        
+        Returns:
+            List of DataFrames
+        """
+        if not PDFPLUMBER_AVAILABLE:
+            logger.warning("pdfplumber not available. Cannot extract tables.")
+            return []
+        
+        tables = []
+        
+        try:
+            # Convert source to file-like object if needed
+            if isinstance(source, (str, Path)):
+                pdf_file = open(source, 'rb')
+                should_close = True
+            elif hasattr(source, 'read'):
+                try:
+                    source.seek(0)
+                except:
+                    pass
+                pdf_file = source
+                should_close = False
+            elif isinstance(source, (bytes, bytearray)):
+                pdf_file = io.BytesIO(source)
+                should_close = False
+            else:
+                return []
+            
+            with pdfplumber.open(pdf_file) as pdf:
+                for idx, page in enumerate(pdf.pages):
+                    if max_pages and idx >= max_pages:
+                        break
+                    
+                    page_tables = page.extract_tables()
+                    for table in page_tables:
+                        if table:
+                            try:
+                                df = pd.DataFrame(table[1:], columns=table[0])
+                                tables.append(df)
+                            except:
+                                # Fallback: no header
+                                df = pd.DataFrame(table)
+                                tables.append(df)
+            
+            if should_close:
+                pdf_file.close()
+            
+            logger.info(f"Extracted {len(tables)} tables from PDF")
+            return tables
+            
+        except Exception as e:
+            logger.error(f"Failed to extract tables: {e}")
+            return []
+    
+    @classmethod
+    def extract_metadata(cls, source: PdfSource, text: str = None) -> Dict[str, Any]:
+        """
+        Extract metadata from PDF
+        
+        Args:
+            source: PDF source
+            text: Extracted text (optional, for text-based metadata extraction)
+        
+        Returns:
+            Metadata dictionary
+        """
+        metadata = {
+            "company": "Unknown",
+            "date": "Unknown",
+            "title": "Unknown"
+        }
+        
+        try:
+            reader = cls._open_reader(source)
+            
+            # PDF metadata
+            if reader.metadata:
+                if reader.metadata.title:
+                    metadata["title"] = reader.metadata.title
+                if reader.metadata.creation_date:
+                    try:
+                        metadata["date"] = reader.metadata.creation_date.strftime("%Y-%m-%d")
+                    except:
+                        pass
+            
+            # Text-based extraction
+            if text:
+                # 企業名抽出（例: "株式会社〇〇"）
+                company_match = re.search(r'(株式会社[^\s\n]+|[^\s\n]+株式会社)', text[:500])
+                if company_match:
+                    metadata["company"] = company_match.group(1)
+                
+                # 日付抽出（例: "2024年11月1日"）
+                date_match = re.search(r'(\d{4})年(\d{1,2})月(\d{1,2})日', text[:500])
+                if date_match:
+                    metadata["date"] = f"{date_match.group(1)}-{date_match.group(2):0>2}-{date_match.group(3):0>2}"
+            
+            return metadata
+            
+        except Exception as e:
+            logger.error(f"Failed to extract metadata: {e}")
+            return metadata
+    
+    @classmethod
+    def load_pdf(cls, source: PdfSource, extract_tables: bool = True) -> Dict[str, Any]:
+        """
+        Load PDF with full extraction (text, tables, metadata)
+        
+        Args:
+            source: PDF source
+            extract_tables: Whether to extract tables
+        
+        Returns:
+            Dictionary with text, tables, and metadata
+        """
+        try:
+            # Extract text
+            text = cls.extract_text(source)
+            
+            # Extract tables
+            tables = []
+            if extract_tables:
+                tables = cls.extract_tables(source)
+            
+            # Extract metadata
+            metadata = cls.extract_metadata(source, text)
+            
+            return {
+                "text": text,
+                "tables": tables,
+                "metadata": metadata
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to load PDF: {e}")
+            return {
+                "text": "",
+                "tables": [],
+                "metadata": {},
+                "error": str(e)
+            }
 
     @staticmethod
     def chunk_text(text: str, chunk_size: int = 1200, overlap: int = 200) -> List[str]:
