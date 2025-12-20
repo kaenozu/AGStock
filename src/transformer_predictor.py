@@ -45,46 +45,60 @@ class TransformerPredictor(BasePredictor):
             self.prepare_model(X, y)
             
         try:
-            # X and y might need reshaping for TFT depending on implementation
-            # Assuming TFT handle (samples, features) and (samples,)
-            # But TFT expects sequences. 
-            # EnhancedEnsemblePredictor passes 2D X.
-            # We might need to reshape to 3D if underlying model expects it, 
-            # OR we trust `self.model.fit` to handle it.
-            # Given we don't see src/transformer_model.py, we assume standard fit interface or adapt.
+            # Convert to numpy if needed
+            X_np = X.values if hasattr(X, "values") else X
+            y_np = y.values if hasattr(y, "values") else y
             
-            # Simple adaptation:
+            logger.debug(f"[TFT] Input shape before processing: X={X_np.shape}, y={y_np.shape}")
+            
+            # TFT expects 3D input: (batch, time_steps, features)
+            # EnhancedEnsemblePredictor passes 2D: (batch, features)
+            # We need to create proper sequences
+            
+            if X_np.ndim == 2:
+                # Option 1: Use time_steps=1 (current approach - loses temporal info)
+                # Option 2: Create sequences from historical data (better but needs refactoring)
+                # For now, we'll use Option 1 but log a warning
+                logger.warning(f"[TFT] Received 2D input ({X_np.shape}). Reshaping to (batch, 1, features). This loses temporal information.")
+                X_np = X_np.reshape(X_np.shape[0], 1, X_np.shape[1])
+            
+            logger.info(f"[TFT] Training with shape: X={X_np.shape}, y={y_np.shape}")
+            
             if hasattr(self.model, "fit"):
-                # If X is DataFrame, convert to numpy
-                X_np = X.values if hasattr(X, "values") else X
-                y_np = y.values if hasattr(y, "values") else y
-                
-                # 2次元の場合は3次元(batch, 1, features)に変換
-                if X_np.ndim == 2:
-                    X_np = X_np.reshape(X_np.shape[0], 1, X_np.shape[1])
-                
-                # Check if we need to sequence-ize it. 
-                # EnhancedEnsemblePredictor logic suggests it treats models as sklearn-like (taking 2D X).
-                # But TFT is time-series. 
-                # Hopefully underlying fit handles it or ignores it.
                 self.model.fit(X_np, y_np, epochs=10, batch_size=32, verbose=0)
+                logger.info("[TFT] Training completed successfully")
         except Exception as e:
-            logger.warning(f"TFT fit failed, skipping: {e}")
+            import traceback
+            logger.error(f"[TFT] fit failed: {e}")
+            logger.debug(f"[TFT] Traceback: {traceback.format_exc()}")
+            # Don't raise - allow ensemble to continue with other models
 
     def predict(self, X):
         """予測実行"""
         if not self.is_ready or self.model is None:
+            logger.debug("[TFT] Model not ready, returning zeros")
             return np.zeros(len(X))
         try:
             X_np = X.values if hasattr(X, "values") else X
             
+            logger.debug(f"[TFT] Predict input shape: {X_np.shape}")
+            
             # 2次元の場合は3次元(batch, 1, features)に変換
             if X_np.ndim == 2:
                 X_np = X_np.reshape(X_np.shape[0], 1, X_np.shape[1])
+            
+            predictions = self.model.predict(X_np, verbose=0)
+            logger.debug(f"[TFT] Predictions shape: {predictions.shape}")
+            
+            # If predictions are multi-dimensional, take the first forecast step
+            if predictions.ndim > 1:
+                predictions = predictions[:, 0]
                 
-            return self.model.predict(X_np)
+            return predictions
         except Exception as e:
-            logger.warning(f"TFT predict failed: {e}")
+            import traceback
+            logger.error(f"[TFT] predict failed: {e}")
+            logger.debug(f"[TFT] Traceback: {traceback.format_exc()}")
             return np.zeros(len(X))
 
     def predict_point(self, current_features):
