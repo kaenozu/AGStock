@@ -5,7 +5,7 @@ LightGBM予測モデル
 
 import logging
 from datetime import timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import lightgbm as lgb
 import numpy as np

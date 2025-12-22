@@ -237,7 +237,7 @@ class LIMEExplainer:
 class XAIFramework:
     """XAIの統合フレームワーク"""
 
-    def __init__(self, model, training_data: np.ndarray = None):
+    def __init__(self, model=None, training_data: np.ndarray = None):
         self.model = model
         self.training_data = training_data
         self.shap_explainer = SHAPExplainer(model, training_data) if training_data is not None else None

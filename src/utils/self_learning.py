@@ -8,9 +8,7 @@ import pandas as pd
 from typing import Dict, Any, List
 
 from src.hyperparameter_optimizer import MultiModelOptimizer
-from src.data.data_manager import GetDataManager
-from src.future_predictor import FuturePredictor
-from src.lgbm_predictor import LGBMPredictor
+from src.data_loader import fetch_stock_data
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +20,6 @@ class SelfLearningPipeline:
     def __init__(self, config: Dict[str, Any] = None):
         self.config = config or {}
         self.optimizer = MultiModelOptimizer(cv_folds=3)
-        self.dm = GetDataManager()
         self.params_path = "model_params.json"
         self.last_run_file = "last_learning_run.txt"
 
@@ -56,9 +53,12 @@ class SelfLearningPipeline:
         """
         logger.info(f"🚀 Starting Self-Learning Optimization for {len(tickers)} tickers...")
         
+        # Use fetch_stock_data
+        period = f"{days}d"
+        data_dict = fetch_stock_data(tickers, period=period)
+        
         all_data = []
-        for ticker in tickers:
-            df = self.dm.get_stock_data(ticker, days=days)
+        for ticker, df in data_dict.items():
             if df is not None and not df.empty:
                 # Basic feature engineering (simulated for training data preparation)
                 from src.features import add_advanced_features

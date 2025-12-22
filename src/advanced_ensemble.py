@@ -212,20 +212,20 @@ def create_model_diversity_ensemble():
     """
     from .advanced_models import (
         AttentionLSTM,
-        CNNLSTM,
-        MultiStepLSTM,
-        NBeatsNet,
-        create_advanced_model,
+        CNNLSTMHybrid,
+        MultiStepPredictor,
+        NBEATS,
+        EnhancedLSTM,
     )
     from .hyperparameter_optimizer import MultiModelOptimizer
 
     # モデルのインスタンスを生成
     models = {
         "LSTM": AttentionLSTM(),
-        "CNN-LSTM": CNNLSTM(),
-        "Multi-Step": MultiStepLSTM(),
-        "N-BEATS": NBeatsNet(),
-        "Advanced": create_advanced_model(),
+        "CNN-LSTM": CNNLSTMHybrid(),
+        "Multi-Step": MultiStepPredictor(),
+        "N-BEATS": NBEATS(),
+        "Advanced": EnhancedLSTM(),
     }
 
     # それぞれのモデルに最適なハイパーパラメータを設定

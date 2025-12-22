@@ -52,6 +52,25 @@ class SmartAlerts:
                 }
             }
 
+    def trigger_emergency_stop(self, reason: str):
+        """緊急停止を実行（Active Defense）"""
+        if not self.alert_config.get("active_mode", False):
+            print(f"⚠️ [Active Mode OFF] 緊急停止条件スキップ: {reason}")
+            return
+
+        print(f"🚨 緊急停止トリガー: {reason}")
+        try:
+            # 循環参照回避のためここでインポート
+            from src.trading.fully_automated_trader import FullyAutomatedTrader
+            
+            trader = FullyAutomatedTrader()
+            trader.emergency_stop(reason)
+            
+            # 追加通知
+            self.notifier.send_line_notify(f"🛡️ 【Active Defense】緊急停止を実行しました\n理由: {reason}")
+        except Exception as e:
+            print(f"緊急停止実行エラー: {e}")
+
     def check_daily_loss(self) -> List[Dict]:
         """日次損失チェック"""
         alerts = []
@@ -76,6 +95,10 @@ class SmartAlerts:
                     "value": daily_change_pct,
                 }
             )
+            
+            # Active Defense: 5%以上の下落で緊急停止
+            if daily_change_pct < -5.0:
+                self.trigger_emergency_stop(f"日次損失拡大 ({daily_change_pct:.1f}%)")
 
         return alerts
 
@@ -156,6 +179,10 @@ class SmartAlerts:
                         "value": current_vix,
                     }
                 )
+                
+                # Active Defense: VIX 45超えで緊急停止
+                if current_vix > 45.0:
+                    self.trigger_emergency_stop(f"VIX危険水域 ({current_vix:.1f})")
         except:
             pass
 

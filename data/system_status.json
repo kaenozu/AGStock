@@ -1,0 +1,11 @@
+{
+    "jobs": {
+        "scheduler": {
+            "last_run": "2025-12-22T17:15:36.951272",
+            "status": "started",
+            "message": "スケジューラー起動完了"
+        }
+    },
+    "heartbeat": "2025-12-22T18:33:36.955151",
+    "scheduler_status": "running"
+}

@@ -156,6 +156,7 @@ class EarningsAnalyzer:
 5. **投資判断**: BUY/HOLD/SELL のいずれか
 6. **信頼度**: 判断の信頼度（0.0〜1.0）
 7. **理由**: 投資判断の根拠（100文字程度）
+8. **セクター・業種**: 企業のセクター（例：IT、製造、金融）と詳細な業種
 
 以下のJSON形式で回答してください：
 
@@ -179,7 +180,9 @@ class EarningsAnalyzer:
   "sentiment": "POSITIVE",
   "recommendation": "BUY",
   "confidence": 0.75,
-  "reasoning": "売上・利益ともに好調で、新製品の貢献が大きい。ただし原材料価格上昇がリスク要因。"
+  "reasoning": "売上・利益ともに好調で、新製品の貢献が大きい。ただし原材料価格上昇がリスク要因。",
+  "sector": "製造",
+  "industry": "電子部品"
 }}
 ```
 

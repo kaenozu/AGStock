@@ -1,20 +1,7 @@
 [theme]
-primaryColor = "#2E86AB"
-backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F0F2F6"
-textColor = "#262730"
-font = "sans serif"
-
-# Dark theme (can be toggled)
-[theme.dark]
-primaryColor = "#4A9EFF"
-backgroundColor = "#0E1117"
-secondaryBackgroundColor = "#262730"
-textColor = "#FAFAFA"
-font = "sans serif"
-
-[server]
-headless = true
-port = 8503
-enableCORS = false
-enableXsrfProtection = true
+base="dark"
+primaryColor="#00ADB5"
+backgroundColor="#222831"
+secondaryBackgroundColor="#393E46"
+textColor="#EEEEEE"
+font="sans serif"

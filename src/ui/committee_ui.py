@@ -10,6 +10,7 @@ import streamlit as st
 from src.agents.committee import InvestmentCommittee
 from src.data_loader import fetch_market_summary
 from src.paper_trader import PaperTrader
+from src.data.macro_loader import MacroLoader
 
 
 def render_committee_ui():
@@ -25,10 +26,29 @@ def render_committee_ui():
 
         st.markdown("### 🤵 参加エージェント)")
         st.write("1. **📈 Market Analyst**: チャートニカル・ファンダメンタルズ分析)")
-        st.write("2. **🛡️Risk Manager**: リスク管理・ポートフォリオバランス分析)")
-        st.write("3. **🏛️Chairperson**: 議長・最終意思決定)")
+        st.write("2. **🛡️Risk Manager**: リスク管理・ポートフォリオバランス分析")
+        st.write("3. **🌐 Macro Strategist**: グローバルマクロ・相関分析")
+        st.write("4. **🏛️Chairperson**: 議長・最終意思決定")
 
         start_btn = st.button("委員会を開催する", type="primary", use_container_width=True)
+        
+        # Macro Radar Dashboard
+        st.markdown("---")
+        st.subheader("🌐 マクロ相関レーダー")
+        macro = MacroLoader().fetch_macro_data()
+        if "error" not in macro:
+            score = macro["macro_score"]
+            if score > 70: st.success(f"市場安定度: {score:.0f}/100 (BULLISH)")
+            elif score < 40: st.error(f"市場安定度: {score:.0f}/100 (CAUTION)")
+            else: st.warning(f"市場安定度: {score:.0f}/100 (NEUTRAL)")
+            
+            mc1, mc2 = st.columns(2)
+            with mc1:
+                st.metric("VIX", f"{macro['vix']['value']:.1f}", f"{macro['vix']['change_pct']:+.1f}%", delta_color="inverse")
+                st.metric("米10年債", f"{macro['yield_10y']['value']:.2f}%", f"{macro['yield_10y']['change_pct']:+.1f}%", delta_color="inverse")
+            with mc2:
+                st.metric("USD/JPY", f"{macro['usdjpy']['value']:.2f}", f"{macro['usdjpy']['change_pct']:+.1f}%")
+                st.metric("SOX指数", f"{macro['sox']['value']:.0f}", f"{macro['sox']['change_pct']:+.1f}%")
 
     with col2:
         st.subheader("💬 議事録 (Minutes)")

@@ -56,6 +56,7 @@ from src.utils.parameter_optimizer import ParameterOptimizer
 from src.data.whale_tracker import WhaleTracker
 from src.agents.ai_veto_agent import AIVetoAgent
 from src.agents.social_analyst import SocialAnalyst
+from src.agents.visual_oracle import VisualOracle
 from src.trading.portfolio_manager import PortfolioManager
 from src.utils.self_learning import SelfLearningPipeline
 
@@ -140,6 +141,7 @@ class FullyAutomatedTrader:
             self.learning_pipeline = SelfLearningPipeline(self.config)
             self.ai_veto_agent = AIVetoAgent(self.config)
             self.social_analyst = SocialAnalyst(self.config)
+            self.visual_oracle = VisualOracle(self.config)
             
             self.log('Phase 73: Self-Learning Pipeline (Optima) initialized')
             self.log('Phase 73: Social Heat Analyst initialized')
@@ -729,6 +731,8 @@ class FullyAutomatedTrader:
                                 "quantity": quantity,
                                 "kelly_fraction": kelly_fraction,
                                 "reason": f"{strategy_name}による買いシグナル（{region}）",
+                                "regime": regime,
+                                "history": df.copy()
                             }
                         )
                         break  # 1銘柄につき1シグナル
@@ -745,6 +749,8 @@ class FullyAutomatedTrader:
                                 "price": latest_price,
                                 "strategy": strategy_name,
                                 "reason": f"{strategy_name}による売りシグナル",
+                                "regime": regime,
+                                "history": df.copy()
                             }
                         )
                         break
@@ -764,7 +770,7 @@ class FullyAutomatedTrader:
         # Phase 72: Risk Parity Adjustment
         # Fetch history for all tickers in signals for volatility analysis
         tickers = list(set([s["ticker"] for s in signals]))
-        history = self.dm.get_stock_data_multiple(tickers, days=100)
+        history = fetch_stock_data(tickers, period="100d")
         
         if history:
             weights = self.portfolio_manager.calculate_risk_parity_weights(tickers, history)
@@ -794,6 +800,11 @@ class FullyAutomatedTrader:
             social_data = self.social_analyst.analyze_heat(ticker)
             heat = social_data.get("heat_level", 5.0)
             social_risk = social_data.get("social_risk", "LOW")
+            
+            # Visual Analysis (Phase 74)
+            visual_data = self.visual_oracle.analyze_chart(ticker, sig.get("history", pd.DataFrame()))
+            visual_action = visual_data.get("action", "HOLD")
+            visual_conf = visual_data.get("visual_confidence", 0.5)
             
             if not is_safe:
                 self.log(f"  ❌ VETO: {ticker} - {veto_reason}", "WARNING")

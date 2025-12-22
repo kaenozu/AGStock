@@ -27,6 +27,9 @@ class PDFExtractor:
         return text
 
 
+from src.prompts.earnings_prompts import EARNINGS_ANALYSIS_SYSTEM_PROMPT
+
+
 class EarningsAnalyzer:
     """Analyzes earnings reports using LLM."""
 
@@ -35,8 +38,25 @@ class EarningsAnalyzer:
 
     def analyze_report(self, text: str) -> Dict[str, str]:
         """
-        Generates analysis from raw text using Gemini.
-        Returns a dictionary with summary, sentiment, and details.
+        Generates structured analysis from raw text using Gemini.
+        Returns a dictionary matching the schema in EARNINGS_ANALYSIS_SYSTEM_PROMPT.
         """
-        # Reuse the existing method in LLMReasoner which handles the prompt
-        return self.llm.analyze_earnings_report(text)
+        # Truncate text to fit context window (approx 60k chars)
+        max_chars = 60000
+        if len(text) > max_chars:
+            text = text[:max_chars] + "...(truncated)..."
+
+        prompt = f"{EARNINGS_ANALYSIS_SYSTEM_PROMPT}\n\n## EARNINGS REPORT TEXT:\n{text}"
+        
+        try:
+            return self.llm.generate_json(prompt)
+        except Exception as e:
+            logger.error(f"Analysis failed: {e}")
+            return {
+                "score": 0,
+                "summary": f"Analysis failed: {str(e)}",
+                "bullish_factors": [],
+                "bearish_factors": [],
+                "key_metrics": {},
+                "risk_assessment": "Analysis Error"
+            }
