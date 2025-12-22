@@ -412,7 +412,7 @@ class PaperTrader:
             logger.error(f"Failed to update position prices: {e}")
             raise e  # Propagation for retry
 
-    def execute_trade(self, ticker: str, action: str, quantity: int, price: float, reason: str = "Signal") -> bool:
+    def execute_trade(self, ticker: str, action: str, quantity: int, price: float, reason: str = "Signal", initial_stop_price: float = 0.0) -> bool:
         """Execute a buy or sell trade."""
         try:
             cursor = self.conn.cursor()
@@ -431,7 +431,7 @@ class PaperTrader:
 
                 new_cash = balance["cash"] - cost
 
-                cursor.execute("SELECT quantity, entry_price FROM positions WHERE ticker = ?", (ticker,))
+                cursor.execute("SELECT quantity, entry_price, stop_price FROM positions WHERE ticker = ?", (ticker,))
                 existing = cursor.fetchone()
 
                 if existing:
@@ -444,10 +444,10 @@ class PaperTrader:
                     cursor.execute(
                         """
                         UPDATE positions
-                        SET quantity = ?, entry_price = ?, current_price = ?
+                        SET quantity = ?, entry_price = ?, current_price = ?, stop_price = ?
                         WHERE ticker = ?
                     """,
-                        (new_qty, new_avg_price, price, ticker),
+                        (new_qty, new_avg_price, price, max(initial_stop_price, existing[2] if len(existing) > 2 else 0.0), ticker),
                     )
                 else:
                     # New position
@@ -456,7 +456,7 @@ class PaperTrader:
                         INSERT INTO positions (ticker, quantity, entry_price, entry_date, current_price, unrealized_pnl, stop_price, highest_price)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """,
-                        (ticker, quantity, price, today, price, 0.0, 0.0, price),
+                        (ticker, quantity, price, today, price, 0.0, initial_stop_price, price),
                     )
 
                 # Update balance

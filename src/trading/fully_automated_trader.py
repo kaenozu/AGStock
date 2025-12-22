@@ -47,7 +47,17 @@ from src.schemas import AppConfig, TradingDecision
 from src.sentiment import SentimentAnalyzer
 from src.smart_notifier import SmartNotifier
 from src.strategies import CombinedStrategy, LightGBMStrategy, MLStrategy
+from src.strategies.orchestrator import StrategyOrchestrator
+from src.feedback_loop import DailyReviewer
 from src.utils.logger import get_logger, setup_logger
+from src.data.universe_manager import UniverseManager
+from src.utils.self_healing import SelfHealingEngine
+from src.utils.parameter_optimizer import ParameterOptimizer
+from src.data.whale_tracker import WhaleTracker
+from src.agents.ai_veto_agent import AIVetoAgent
+from src.agents.social_analyst import SocialAnalyst
+from src.trading.portfolio_manager import PortfolioManager
+from src.utils.self_learning import SelfLearningPipeline
 
 # Create logger
 logger = logging.getLogger(__name__)
@@ -118,11 +128,26 @@ class FullyAutomatedTrader:
         # New Risk Modules (from feat-add-position-guards)
         try:
             self.regime_detector = RegimeDetector()
+            self.orchestrator = StrategyOrchestrator(self.config) # Added
             self.risk_manager = DynamicRiskManager(self.regime_detector)
             self.kelly_criterion = KellyCriterion()
             self.dynamic_stop_manager = DynamicStopManager()
+            self.universe_manager = UniverseManager()
+            self.self_healing = SelfHealingEngine()
+            self.param_optimizer = ParameterOptimizer(self.config)
+            self.whale_tracker = WhaleTracker()
+            self.portfolio_manager = PortfolioManager()
+            self.learning_pipeline = SelfLearningPipeline(self.config)
+            self.ai_veto_agent = AIVetoAgent(self.config)
+            self.social_analyst = SocialAnalyst(self.config)
+            
+            self.log('Phase 73: Self-Learning Pipeline (Optima) initialized')
+            self.log('Phase 73: Social Heat Analyst initialized')
+            self.log('Phase 72: Portfolio Risk Parity Manager initialized')
+            self.log('Phase 5: WhaleTracker (Institutional Flow) initialized')
+            self.log('Phase 4: Global Selection & Self-Correction initialized')
             # self.advanced_risk = AdvancedRiskManager(self.config) # Class missing, disabled
-            self.log("Phase 30-1 & 30-3: リアルタイム適応学習・高度リスク管理モジュール初期化完了")
+            self.log("Phase 62: Strategy Orchestrator & Regime Detector initialized")
         except Exception as e:
             self.log(f"高度リスク管理モジュールの初期化エラー: {e}", "WARNING")
 
@@ -539,64 +564,16 @@ class FullyAutomatedTrader:
         return signals
 
     def get_target_tickers(self) -> List[str]:
-        """ポートフォリオバランスに基づいて対象銘柄を返す"""
+        """UniverseManagerから動的にグローバル銘柄を取得"""
+        # 保有ポジション
         positions = self.pt.get_positions()
-        balance = self.pt.get_current_balance()
-
-        # 現在の地域別比率計算
-        japan_value = 0.0
-        us_value = 0.0
-        europe_value = 0.0
-
-        for idx, pos in positions.iterrows():
-            ticker = str(pos.get("ticker", idx))
-            val = pos.get("market_value")
-            if val is None:
-                val = float(pos["quantity"]) * float(pos["current_price"])
-            else:
-                val = float(val)
-
-            if ticker in NIKKEI_225_TICKERS:
-                japan_value += val
-            elif any(ticker.startswith(t) for t in ["", "."] if ticker in SP500_TICKERS):
-                us_value += val
-            else:
-                europe_value += val
-
-        total_value = float(balance.get("total_equity", 0.0))
-
-        if total_value > 0:
-            japan_pct = (japan_value / total_value) * 100
-            us_pct = (us_value / total_value) * 100
-            europe_pct = (europe_value / total_value) * 100
-        else:
-            japan_pct = us_pct = europe_pct = 0.0
-
-        self.log(f"現在の地域配分: 日本{japan_pct:.1f}% 米国{us_pct:.1f}% 欧州{europe_pct:.1f}%")
-
-        # 目標との差分を計算し、優先的にスキャンする地域を決定
-        tickers: List[str] = []
-
-        # 日本株（基本常にスキャン、ただし割合を抑える）
-        japan_count = 30 if japan_pct < self.target_japan_pct else 15
-        tickers.extend(NIKKEI_225_TICKERS[:japan_count])
-
-        # 米国株（不足している場合は多めに）
-        us_count = 20 if us_pct < self.target_us_pct else 10
-        tickers.extend(SP500_TICKERS[:us_count])
-
-        # 欧州株（不足している場合は追加）
-        europe_count = 10 if europe_pct < self.target_europe_pct else 5
-        tickers.extend(STOXX50_TICKERS[:europe_count])
-
-        # クリプト / FX は assets フラグで制御
-        assets_cfg = self.config.get("assets", {})
-        if assets_cfg.get("crypto", False):
-            tickers.extend(CRYPTO_PAIRS)
-        if assets_cfg.get("fx", False):
-            tickers.extend(FX_PAIRS)
-
-        return tickers
+        pos_tickers = [str(t) for t in (positions['ticker'] if 'ticker' in positions.columns else positions.index).tolist() if t]
+        
+        # AIによる推薦銘柄（25銘柄+）
+        ai_candidates = self.universe_manager.get_top_candidates(limit=25)
+        result = list(dict.fromkeys(pos_tickers + ai_candidates))
+        self.log(f'🌌 グローバル・ユニバース展開: {len(result)}銘柄をスキャンの対象に設定')
+        return result
 
     def filter_by_market_cap(self, ticker: str, fundamentals: Optional[Dict[str, Any]]) -> bool:
         """時価総額で銘柄をフィルタリング（中小型株も許可）"""
@@ -620,6 +597,13 @@ class FullyAutomatedTrader:
         return False
 
     def scan_market(self) -> List[Dict[str, Any]]:
+        # V4 Singularity: Self-Healing & Parameter Optimization
+        self.self_healing.monitor_and_heal()
+        vix = self._get_vix_level() or 20.0
+        # Get simple performance summary for optimizer
+        perf = {'win_rate': 0.55} # Placeholder until RealStats linked
+        new_params = self.param_optimizer.optimize_parameters(perf, vix)
+        self.log(f'🧬 自己最適化適用: TP={new_params["take_profit_pct"]}, SL={new_params["stop_loss_pct"]}')
         """市場をスキャンして新規シグナルを検出（グローバル分散対応）"""
         self.log("市場スキャン開始...")
 
@@ -646,12 +630,8 @@ class FullyAutomatedTrader:
         # データ取得（リトライ付き）
         data_map = self._fetch_data_with_retry(tickers)
 
-        # 戦略初期化
-        strategies = [
-            ("LightGBM", LightGBMStrategy(lookback_days=365, threshold=0.005)),
-            ("ML Random Forest", MLStrategy()),  # デフォルト引数を使用
-            ("Combined", CombinedStrategy()),
-        ]
+        # 戦略初期化 (Phase 62: Dynamic Orchestration)
+        # strategies = [] # Removed static list
 
         signals: List[Dict[str, Any]] = []
 
@@ -670,12 +650,22 @@ class FullyAutomatedTrader:
                 else:
                     is_held = ticker in positions.index
 
+            # Phase 62: レジーム適応型戦略選択
+            # VIXはscan_market冒頭で取得済み
+            regime = self.regime_detector.detect_regime(df, vix)
+            active_squad = self.orchestrator.get_active_squad(regime)
+            
             # 各戦略でシグナル生成
-            for strategy_name, strategy in strategies:
+            for strategy in active_squad:
+                strategy_name = strategy.name
                 try:
                     sig_series = strategy.generate_signals(df)
 
                     if sig_series.empty:
+                        # 🐋 Whale Flow Detection
+                        whale_alert = self.whale_tracker.detect_whale_movement(ticker, df)
+                        if whale_alert['detected']:
+                            self.log(f"🐋 WHALE ALERT ({ticker}): {whale_alert['action_type']} (Ratio: {whale_alert['volume_ratio']})")
                         continue
 
                     last_signal = sig_series.iloc[-1]
@@ -771,16 +761,72 @@ class FullyAutomatedTrader:
             self.log("実行するシグナルなし")
             return
 
-        # 最大取引数制限
-        signals = signals[: self.max_daily_trades]
+        # Phase 72: Risk Parity Adjustment
+        # Fetch history for all tickers in signals for volatility analysis
+        tickers = list(set([s["ticker"] for s in signals]))
+        history = self.dm.get_stock_data_multiple(tickers, days=100)
+        
+        if history:
+            weights = self.portfolio_manager.calculate_risk_parity_weights(tickers, history)
+            for sig in signals:
+                ticker = sig["ticker"]
+                if ticker in weights:
+                    # Adjust confidence based on risk parity weight (relative to equal weight)
+                    # This scales the position size in ExecutionEngine
+                    equal_weight = 1.0 / len(tickers)
+                    adjustment = weights[ticker] / equal_weight
+                    sig["confidence"] = sig.get("confidence", 1.0) * adjustment
+                    # self.log(f"Risk Parity Adjustment ({ticker}): x{adjustment:.2f}")
 
-        self.log(f"{len(signals)}件のシグナルを実行します")
+        # 1. AI Veto (Qualitative Filter) & Social Analyst
+        self.log("🚀 AI Review (Veto & Social Heat) 開始...")
+        approved_signals = []
+        for sig in signals:
+            ticker = sig["ticker"]
+            action = sig["action"]
+            
+            # AI Veto
+            is_safe, veto_reason = self.ai_veto_agent.review_signal(
+                ticker, action, sig["price"], sig["reason"]
+            )
+            
+            # Social Heat (Phase 73)
+            social_data = self.social_analyst.analyze_heat(ticker)
+            heat = social_data.get("heat_level", 5.0)
+            social_risk = social_data.get("social_risk", "LOW")
+            
+            if not is_safe:
+                self.log(f"  ❌ VETO: {ticker} - {veto_reason}", "WARNING")
+                continue
+            
+            if social_risk == "HIGH" and heat > 8.0:
+                self.log(f"  ❌ SOCIAL VETO: {ticker} - 過熱・ハイリスク検知 (Heat: {heat})", "WARNING")
+                continue
 
-        # 価格マップ作成
-        prices = {str(s["ticker"]): float(s["price"]) for s in signals if s.get("price")}
+            # Apply social adjustment to confidence
+            sentiment_adj = 1.0
+            if social_data.get("sentiment") == "EXTREME_HYPE":
+                sentiment_adj = 0.8  # Reduce size for hype
+            elif social_data.get("sentiment") == "PANIC":
+                sentiment_adj = 0.5  # Heavy reduction for panic
+                
+            sig["confidence"] *= sentiment_adj
+            approved_signals.append(sig)
 
-        # 注文実行
-        self.engine.execute_orders(signals, prices)
+        if not approved_signals:
+            self.log("すべてのシグナルがAIによって拒否されました。")
+            return
+
+        # 2. 最大取引数制限 (承認済みの中から選択)
+        approved_signals = approved_signals[: self.max_daily_trades]
+
+        self.log(f"{len(approved_signals)}件のシグナルを実行します")
+
+        # 3. 価格マップ作成
+        prices = {str(s["ticker"]): float(s["price"]) for s in approved_signals if s.get("price")}
+
+        # 4. 注文実行
+        self.engine.execute_orders(approved_signals, prices)
 
     def send_daily_report(self) -> None:
         """日次レポートを送信"""
@@ -830,9 +876,65 @@ class FullyAutomatedTrader:
 
     def get_advice(self, daily_pnl: float, total_equity: float) -> str:
         """アドバイスを生成"""
-        if daily_pnl < 0:
-            return "⚠️ 本日はマイナスでした。リスク管理を見直しましょう。"
-        elif daily_pnl > 0:
-            return "✅ 素晴らしい結果です！この調子でいきましょう。"
+        # シンプルなアドバイス（LLMに置き換え可能）
+        if daily_pnl > 0:
+            return "好調な市場環境です。トレンドフォローを継続しましょう。"
         else:
-            return "⏸️ 本日は取引なしか、損益なしでした。"
+            return "市場は不安定です。リスク管理を徹底し、ポジションサイズを抑制してください。"
+    
+    def run_post_market_analysis(self) -> None:
+        """Phase 63: Post-market autonomous feedback loop"""
+        self.log("🔄 Running Post-Market Analysis...")
+        
+        try:
+            reviewer = DailyReviewer(self.config_path)
+            result = reviewer.run_daily_review()
+            
+            metrics = result.get("metrics", {})
+            adjustments = result.get("adjustments", {})
+            journal = result.get("journal", "")
+            
+            self.log(f"📊 Daily Metrics: Win Rate={metrics.get('win_rate', 0):.1f}%, P&L=¥{metrics.get('daily_pnl', 0):,.0f}")
+            
+            if adjustments and "reason" in adjustments:
+                self.log(f"⚙️ Auto-Adjustment: {adjustments['reason']}")
+            else:
+                self.log("✅ No parameter adjustments needed")
+            
+            self.log(f"📝 AI Journal: {journal[:100]}...")  # Preview
+            
+        except Exception as e:
+            self.log(f"Post-market analysis failed: {e}", "ERROR")
+
+    def daily_routine(self, force_run: bool = False) -> None:
+        """日常業務を実行"""
+        self.log(f"--- 日次ルーティン開始 (Force: {force_run}) ---")
+        
+        # 1. 安全確認
+        if not force_run:
+            safe, reason = self.is_safe_to_trade()
+            if not safe:
+                self.log(f"取引停止: {reason}", "WARNING")
+                return
+
+        # 1.5. Phase 73: Self-Learning (Weekend Check)
+        if self.learning_pipeline.should_run():
+            self.log("🤖 週末：自己学習パイプラインを起動中...")
+            try:
+                # Use a few key tickers for optimization
+                self.learning_pipeline.run_optimization(tickers=["7203.T", "9984.T", "^GSPC", "AAPL", "MSFT"])
+                self.log("✅ 自己学習が完了しました。")
+            except Exception as e:
+                self.log(f"自己学習エラー: {e}", "WARNING")
+
+        # 2. 市場スキャン & シグナル生成
+        # scan_market内部でUniverseManagerやWhaleTrackerも動く
+        self.scan_market()
+
+        # 3. レポート送信
+        self.send_daily_report()
+        
+        # 4. Phase 63: Post-Market Analysis & Self-Tuning
+        self.run_post_market_analysis()
+        
+        self.log("--- 日次ルーティン完了 ---")

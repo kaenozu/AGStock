@@ -19,12 +19,18 @@ from src.ui.portfolio_panel import render_portfolio_panel
 from src.ui.sidebar import render_sidebar
 from src.ui.strategy_arena import render_strategy_arena
 from src.ui.trading_panel import render_trading_panel
+from src.ui.mission_control import render_mission_control  # Phase 63
 
 # Setup Logging
 setup_logging()
 
 # Page Configuration (Must be first)
 st.set_page_config(page_title="AGStock AI Trading System", layout="wide")
+
+# Plotly Theme - Pro Dark
+import plotly.io as pio
+pio.templates.default = "plotly_dark"
+
 
 # Install cache
 install_cache()
@@ -54,16 +60,27 @@ strategies = get_strategies()
 st.title("🌍 AGStock AI Trading System (Pro)")
 st.markdown("日本・米国・欧州の主要株式を対象とした、プロ仕様のバックテストエンジン搭載。")
 
-# Load CSS
+# Load CSS (v3 with modern design system)
 try:
-    with open("assets/style_v2.css") as f:
+    with open("assets/style_v3.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 except FileNotFoundError:
     try:
-        with open("assets/style.css") as f:
+        with open("assets/style_v2.css") as f:
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-    except:
-        pass
+    except FileNotFoundError:
+        try:
+            with open("assets/style.css") as f:
+                st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+        except:
+            pass
+
+# Inject keyboard shortcuts
+try:
+    from src.ui.shortcuts import KeyboardShortcuts
+    KeyboardShortcuts.inject_listener()
+except Exception as e:
+    pass  # Silently fail if shortcuts not available
 
 
 # Initialize Global Risk Manager
@@ -102,7 +119,7 @@ def main():
     # Build tab labels with badges
     trading_badge = f" ({signal_count})" if signal_count > 0 else ""
 
-    tab_list = ["🏠 ダッシュボード", "🤖 AI分析センター", f"💼 トレーディング{trading_badge}", "🧪 戦略研究所"]
+    tab_list = ["🏠 ダッシュボード", "📈 運用パフォーマンス", "🤖 AI分析センター", f"💼 トレーディング{trading_badge}", "🧪 戦略研究所", "🚀 Mission Control"]
 
     tabs = st.tabs(tab_list)
 
@@ -110,23 +127,30 @@ def main():
     with tabs[0]:
         create_simple_dashboard()
 
-    # 1. AI Hub
+    # 1. Performance Analytics
     with tabs[1]:
+        from src.ui.performance_analyst import render_performance_analyst
+        render_performance_analyst()
+
+    # 2. AI Hub
+    with tabs[2]:
         from src.ui.ai_hub import render_ai_hub
 
         render_ai_hub()
 
-    # 2. Trading Hub
-    with tabs[2]:
+    # 3. Trading Hub
+    with tabs[3]:
         from src.ui.trading_hub import render_trading_hub
-
         render_trading_hub(sidebar_config, strategies)
 
-    # 3. Lab Hub (Strategy & Settings)
-    with tabs[3]:
+    # 4. Lab Hub
+    with tabs[4]:
         from src.ui.lab_hub import render_lab_hub
-
         render_lab_hub()
+    
+    # 5. Mission Control
+    with tabs[5]:
+        render_mission_control()
 
     # 6. Real-time Monitor (New Feature)
     # Ideally should be a separate page or overlay, but adding as expnader or section for now
