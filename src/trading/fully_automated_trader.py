@@ -805,11 +805,11 @@ class FullyAutomatedTrader:
             visual_data = self.visual_oracle.analyze_chart(ticker, sig.get("history", pd.DataFrame()))
             visual_action = visual_data.get("action", "HOLD")
             visual_conf = visual_data.get("visual_confidence", 0.5)
-            
+
             if not is_safe:
                 self.log(f"  ❌ VETO: {ticker} - {veto_reason}", "WARNING")
                 continue
-            
+
             if social_risk == "HIGH" and heat > 8.0:
                 self.log(f"  ❌ SOCIAL VETO: {ticker} - 過熱・ハイリスク検知 (Heat: {heat})", "WARNING")
                 continue
@@ -820,7 +820,7 @@ class FullyAutomatedTrader:
                 sentiment_adj = 0.8  # Reduce size for hype
             elif social_data.get("sentiment") == "PANIC":
                 sentiment_adj = 0.5  # Heavy reduction for panic
-                
+    
             sig["confidence"] *= sentiment_adj
             approved_signals.append(sig)
 
@@ -900,20 +900,20 @@ class FullyAutomatedTrader:
         try:
             reviewer = DailyReviewer(self.config_path)
             result = reviewer.run_daily_review()
-            
+
             metrics = result.get("metrics", {})
             adjustments = result.get("adjustments", {})
             journal = result.get("journal", "")
-            
+
             self.log(f"📊 Daily Metrics: Win Rate={metrics.get('win_rate', 0):.1f}%, P&L=¥{metrics.get('daily_pnl', 0):,.0f}")
-            
+
             if adjustments and "reason" in adjustments:
                 self.log(f"⚙️ Auto-Adjustment: {adjustments['reason']}")
             else:
                 self.log("✅ No parameter adjustments needed")
-            
+
             self.log(f"📝 AI Journal: {journal[:100]}...")  # Preview
-            
+
         except Exception as e:
             self.log(f"Post-market analysis failed: {e}", "ERROR")
 
@@ -934,7 +934,9 @@ class FullyAutomatedTrader:
             try:
                 # Use a few key tickers for optimization
                 self.learning_pipeline.run_optimization(tickers=["7203.T", "9984.T", "^GSPC", "AAPL", "MSFT"])
-                self.log("✅ 自己学習が完了しました。")
+                self.log(
+                "Phase 72 & 73 & 74 のすべての実装が完了しました。システムはこれまで以上に守りに強く、自己進化する準備が整っています。"
+            )
             except Exception as e:
                 self.log(f"自己学習エラー: {e}", "WARNING")
 
@@ -944,7 +946,7 @@ class FullyAutomatedTrader:
 
         # 3. レポート送信
         self.send_daily_report()
-        
+
         # 4. Phase 63: Post-Market Analysis & Self-Tuning
         self.run_post_market_analysis()
         

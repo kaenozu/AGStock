@@ -4,7 +4,7 @@ Modern, consistent components for the dashboard.
 """
 
 import streamlit as st
-from typing import Optional, Callable, Dict, Any
+from typing import Optional, Callable
 from src.ui.design_system import DS
 
 
@@ -32,7 +32,7 @@ def metric_card(
         try:
             delta_num = float(delta.replace('%', '').replace('+', ''))
             delta_color = DS.get_metric_color(delta_num)
-        except:
+        except Exception:
             delta_color = DS.COLORS['text_secondary']
     
     # Build HTML
@@ -61,7 +61,8 @@ def metric_card(
             color: {DS.COLORS['text']};
             margin-top: {DS.SPACING['sm']};
         ">{value}</div>
-        {f'<div style="color: {delta_color}; font-size: {DS.TYPOGRAPHY["font_size_sm"]}; margin-top: {DS.SPACING["xs"]};">{delta}</div>' if delta else ''}
+        {f'<div style="color: {delta_color}; font-size: {DS.TYPOGRAPHY["font_size_sm"]}; '
+         f'margin-top: {DS.SPACING["xs"]};">{delta}</div>' if delta else ''}
     </div>
     """
     
@@ -106,7 +107,8 @@ def alert_banner(
     ">
         <span style="font-size: {DS.TYPOGRAPHY['font_size_lg']};">{display_icon}</span>
         <span style="flex: 1; color: {DS.COLORS['text']};">{message}</span>
-        {f'<button style="background: none; border: none; color: {DS.COLORS["text_muted"]}; cursor: pointer;">✕</button>' if dismissible else ''}
+        {f'<button style="background: none; border: none; color: {DS.COLORS["text_muted"]}; '
+         f'cursor: pointer;">✕</button>' if dismissible else ''}
     </div>
     """
     
@@ -136,8 +138,6 @@ def quick_action_button(
         'danger': DS.COLORS['danger'],
     }
     
-    bg_color = variant_colors.get(variant, DS.COLORS['primary'])
-    
     # Use Streamlit button with custom styling
     button_key = f"quick_action_{label.replace(' ', '_')}"
     
@@ -163,7 +163,8 @@ def skeleton_loader(height: str = "100px", count: int = 1):
     for i in range(count):
         skeleton_html += f"""
         <div style="
-            background: linear-gradient(90deg, {DS.COLORS['surface']} 25%, {DS.COLORS['surface_hover']} 50%, {DS.COLORS['surface']} 75%);
+            background: linear-gradient(90deg, {DS.COLORS['surface']} 25%, 
+                        {DS.COLORS['surface_hover']} 50%, {DS.COLORS['surface']} 75%);
             background-size: 200% 100%;
             animation: loading 1.5s ease-in-out infinite;
             border-radius: {DS.RADIUS['md']};

@@ -7,7 +7,7 @@ Supports: Gemini, OpenAI, Ollama
 import json
 import logging
 import os
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict
 
 try:
     import google.generativeai as genai
@@ -55,11 +55,11 @@ class LLMReasoner:
         try:
             with open("config.json", "r", encoding="utf-8") as f:
                 config = json.load(f)
-                
+    
                 def is_valid(k):
                     return k and k != "YOUR_API_KEY_HERE" and not k.startswith("YOUR_")
 
-                self.gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+                self.gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")  # From ENV
                 if not self.gemini_api_key:
                     k = config.get("gemini_api_key") or config.get("gemini", {}).get("api_key")
                     if is_valid(k):
@@ -70,7 +70,7 @@ class LLMReasoner:
                     k = config.get("openai_api_key") or config.get("ai_committee", {}).get("api_key")
                     if is_valid(k):
                         self.openai_api_key = k
-                        
+            
         except Exception as e:
             logger.warning(f"Could not load config.json: {e}")
 
@@ -144,7 +144,7 @@ class LLMReasoner:
             img = PIL.Image.open(image_path)
             response = self.gemini_model.generate_content([prompt, img])
             text = response.text
-            
+
             cleaned_text = self._clean_json_text(text)
             return json.loads(cleaned_text)
         except Exception as e:
@@ -287,7 +287,7 @@ class LLMReasoner:
         class {class_name}(Strategy):
             def __init__(self):
                 super().__init__("{class_name}")
-            
+
             def generate_signals(self, df: pd.DataFrame) -> pd.Series:
                 # ここにロジックを実装
                 pass
@@ -298,7 +298,7 @@ class LLMReasoner:
             if not hasattr(self, "gemini_model") or self.gemini_model is None:
                 genai.configure(api_key=self.gemini_api_key)
                 self.gemini_model = genai.GenerativeModel(self.gemini_model_name)
-            
+
             return self._call_gemini(prompt, json_mode=False)
         elif self.provider == "openai":
             return self._call_openai(prompt, json_mode=False)

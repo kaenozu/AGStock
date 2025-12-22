@@ -3,13 +3,13 @@ import logging
 import os
 import matplotlib.pyplot as plt
 import pandas as pd
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional
 from datetime import datetime
-import io
 
 from src.llm_reasoner import get_llm_reasoner
 
 logger = logging.getLogger(__name__)
+
 
 class VisualOracle:
     """
@@ -55,21 +55,21 @@ class VisualOracle:
         try:
             # Use last 60 days for a clear view
             plot_df = df.tail(60).copy()
-            
+        
             fig, ax = plt.subplots(figsize=(12, 6))
-            
+        
             # Simple manual candlestick implementation
             width = 0.6
             width2 = 0.05
-            
+        
             prices_up = plot_df[plot_df.Close >= plot_df.Open]
             prices_down = plot_df[plot_df.Close < plot_df.Open]
-            
+        
             # Up
             ax.bar(prices_up.index, prices_up.Close - prices_up.Open, width, bottom=prices_up.Open, color='g')
             ax.bar(prices_up.index, prices_up.High - prices_up.Close, width2, bottom=prices_up.Close, color='g')
             ax.bar(prices_up.index, prices_up.Low - prices_up.Open, width2, bottom=prices_up.Open, color='g')
-            
+        
             # Down
             ax.bar(prices_down.index, prices_down.Open - prices_down.Close, width, bottom=prices_down.Close, color='r')
             ax.bar(prices_down.index, prices_down.High - prices_down.Open, width2, bottom=prices_down.Open, color='r')

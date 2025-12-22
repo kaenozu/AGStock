@@ -3,7 +3,6 @@ import logging
 import os
 import json
 import datetime
-import numpy as np
 import pandas as pd
 from typing import Dict, Any, List
 
@@ -11,6 +10,7 @@ from src.hyperparameter_optimizer import MultiModelOptimizer
 from src.data_loader import fetch_stock_data
 
 logger = logging.getLogger(__name__)
+
 
 class SelfLearningPipeline:
     """
@@ -30,7 +30,7 @@ class SelfLearningPipeline:
         now = datetime.datetime.now()
         # 5 = Saturday, 6 = Sunday
         is_weekend = now.weekday() >= 5
-        
+
         if not is_weekend:
             return False
 
@@ -44,7 +44,7 @@ class SelfLearningPipeline:
                         return False
                 except ValueError:
                     pass
-        
+
         return True
 
     def run_optimization(self, tickers: List[str] = ["7203.T", "^GSPC"], days: int = 365):
@@ -52,11 +52,11 @@ class SelfLearningPipeline:
         Run the full optimization process.
         """
         logger.info(f"🚀 Starting Self-Learning Optimization for {len(tickers)} tickers...")
-        
+
         # Use fetch_stock_data
         period = f"{days}d"
         data_dict = fetch_stock_data(tickers, period=period)
-        
+
         all_data = []
         for ticker, df in data_dict.items():
             if df is not None and not df.empty:
@@ -65,16 +65,18 @@ class SelfLearningPipeline:
                 df = add_advanced_features(df)
                 df.dropna(inplace=True)
                 all_data.append(df)
-        
+
         if not all_data:
             logger.warning("No data available for optimization.")
             return
 
         combined_df = pd.concat(all_data)
-        
+
         # Prepare X, y (Simplified for this integration)
         # Using columns typically used by our predictors
-        features = [c for c in combined_df.columns if c not in ["Close", "High", "Low", "Open", "Volume", "Return_1d", "Return_5d"]]
+        features = [c for c in combined_df.columns if c not in [
+            "Close", "High", "Low", "Open", "Volume", "Return_1d", "Return_5d"
+        ]]
         X = combined_df[features].values
         # Target: Next day return
         y = combined_df["Return_1d"].values.reshape(-1, 1)
@@ -82,10 +84,10 @@ class SelfLearningPipeline:
         # 1. Optimize
         logger.info("Running Optuna optimization...")
         best_params = self.optimizer.optimize_all_models(X, y, model_types=["lstm", "lgbm"], n_trials_per_model=20)
-        
+
         # 2. Save Params
         self.save_params(best_params)
-        
+
         # 3. Mark last run
         with open(self.last_run_file, "w") as f:
             f.write(datetime.datetime.now().isoformat())
