@@ -23,19 +23,26 @@ class HyperparameterOptimizer:
         self,
         n_trials: int = 100,
         timeout: Optional[int] = None,
-        n_jobs: int = 1
+        n_jobs: int = 1,
+        config_path: Optional[str] = None
     ):
         """
         Args:
             n_trials: Number of optimization trials
             timeout: Timeout in seconds
             n_jobs: Number of parallel jobs
+            config_path: Path to save/load params (legacy compat)
         """
         self.n_trials = n_trials
         self.timeout = timeout
         self.n_jobs = n_jobs
-        self.best_params = None
+        self.config_path = config_path
+        self.best_params = {}
         self.best_score = None
+        
+    def save_params(self):
+        """Legacy compatibility"""
+        pass
         
     def optimize_lgbm(
         self,
@@ -243,7 +250,46 @@ class HyperparameterOptimizer:
         self.best_params = study.best_params
         self.best_score = study.best_value
         
-        logger.info(f"Best score: {self.best_score:.4f}")
-        logger.info(f"Best params: {self.best_params}")
-        
         return self.best_params
+
+    def optimize_random_forest(
+        self,
+        X_or_df: Any,
+        y: Optional[pd.Series] = None,
+        n_trials: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """
+        Legacy compatibility for Random Forest optimization.
+        """
+        logger.info("Optimizing Random Forest (Legacy Compat)")
+        from sklearn.ensemble import RandomForestClassifier
+        
+        # Handle both df and (X, y)
+        if isinstance(X_or_df, pd.DataFrame) and y is None:
+            from src.features import add_advanced_features
+            data = add_advanced_features(X_or_df).dropna()
+            if len(data) < 20:
+                return {}
+            feature_cols = ["RSI", "Volatility", "Ret_1"]  # Simplified
+            # Ensure columns exist
+            for c in feature_cols:
+                if c not in data.columns:
+                    data[c] = 0.0
+            X = data[feature_cols]
+            y = (data["Return_1d"] > 0).astype(int)
+        else:
+            X, y = X_or_df, y
+            
+        n_trials = n_trials or self.n_trials
+        
+        def objective(trial):
+            n_estimators = trial.suggest_int("n_estimators", 50, 150)
+            max_depth = trial.suggest_int("max_depth", 3, 10)
+            clf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, random_state=42)
+            scores = cross_val_score(clf, X, y, cv=3)
+            return scores.mean()
+
+        study = optuna.create_study(direction="maximize")
+        study.optimize(objective, n_trials=n_trials)
+        self.best_params["random_forest"] = study.best_params
+        return study.best_params

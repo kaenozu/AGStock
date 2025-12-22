@@ -6,7 +6,7 @@ import datetime
 import pandas as pd
 from typing import Dict, Any, List
 
-from src.hyperparameter_optimizer import MultiModelOptimizer
+from src.optimization import MultiModelOptimizer
 from src.data_loader import fetch_stock_data
 
 logger = logging.getLogger(__name__)
