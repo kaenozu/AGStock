@@ -3,8 +3,10 @@ Hyperparameter Optimization using Optuna
 Automatically finds optimal hyperparameters for models.
 """
 
+import os
+import json
 import logging
-from typing import Dict, Any, Callable, Optional
+from typing import Dict, Any, Callable, Optional, List
 import optuna
 from optuna.samplers import TPESampler
 import numpy as np
@@ -40,9 +42,24 @@ class HyperparameterOptimizer:
         self.best_params = {}
         self.best_score = None
         
+        if self.config_path and os.path.exists(self.config_path):
+            try:
+                with open(self.config_path, "r", encoding="utf-8") as f:
+                    self.best_params = json.load(f)
+            except Exception as e:
+                logger.warning(f"Could not load params from {self.config_path}: {e}")
+        
     def save_params(self):
-        """Legacy compatibility"""
-        pass
+        """Save results to JSON file."""
+        if not self.config_path:
+            return
+            
+        try:
+            os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
+            with open(self.config_path, "w", encoding="utf-8") as f:
+                json.dump(self.best_params, f, indent=4)
+        except Exception as e:
+            logger.error(f"Error saving params to {self.config_path}: {e}")
         
     def optimize_lgbm(
         self,
