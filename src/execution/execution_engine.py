@@ -112,6 +112,19 @@ class ExecutionEngine:
             logger.error(f"RISK ALERT: Max Drawdown exceeded ({drawdown:.1%}). Trading halted.")
             return False
 
+        # Phase 72: Black Swan Circuit Breaker
+        try:
+            # Check major indices (e.g. S&P 500 or Topix equivalent)
+            market_data = fetch_external_data(period="2d")
+            index_df = market_data.get("^GSPC") or market_data.get("^N225")
+            if index_df is not None and len(index_df) >= 2:
+                daily_change = (index_df["Close"].iloc[-1] - index_df["Close"].iloc[-2]) / index_df["Close"].iloc[-2]
+                if daily_change < -0.05:
+                    logger.error(f"⚠️ CIRCUIT BREAKER: Market crash detected ({daily_change:.1%}). Trading locked down.")
+                    return False
+        except Exception as e:
+            logger.warning(f"Circuit breaker check failed: {e}")
+
         return True
 
     def _apply_scenario(self, scenario: str) -> None:
@@ -331,15 +344,18 @@ class ExecutionEngine:
                                 {"ticker": ticker, "action": "BUY", "quantity": qty, "price": price, "reason": reason}
                             )
                     else:
+                        # Phase 72: Forced Stop Loss (Default 5%)
+                        initial_stop = price * 0.95
+                        
                         success = _retry_trade(
                             lambda: self.pt.execute_trade(
-                                ticker, "BUY", qty, price, reason=f"{reason} (Conf: {confidence:.2f})"
+                                ticker, "BUY", qty, price, reason=f"{reason} (Conf: {confidence:.2f})", initial_stop_price=initial_stop
                             )
                         )
                         if success:
-                            logger.info(f"EXECUTED: BUY {qty} {ticker} @ {price}")
+                            logger.info(f"EXECUTED: BUY {qty} {ticker} @ {price} (Stop: {initial_stop:.2f})")
                             executed_trades.append(
-                                {"ticker": ticker, "action": "BUY", "quantity": qty, "price": price, "reason": reason}
+                                {"ticker": ticker, "action": "BUY", "quantity": qty, "price": price, "reason": reason, "stop_price": initial_stop}
                             )
                         else:
                             logger.warning(f"FAILED: BUY {ticker} (Insufficient funds?)")

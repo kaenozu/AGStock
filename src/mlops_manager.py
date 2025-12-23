@@ -600,7 +600,7 @@ class MLopsManager:
 
     def __init__(self):
         self.model_registry = ModelRegistry()
-        self.ab_testing = A / BTestFramework(self.model_registry)
+        self.ab_testing = ABTestFramework(self.model_registry)
         self.monitoring = MonitoringSystem()
 
         # MLflowの初期化

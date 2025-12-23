@@ -51,6 +51,71 @@ def _render_simple_view():
         st.info("ℹ️ Auto-Adjusting")
 
     st.divider()
+
+    # --- One-Touch Mode Control ---
+    st.subheader("🎛️ 運用モード切替 (One-Touch)")
+    
+    # Define Modes
+    MODES = {
+        "攻めの運用 (Aggressive)": {
+            "max_daily_trades": 10, "daily_loss_limit_pct": -8.0, "active_mode": True,
+            "desc": "高リスク・高リターン。取引回数制限を緩和し、積極的な利益を狙います。"
+        },
+        "バランス (Balanced)": {
+            "max_daily_trades": 5, "daily_loss_limit_pct": -5.0, "active_mode": True,
+            "desc": "標準設定。リスクとリターンのバランスを重視します。（日次損失限度 -5%）"
+        },
+        "守りの運用 (Conservative)": {
+            "max_daily_trades": 3, "daily_loss_limit_pct": -3.0, "active_mode": True,
+            "desc": "安全第一。取引回数を抑え、損失限度を厳しく設定します。"
+        },
+        "監視のみ (Monitoring Only)": {
+            "max_daily_trades": 0, "daily_loss_limit_pct": -2.0, "active_mode": True,
+            "desc": "新規取引停止。既存ポジションの監視と緊急停止のみを行います。"
+        }
+    }
+    
+    auto_conf = config.get("auto_trading", {})
+    alert_conf = config.get("alerts", {})
+    
+    # Detect current mode
+    current_mode = "バランス (Balanced)" # Default
+    c_trades = int(auto_conf.get("max_daily_trades", 5))
+    c_active = alert_conf.get("active_mode", False)
+    
+    if c_trades == 0:
+        current_mode = "監視のみ (Monitoring Only)"
+    elif c_trades >= 10:
+        current_mode = "攻めの運用 (Aggressive)"
+    elif c_trades <= 3:
+        current_mode = "守りの運用 (Conservative)"
+    
+    selected_mode = st.selectbox(
+        "現在の運用モード",
+        options=list(MODES.keys()),
+        index=list(MODES.keys()).index(current_mode),
+        help="システムの振る舞いを一括で設定します。"
+    )
+    
+    mode_info = MODES[selected_mode]
+    st.info(f"ℹ️ {mode_info['desc']}")
+    
+    if selected_mode != current_mode:
+        if st.button(f"「{selected_mode}」に切り替える"):
+            # Update auto_trading
+            if "auto_trading" not in config: config["auto_trading"] = {}
+            config["auto_trading"]["max_daily_trades"] = mode_info["max_daily_trades"]
+            config["auto_trading"]["daily_loss_limit_pct"] = mode_info["daily_loss_limit_pct"]
+            
+            # Update alerts
+            if "alerts" not in config: config["alerts"] = {}
+            config["alerts"]["active_mode"] = mode_info["active_mode"]
+            
+            _save_full_config(config)
+            st.success(f"✅ モードを更新しました！ (新規取引上限: {mode_info['max_daily_trades']}回)")
+            if hasattr(st, "rerun"): st.rerun()
+
+    st.divider()
     st.caption("ℹ️ 詳細な設定を変更するには、上の「専門家モード」をONにしてください。")
 
 

@@ -39,7 +39,25 @@ class MarketAnalyst(BaseAgent):
         ensemble_decision = prediction_report.get("ensemble_decision", "UNKNOWN")
         ensemble_conf = prediction_report.get("confidence", 0.0)
         
-        # 3. LLM Analysis
+        # 3. Consume Earnings Report
+        earnings_report = data.get("earnings_report")
+        earnings_msg = ""
+        earnings_impact = 0.0 # -1 to 1 impact
+        
+        if earnings_report:
+            rec = earnings_report.get("recommendation", "HOLD")
+            conf = earnings_report.get("confidence", 0.5)
+            reason = earnings_report.get("reasoning", "")
+            sentiment_e = earnings_report.get("sentiment", "NEUTRAL")
+            
+            earnings_msg = f" [Earnings: {rec} (Conf: {conf:.2f}), {sentiment_e}. Reason: {reason}]"
+            
+            if rec == "BUY":
+                earnings_impact = 0.5 * conf
+            elif rec == "SELL":
+                earnings_impact = -0.5 * conf
+
+        # 4. LLM Analysis
         impact = self.reasoner.analyze_market_impact(news_text, market_stats)
         sentiment = impact.get("sentiment", "NEUTRAL").upper()
 
@@ -54,8 +72,7 @@ class MarketAnalyst(BaseAgent):
             if "BEAR" in regime_name.upper() and sentiment == "BULLISH":
                 sentiment = "NEUTRAL (Dampened by Bear Trend)"
 
-        # 4. Synthesize Decision (LLM + Quantitative)
-        # If Ensemble is strong (e.g. > 0.7), it heavily influences the decision
+        # 5. Synthesize Decision (LLM + Quantitative + Earnings)
         final_decision = TradingDecision.HOLD
         final_confidence = 0.5
         
@@ -65,39 +82,30 @@ class MarketAnalyst(BaseAgent):
         elif ensemble_decision == "DOWN":
             qt_signal = "BEARISH"
             
-        # Decision Logic:
-        # If Quantitative and Qualitative (LLM) agree -> High Confidence
-        # If Disagree -> Lower confidence, lean towards Quantitative if confidence is high
+        # Composite score calculation
+        sentiment_score = 1.0 if "BULLISH" in sentiment else -1.0 if "BEARISH" in sentiment else 0.0
+        quant_score = (1.0 if qt_signal == "BULLISH" else -1.0 if qt_signal == "BEARISH" else 0.0) * ensemble_conf
         
-        if "BULLISH" in sentiment and qt_signal == "BULLISH":
+        total_score = (sentiment_score * 0.3) + (quant_score * 0.4) + (earnings_impact * 0.3)
+        
+        if total_score > 0.3:
             final_decision = TradingDecision.BUY
-            final_confidence = min(0.95, 0.6 + ensemble_conf * 0.4)
-        elif "BEARISH" in sentiment and qt_signal == "BEARISH":
+            final_confidence = min(0.95, 0.5 + abs(total_score))
+        elif total_score < -0.3:
             final_decision = TradingDecision.SELL
-            final_confidence = min(0.95, 0.6 + ensemble_conf * 0.4)
-        elif qt_signal == "BULLISH" and ensemble_conf > 0.75:
-             # Strong Quant override
-            final_decision = TradingDecision.BUY
-            final_confidence = ensemble_conf
-            sentiment = f"Mixed (LLM: {sentiment}, Quant: STRONG BULLISH)"
-        elif qt_signal == "BEARISH" and ensemble_conf > 0.75:
-             # Strong Quant override
-            final_decision = TradingDecision.SELL
-            final_confidence = ensemble_conf
-            sentiment = f"Mixed (LLM: {sentiment}, Quant: STRONG BEARISH)"
+            final_confidence = min(0.95, 0.5 + abs(total_score))
         else:
-            # Fallback to simple matching or HOLD
-            if "BULLISH" in sentiment:
-                final_decision = TradingDecision.BUY
-                final_confidence = 0.6
-            elif "BEARISH" in sentiment:
-                final_decision = TradingDecision.SELL
-                final_confidence = 0.6
+            final_decision = TradingDecision.HOLD
+            final_confidence = 1.0 - abs(total_score)
 
         components_str = ", ".join([f"{k}:{v}" for k, v in prediction_report.get("components", {}).items()])
         quant_reasoning = f"Quant Models: {ensemble_decision} ({ensemble_conf:.2f}). Details: [{components_str}]."
         
-        reasoning = f"Sentiment: {sentiment}. {quant_reasoning} Key Drivers: {', '.join(impact.get('key_drivers', []))}. {regime_msg}"
+        # Self-Learning context
+        lessons_learned = data.get("lessons_learned", "")
+        lessons_msg = f"\n[Self-Learning Lessons: {lessons_learned}]" if lessons_learned else ""
+
+        reasoning = f"Sentiment: {sentiment}. {quant_reasoning} {earnings_msg} Key Drivers: {', '.join(impact.get('key_drivers', []))}. {regime_msg}{lessons_msg}"
 
         analysis = self._create_response(final_decision, final_confidence, reasoning)
         self.log_analysis(analysis)

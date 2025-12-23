@@ -5,7 +5,7 @@ LightGBM予測モデル
 
 import logging
 from datetime import timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import lightgbm as lgb
 import numpy as np
@@ -21,6 +21,20 @@ logger = logging.getLogger(__name__)
 class LGBMPredictor(BasePredictor):
     def __init__(self):
         self.model = None
+        self.params = self._load_optimized_params()
+
+    def _load_optimized_params(self) -> Dict[str, Any]:
+        """Load optimized parameters if they exist."""
+        try:
+            import os
+            import json
+            if os.path.exists("model_params.json"):
+                with open("model_params.json", "r", encoding="utf-8") as f:
+                    all_params = json.load(f)
+                    return all_params.get("lgbm", {})
+        except Exception:
+            pass
+        return {}
 
     def prepare_model(self, X, y):
         """モデルの準備（LGBMでは特に必要なし）"""
@@ -32,7 +46,16 @@ class LGBMPredictor(BasePredictor):
         if len(X) != len(y):
             raise ValueError("X and y must have same length")
             
-        self.model = lgb.LGBMRegressor(n_estimators=100, learning_rate=0.05, max_depth=5, verbose=-1)
+        # Use optimized params or default
+        params = {
+            "n_estimators": 100,
+            "learning_rate": 0.05,
+            "max_depth": 5,
+            "verbose": -1
+        }
+        params.update(self.params)
+        
+        self.model = lgb.LGBMRegressor(**params)
         self.model.fit(X, y)
         return self
 

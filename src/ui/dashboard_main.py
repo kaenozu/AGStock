@@ -15,6 +15,9 @@ from src.formatters import get_risk_level
 from src.paper_trader import PaperTrader
 from src.ui_components import (display_best_pick_card, display_error_message,
                                display_sentiment_gauge)
+from src.regime_detector import RegimeDetector
+from src.strategies.orchestrator import StrategyOrchestrator
+from src.data_loader import fetch_stock_data
 
 
 def render_market_scan_tab(sidebar_config):
@@ -22,6 +25,42 @@ def render_market_scan_tab(sidebar_config):
     Renders the Market Scan tab content.
     """
     st.header("市場全体スキャン")
+    
+    # --- Phase 62: Regime & Strategy Visualization ---
+    try:
+        with st.expander("🛡️ 現在の市場レジームと戦略チーム (Active Squad)", expanded=True):
+            col1, col2 = st.columns([1, 2])
+            
+            # Fetch Nikkei for representative regime
+            data = fetch_stock_data(["^N225"], period="3mo")
+            df = data.get("^N225")
+            
+            if df is not None and not df.empty:
+                detector = RegimeDetector()
+                orchestrator = StrategyOrchestrator()
+                
+                # Detect
+                regime = detector.detect_regime(df)
+                squad = orchestrator.get_active_squad(regime)
+                
+                with col1:
+                    st.metric("Detected Regime", regime.upper().replace("_", " "))
+                    if "trending" in regime:
+                        st.caption("📈 トレンド追随モード")
+                    elif "volatility" in regime:
+                        st.caption("🌪️ アクティブ防衛モード")
+                    else:
+                        st.caption("↔️ レンジ対応モード")
+                        
+                with col2:
+                    st.markdown("**🚀 Active Strategy Squad:**")
+                    squad_names = [s.name for s in squad]
+                    st.write(", ".join([f"`{n}`" for n in squad_names]))
+            else:
+                st.info("市場データを取得してレジームを判定中...")
+    except Exception as e:
+        st.error(f"レジーム判定エラー: {e}")
+        
     st.write("指定した銘柄群に対して全戦略をバックテストし、有望なシグナルを検出します。")
 
     # Unpack config

@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 import logging
 
 import numpy as np
@@ -21,6 +21,20 @@ class FuturePredictor:
         self.lookback = 60
         self.scaler = MinMaxScaler(feature_range=(0, 1))
         self.model = None
+        self.params = self._load_optimized_params()
+
+    def _load_optimized_params(self) -> Dict[str, Any]:
+        """Load optimized parameters if they exist."""
+        try:
+            import os
+            import json
+            if os.path.exists("model_params.json"):
+                with open("model_params.json", "r", encoding="utf-8") as f:
+                    all_params = json.load(f)
+                    return all_params.get("lstm", {})
+        except Exception:
+            pass
+        return {}
 
     def prepare_model(self, X, y):
         """モデル準備"""
@@ -59,12 +73,24 @@ class FuturePredictor:
                  return
 
             self.model = Sequential()
-            self.model.add(LSTM(units=50, return_sequences=False, input_shape=(X_seq.shape[1], X_seq.shape[2])))
-            self.model.add(Dropout(0.2))
-            self.model.add(Dense(units=1))
-            self.model.compile(optimizer=Adam(learning_rate=0.001), loss="mean_squared_error")
             
-            self.model.fit(X_seq, y_seq, epochs=5, batch_size=32, verbose=0)
+            # Use optimized params
+            hidden_dim = self.params.get("hidden_dim", 50)
+            num_layers = self.params.get("num_layers", 1)
+            dropout_rate = self.params.get("dropout", 0.2)
+            lr = self.params.get("learning_rate", 0.001)
+
+            for i in range(num_layers):
+                is_last = (i == num_layers - 1)
+                self.model.add(LSTM(units=hidden_dim, return_sequences=not is_last, input_shape=(X_seq.shape[1], X_seq.shape[2])))
+                self.model.add(Dropout(dropout_rate))
+            
+            self.model.add(Dense(units=1))
+            self.model.compile(optimizer=Adam(learning_rate=lr), loss="mean_squared_error")
+            
+            epochs = self.params.get("epochs", 5)
+            batch_size = self.params.get("batch_size", 32)
+            self.model.fit(X_seq, y_seq, epochs=epochs, batch_size=batch_size, verbose=0)
             
         except Exception as e:
             logger.error(f"FuturePredictor fit error: {e}")

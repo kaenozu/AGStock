@@ -7,10 +7,11 @@ Supports: Gemini, OpenAI, Ollama
 import json
 import logging
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 try:
     import google.generativeai as genai
+    import PIL.Image
 
     HAS_GEMINI = True
 except ImportError:
@@ -38,8 +39,8 @@ class LLMReasoner:
         self.openai_client = None
 
         # Model Names
-        self.gemini_model_name = "gemini-2.0-flash"
-        self.openai_model_name = "gpt-4o-mini"  # Cost-effective
+        self.gemini_model_name = "gemini-2.0-flash-exp" # Latest experimental model
+        self.openai_model_name = "gpt-4o-mini"
         self.ollama_url = "http://localhost:11434/api/generate"
         self.ollama_model = "llama3"
 
@@ -50,30 +51,44 @@ class LLMReasoner:
         self._initialize_provider()
 
     def _load_keys_from_config(self):
-        """Load API keys from config.json"""
+        """Load API keys from config.json, ignoring placeholders."""
         try:
             with open("config.json", "r", encoding="utf-8") as f:
                 config = json.load(f)
-                self.gemini_api_key = config.get("gemini_api_key") or os.getenv("GEMINI_API_KEY")
-                self.openai_api_key = config.get("openai_api_key") or os.getenv("OPENAI_API_KEY")
+    
+                def is_valid(k):
+                    return k and k != "YOUR_API_KEY_HERE" and not k.startswith("YOUR_")
+
+                self.gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")  # From ENV
+                if not self.gemini_api_key:
+                    k = config.get("gemini_api_key") or config.get("gemini", {}).get("api_key")
+                    if is_valid(k):
+                        self.gemini_api_key = k
+
+                self.openai_api_key = os.getenv("OPENAI_API_KEY")
+                if not self.openai_api_key:
+                    k = config.get("openai_api_key") or config.get("ai_committee", {}).get("api_key")
+                    if is_valid(k):
+                        self.openai_api_key = k
+            
         except Exception as e:
             logger.warning(f"Could not load config.json: {e}")
 
     def _initialize_provider(self):
         """Set up the best available LLM provider"""
-        # Priority: OpenAI > Gemini > Ollama
-        if HAS_OPENAI and self.openai_api_key:
-            self.openai_client = OpenAI(api_key=self.openai_api_key)
-            self.provider = "openai"
-            logger.info("Using OpenAI provider.")
-        elif HAS_GEMINI and self.gemini_api_key:
+        # Priority: Gemini > OpenAI > Ollama (Flip priority to favor Gemini as requested in Phase 28/29)
+        if HAS_GEMINI and self.gemini_api_key:
             genai.configure(api_key=self.gemini_api_key)
             self.gemini_model = genai.GenerativeModel(self.gemini_model_name)
             self.provider = "gemini"
             logger.info("Using Gemini provider.")
+        elif HAS_OPENAI and self.openai_api_key:
+            self.openai_client = OpenAI(api_key=self.openai_api_key)
+            self.provider = "openai"
+            logger.info("Using OpenAI provider.")
         else:
             self.provider = "ollama"
-            logger.warning("No API keys found. Falling back to Ollama (local).")
+            logger.warning("No valid API keys found. Falling back to Ollama (local).")
 
     # --- For backward compatibility ---
     @property
@@ -109,6 +124,32 @@ class LLMReasoner:
             return self._call_gemini(prompt, json_mode=False)
         else:
             return self._call_ollama(prompt, json_mode=False)
+
+    def generate_json(self, prompt: str) -> Dict[str, Any]:
+        """構造化データ取得"""
+        if self.provider == "gemini":
+            return self._call_gemini(prompt, json_mode=True)
+        elif self.provider == "openai":
+            return self._call_openai(prompt, json_mode=True)
+        else:
+            return self._call_ollama(prompt, json_mode=True)
+
+    def analyze_image(self, image_path: str, prompt: str) -> Dict[str, Any]:
+        """画像分析 (マルチモーダル)"""
+        if self.provider != "gemini":
+            logger.warning(f"Vision analysis is only supported for Gemini. Current: {self.provider}")
+            return self._get_fallback_response("Vision not supported for this provider")
+
+        try:
+            img = PIL.Image.open(image_path)
+            response = self.gemini_model.generate_content([prompt, img])
+            text = response.text
+
+            cleaned_text = self._clean_json_text(text)
+            return json.loads(cleaned_text)
+        except Exception as e:
+            logger.error(f"Image analysis error: {e}")
+            return self._get_fallback_response(str(e))
 
     def analyze_market_impact(self, news_text: str, market_data: Dict[str, Any]) -> Dict[str, Any]:
         """ニュースと市場データからインパクトを分析"""
@@ -219,6 +260,50 @@ class LLMReasoner:
             return self._call_openai(prompt, json_mode=True)
         else:
             return self._call_ollama(prompt, json_mode=True)
+
+    def generate_strategy_code(self, description: str, class_name: str = "CustomGenStrategy") -> str:
+        """ユーザーの説明に基づいて戦略コード(Python)を生成"""
+        prompt = f"""
+        あなたはPythonのエキスパートであり、定量的トレーディングのスペシャリストです。
+        以下の要件に基づいて、`src.strategies.base.Strategy` を継承した独自の戦略クラスを実装してください。
+        
+        ## ユーザーの要件
+        "{description}"
+        
+        ## 実装ガイドライン
+        1. クラス名は `{class_name}` としてください。
+        2. `generate_signals(self, df: pd.DataFrame) -> pd.Series` メソッドを実装してください。
+           - `df` には 'Close', 'High', 'Low', 'Volume' カラムが含まれます。
+           - 戻り値は 1 (買い), -1 (売り), 0 (様子見) の Series です。
+        3. 必要なTA-Libやpandasの計算ロジックを含めてください。
+        4. 説明コメントを日本語で記述してください。
+        5. 出力はPythonコードのみ（Markdownの ```python 等は不要）にしてください。
+        
+        ## テンプレート
+        from src.strategies.base import Strategy
+        import pandas as pd
+        import talib
+        
+        class {class_name}(Strategy):
+            def __init__(self):
+                super().__init__("{class_name}")
+
+            def generate_signals(self, df: pd.DataFrame) -> pd.Series:
+                # ここにロジックを実装
+                pass
+        """
+        
+        # User Request: Prioritize Gemini 2.0 for coding tasks
+        if self.gemini_api_key:
+            if not hasattr(self, "gemini_model") or self.gemini_model is None:
+                genai.configure(api_key=self.gemini_api_key)
+                self.gemini_model = genai.GenerativeModel(self.gemini_model_name)
+
+            return self._call_gemini(prompt, json_mode=False)
+        elif self.provider == "openai":
+            return self._call_openai(prompt, json_mode=False)
+        else:
+            return self._call_ollama(prompt, json_mode=False)
 
     def _create_prompt(self, news_text: str, market_data: Dict[str, Any]) -> str:
         """プロンプト生成"""

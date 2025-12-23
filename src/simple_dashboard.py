@@ -18,14 +18,7 @@ from src.data_loader import fetch_external_data
 from src.paper_trader import PaperTrader
 
 
-def format_currency_jp(amount: float) -> str:
-    """日本円を万円形式で表示"""
-    if amount >= 100000000:
-        return f"¥{amount/100000000:.2f}億"
-    elif amount >= 10000:
-        return f"¥{amount/10000:.1f}万"
-    else:
-        return f"¥{amount:,.0f}"
+from src.utils.currency import format_currency_jp
 
 
 def _demo_mode() -> bool:
@@ -35,24 +28,27 @@ def _demo_mode() -> bool:
 
 def _apply_theme(theme: str):
     """テーマに応じた簡易CSSを注入。"""
-    if theme == "navy":
+    if theme == "dark-contrast":
         css = """
         <style>
-        .stApp {background: radial-gradient(circle at 20% 20%, #0f1a2b, #070c14);}
-        .stMetric, .stDataFrame {backdrop-filter: blur(6px);}
+        .stApp {background: #05070a;}
+        div[data-testid="stMetricValue"] { color: #f8fafc !important; }
+        div[data-testid="stMetricLabel"] { color: #94a3b8 !important; }
+        .stAlert > div { color: #000 !important; font-weight: 600; }
         </style>
         """
-    elif theme == "dark-contrast":
+    elif theme == "navy":
         css = """
         <style>
-        .stApp {background: linear-gradient(180deg, #0b0f16 0%, #0f1724 50%, #0b0f16 100%);}
-        .stMetric, .stDataFrame {backdrop-filter: blur(8px); background: rgba(20,30,45,0.7); color: #e8f0ff;}
+        .stApp {background: #0f172a;}
         </style>
         """
     else:
+        # Default/Light - but let's keep it somewhat readable
         css = """
         <style>
-        .stApp {background: linear-gradient(180deg, #f7f9fc 0%, #eef2f7 50%, #e9eef6 100%);}
+        .stApp {background: #f8fafc;}
+        * { color: #0f172a; }
         </style>
         """
     st.markdown(css, unsafe_allow_html=True)
@@ -325,6 +321,11 @@ def _show_portfolio_summary():
                 "daily_pnl": float(positions["market_value"].sum() * 0.002),
             }
         else:
+            # Force update prices to ensure PnL is fresh
+            try:
+                pt.update_positions_prices()
+            except Exception:
+                pass
             balance = pt.get_current_balance()
             positions = pt.get_positions()
 
@@ -346,7 +347,9 @@ def _show_portfolio_summary():
         if not positions.empty:
             st.subheader("保有銘柄")
             # フィルタ
-            with st.expander("フィルタ", expanded=False):
+            # フィルタ
+            with st.container():
+                st.caption("フィルタ設定")
                 show_gainers = st.checkbox("含み益のみ", value=False, key="filter_gainers")
                 show_losers = st.checkbox("含み損のみ", value=False, key="filter_losers")
                 max_mv = int(positions["market_value"].max() or 0)
@@ -397,8 +400,8 @@ def _show_performance_chart():
         if demo:
             equity_df = demo_data.generate_equity_history(days=30)
         else:
-            equity_data = pt.get_equity_history(days=30)
-            equity_df = pd.DataFrame(equity_data, columns=["date", "equity"]) if equity_data else pd.DataFrame()
+            equity_data = pt.get_equity_history()
+            equity_df = pd.DataFrame(equity_data, columns=["date", "equity"]) if equity_data is not None and not equity_data.empty else pd.DataFrame()
 
         if not equity_df.empty:
             df = equity_df.copy()
@@ -435,8 +438,8 @@ def _return_distribution():
         if demo:
             equity_df = demo_data.generate_equity_history(days=90)
         else:
-            equity_data = pt.get_equity_history(days=120)
-            equity_df = pd.DataFrame(equity_data, columns=["date", "equity"]) if equity_data else pd.DataFrame()
+            equity_data = pt.get_equity_history()
+            equity_df = pd.DataFrame(equity_data, columns=["date", "equity"]) if equity_data is not None and not equity_data.empty else pd.DataFrame()
 
         if equity_df.empty:
             st.info("リターンデータがありません")
@@ -504,7 +507,7 @@ def _show_stat_cards():
         pt = PaperTrader()
         hist = pt.get_trade_history(limit=500)
         equity_df = pt.get_equity_history()
-        equity = pd.DataFrame(equity_df, columns=["date", "total_equity"]) if equity_df else pd.DataFrame()
+        equity = pd.DataFrame(equity_df, columns=["date", "total_equity"]) if equity_df is not None and len(equity_df) > 0 else pd.DataFrame()
         pt.close()
 
     win_rate = 0.0
@@ -553,7 +556,7 @@ def create_simple_dashboard():
     
     # テーマ & シナリオ (サイドバー)
     # Note: If running inside app.py tabs, sidebar elements will appear in the main sidebar.
-    theme_choice = st.sidebar.selectbox("テーマ", ["light", "navy", "dark-contrast"], index=0)
+    theme_choice = st.sidebar.selectbox("テーマ", ["dark-contrast", "navy", "light"], index=0)
     _apply_theme(theme_choice)
     _scenario_controls()
 

@@ -353,3 +353,22 @@ class SmartNotifier(Notifier):
         discord_config = self.notification_settings.get("discord", {})
         if discord_config.get("enabled"):
             self.send_discord_webhook(message, webhook_url=discord_config.get("webhook_url"))
+
+    def notify(self, message: str, title: str = "AGStock Alert"):
+        """
+        汎用通知メソッド
+        
+        Args:
+            message: 通知メッセージ
+            title: タイトル（Discord用）
+        """
+        # LINE通知
+        line_config = self.notification_settings.get("line", {})
+        if line_config.get("enabled"):
+            self.send_line_notify(message, token=line_config.get("token"))
+
+        # Discord通知
+        discord_config = self.notification_settings.get("discord", {})
+        if discord_config.get("enabled"):
+            full_msg = f"**{title}**\n{message}"
+            self.send_discord_webhook(full_msg, webhook_url=discord_config.get("webhook_url"))

@@ -33,7 +33,7 @@ from src.data_preprocessing import preprocess_for_prediction
 from src.enhanced_features import generate_enhanced_features
 from src.fundamental_analyzer import FundamentalAnalyzer
 from src.future_predictor import FuturePredictor
-from src.hyperparameter_optimizer import MultiModelOptimizer
+from src.optimization import MultiModelOptimizer
 from src.lgbm_predictor import LGBMPredictor
 from src.mlops_manager import MLopsManager
 from src.multi_asset_analytics import MultiAssetPredictor

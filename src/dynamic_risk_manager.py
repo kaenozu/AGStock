@@ -62,8 +62,8 @@ class DynamicRiskManager:
             "stop_loss": base_params["stop_loss"] * volatility_adjustment,
             "take_profit": base_params["take_profit"] * volatility_adjustment,
             "position_size": base_params["position_size"] / volatility_adjustment,
-            "strategy": base_params["strategy"],
-            "description": base_params["description"],
+            "strategy": base_params.get("strategy", "unknown"),
+            "description": base_params.get("description", "No description available"),
             "volatility_adjustment": volatility_adjustment,
         }
 
