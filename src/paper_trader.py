@@ -97,6 +97,19 @@ class PaperTrader:
         except Exception as e:
             logger.error(f"Database initialization error: {e}")
 
+    def _load_positions(self) -> pd.DataFrame:
+        """Load raw positions data from the database.
+
+        This helper is used by both ``get_current_balance`` and
+        ``get_positions`` so that balance calculations don't depend on a
+        public method that might be removed during refactors.
+        """
+        try:
+            return pd.read_sql_query('SELECT * FROM positions', self.conn)
+        except Exception as e:
+            logger.error(f"Failed to load positions: {e}")
+            return pd.DataFrame()
+
     def get_current_balance(self) -> Dict[str, float]:
         """Get current cash and total equity"""
         cursor = self.conn.cursor()
@@ -104,12 +117,13 @@ class PaperTrader:
         row = cursor.fetchone()
 
         # Get positions to calculate invested amount and unrealized PnL
-        positions = self.get_positions()
+        positions = self._load_positions()
         invested_amount = 0.0
         unrealized_pnl = 0.0
 
         if not positions.empty:
             invested_amount = (positions['quantity'] * positions['entry_price']).sum()
+            # ``unrealized_pnl`` may not be present if prices haven't been updated yet.
             unrealized_pnl = positions['unrealized_pnl'].sum() if 'unrealized_pnl' in positions.columns else 0.0
 
         if row:
@@ -127,20 +141,22 @@ class PaperTrader:
         }
 
     def get_positions(self) -> pd.DataFrame:
-        """Get current open positions with calculated market values"""
-        try:
-            df = pd.read_sql_query('SELECT * FROM positions', self.conn)
-        except Exception:
-            return pd.DataFrame()
+        """Get current open positions with calculated market values."""
+        df = self._load_positions()
 
         if df.empty:
             # Return empty with expected columns
-            empty_df = pd.DataFrame(columns=['ticker', 'quantity', 'entry_price', 'current_price',
-                                       'unrealized_pnl', 'market_value', 'unrealized_pnl_pct'])
-            # Ensure index is set even for empty df if downstream expects it
-            return empty_df.set_index('ticker', drop=False) if not empty_df.empty else empty_df
+            empty_df = pd.DataFrame(columns=[
+                'ticker', 'quantity', 'entry_price', 'current_price',
+                'unrealized_pnl', 'market_value', 'unrealized_pnl_pct'
+            ])
+            return empty_df
 
-        # Add calculated columns
+        # Ensure required numeric columns exist before calculations
+        for column in ['quantity', 'entry_price', 'current_price']:
+            if column not in df.columns:
+                df[column] = 0
+
         df['market_value'] = df['quantity'] * df['current_price']
         df['unrealized_pnl'] = (df['current_price'] - df['entry_price']) * df['quantity']
         # Avoid division by zero
