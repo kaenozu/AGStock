@@ -1,7 +1,14 @@
+import datetime
 import plotly.io as pio
 import streamlit as st
 
 from src.cache_config import install_cache
+# 新機能インポート
+try:
+    from src.ui.shortcuts import KeyboardShortcuts
+    SHORTCUTS_AVAILABLE = True
+except ImportError:
+    SHORTCUTS_AVAILABLE = False
 from src.constants import MARKETS, NIKKEI_225_TICKERS, TICKER_NAMES
 from src.logger_config import setup_logging
 from src.simple_dashboard import create_simple_dashboard
@@ -68,7 +75,7 @@ except FileNotFoundError:
     try:
         with open("assets/style_v3.css") as f:
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-    except:
+    except Exception:
         pass
 
 # Inject keyboard shortcuts
