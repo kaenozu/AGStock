@@ -239,7 +239,7 @@ def generate_final_report():
     
     try:
         results['resources'] = check_system_resources()
-    except:
+    except Exception:
         print("⚠️ Could not check system resources (psutil not installed)")
         results['resources'] = None
     

@@ -78,7 +78,7 @@ def test_phase30_dynasty():
         if os.path.exists("data/test_dynasty.json"): os.remove("data/test_dynasty.json")
         import shutil
         if os.path.exists("data/test_terminus"): shutil.rmtree("data/test_terminus")
-    except:
+    except Exception:
         pass
 
 if __name__ == "__main__":
