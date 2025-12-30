@@ -1,7 +1,3 @@
-import streamlit as st
-import numpy as np
-import plotly.graph_objects as go
-from src.analysis.monte_carlo import MonteCarloSimulator
 
 
 def render_parallel_worlds():
@@ -14,17 +10,13 @@ def render_parallel_worlds():
     #
     #     col1, col2 = st.columns([1, 3])
     #     with col1:
-    pass
     #         st.subheader("Parameters")
     #         initial_capital = st.number_input("Current Equity", value=1000000)
     #         years = st.slider("Horizon (Years)", 1, 10, 3)
     #
     #     with col2:
-    pass
     #         if st.button("🚀 Run Simulation"):
-    pass
     #             with st.spinner("Calculating..."):
-    pass
 
 
 #                 mc = MonteCarloSimulator(iterations=100, days=years * 252)

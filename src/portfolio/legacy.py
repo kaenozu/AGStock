@@ -1,14 +1,15 @@
-from typing import Any, Dict, List
-import numpy as np
+from typing import Any, Dict
 import pandas as pd
 import logging
 
 logger = logging.getLogger(__name__)
 
+
 class PortfolioManager:
     """
     Handles portfolio-level simulations and balancing.
     """
+
     def __init__(
         self,
         initial_capital: float = 1000000.0,
@@ -27,16 +28,16 @@ class PortfolioManager:
         for ticker, df in data_map.items():
             if df is not None and not df.empty:
                 close_prices[ticker] = df["Close"]
-        
+
         if not close_prices:
             return pd.DataFrame()
-        
+
         return pd.DataFrame(close_prices).pct_change().corr()
 
     def simulate_rebalancing(
-        self, 
-        data_map: Dict[str, pd.DataFrame], 
-        initial_weights: Dict[str, float], 
+        self,
+        data_map: Dict[str, pd.DataFrame],
+        initial_weights: Dict[str, float],
         rebalance_freq_days: int = 20
     ) -> Dict[str, Any]:
         """

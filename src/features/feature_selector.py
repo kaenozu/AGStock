@@ -4,7 +4,6 @@ Selects the most important features to prevent overfitting.
 """
 
 import logging
-from typing import List, Tuple
 import numpy as np
 import pandas as pd
 import shap

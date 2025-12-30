@@ -9,7 +9,7 @@ import json
 import logging
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class ArchiveManager:
         self.decisions_dir = os.path.join(archive_dir, "decisions")
         self.knowledge_dir = os.path.join(archive_dir, "knowledge")
         self.predictions_dir = os.path.join(archive_dir, "predictions")
-        
+
         for directory in [self.decisions_dir, self.knowledge_dir, self.predictions_dir]:
             os.makedirs(directory, exist_ok=True)
 
@@ -41,7 +41,7 @@ class ArchiveManager:
         Returns the archive_id (hash-based immutable reference).
         """
         timestamp = datetime.now()
-        
+
         archive_entry = {
             "archive_version": "1.0-ETERNAL",
             "timestamp": timestamp.isoformat(),
@@ -73,7 +73,7 @@ class ArchiveManager:
         date_path = timestamp.strftime("%Y/%m")
         save_dir = os.path.join(self.decisions_dir, date_path)
         os.makedirs(save_dir, exist_ok=True)
-        
+
         filename = f"{timestamp.strftime('%Y%m%d_%H%M%S')}_{ticker}_{archive_id[:8]}.json"
         filepath = os.path.join(save_dir, filename)
 
@@ -98,7 +98,7 @@ class ArchiveManager:
         """Archives a prediction for future verification."""
         timestamp = datetime.now()
         prediction_id = hashlib.sha256(f"{ticker}{timestamp.isoformat()}{model_name}".encode()).hexdigest()
-        
+
         prediction_entry = {
             "prediction_id": prediction_id,
             "timestamp": timestamp.isoformat(),
@@ -116,7 +116,7 @@ class ArchiveManager:
         date_path = timestamp.strftime("%Y/%m")
         save_dir = os.path.join(self.predictions_dir, date_path)
         os.makedirs(save_dir, exist_ok=True)
-        
+
         filename = f"pred_{timestamp.strftime('%Y%m%d_%H%M%S')}_{ticker}.json"
         filepath = os.path.join(save_dir, filename)
 
@@ -138,12 +138,12 @@ class ArchiveManager:
             for file in files:
                 if not file.startswith("pred_"):
                     continue
-                
+
                 filepath = os.path.join(root, file)
                 try:
                     with open(filepath, "r", encoding="utf-8") as f:
                         pred = json.load(f)
-                    
+
                     if pred.get("verification_status") == "VERIFIED":
                         continue
 
@@ -153,21 +153,21 @@ class ArchiveManager:
                     if (datetime.now() - pred_time).total_seconds() / 3600 >= horizon_hours:
                         ticker = pred["ticker"]
                         actual = current_market_data.get(ticker, {}).get("Close")
-                        
+
                         if actual is not None:
                             pred["actual_outcome"] = float(actual)
                             pred["verification_status"] = "VERIFIED"
                             pred["verification_date"] = datetime.now().isoformat()
                             pred["error"] = abs(pred["predicted_value"] - actual)
-                            
+
                             with open(filepath, "w", encoding="utf-8") as f:
                                 json.dump(pred, f, indent=2, ensure_ascii=False)
-                            
+
                             verified_count += 1
                             if abs(pred["error"] / actual) < 0.05:  # 5% margin
                                 correct_predictions += 1
                             total_error += pred["error"]
-                            
+
                 except Exception as e:
                     logger.error(f"Verification error in {file}: {e}")
 
@@ -187,7 +187,8 @@ class ArchiveManager:
         if not debate:
             return 0.0
         decisions = [a.get("decision", "HOLD") for a in debate]
-        if not decisions: return 0.0
+        if not decisions:
+            return 0.0
         most_common = max(set(decisions), key=decisions.count)
         return decisions.count(most_common) / len(decisions)
 
@@ -196,9 +197,12 @@ class ArchiveManager:
         h_lower = horizon.lower()
         try:
             val = float(h_lower.split()[0])
-            if "day" in h_lower: return val * 24
-            if "hour" in h_lower: return val
-            if "week" in h_lower: return val * 24 * 7
-        except:
+            if "day" in h_lower:
+                return val * 24
+            if "hour" in h_lower:
+                return val
+            if "week" in h_lower:
+                return val * 24 * 7
+        except BaseException:
             pass
         return 24.0

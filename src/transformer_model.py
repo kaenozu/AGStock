@@ -4,8 +4,7 @@ Temporal Fusion Transformer (TFT) モデルの実装
 """
 
 import logging
-import os
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -144,7 +143,7 @@ class VariableSelectionNetwork(layers.Layer):
         # Apply gates to inputs
         outputs = []
         for i in range(self.n_inputs):
-            output = v[:, :, i : i + 1, :] * x[i]
+            output = v[:, :, i: i + 1, :] * x[i]
             outputs.append(output)
 
         outputs = tf.reduce_sum(outputs, axis=2)  # [batch, time, units]
@@ -246,14 +245,14 @@ class TemporalFusionTransformer(keras.Model):
         # Variable selection
         if self.input_size > 1:
             # Split features for variable selection (simplified approach)
-            input_list = [inputs[:, :, i : i + 1] for i in range(inputs.shape[2])]
+            input_list = [inputs[:, :, i: i + 1] for i in range(inputs.shape[2])]
             x = self.var_selection(input_list)
         else:
             x = inputs
 
         # Split into encoder and decoder parts
         encoder_input = x[:, : -self.forecast_horizon, :]
-        decoder_input = x[:, -self.forecast_horizon :, :]
+        decoder_input = x[:, -self.forecast_horizon:, :]
 
         # Encode
         encoded = self.encoder(encoder_input)
@@ -297,8 +296,8 @@ class TemporalFusionTransformer(keras.Model):
 
         X, y = [], []
         for i in range(sequence_length, len(features) - forecast_horizon):
-            X.append(features[i - sequence_length : i])
-            y.append(targets[i : i + forecast_horizon])
+            X.append(features[i - sequence_length: i])
+            y.append(targets[i: i + forecast_horizon])
 
         return np.array(X, dtype=np.float32), np.array(y, dtype=np.float32)
 

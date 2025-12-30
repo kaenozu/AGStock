@@ -136,8 +136,8 @@ class ParallelBacktester:
 
             # ウォークフォワードウィンドウ生成
             for i in range(0, len(data) - train_size - test_size, test_size):
-                train_data = data.iloc[i : i + train_size]
-                test_data = data.iloc[i + train_size : i + train_size + test_size]
+                train_data = data.iloc[i: i + train_size]
+                test_data = data.iloc[i + train_size: i + train_size + test_size]
 
                 tasks.append((ticker, strategy, train_data, test_data, i, kwargs))
 
@@ -212,12 +212,12 @@ def benchmark_backtest_speed():
     # マルチプロセス
     start = time.time()
     backtester = ParallelBacktester()
-    results_parallel = backtester.run_parallel_backtest(tickers, strategies, data_map)
+    backtester.run_parallel_backtest(tickers, strategies, data_map)
     parallel_time = time.time() - start
 
     print(f"Single-threaded: {single_time:.2f}s")
     print(f"Multi-process: {parallel_time:.2f}s")
-    print(f"Speedup: {single_time/parallel_time:.2f}x")
+    print(f"Speedup: {single_time / parallel_time:.2f}x")
 
 
 if __name__ == "__main__":

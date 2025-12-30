@@ -4,8 +4,8 @@ Global Market Access - 世界市場アクセス
 """
 
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from datetime import datetime
+from typing import Dict
 
 import pandas as pd
 import yfinance as yf

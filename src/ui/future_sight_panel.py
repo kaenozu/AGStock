@@ -1,7 +1,3 @@
-import streamlit as st
-import plotly.graph_objects as go
-import pandas as pd
-from src.evolution.future_sight import FutureSightEngine
 # def render_future_sight_chart(ticker: str, df: pd.DataFrame):
 #     st.markdown(f"""" 🔮 AI Future Sight: {ticker}")
 #         engine = FutureSightEngine()

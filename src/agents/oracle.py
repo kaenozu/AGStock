@@ -2,23 +2,23 @@ import os
 import google.generativeai as genai
 import json
 import logging
-from pathlib import Path
-from typing import List, Dict, Any
-from src.paths import DATA_DIR, LOGS_DIR
+from src.paths import DATA_DIR
 
 logger = logging.getLogger(__name__)
 
+
 class AGStockOracle:
     """
-    AI assistant that knows everything about the system's decisions, 
+    AI assistant that knows everything about the system's decisions,
     portfolio, and market outlook. Uses meeting minutes and state for RAG.
     """
+
     def __init__(self):
         self.api_key = os.getenv("GOOGLE_API_KEY")
         if self.api_key:
             genai.configure(api_key=self.api_key)
             self.model = genai.GenerativeModel("gemini-1.5-flash")
-        
+
     def ask(self, query: str) -> str:
         """Answers user query by looking at system context."""
         if not self.api_key:
@@ -26,7 +26,7 @@ class AGStockOracle:
 
         # 1. Fetch Context (Recent Minutes, Regime, Trends)
         context = self._get_system_context()
-        
+
         prompt = f"""
         あなたは「AGStock Oracle」という、高度な自律型投資システムの専属AIアシスタントです。
         以下のシステム内コンテキスト（最新の会議録、市場レジーム、取引履歴の要約）に基づき、
@@ -51,7 +51,7 @@ class AGStockOracle:
     def _get_system_context(self) -> str:
         """Collects relevant files and states as context."""
         ctx = []
-        
+
         # Latest meeting minutes (last 3 tickers)
         minutes_dir = DATA_DIR / "meeting_minutes"
         if minutes_dir.exists():
@@ -61,13 +61,14 @@ class AGStockOracle:
                     with open(f, "r", encoding="utf-8") as file:
                         data = json.load(file)
                         ctx.append(f"Meeting for {f.stem}: {str(data[-1])[:500]}")
-                except Exception: continue
-        
+                except Exception:
+                    continue
+
         # State
         try:
             from src.utils.state_engine import state_engine
             ctx.append(f"Current System State: {state_engine.state}")
         except Exception:
             ctx.append("System state unavailable.")
-        
+
         return "\n\n".join(ctx)

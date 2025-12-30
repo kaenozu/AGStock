@@ -4,10 +4,8 @@
 計算と集計を分離することで、単一責任の原則を適用します。
 """
 
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
-import numpy as np
 import pandas as pd
 
 

@@ -1,16 +1,17 @@
 import pandas as pd
 import numpy as np
 import logging
-from typing import Optional
 from src.strategies.base import Strategy
 
 logger = logging.getLogger(__name__)
+
 
 class VectorizedCombinedStrategy(Strategy):
     """
     高性能ベクトル演算版戦略エンジン。
     NumPyとPandasのベクトル化を利用して、全銘柄のシグナルをミリ秒単位で計算する。
     """
+
     def __init__(self):
         super().__init__("VectorizedCombined")
 
@@ -24,19 +25,19 @@ class VectorizedCombinedStrategy(Strategy):
         # 1. テクニカル指標の計算 (ベクトル演算)
         try:
             close = df['Close'].values
-            
+
             # 移動平均 (SMA)
             sma20 = df['Close'].rolling(window=20).mean().values
             sma50 = df['Close'].rolling(window=50).mean().values
-            
+
             # RSI (ベクトル化された計算)
             delta = df['Close'].diff().values
             gain = np.where(delta > 0, delta, 0)
             loss = np.where(delta < 0, -delta, 0)
-            
+
             avg_gain = pd.Series(gain).rolling(window=14).mean().values
             avg_loss = pd.Series(loss).rolling(window=14).mean().values
-            
+
             rs = np.divide(avg_gain, avg_loss, out=np.zeros_like(avg_gain), where=avg_loss != 0)
             rsi = 100 - (100 / (1 + rs))
 
@@ -50,7 +51,7 @@ class VectorizedCombinedStrategy(Strategy):
             signals = np.zeros(len(df))
             signals[buy_signals] = 1
             signals[sell_signals] = -1
-            
+
             return pd.Series(signals, index=df.index)
         except Exception as e:
             logger.error(f"Vectorized signal generation failed: {e}")

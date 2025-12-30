@@ -9,13 +9,12 @@
 import logging
 import warnings
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import numpy as np
 import pandas as pd
 import pytz
 import yfinance as yf
-from pandas.tseries.offsets import BDay
 
 from src.base_predictor import BasePredictor
 

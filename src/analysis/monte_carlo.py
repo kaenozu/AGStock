@@ -1,6 +1,3 @@
-import numpy as np
-import pandas as pd
-from typing import Dict, Any, List
 
 
 class MonteCarloSimulator:
@@ -13,12 +10,10 @@ class MonteCarloSimulator:
 
 
 def __init__(self, iterations: int = 1000, days: int = 252):
-    pass
     self.iterations = iterations
     self.days = days
 
     #     def simulate(self, initial_value: float, mu: float, sigma: float) -> Dict[str, Any]:
-    pass
 
 
 #         """

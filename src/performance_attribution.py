@@ -46,7 +46,7 @@ class PerformanceAttribution:
         # OLS regression
         try:
             beta = np.linalg.lstsq(X, y, rcond=None)[0]
-        except:
+        except BaseException:
             return {}
 
         alpha = beta[0] * 252  # Annualize

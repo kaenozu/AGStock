@@ -4,8 +4,8 @@ Tracks prediction quality in real-time and detects concept drift.
 """
 
 import logging
-from typing import Dict, List, Optional
-from datetime import datetime, timedelta
+from typing import Dict, Optional
+from datetime import datetime
 from collections import deque
 import numpy as np
 import pandas as pd
@@ -121,8 +121,8 @@ class PredictionMonitor:
 
         # Keep only recent history
         if len(self.rolling_accuracy) > self.window_size:
-            self.rolling_accuracy = self.rolling_accuracy[-self.window_size :]
-            self.rolling_mape = self.rolling_mape[-self.window_size :]
+            self.rolling_accuracy = self.rolling_accuracy[-self.window_size:]
+            self.rolling_mape = self.rolling_mape[-self.window_size:]
 
         return metrics
 

@@ -161,7 +161,7 @@ class AuthManager:
 
             cursor.execute(
                 """
-                SELECT locked_until FROM users 
+                SELECT locked_until FROM users
                 WHERE username = ? AND locked_until > datetime('now')
             """,
                 (username,),
@@ -176,7 +176,7 @@ class AuthManager:
 
             cursor.execute(
                 """
-                UPDATE users 
+                UPDATE users
                 SET failed_login_attempts = failed_login_attempts + 1
                 WHERE username = ?
             """,
@@ -196,7 +196,7 @@ class AuthManager:
                 locked_until = datetime.utcnow() + self.LOCKOUT_DURATION
                 cursor.execute(
                     """
-                    UPDATE users 
+                    UPDATE users
                     SET locked_until = ?
                     WHERE username = ?
                 """,
@@ -212,7 +212,7 @@ class AuthManager:
 
             cursor.execute(
                 """
-                UPDATE users 
+                UPDATE users
                 SET failed_login_attempts = 0, locked_until = NULL
                 WHERE username = ?
             """,

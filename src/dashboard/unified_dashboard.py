@@ -35,7 +35,7 @@ st.markdown(
     .main {
         padding: 1rem;
     }
-    
+
     /* メトリックカード */
     .metric-card {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -45,28 +45,28 @@ st.markdown(
         margin: 5px 0;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    
+
     .metric-value {
         font-size: 1.8em;
         font-weight: bold;
         margin: 5px 0;
     }
-    
+
     .metric-label {
         font-size: 0.9em;
         opacity: 0.9;
     }
-    
+
     /* タブスタイル */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
     }
-    
+
     .stTabs [data-baseweb="tab"] {
         padding: 10px 20px;
         border-radius: 5px 5px 0 0;
     }
-    
+
     /* ボタン */
     .stButton > button {
         width: 100%;
@@ -158,7 +158,6 @@ def show_quick_stats():
 
 def check_and_execute_missed_trades():
     """前日の取引漏れをチェック"""
-    pass
 
 
 def main():
@@ -201,18 +200,18 @@ def main():
             - ポートフォリオの健康度を確認
             - AIの推奨アクションを確認
             - 承認/却下ボタンで取引実行
-            
+
 ### 📊 週末戦略タブ
             **週末30分で振り返り**
             - 今週の成績を確認
             - AIの戦略アドバイスを確認
             - 来週の方針を決定
-            
+
 ### ⚙️ 設定タブ
             - 初期資金の設定
             - リスク許容度の調整
             - 通知設定
-            
+
 ### 💡 Tips
             - 最初は「却下」で様子見推奨
             - 信頼度80%以上のみ承認
@@ -261,17 +260,17 @@ def main():
                 """
 ### ステップ1️⃣: このダッシュボードを見る
             今、あなたはここにいます！ ✅
-            
+
 ### ステップ2️⃣: 「🌅 朝活」タブをクリック
             ↑ 上のタブをクリックしてください
-            
+
 ### ステップ3️⃣: AIの推奨を見る（押さない！）
             - 最初の3日間は**「見るだけ」**
             - 慣れてから「✅承認」ボタンを押す
             - **1日1件まで**
-            
+
             ---
-            
+
 ### 💡 重要なポイント
             - これは**練習モード**（本当のお金は動きません）
             - 焦らず、ゆっくり慣れましょう

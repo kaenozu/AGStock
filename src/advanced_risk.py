@@ -8,7 +8,6 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 from typing import Dict, List
-import warnings
 
 # yfinance が使用される場合は、ここでインポート
 try:
@@ -101,7 +100,8 @@ class AdvancedRiskManager:
                 )
 
             logger.warning(
-                f"Drawdown protection triggered. Daily loss: {daily_change_pct:.2f}% exceeded threshold: {self.max_daily_loss_pct:.2f}%"
+                f"Drawdown protection triggered. Daily loss: {
+                    daily_change_pct:.2f}% exceeded threshold: {self.max_daily_loss_pct:.2f}%"
             )
             # 日本語のreasonを設定
             reason_jp = f"損失率が{self.max_daily_loss_pct:.2f}%を超過しています。緊急決済します。"
@@ -155,7 +155,8 @@ class AdvancedRiskManager:
                 # 閾値を下回っていたらクラッシュと判定
                 # market_crash_threshold は百分率で保存されているため、100倍は不要
                 if daily_change_pct < self.market_crash_threshold:
-                    reason = f"{name} ({symbol}) が前日比で{daily_change_pct:.2f}%急落し、クラッシュ検知閾値({self.market_crash_threshold:.2f}%)を下回りました。"
+                    reason = f"{name} ({symbol}) が前日比で{daily_change_pct:.2f}%急落し、クラッシュ検知閾値({
+                        self.market_crash_threshold:.2f}%)を下回りました。"
                     logger.warning(reason)
                     return False, reason
 
@@ -260,7 +261,8 @@ class AdvancedRiskManager:
 
             # デバッグ出力を追加
             logger.debug(
-                f"Correlation calc: ticker={ticker}, existing_ticker={existing_ticker}, correlation={correlation}, abs(correlation)={abs(correlation)}, threshold={self.max_correlation}, condition={abs(correlation) > self.max_correlation}"
+                f"Correlation calc: ticker={ticker}, existing_ticker={existing_ticker}, correlation={correlation}, abs(correlation)={abs(
+                    correlation)}, threshold={self.max_correlation}, condition={abs(correlation) > self.max_correlation}"
             )
 
             if pd.isna(correlation):
@@ -274,10 +276,12 @@ class AdvancedRiskManager:
 
             # 閾値を超えたら危険
             print(
-                f"DEBUG: Checking if abs({correlation}) > {self.max_correlation} -> {abs(correlation) > self.max_correlation}"
+                f"DEBUG: Checking if abs({correlation}) > {
+                    self.max_correlation} -> {abs(correlation) > self.max_correlation}"
             )
             if abs(correlation) > self.max_correlation:
-                reason = f"{ticker} と {existing_ticker} の相関係数 ({correlation:.3f}) が閾値 ({self.max_correlation:.2f}) を超えています。相関が高すぎる。"
+                reason = f"{ticker} と {existing_ticker} の相関係数 ({correlation:.3f}) が閾値 ({
+                    self.max_correlation:.2f}) を超えています。相関が高すぎる。"
                 logger.warning(reason)
                 print(f"DEBUG: High correlation detected, returning False")
                 return False, reason
@@ -362,7 +366,7 @@ class AdvancedRiskManager:
 
     def _interpret_var(self, var: float) -> str:
         """VaRの解釈を返す"""
-        return f"At {self.confidence_level*100:.0f}% confidence, expected loss is {abs(var)*100:.2f}%"
+        return f"At {self.confidence_level * 100:.0f}% confidence, expected loss is {abs(var) * 100:.2f}%"
 
     def stress_test(self, baseline_returns: pd.Series, scenarios: List[Dict]) -> Dict:
         """
@@ -398,7 +402,7 @@ class AdvancedRiskManager:
         Returns:
             np.ndarray: 風险均等分配のウェイト
         """
-        n_assets = returns.shape[1]
+        returns.shape[1]
         volatilities = returns.std().values  # 各資産のボラティリティ
 
         # 簡易リスクパリティ（ボラティリティの逆数に比例）

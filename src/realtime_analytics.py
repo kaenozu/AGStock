@@ -7,26 +7,21 @@
 """
 
 import asyncio
-import copy
-import json
 import logging
 import os
-import pickle
 import queue
 import threading
 import time
 from collections import defaultdict, deque
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
+from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-import websockets
 import yfinance as yf
 
-from src.base_predictor import BasePredictor
 
 logger = logging.getLogger(__name__)
 

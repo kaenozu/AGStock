@@ -3,7 +3,6 @@ Enhanced Performance Dashboard
 ベンチマーク比較機能を含む高度なパフォーマンスダッシュボード
 """
 
-from datetime import datetime, timedelta
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -11,7 +10,7 @@ import streamlit as st
 
 from src.benchmark_comparator import BenchmarkComparator
 from src.design_tokens import Colors
-from src.formatters import format_currency, format_percentage
+from src.formatters import format_percentage
 from src.paper_trader import PaperTrader
 
 
@@ -23,7 +22,7 @@ def create_performance_dashboard():
 
     # データ取得
     pt = PaperTrader()
-    balance = pt.get_current_balance()
+    pt.get_current_balance()
     equity_history = pt.get_equity_history()
 
     if equity_history.empty:
@@ -263,7 +262,7 @@ def create_performance_dashboard():
 
         # 統計
         st.caption(
-            f"平均: {portfolio_returns_aligned.mean()*100:.2f}% | 標準偏差: {portfolio_returns_aligned.std()*100:.2f}%"
+            f"平均: {portfolio_returns_aligned.mean() * 100:.2f}% | 標準偏差: {portfolio_returns_aligned.std() * 100:.2f}%"
         )
 
     with col_dist2:
@@ -288,7 +287,7 @@ def create_performance_dashboard():
 
         # 統計
         st.caption(
-            f"平均: {benchmark_returns_aligned.mean()*100:.2f}% | 標準偏差: {benchmark_returns_aligned.std()*100:.2f}%"
+            f"平均: {benchmark_returns_aligned.mean() * 100:.2f}% | 標準偏差: {benchmark_returns_aligned.std() * 100:.2f}%"
         )
 
     st.divider()

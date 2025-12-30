@@ -148,7 +148,7 @@ def render_past_decisions():
             with col2:
                 ret = l["return_1w"]
                 if ret is not None:
-                    st.metric("収益率", f"{ret*100:+.2f}%")
+                    st.metric("収益率", f"{ret * 100:+.2f}%")
                 else:
                     st.write("結果待ち...")
 
@@ -176,7 +176,7 @@ def _render_filing_watcher_ui():
     with col1:
         watch_dir = st.text_input("監視ディレクトリ", value="./data/new_filings")
     with col2:
-        interval = st.slider("確認間隔 (秒)", 10, 300, 60)
+        st.slider("確認間隔 (秒)", 10, 300, 60)
 
     if "filing_watcher_running" not in st.session_state:
         st.session_state.filing_watcher_running = False

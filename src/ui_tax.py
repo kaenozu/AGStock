@@ -2,7 +2,6 @@
 Tax Calculator UI - 税務計算ダッシュボード
 """
 
-import pandas as pd
 import streamlit as st
 
 from src.paper_trader import PaperTrader

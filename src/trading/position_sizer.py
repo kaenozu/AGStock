@@ -6,7 +6,6 @@ Dynamically calculates position sizes based on multiple factors.
 import logging
 from typing import Dict, Optional
 import numpy as np
-import pandas as pd
 
 from src.kelly_criterion import KellyCriterion
 from src.types import TradeSignal, PortfolioPosition, MarketRegime
@@ -161,7 +160,7 @@ class IntelligentPositionSizer:
         if regime is None:
             return 1.0
 
-        regime_type = regime.get("regime", "neutral")
+        regime.get("regime", "neutral")
         vix_level = regime.get("vix_level", 20.0)
 
         # Adjust based on VIX

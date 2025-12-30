@@ -6,7 +6,6 @@ import logging
 
 import lightgbm as lgb
 import optuna
-from sklearn.metrics import accuracy_score
 from sklearn.model_selection import KFold, cross_val_score
 
 logger = logging.getLogger(__name__)

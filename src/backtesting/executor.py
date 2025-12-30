@@ -8,7 +8,6 @@ from typing import Any, Dict, List, Optional, Union
 import numpy as np
 import pandas as pd
 
-from src.logger_config import logger
 from src.strategies.base import Order, OrderType
 
 

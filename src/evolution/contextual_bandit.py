@@ -1,8 +1,5 @@
-import numpy as np
-import json
-import os
 import logging
-from typing import Dict, List, Any
+from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +15,6 @@ class ContextualBandit:
 
 
 def __init__(self, model_path: str = "contextual_bandit_model.json"):
-    pass
     self.model_path = model_path
     # model = { regime_key: { strategy_name: { alpha: X, beta: Y } } }
     # Using Thompson Sampling (Beta Distribution) for each strategy in each regime.
@@ -27,7 +23,6 @@ def __init__(self, model_path: str = "contextual_bandit_model.json"):
     #     def get_weights(
     #         self, context: Dict[str, Any], strategies: List[str]
     #     ) -> Dict[str, float]:
-    pass
     #         """
     #                 Samples weights for each strategy based on current context using Thompson Sampling.
     #                         regime = self._get_regime_key(context)

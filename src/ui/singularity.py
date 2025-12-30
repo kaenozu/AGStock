@@ -1,7 +1,3 @@
-import streamlit as st
-import os
-from src.core.evo_coder import EvoCoder
-from src.ui.styles import DS
 
 
 def render_singularity_core():
@@ -31,63 +27,45 @@ def render_singularity_core():
     #             name_input = st.text_input("Strategy Name (Optional)", placeholder="MySuperStrategy")
     #             generate_btn = st.button("🧬 Evolve New Strategy", type="primary")
     #         with col2:
-    pass
     #             st.subheader("Genome Preview (Code)")
     #         code_placeholder = st.empty()
     #             if generate_btn:
-    pass
     #                 if not prompt:
-    pass
     #                     st.error("Please define the strategy logic first.")
     #             else:
-    pass
     #                 with st.spinner("Compiling genetic code..."):
-    pass
     #                     try:
-    pass
     #                         evo = EvoCoder()
     #                         filename = evo.evolve_strategy(prompt, generated_name=name_input or None)
     # # Read back the file
     #                         filepath = os.path.join(evo.output_dir, filename)
     #                         with open(filepath, "r", encoding="utf-8") as f:
-    pass
     #                             code = f.read()
     #                             code_placeholder.code(code, language="python")
     #                             st.success(f"Evolution Complete! Saved to {filename}")
     #                         st.info("⚠️ Restart the application to load the new strategy into the Trading Hub.")
     # # Button to clear cache?
     #                         if st.button("Clear Cache & Reload (Try)"):
-    pass
     #                             st.cache_resource.clear()
     #                             st.experimental_rerun()
     #                         except Exception as e:
-    pass
     #                             st.error(f"Evolution failed: {e}")
     #         else:
-    pass
     #             code_placeholder.info("Waiting for genetic input...")
     #         st.divider()
     #         with st.expander("📂 Existing Evolutions"):
-    pass
     #             try:
-    pass
     #                 custom_dir = "src/strategies/custom"
     #             if os.path.exists(custom_dir):
-    pass
     #                 files = [f for f in os.listdir(custom_dir) if f.endswith(".py") and f != "__init__.py"]
     #                 if files:
-    pass
     #                     selected_file = st.selectbox("View Strategy Code", files)
     #                     if selected_file:
-    pass
     #                         with open(os.path.join(custom_dir, selected_file), "r", encoding="utf-8") as f:
-    pass
     #                             st.code(f.read(), language="python")
     #                 else:
-    pass
     #                     st.caption("No custom strategies found.")
     #         except Exception:
-    pass
 
 
 #             pass

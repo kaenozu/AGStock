@@ -15,10 +15,7 @@ from src.constants import (
     BACKTEST_DEFAULT_SLIPPAGE_RATE,
     BACKTEST_DEFAULT_STOP_LOSS_PCT,
     BACKTEST_DEFAULT_TAKE_PROFIT_PCT,
-    BACKTEST_MIN_TRAINING_PERIOD_DAYS,
-    BACKTEST_RETRAIN_PERIOD_DAYS,
 )
-from src.logger_config import logger
 from src.strategies.base import Order, OrderType, Strategy
 
 

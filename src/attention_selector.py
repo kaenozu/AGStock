@@ -4,7 +4,7 @@ Attention Feature Selector - アテンション特徴選択
 """
 
 import logging
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List
 
 import numpy as np
 import pandas as pd

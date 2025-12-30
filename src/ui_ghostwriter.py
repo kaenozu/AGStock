@@ -5,7 +5,7 @@ Displays automatically generated investment reports for the user.
 
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 
 import streamlit as st
 
@@ -76,15 +76,15 @@ class GhostwriterUI:
     def _render_sidebar(self, files: List[Path]):
         """Renders the back number list."""
         st.markdown("### 📚 バックナンバー")
-        
+
         for file in files:
             # Parse display name: weekly_report_20231201_120000.md -> 2023/12/01
             display_date = self._parse_file_date(file.stem)
-            
+
             is_selected = str(file) == st.session_state.selected_report
             label = f"👉 {display_date}" if is_selected else f"📄 {display_date}"
 
-            if st.button(label, key=str(file), use_container_width=True, 
+            if st.button(label, key=str(file), use_container_width=True,
                          type="primary" if is_selected else "secondary"):
                 st.session_state.selected_report = str(file)
                 st.rerun()
@@ -100,14 +100,14 @@ class GhostwriterUI:
     def _render_content(self):
         """Renders the selected report content."""
         target = Path(st.session_state.selected_report)
-        
+
         if not target.exists():
             st.error("ファイルが見つかりません。")
             return
 
         try:
             content = target.read_text(encoding="utf-8")
-            
+
             # Premium Styling for the report container
             st.markdown(
                 f"""
@@ -122,19 +122,19 @@ class GhostwriterUI:
                 ">
                     {st.markdown(content)}
                 </div>
-                """, 
+                """,
                 unsafe_allow_html=True
             )
             # Since st.markdown(content) inside f-string actually renders and returns None,
             # it's better to just render it standardly or use a container with background styling.
-            
+
             # Simplified but clean approach:
             with st.container(border=True):
                 st.markdown(content)
 
             st.divider()
             st.caption("※ この運用報告書は、AIヘッジファンド運用システム（AGStock）によって自動生成されています。")
-            
+
             # Export option
             st.download_button("📥 Markdownとしてダウンロード", content, file_name=target.name)
 

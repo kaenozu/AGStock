@@ -3,10 +3,9 @@ Strategy Breeder: Autonomous Evolution Engine
 Identifies underperforming strategies and prompts EvoCoder to improve them systematically.
 """
 
-import inspect
 import logging
 import os
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 from src.core.evo_coder import EvoCoder
 from src.core.strategy_validator import StrategyValidator
@@ -38,7 +37,7 @@ class StrategyBreeder:
         Runs one full cycle of analysis and potential evolution.
         """
         logger.info("🔭 Starting Strategy Breeding Cycle...")
-        
+
         # 1. Get performance stats
         performance = self.db.get_strategy_performance()
         if not performance:
@@ -102,7 +101,7 @@ class StrategyBreeder:
 
         logger.info(f"🧠 Requesting evolution for {strategy_name} -> {new_name}")
         filename = self.evocoder.evolve_strategy(prompt, generated_name=new_name)
-        
+
         if not filename:
             logger.error("Failed to generate evolution code.")
             return None
@@ -114,7 +113,7 @@ class StrategyBreeder:
             ticker = trades[0].get("ticker") if isinstance(trades[0], dict) else getattr(trades[0], "ticker", "AAPL")
             # For validation, we'd normally load the file and test it against history
             # val_results = self.validator.validate(filename, ticker) # Simplified
-            
+
             # Record success
             self.db.log_event(
                 "EVOLUTION_SUCCESS",
@@ -135,6 +134,6 @@ class StrategyBreeder:
                 try:
                     with open(target_file, "r", encoding="utf-8") as f:
                         return f.read()
-                except:
+                except BaseException:
                     continue
         return None

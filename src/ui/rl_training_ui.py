@@ -52,12 +52,12 @@ def render_rl_training_ui():
             st.markdown(
                 """
 ### ここで何ができる？
-            
+
             AIエージェント（DQNモデル）が、市場データの中で**「試行錯誤」**しながら成長する様子を観察できます。
-            
+
             - **Reward (報酬)**: 高いほど良い行動をとっています。
             - **Epsilon (探索率)**: 初めはランダムに動き、徐々に学習した知識を使うようになります。
-            
+
             左側のボタンを押して、AIの成長を見守りましょう！
             """
             )
@@ -118,7 +118,7 @@ def run_training_session(episodes, initial_balance, transaction_cost):
         progress_bar.progress(progress)
 
         status_text.markdown(
-            f"**Episode {e+1}/{episodes}** | Epsilon: `{agent.epsilon:.2f}`"
+            f"**Episode {e + 1}/{episodes}** | Epsilon: `{agent.epsilon:.2f}`"
         )
 
         # Update Chart (Dual Axis ideally, but Streamlit line_chart is simple)

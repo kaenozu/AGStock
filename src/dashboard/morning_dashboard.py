@@ -29,7 +29,7 @@ st.markdown(
     .main {
         padding: 1rem;
     }
-    
+
     /* 大きなボタン */
     .stButton > button {
         width: 100%;
@@ -39,7 +39,7 @@ st.markdown(
         border-radius: 10px;
         margin: 5px 0;
     }
-    
+
     /* メトリックカード */
     .metric-card {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -49,18 +49,18 @@ st.markdown(
         margin: 10px 0;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
-    
+
     .metric-value {
         font-size: 2.5em;
         font-weight: bold;
         margin: 10px 0;
     }
-    
+
     .metric-label {
         font-size: 1em;
         opacity: 0.9;
     }
-    
+
     /* アクションカード */
     .action-card {
         background: white;
@@ -69,14 +69,14 @@ st.markdown(
         padding: 15px;
         margin: 10px 0;
     }
-    
+
     .action-title {
         font-size: 1.2em;
         font-weight: bold;
         color: #667eea;
         margin-bottom: 10px;
     }
-    
+
     /* アラート */
     .alert-critical {
         background: #fee;
@@ -85,7 +85,7 @@ st.markdown(
         margin: 10px 0;
         border-radius: 5px;
     }
-    
+
     .alert-warning {
         background: #ffc;
         border-left: 4px solid #fa0;
@@ -93,7 +93,7 @@ st.markdown(
         margin: 10px 0;
         border-radius: 5px;
     }
-    
+
     .alert-info {
         background: #eff;
         border-left: 4px solid #4af;
@@ -427,7 +427,7 @@ def render_dashboard(pt: PaperTrader = None):
 
                 st.markdown(
                     f"""
-                **{ticker}** - {strategy}  
+                **{ticker}** - {strategy}
                 信頼度: {confidence:.0%} | 価格: {format_currency(price)}
                 """
                 )

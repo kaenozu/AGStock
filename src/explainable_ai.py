@@ -6,7 +6,6 @@ Uses SHAP (SHapley Additive exPlanations) to explain model predictions.
 import logging
 
 import numpy as np
-import pandas as pd
 import shap
 
 logger = logging.getLogger(__name__)

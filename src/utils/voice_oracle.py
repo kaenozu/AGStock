@@ -1,4 +1,3 @@
-import streamlit as st
 
 
 class VoiceOracle:
@@ -8,7 +7,6 @@ class VoiceOracle:
     #     """
 
     def speak(self, text: str):
-        pass
         if not text:
             return
 
@@ -26,11 +24,9 @@ class VoiceOracle:
     #     """
 
     def announce_paradigm_shift(self, new_paradigm: str):
-        pass
         msg = f"注意してください。市場のパラダイムが、{new_paradigm} にシフトしました。戦略構成を自動最適化します。"
         self.speak(msg)
 
     def announce_trade(self, ticker: str, side: str):
-        pass
         msg = f"{ticker} の、{side} 注文を執行しました。健闘を祈ります。"
         self.speak(msg)

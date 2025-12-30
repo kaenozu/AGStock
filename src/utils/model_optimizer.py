@@ -1,15 +1,16 @@
-import os
 import logging
 from pathlib import Path
 from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
+
 class ModelOptimizer:
     """
     Utility for optimizing and quantizing ML models for edge/production inference.
     Supports ONNX quantization and potentially TensorRT/OpenVINO exports.
     """
+
     def __init__(self, models_dir: Path):
         self.models_dir = models_dir
         self.models_dir.mkdir(parents=True, exist_ok=True)
@@ -20,24 +21,23 @@ class ModelOptimizer:
         Requires `onnxruntime` and `onnx` to be installed.
         """
         try:
-            import onnx
             from onnxruntime.quantization import quantize_dynamic, QuantType
-            
+
             p = Path(model_path)
             if not p.exists():
                 logger.error(f"Model path {model_path} does not exist.")
                 return None
-            
+
             output_path = p.with_name(f"{p.stem}_quantized.onnx")
-            
+
             logger.info(f"⚡ Quantizing ONNX model: {p.name} -> {output_path.name}")
-            
+
             quantize_dynamic(
                 model_input=str(p),
                 model_output=str(output_path),
                 weight_type=QuantType.QUInt8
             )
-            
+
             logger.info("✅ Quantization complete.")
             return str(output_path)
         except ImportError:

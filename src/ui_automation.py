@@ -135,7 +135,7 @@ def render_automation_tab():
                                     file_name=f"AGStock_Report_{datetime.now().strftime('%Y%m%d')}.pdf",
                                     mime="application/pdf",
                                 )
-                        except:
+                        except BaseException:
                             st.info(f"ファイルは {output_path} に保存されました。")
 
                         st.session_state["report_count"] = (

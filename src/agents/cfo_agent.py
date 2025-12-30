@@ -1,6 +1,4 @@
 import logging
-import os
-import google.generativeai as genai
 from src.paper_trader import PaperTrader
 from src.data.feedback_store import FeedbackStore
 from src.agents.macro_agent import MacroAgent
@@ -22,7 +20,6 @@ def __init__(self):
     self.macro = MacroAgent()
     self._init_gemini()
     #     def _init_gemini(self):
-    pass
 
 
 #         """
@@ -40,7 +37,6 @@ def answer_query(self, query: str) -> str:
     #         """
     #         Gathers system context and answers a user query about the fund.
     #                 if not self.has_gemini:
-    pass
 
 
 #                     return "CFO機能を有効にするには Gemini API キーが必要です。"

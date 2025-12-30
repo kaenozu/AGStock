@@ -1,7 +1,6 @@
 import logging
 from datetime import datetime
 import json
-import os
 import pandas as pd
 from typing import Any, Dict, List, Optional
 
@@ -156,8 +155,8 @@ class InvestmentCommittee:
             if visual_analysis:
                 data["visual_analysis"] = visual_analysis
                 logger.info(f"Visual Verdict: {visual_analysis.get('verdict')}")
-        
-        data["history_df"] = history_df # Inject for agents like MTFAnalyst
+
+        data["history_df"] = history_df  # Inject for agents like MTFAnalyst
         data["portfolio"] = {
             "cash": 1000000,
             "total_equity": 1000000,
@@ -214,7 +213,8 @@ class InvestmentCommittee:
         if lessons:
             kb_text += "\n【過去の銘柄別教訓】\n"
             for l in lessons:
-                kb_text += f"- {l['timestamp'][:10]}: {l['decision']} -> {l['outcome']} (収益率: {l['return_1w']*100:.1f}%)\n"
+                kb_text += f"- {l['timestamp'][:10]}: {l['decision']
+                                                       } -> {l['outcome']} (収益率: {l['return_1w'] * 100:.1f}%)\n"
 
         if recent_failures:
             kb_text += "\n【最近の全体的な失敗事例】\n"
@@ -281,22 +281,22 @@ class InvestmentCommittee:
         from src.paths import DATA_DIR
         minutes_dir = DATA_DIR / "meeting_minutes"
         minutes_dir.mkdir(parents=True, exist_ok=True)
-        
+
         filename = f"{datetime.now().strftime('%Y%m%d')}_{ticker}.json"
         filepath = minutes_dir / filename
-        
+
         try:
             # Load existing if any (append mode)
             existing = []
             if filepath.exists():
                 with open(filepath, "r", encoding="utf-8") as f:
                     existing = json.load(f)
-            
+
             existing.append(result)
-            
+
             with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(existing, f, ensure_ascii=False, indent=2, default=str)
-                
+
             logger.info(f"Saved meeting minutes to {filepath}")
         except Exception as e:
             logger.error(f"Failed to save meeting minutes: {e}")

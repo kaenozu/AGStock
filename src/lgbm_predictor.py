@@ -4,14 +4,10 @@ LightGBM予測モデル
 """
 
 import logging
-from datetime import timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict
 
 import lightgbm as lgb
-import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
 
 from src.base_predictor import BasePredictor
 
@@ -39,7 +35,6 @@ class LGBMPredictor(BasePredictor):
 
     def prepare_model(self, X, y):
         """モデルの準備（LGBMでは特に必要なし）"""
-        pass
 
     def fit(self, X, y):
         """モデルの学習"""

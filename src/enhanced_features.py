@@ -11,12 +11,11 @@
 
 import logging
 import warnings
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 import numpy as np
 import pandas as pd
 import ta
-from sklearn.preprocessing import StandardScaler
 
 warnings.filterwarnings("ignore")
 

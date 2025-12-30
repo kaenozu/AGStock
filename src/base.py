@@ -54,7 +54,6 @@ class BaseManager(ABC):
     @abstractmethod
     def _initialize(self):
         """初期化処理（サブクラスで実装）"""
-        pass
 
     def validate_config(self, required_keys: List[str]) -> bool:
         """設定の検証"""
@@ -76,7 +75,6 @@ class BaseStrategy(ABC):
     @abstractmethod
     def generate_signals(self, data: pd.DataFrame) -> List[TradeSignal]:
         """シグナル生成（サブクラスで実装）"""
-        pass
 
     def validate_data(self, data: pd.DataFrame, required_columns: List[str]) -> bool:
         """データの検証"""
@@ -99,12 +97,10 @@ class BaseRiskManager(ABC):
         self, account_balance: float, signal: TradeSignal
     ) -> float:
         """ポジションサイズ計算（サブクラスで実装）"""
-        pass
 
     @abstractmethod
     def get_risk_metrics(self) -> RiskMetrics:
         """リスク指標取得（サブクラスで実装）"""
-        pass
 
     def validate_signal(self, signal: TradeSignal) -> bool:
         """シグナルの検証"""
@@ -125,22 +121,18 @@ class Repository(Generic[T], ABC):
     @abstractmethod
     def get(self, id: str) -> Optional[T]:
         """IDでデータ取得"""
-        pass
 
     @abstractmethod
     def save(self, entity: T) -> bool:
         """データ保存"""
-        pass
 
     @abstractmethod
     def delete(self, id: str) -> bool:
         """データ削除"""
-        pass
 
     @abstractmethod
     def list(self, filters: Optional[Dict[str, Any]] = None) -> List[T]:
         """データ一覧取得"""
-        pass
 
 
 class CacheManager(ABC):
@@ -149,22 +141,18 @@ class CacheManager(ABC):
     @abstractmethod
     def get(self, key: str) -> Optional[Any]:
         """キャッシュ取得"""
-        pass
 
     @abstractmethod
     def set(self, key: str, value: Any, ttl: int = 3600) -> bool:
         """キャッシュ設定"""
-        pass
 
     @abstractmethod
     def delete(self, key: str) -> bool:
         """キャッシュ削除"""
-        pass
 
     @abstractmethod
     def clear(self) -> bool:
         """全キャッシュクリア"""
-        pass
 
 
 class EventBus:

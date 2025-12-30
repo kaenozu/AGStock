@@ -3,8 +3,6 @@ Design System
 Unified design tokens for consistent styling across the application.
 """
 
-from typing import Dict, Any
-
 
 class DesignSystem:
     """Central design system with colors, spacing, typography, and component styles."""

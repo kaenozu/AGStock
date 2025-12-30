@@ -243,7 +243,7 @@ def create_stacking_ensemble_from_strategies(
     from src.features import add_advanced_features
 
     # 特徴量を生成
-    df_features = add_advanced_features(df.copy())
+    add_advanced_features(df.copy())
 
     # スタッキングアンサンブルを初期化
     ensemble = StackingEnsemble()

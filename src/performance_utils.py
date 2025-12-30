@@ -10,8 +10,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, Callable, Dict, Optional
 
 import numpy as np
 import pandas as pd
@@ -215,7 +214,7 @@ class DataProcessorOptimizer:
         """
         chunks = []
         for i in range(0, len(df), chunk_size):
-            chunk = df.iloc[i : i + chunk_size]
+            chunk = df.iloc[i: i + chunk_size]
             processed_chunk = func(chunk)
             chunks.append(processed_chunk)
 

@@ -32,20 +32,20 @@ class AdvancedAnalytics:
             # Basic stats
             mean_ret = returns.mean()
             std_ret = returns.std()
-            
+
             # Risk-adjusted ratios
             sharpe = mean_ret / std_ret if std_ret > 0 else 0
-            
+
             downside_returns = returns[returns < 0]
             downside_std = downside_returns.std() if not downside_returns.empty else std_ret
             sortino = mean_ret / downside_std if downside_std > 0 else 0
-            
+
             # Drawdown
             cumulative = (1 + returns).cumprod()
             running_max = cumulative.expanding().max()
             drawdown = (cumulative - running_max) / running_max
             max_drawdown = drawdown.min()
-            
+
             # Risk at Risk (95%)
             var_95 = returns.quantile(0.05)
             cvar_95 = returns[returns <= var_95].mean() if not returns[returns <= var_95].empty else var_95
@@ -81,10 +81,10 @@ class AdvancedAnalytics:
             cov = np.cov(p_ret, b_ret)[0, 1]
             b_var = b_ret.var()
             beta = cov / b_var if b_var > 0 else 1.0
-            
+
             # Alpha
             alpha = p_ret.mean() - (beta * b_ret.mean())
-            
+
             # Tracking error & Info ratio
             tracking_diff = p_ret - b_ret
             te = tracking_diff.std()
@@ -105,35 +105,36 @@ class AdvancedAnalytics:
         """Calculates percentage exposure per sector."""
         if not holdings:
             return {}
-        
+
         sector_map = {}
         total_val = sum(h.get("value", 0) for h in holdings)
-        
+
         if total_val == 0:
             return {}
-            
+
         for h in holdings:
             s = h.get("sector", "Others")
             sector_map[s] = sector_map.get(s, 0) + h.get("value", 0)
-            
+
         return {s: (v / total_val * 100) for s, v in sector_map.items()}
 
-    def generate_monte_carlo(self, returns: pd.Series, initial_value: float, days: int = 252, simulations: int = 1000) -> Dict[str, Any]:
+    def generate_monte_carlo(self, returns: pd.Series, initial_value: float,
+                             days: int = 252, simulations: int = 1000) -> Dict[str, Any]:
         """Runs a Monte Carlo simulation for future portfolio projection."""
         if returns.empty:
             return {}
-            
+
         mu = returns.mean()
         sigma = returns.std()
-        
+
         results = []
         for _ in range(simulations):
             daily_rets = np.random.normal(mu, sigma, days)
             final_val = initial_value * (1 + daily_rets).cumprod()[-1]
             results.append(final_val)
-            
+
         results = np.array(results)
-        
+
         return {
             "mean_projection": float(results.mean()),
             "median_projection": float(np.median(results)),
@@ -152,24 +153,24 @@ class CustomReportGenerator:
     def generate_text_summary(self, data: Dict[str, Any]) -> str:
         """Creates a readable text summary of analytics."""
         metrics = data.get("risk_metrics", {})
-        
+
         lines = [
             "📊 AGStock Advanced Analysis Report",
             f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
             "=" * 40,
             f"Sharpe Ratio: {metrics.get('sharpe_ratio', 0):.2f}",
-            f"Max Drawdown: {metrics.get('max_drawdown', 0)*100:.2f}%",
-            f"Volatility:   {metrics.get('volatility', 0)*100:.2f}%",
+            f"Max Drawdown: {metrics.get('max_drawdown', 0) * 100:.2f}%",
+            f"Volatility:   {metrics.get('volatility', 0) * 100:.2f}%",
             "-" * 40,
             "💡 AI Insights:",
         ]
-        
+
         sharpe = metrics.get("sharpe_ratio", 0)
         if sharpe > 1.5:
             lines.append("- リスクに対して非常に効率的なリターンが得られています。")
         elif sharpe < 0.5:
             lines.append("- リスク調整後リターンが低めです。戦略のボラティリティ抑制を検討してください。")
-            
+
         if metrics.get("max_drawdown", 0) < -0.15:
             lines.append("- ドローダウンが警戒水域（15%）に達しています。")
 

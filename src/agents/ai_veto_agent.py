@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, Tuple
 from .base_agent import BaseAgent
 from src.llm_reasoner import get_llm_reasoner
 from src.news_collector import get_news_collector
@@ -61,7 +61,7 @@ class AIVetoAgent(BaseAgent):
 
         Evaluate if this {action} signal for {ticker} is safe or risky based on the latest news.
         Look for scandals, fraud, negative earnings, or sector-wide crashes.
-        
+
         Respond in JSON format:
             pass
         {{

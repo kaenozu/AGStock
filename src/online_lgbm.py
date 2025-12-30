@@ -5,8 +5,7 @@ LightGBMモデルに継続的学習機能を追加
 
 import logging
 import os
-from datetime import datetime, timedelta
-from typing import Optional
+from datetime import datetime
 
 import numpy as np
 import pandas as pd

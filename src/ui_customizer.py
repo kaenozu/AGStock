@@ -23,7 +23,7 @@ class UICustomizer:
             try:
                 with open(self.config_path, "r", encoding="utf-8") as f:
                     return json.load(f)
-            except:
+            except BaseException:
                 pass
 
         # デフォルト設定
@@ -148,7 +148,7 @@ class UICustomizer:
                 }
             }
         });
-        
+
         function clickTab(index) {
             const tabs = document.querySelectorAll('[data-baseweb="tab"]');
             if (tabs[index]) {

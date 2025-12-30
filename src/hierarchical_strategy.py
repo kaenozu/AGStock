@@ -74,7 +74,6 @@ class HierarchicalStrategy(Strategy):
             # 3. Combine
 
             # Buy Signal:
-            pass
         # Weekly is Bullish AND (MACD Cross Up OR RSI < 45)
         # Relaxed entry to catch trends
         signals.loc[weekly_bullish & (macd_cross_up | (df_mtf["RSI"] < 45))] = 1

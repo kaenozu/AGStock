@@ -1,7 +1,5 @@
 import logging
-import re
 from typing import Dict, List, Any, Optional
-from src.schemas import TradingDecision
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +73,7 @@ class NewsShockDefense:
 
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel("gemini-1.5-flash")
-        
+
         # Take the top 5 recent news for bulk analysis
         headlines = [f"- {item.get('title')}" for item in news_items[:5]]
         text = "\n".join(headlines)
@@ -112,7 +110,7 @@ class NewsShockDefense:
                 return data
         except Exception as e:
             logger.error(f"LLM Shock judgment failed: {e}")
-            
+
         return None
 
     def get_emergency_action(self, shock_event: Dict[str, Any]) -> Dict[str, Any]:

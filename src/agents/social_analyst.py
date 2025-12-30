@@ -1,8 +1,6 @@
 
 import logging
-import json
-import re
-from typing import Dict, Any, Tuple, List
+from typing import Dict, Any
 from src.agents.base_agent import BaseAgent
 from src.schemas import AgentAnalysis, TradingDecision
 from src.llm_reasoner import get_llm_reasoner
@@ -27,24 +25,24 @@ class SocialAnalyst(BaseAgent):
         """Standard analysis interface required by BaseAgent."""
         ticker = data.get("ticker", "Unknown")
         heat_data = self.analyze_heat(ticker)
-        
+
         # Convert heat data to simple decision info
-        score = heat_data.get("heat_level", 5.0) # 0-10
+        score = heat_data.get("heat_level", 5.0)  # 0-10
         # If heat is too high (hype) -> risk -> caution
         # If heat is very low -> neglected?
-        
+
         # Simple logic: High heat + Negative Sentiment -> SELL
         # High heat + Positive Sentiment -> BUY (Momentum)
-        
+
         sentiment = heat_data.get("sentiment", "NEUTRAL")
-        
+
         decision = TradingDecision.HOLD
         if score > 7.0:
             if sentiment in ["POSITIVE", "EXTREME_HYPE"]:
                 decision = TradingDecision.BUY
             elif sentiment in ["NEGATIVE", "PANIC"]:
                 decision = TradingDecision.SELL
-        
+
         return self._create_response(
             decision=decision,
             confidence=min(score / 10.0, 1.0),
@@ -62,10 +60,10 @@ class SocialAnalyst(BaseAgent):
         prompt = f"""
         Analyze the 'Social Heat' for {ticker} based on recent news and headlines.
         Identify if there is extreme hype, panic, or a 'meme stock' behavior.
-        
+
         News Headlines:
         {news_text}
-        
+
         Respond in JSON format:
         {{
             "heat_level": 0.0 to 10.0,

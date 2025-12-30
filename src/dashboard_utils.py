@@ -9,9 +9,8 @@ import time
 import pandas as pd
 import streamlit as st
 
-from src.data_loader import fetch_stock_data, get_latest_price
+from src.data_loader import fetch_stock_data
 from src.paper_trader import PaperTrader
-from src import demo_data
 import os
 
 
@@ -88,7 +87,6 @@ def check_and_execute_missed_trades():
     except Exception as e:
         # エラーは無視（通常の表示を続ける）
         print(f"Auto-trade check error: {e}")
-        pass
 
 
 def get_multi_timeframe_trends(ticker: str) -> dict:

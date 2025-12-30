@@ -4,7 +4,6 @@ Consolidates all application settings into a single tab.
 """
 
 import json
-import os
 
 import streamlit as st
 
@@ -89,7 +88,7 @@ def _render_simple_view():
     # Detect current mode
     current_mode = "バランス (Balanced)"  # Default
     c_trades = int(auto_conf.get("max_daily_trades", 5))
-    c_active = alert_conf.get("active_mode", False)
+    alert_conf.get("active_mode", False)
 
     if c_trades == 0:
         current_mode = "監視のみ (Monitoring Only)"
@@ -279,7 +278,7 @@ def _load_config():
     try:
         with open("config.json", "r", encoding="utf-8") as f:
             return json.load(f)
-    except:
+    except BaseException:
         return {}
 
 

@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import List, Dict, Any, Optional
+from typing import Dict, Any
 import google.generativeai as genai
 import pandas as pd
 
@@ -39,15 +39,15 @@ class EventForecaster:
         RECENT PRICE DATA (Tail):
             pass
         {recent_price}
-        
+
         NEWS SUMMARY:
             pass
         {news_summary}
         ---
-        Based on this, act as a 'Market Oracle'. Predict the most likely major event 
-        that will occur in the next 3-5 trading days (e.g., 'Tech sector correction due to interest rate fears', 
+        Based on this, act as a 'Market Oracle'. Predict the most likely major event
+        that will occur in the next 3-5 trading days (e.g., 'Tech sector correction due to interest rate fears',
         'Breakout in energy stocks').
-        
+
         Return JSON format:
             pass
         {{

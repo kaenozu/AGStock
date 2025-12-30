@@ -3,11 +3,12 @@ import logging
 import sqlite3
 import pandas as pd
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
 from pathlib import Path
 from src.config import settings
 
 logger = logging.getLogger(__name__)
+
 
 class DataManager:
     """
@@ -15,7 +16,7 @@ class DataManager:
     - OHLCV Data: Stored in Parquet (Columnar, fast I/O)
     - Metadata/Status: Stored in SQLite (Relational, easy query)
     """
-    
+
     def __init__(self, db_path: str = None):
         # Use settings for paths, fallback for backwards compatibility if arg provided
         self.db_path = str(settings.system.db_path) if db_path is None else db_path
@@ -43,14 +44,14 @@ class DataManager:
                 file_path TEXT
             )
         """)
-        
-        # Keep legacy stock_data table for compatibility if needed, 
+
+        # Keep legacy stock_data table for compatibility if needed,
         # but we won't actively write big data to it in v2.
         # Check if legacy table exists
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='stock_data'")
         if not cursor.fetchone():
             # Create minimal schema if missing, just in case legacy code queries it
-             cursor.execute("""
+            cursor.execute("""
                 CREATE TABLE stock_data (
                     ticker TEXT,
                     date TIMESTAMP,
@@ -79,10 +80,10 @@ class DataManager:
             # 1. Normalize Data
             # Ensure index name is 'date' or standardized column
             df_to_save = df.copy()
-            
+
             # Standardize columns to lowercase for consistency
             df_to_save.columns = [c.lower() for c in df_to_save.columns]
-            
+
             # Ensure it has standard OHLCV columns
             required = ['open', 'high', 'low', 'close', 'volume']
             # If some missing, fill 0 (though unlikely for valid market data)
@@ -94,13 +95,13 @@ class DataManager:
             # Use 'pyarrow' engine for best performance with pandas
             file_path = self._get_parquet_path(ticker)
             df_to_save.to_parquet(file_path, engine='pyarrow', compression='snappy')
-            
+
             # 3. Update Metadata in SQLite
             start_date = df_to_save.index.min()
             end_date = df_to_save.index.max()
             count = len(df_to_save)
             update_time = datetime.now()
-            
+
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             cursor.execute("""
@@ -115,7 +116,7 @@ class DataManager:
             """, (ticker, update_time, str(start_date), str(end_date), count, str(file_path)))
             conn.commit()
             conn.close()
-            
+
             logger.info(f"Saved {count} records for {ticker} to Parquet storage.")
 
         except Exception as e:
@@ -139,20 +140,20 @@ class DataManager:
                 return self._legacy_load(ticker, start_date, end_date)
 
             df = pd.read_parquet(file_path, engine='pyarrow')
-            
+
             # Filter by date range
             if start_date:
                 df = df[df.index >= start_date]
             if end_date:
                 df = df[df.index <= end_date]
-                
+
             # Restore proper capital case for compatibility with existing codebase
             # Existing code expects: "Open", "High", "Low", "Close", "Volume"
             rename_map = {
                 "open": "Open", "high": "High", "low": "Low", "close": "Close", "volume": "Volume"
             }
             df = df.rename(columns=rename_map)
-            
+
             return df
 
         except Exception as e:
@@ -171,7 +172,7 @@ class DataManager:
             query += " AND date <= ?"
             params.append(end_date)
         query += " ORDER BY date ASC"
-        
+
         try:
             df = pd.read_sql_query(query, conn, params=params, parse_dates=["date"])
             if not df.empty:
@@ -187,15 +188,15 @@ class DataManager:
         """Get the latest date available for a ticker (Metadata check first)."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
+
         # Check metadata first (Faster)
         cursor.execute("SELECT end_date FROM ticker_metadata WHERE ticker = ?", (ticker,))
         row = cursor.fetchone()
         conn.close()
-        
+
         if row and row[0]:
             return pd.to_datetime(row[0])
-            
+
         # Fallback to loading data
         df = self.load_data(ticker)
         if not df.empty:
@@ -208,5 +209,5 @@ class DataManager:
             conn = sqlite3.connect(self.db_path)
             conn.execute("VACUUM")
             conn.close()
-        except:
+        except BaseException:
             pass

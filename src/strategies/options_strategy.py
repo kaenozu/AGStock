@@ -5,10 +5,8 @@ Options Strategy & Risk Hedging
 
 import math
 import logging
-from typing import Dict, Any, List
+from typing import Dict, Any
 
-import numpy as np
-import pandas as pd
 from scipy.stats import norm
 
 logger = logging.getLogger(__name__)
@@ -89,7 +87,7 @@ class OptionsEngine:
         # 必要なプット枚数の概算（デルタヘッジに基づく）
         # 完全ヘッジ(Delta=0)にするには: Portfolio_Delta + N * Put_Delta = 0
         # 簡易的にポートフォリオのデルタを1.0とする（全て株式）
-        needed_puts_normalized = 1.0 / abs(put_delta)
+        1.0 / abs(put_delta)
 
         cost_to_hedge = total_equity * put_price_pct
 

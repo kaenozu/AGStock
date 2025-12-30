@@ -40,34 +40,27 @@ class Broker(ABC):
     @abstractmethod
     def get_cash(self) -> float:
         """Returns available cash."""
-        pass
 
     @abstractmethod
     def get_positions(self) -> Dict[str, Position]:
         """Returns current positions."""
-        pass
 
     @abstractmethod
     def get_portfolio_value(self, current_prices: Dict[str, float]) -> float:
         """Returns total portfolio value (cash + positions)."""
-        pass
 
     @abstractmethod
     def execute_order(self, order: Order, current_price: float, timestamp: datetime):
         """Executes an order."""
-        pass
 
     @abstractmethod
     def get_trade_history(self) -> List[Dict[str, Any]]:
         """Returns trade history."""
-        pass
 
     @abstractmethod
     def save_state(self):
         """Persists broker state."""
-        pass
 
     @abstractmethod
     def load_state(self):
         """Loads broker state."""
-        pass

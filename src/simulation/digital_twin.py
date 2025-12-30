@@ -4,10 +4,11 @@ Manages 'Shadow Portfolios' that simulate alternative decision-making paths
 to evaluate risk tolerance and strategy effectiveness.
 """
 
+import os
 import logging
 import sqlite3
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from src.data_loader import fetch_stock_data
 
@@ -76,7 +77,7 @@ class DigitalTwin:
                         "INSERT INTO shadow_positions (twin_type, ticker, entry_price, quantity, entry_timestamp) VALUES (?, ?, ?, ?, ?)",
                         ("CONSERVATIVE", ticker, current_price, 5, datetime.now().isoformat())
                     )
-                
+
                 conn.commit()
                 logger.info(f"🎭 [Twin] Decision recorded for {ticker}")
         except Exception as e:
@@ -89,14 +90,14 @@ class DigitalTwin:
             with sqlite3.connect(self.db_path) as conn:
                 conn.row_factory = sqlite3.Row
                 cursor = conn.cursor()
-                
+
                 for twin_type in ["AGGRESSIVE", "CONSERVATIVE"]:
                     cursor.execute(
                         "SELECT ticker, entry_price, quantity FROM shadow_positions WHERE twin_type = ? AND status = 'OPEN'",
                         (twin_type,)
                     )
                     positions = [dict(row) for row in cursor.fetchall()]
-                    
+
                     if not positions:
                         results[twin_type] = {"pnl": 0.0, "pnl_pct": 0.0}
                         continue
@@ -107,21 +108,21 @@ class DigitalTwin:
                         price_data = fetch_stock_data(tickers, period="1d")
                         total_cost = 0.0
                         total_current = 0.0
-                        
+
                         for p in positions:
                             ticker = p["ticker"]
                             cost = p["entry_price"] * p["quantity"]
                             total_cost += cost
-                            
+
                             if ticker in price_data and not price_data[ticker].empty:
                                 current_price = price_data[ticker]["Close"].iloc[-1]
                                 total_current += current_price * p["quantity"]
                             else:
-                                total_current += cost # Use cost as fallback
-                                
+                                total_current += cost  # Use cost as fallback
+
                         pnl = total_current - total_cost
                         pnl_pct = (pnl / total_cost * 100) if total_cost > 0 else 0.0
-                        
+
                         results[twin_type] = {
                             "pnl": round(pnl, 0),
                             "pnl_pct": round(pnl_pct, 2),
@@ -135,5 +136,3 @@ class DigitalTwin:
         except Exception as e:
             logger.error(f"Failed to get twin performance: {e}")
             return {}
-
-import os

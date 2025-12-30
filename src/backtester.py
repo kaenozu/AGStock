@@ -491,7 +491,6 @@ class Backtester:
                 today_sig = df["Signal"].iloc[i]
                 exec_price = df["Open"].iloc[i + 1]
                 position = holdings[ticker]
-                exit_executed = False
                 today_high = df["High"].iloc[i]
                 today_low = df["Low"].iloc[i]
 
@@ -531,7 +530,6 @@ class Backtester:
                             entry_prices[ticker] = 0.0
                             trailing_stop_levels[ticker] = 0.0
                             highest_prices[ticker] = 0.0
-                            exit_executed = True
                             continue
 
                         # Check take profit
@@ -553,7 +551,6 @@ class Backtester:
                             entry_prices[ticker] = 0.0
                             trailing_stop_levels[ticker] = 0.0
                             highest_prices[ticker] = 0.0
-                            exit_executed = True
                             continue
 
                         # Check stop loss
@@ -575,7 +572,6 @@ class Backtester:
                             entry_prices[ticker] = 0.0
                             trailing_stop_levels[ticker] = 0.0
                             highest_prices[ticker] = 0.0
-                            exit_executed = True
                             continue
 
                 # ----- PROCESS ORDERS FROM SIGNALS -----

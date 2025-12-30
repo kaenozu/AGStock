@@ -160,7 +160,7 @@ def skeleton_loader(height: str = "100px", count: int = 1):
     for i in range(count):
         skeleton_html += f"""
         <div style="
-            background: linear-gradient(90deg, {DS.COLORS['surface']} 25%, 
+            background: linear-gradient(90deg, {DS.COLORS['surface']} 25%,
                         {DS.COLORS['surface_hover']} 50%, {DS.COLORS['surface']} 75%);
             background-size: 200% 100%;
             animation: loading 1.5s ease-in-out infinite;
@@ -247,23 +247,23 @@ def progress_ring(
     svg = f"""
     <svg width="{size}" height="{size}">
         <circle
-            cx="{size/2}"
-            cy="{size/2}"
+            cx ="{size / 2}"
+            cy ="{size / 2}"
             r="{radius}"
             fill="none"
             stroke="{DS.COLORS['border']}"
             stroke-width="{stroke_width}"
         />
         <circle
-            cx="{size/2}"
-            cy="{size/2}"
+            cx ="{size / 2}"
+            cy ="{size / 2}"
             r="{radius}"
             fill="none"
             stroke="{color}"
             stroke-width="{stroke_width}"
             stroke-dasharray="{circumference}"
             stroke-dashoffset="{offset}"
-            transform="rotate(-90 {size/2} {size/2})"
+            transform = "rotate(-90 {size / 2} {size / 2})"
             style="transition: stroke-dashoffset 0.5s ease;"
         />
         <text
@@ -272,7 +272,7 @@ def progress_ring(
             text-anchor="middle"
             dy=".3em"
             fill="{DS.COLORS['text']}"
-            font-size="{size/4}"
+            font-size="{size / 4}"
             font-weight="bold"
         >{int(percentage)}%</text>
     </svg>

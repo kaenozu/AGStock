@@ -4,8 +4,8 @@ External Data Integration - 外部データ統合
 """
 
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, Optional
+from datetime import timedelta
+from typing import Dict
 
 import numpy as np
 import pandas as pd

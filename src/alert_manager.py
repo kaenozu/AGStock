@@ -219,7 +219,7 @@ class AlertManager:
         # アラートを無効化
         cursor.execute(
             """
-            UPDATE alerts 
+            UPDATE alerts
             SET triggered = 1, triggered_at = CURRENT_TIMESTAMP
             WHERE id = ?
         """,
@@ -255,7 +255,7 @@ class AlertManager:
 
         cursor.execute(
             """
-            UPDATE alerts 
+            UPDATE alerts
             SET enabled = ?
             WHERE id = ?
         """,
@@ -270,7 +270,7 @@ class AlertManager:
         conn = sqlite3.connect(self.db_path)
 
         query = """
-            SELECT 
+            SELECT
                 ah.id,
                 ah.alert_id,
                 a.ticker,

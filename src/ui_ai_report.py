@@ -50,7 +50,8 @@ def render_ai_report_tab():
                         market_context += (
                             f"- {ticker}: Close={latest['Close']:.2f} ({change:+.2%})\n"
                         )
-                        market_context += f"  - Trend: {regime['trend']}, Volatility: {regime['volatility']}, ADX: {regime['adx']:.1f}\n"
+                        market_context += f"  - Trend: {regime['trend']
+                                                        }, Volatility: {regime['volatility']}, ADX: {regime['adx']:.1f}\n"
 
                 # Portfolio Data
                 pt = PaperTrader()
@@ -66,7 +67,8 @@ def render_ai_report_tab():
 
                 if not positions.empty:
                     for _, row in positions.iterrows():
-                        portfolio_context += f"  - {row['ticker']}: {row['quantity']} shares, PnL: {row['unrealized_pnl']:+.1%}\n"
+                        portfolio_context += f"  - {row['ticker']}: {row['quantity']
+                                                                     } shares, PnL: {row['unrealized_pnl']:+.1%}\n"
 
                 # Full Context
                 full_context = market_context + portfolio_context

@@ -1,15 +1,16 @@
 import pandas as pd
-import numpy as np
 import logging
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 
 logger = logging.getLogger(__name__)
+
 
 class CorrelationEngine:
     """
     Analyzes cross-asset correlations to detect portfolio risk concentration.
     Supports Stocks, Crypto (via tickers like BTC-USD), and FX.
     """
+
     def __init__(self, lookback_period: str = "3mo"):
         self.lookback_period = lookback_period
         self._correlation_matrix = pd.DataFrame()
@@ -25,7 +26,7 @@ class CorrelationEngine:
         for t in tickers:
             if t in prices_dict and not prices_dict[t].empty:
                 close_prices[t] = prices_dict[t]['Close']
-        
+
         if len(close_prices) < 2:
             return pd.DataFrame()
 
@@ -49,7 +50,7 @@ class CorrelationEngine:
                 if t1 == t2 or (t1, t2) in checked_pairs or (t2, t1) in checked_pairs:
                     continue
                 checked_pairs.add((t1, t2))
-                
+
                 corr = self._correlation_matrix.loc[t1, t2]
                 if corr > threshold:
                     warnings.append({

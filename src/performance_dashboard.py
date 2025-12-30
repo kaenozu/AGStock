@@ -55,7 +55,7 @@ def create_performance_dashboard():
     with col4:
         st.metric(
             "勝率",
-            f"{metrics['win_rate']*100:.1f}%",
+            f"{metrics['win_rate'] * 100:.1f}%",
             delta=f"損益比: {metrics['win_loss_ratio']:.2f}",
         )
 
@@ -132,7 +132,8 @@ def create_performance_dashboard():
             st.metric(
                 "アウトパフォーマンス",
                 f"{benchmark_nikkei['outperformance_pct']:.2f}%",
-                delta=f"自分: {benchmark_nikkei['my_return_pct']:.2f}% | 日経: {benchmark_nikkei['benchmark_return_pct']:.2f}%",
+                delta=f"自分: {benchmark_nikkei['my_return_pct']:.2f}% | 日経: {
+                    benchmark_nikkei['benchmark_return_pct']:.2f}%",
             )
 
     with col2:
@@ -142,7 +143,8 @@ def create_performance_dashboard():
             st.metric(
                 "アウトパフォーマンス",
                 f"{benchmark_sp500['outperformance_pct']:.2f}%",
-                delta=f"自分: {benchmark_sp500['my_return_pct']:.2f}% | S&P: {benchmark_sp500['benchmark_return_pct']:.2f}%",
+                delta=f"自分: {benchmark_sp500['my_return_pct']:.2f}% | S&P: {
+                    benchmark_sp500['benchmark_return_pct']:.2f}%",
             )
 
     # 5. 戦略別パフォーマンス

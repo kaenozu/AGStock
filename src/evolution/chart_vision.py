@@ -46,17 +46,18 @@ class ChartVisionEngine:
             # 1. Generate chart image
             plt.figure(figsize=(10, 6))
             df_tail = df.tail(60)  # Last 60 bars
-            
+
             # Using standard plot (Close price)
             plt.plot(df_tail.index, df_tail["Close"], label="Close Price", color="cyan", linewidth=2)
-            
+
             # Add simple SMAs for visual context
-            plt.plot(df_tail.index, df_tail["Close"].rolling(window=20).mean(), label="20 SMA", color="orange", alpha=0.7)
-            
+            plt.plot(df_tail.index, df_tail["Close"].rolling(
+                window=20).mean(), label="20 SMA", color="orange", alpha=0.7)
+
             plt.title(f"{ticker} Technical Layout", color="white")
             plt.grid(True, alpha=0.2)
             plt.legend()
-            
+
             # Dark mode aesthetic
             ax = plt.gca()
             ax.set_facecolor("#1e1e1e")
@@ -93,7 +94,7 @@ class ChartVisionEngine:
                 prompt,
                 {"mime_type": "image/png", "data": image_bytes}
             ])
-            
+
             # 4. Parse
             import json
             text = response.text.replace("```json", "").replace("```", "").strip()
@@ -107,17 +108,17 @@ class ChartVisionEngine:
         """Utility for UI to display the same 'vision' the AI saw."""
         if df is None or df.empty:
             return ""
-            
+
         plt.figure(figsize=(10, 4))
         df_tail = df.tail(60)
         plt.plot(df_tail.index, df_tail["Close"], color="cyan")
         plt.title("AI Visual Perspective", color="white")
-        
+
         ax = plt.gca()
         ax.set_facecolor("#1e1e1e")
         plt.gcf().set_facecolor("#1e1e1e")
         ax.tick_params(colors="white")
-        
+
         buf = io.BytesIO()
         plt.savefig(buf, format="png", bbox_inches="tight")
         plt.close()

@@ -45,25 +45,25 @@ class KeyboardShortcuts:
         <script>
         // Keyboard shortcuts listener
         const shortcuts = {js_shortcuts};
-        
+
         document.addEventListener('keydown', function(e) {{
             // Build key combination string
             let key = '';
             if (e.ctrlKey) key += 'Ctrl+';
             if (e.shiftKey) key += 'Shift+';
             if (e.altKey) key += 'Alt+';
-            
+
             // Add the actual key
             if (e.key.length === 1) {{
                 key += e.key.toUpperCase();
             }} else {{
                 key += e.key;
             }}
-            
+
             // Check if this is a registered shortcut
             if (shortcuts[key]) {{
                 e.preventDefault();
-                
+
                 // Send message to Streamlit
                 window.parent.postMessage({{
                     type: 'streamlit:setComponentValue',
@@ -72,10 +72,10 @@ class KeyboardShortcuts:
                         key: key
                     }}
                 }}, '*');
-                
+
                 // Also store in session storage for Streamlit to read
                 sessionStorage.setItem('keyboard_action', shortcuts[key]);
-                
+
                 // Trigger a rerun by clicking a hidden button
                 const triggerBtn = document.getElementById('shortcut-trigger');
                 if (triggerBtn) {{
@@ -83,7 +83,7 @@ class KeyboardShortcuts:
                 }}
             }}
         }});
-        
+
         console.log('AGStock keyboard shortcuts loaded');
         </script>
         """

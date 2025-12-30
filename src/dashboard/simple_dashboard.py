@@ -32,22 +32,22 @@ st.markdown(
         max-width: 1200px;
         margin: 0 auto;
     }
-    
+
     /* 大きな数字 */
     .big-number {
         font-size: 3rem;
         font-weight: bold;
         margin: 1rem 0;
     }
-    
+
     .positive {
         color: #10b981;
     }
-    
+
     .negative {
         color: #ef4444;
     }
-    
+
     /* カード */
     .card {
         background: white;
@@ -57,7 +57,7 @@ st.markdown(
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         color: #1f2937;
     }
-    
+
     /* 保有銘柄 */
     .stock-item {
         padding: 1rem;
@@ -66,17 +66,17 @@ st.markdown(
         border-left: 4px solid;
         color: #1f2937;
     }
-    
+
     .stock-profit {
         border-left-color: #10b981;
         background: #f0fdf4;
     }
-    
+
     .stock-loss {
         border-left-color: #ef4444;
         background: #fef2f2;
     }
-    
+
     /* ボタン */
     .stButton > button {
         width: 100%;
@@ -84,13 +84,13 @@ st.markdown(
         font-size: 1.1rem;
         border-radius: 8px;
     }
-    
+
     /* ステータス */
     .status-ok {
         color: #10b981;
         font-size: 1.2rem;
     }
-    
+
     .status-warning {
         color: #f59e0b;
         font-size: 1.2rem;

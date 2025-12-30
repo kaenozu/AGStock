@@ -4,8 +4,7 @@ Continuously updates models with new data and detects concept drift.
 """
 
 import logging
-from typing import Optional, Dict, Any
-from datetime import datetime, timedelta
+from typing import Dict, Any
 from collections import deque
 import numpy as np
 import pandas as pd

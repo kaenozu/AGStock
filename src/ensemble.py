@@ -28,7 +28,6 @@ class EnsembleVoter:
             - 'confidence': Aggregated confidence score
             - 'details': Dictionary of individual strategy signals
         """
-        votes = []
         total_weight = 0.0
         weighted_signal_sum = 0.0
         details = {}

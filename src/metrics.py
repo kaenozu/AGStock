@@ -6,7 +6,6 @@
 
 import logging
 import time
-import pytest
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum

@@ -5,9 +5,8 @@ Intelligent Auto Selector - 最善の予測を自動選択
 
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict
 
-import numpy as np
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -94,7 +93,7 @@ class IntelligentAutoSelector:
 
             self.external_data = get_external_data()
             logger.info("External Data Provider initialized")
-        except Exception as e:
+        except Exception:
             self.external_data = None
 
         try:
@@ -102,7 +101,7 @@ class IntelligentAutoSelector:
 
             self.lazy_loader = get_lazy_loader()
             logger.info("Lazy Model Loader initialized (6 models registered)")
-        except Exception as e:
+        except Exception:
             self.lazy_loader = None
 
         try:
@@ -110,7 +109,7 @@ class IntelligentAutoSelector:
 
             self.persistent_cache = get_persistent_cache()
             logger.info("Persistent Cache (SQLite) initialized")
-        except Exception as e:
+        except Exception:
             self.persistent_cache = None
 
         try:
@@ -118,7 +117,7 @@ class IntelligentAutoSelector:
 
             self.multi_task = get_multi_task_predictor()
             logger.info("Multi-Task Predictor initialized")
-        except Exception as e:
+        except Exception:
             self.multi_task = None
 
     def get_best_prediction(

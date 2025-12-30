@@ -59,7 +59,7 @@ class StackingEnsemble:
         # Train all base models on full dataset
         for i, model in enumerate(self.base_models):
             logger.info(
-                f"Training base model {i+1}/{len(self.base_models)}: {model.__class__.__name__}"
+                f"Training base model {i + 1}/{len(self.base_models)}: {model.__class__.__name__}"
             )
             model.fit(X, y)
 
@@ -112,7 +112,7 @@ class StackingEnsemble:
         kfold = KFold(n_splits=self.n_folds, shuffle=True, random_state=42)
 
         for i, model in enumerate(self.base_models):
-            logger.debug(f"Generating OOF predictions for model {i+1}")
+            logger.debug(f"Generating OOF predictions for model {i + 1}")
 
             for fold, (train_idx, val_idx) in enumerate(kfold.split(X)):
                 # Split data
@@ -136,7 +136,7 @@ class StackingEnsemble:
 
         try:
             return clone(model)
-        except:
+        except BaseException:
             # If sklearn clone fails, create new instance
             return model.__class__()
 

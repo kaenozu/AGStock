@@ -61,7 +61,7 @@ def add_frequency_features(df: pd.DataFrame, window: int = 20) -> pd.DataFrame:
 
     freq_power = np.empty_like(log_ret, dtype=float)
     freq_power[: window - 1] = np.nan
-    freq_power[window - 1 :] = dominant_power
+    freq_power[window - 1:] = dominant_power
 
     df["Freq_Power"] = freq_power
 
@@ -102,7 +102,7 @@ def add_sentiment_features(df: pd.DataFrame) -> pd.DataFrame:
             daily_sent.reindex(df.index).fillna(method="ffill").fillna(0.0)
         )
 
-    except Exception as e:
+    except Exception:
         # print(f"Error adding sentiment features: {e}")
         df["Sentiment_Score"] = 0.0
 

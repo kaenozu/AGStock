@@ -109,5 +109,5 @@ class DynastyManager:
             if total_val > 0:
                 weight = h.get("market_value", 0) / total_val
                 if weight > 0.25:  # Over 25% in one ticker is risky for a dynasty
-                    alerts.append(f"⚠️ Over-concentration in {h.get('ticker')} ({weight*100:.1f}%)")
+                    alerts.append(f"⚠️ Over-concentration in {h.get('ticker')} ({weight * 100:.1f}%)")
         return {"health_status": "STRONG" if not alerts else "CAUTION", "audit_alerts": alerts}

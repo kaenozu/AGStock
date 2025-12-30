@@ -76,11 +76,11 @@ class LLMAnalyzer:
 
         prompt = f"""
         You are a senior financial analyst. Analyze the following recent news headlines for {ticker}.
-        
+
         News:
             pass
         {news_text}
-        
+
         Provide a structured analysis in JSON format with the following keys:
             pass
         - sentiment: "Bullish", "Bearish", or "Neutral"
@@ -88,7 +88,7 @@ class LLMAnalyzer:
         - reasoning: A concise summary of why (max 3 sentences).
         - risks: A list of potential risks mentioned or implied.
         - catalysts: A list of potential positive catalysts.
-        
+
         Output ONLY valid JSON.
         """
 

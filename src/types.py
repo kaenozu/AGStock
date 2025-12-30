@@ -3,7 +3,7 @@ Type Definitions for AGStock
 Provides type aliases, protocols, and typed dictionaries for type safety.
 """
 
-from typing import Protocol, TypedDict, Literal, List, Dict, Optional
+from typing import Protocol, TypedDict, Literal, List, Dict
 import numpy as np
 import pandas as pd
 

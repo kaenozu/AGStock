@@ -1,4 +1,3 @@
-import pandas as pd
 import numpy as np
 import logging
 from typing import Any
@@ -27,7 +26,6 @@ def __init__(self):
     #     def generate_synthetic_stream(
     #         self, base_price: float, scenario_name: str, days: int = 100
     #     ) -> pd.DataFrame:
-    pass
 
 
 #         """
@@ -53,10 +51,9 @@ def __init__(self):
 
 
 def run_multiversal_backtest(self, agent: Any, base_price: float):
-    pass
     results = {}
     for name in self.scenarios:
-        df = self.generate_synthetic_stream(base_price, name)
+        self.generate_synthetic_stream(base_price, name)
         # Simulated performance - in reality, we'd pass this to the agent
         performance = np.random.uniform(-20, 50)
         results[name] = performance

@@ -6,7 +6,7 @@ Feature Importance Filter - SHAP特徴量フィルター
 import json
 import logging
 import os
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import numpy as np
 import pandas as pd

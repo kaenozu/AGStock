@@ -51,7 +51,6 @@ class RegimeDetector:
         Returns:
             特徴量のDataFrame
         """
-        features_list = []
 
         # 各指標を取得
         vix_df = macro_data.get("VIX")

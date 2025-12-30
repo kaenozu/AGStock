@@ -31,7 +31,7 @@ class TaxReportGenerator:
         # 日本語フォント登録
         try:
             pdfmetrics.registerFont(UnicodeCIDFont("HeiseiMin-W3"))
-        except:
+        except BaseException:
             pass
 
     def generate_annual_report(

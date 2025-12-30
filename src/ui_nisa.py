@@ -2,7 +2,6 @@
 NISA Manager UI - NISA口座管理ダッシュボード
 """
 
-import pandas as pd
 import streamlit as st
 
 from src.nisa_manager import NISAManager, NISAType

@@ -77,7 +77,7 @@ class TimeSeriesCV:
             score = metric_func(y_test, preds)
             scores.append(score)
 
-            logger.info(f"Fold {fold+1}: Score = {score:.4f}")
+            logger.info(f"Fold {fold + 1}: Score = {score:.4f}")
 
         return {
             "mean_score": np.mean(scores),

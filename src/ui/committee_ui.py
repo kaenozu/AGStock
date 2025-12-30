@@ -121,7 +121,8 @@ def render_committee_ui():
                     if market_df is not None and not market_df.empty:
                         regime_info = regime_det.get_regime_signal(market_df)
                         st.info(
-                            f"🐻🐮 **市場環境 (Regime)**: {regime_info['regime_name']}\n\nRunning Logic: {regime_info['description']}"
+                            f"🐻🐮 **市場環境 (Regime)**: {regime_info['regime_name']
+                                                     }\n\nRunning Logic: {regime_info['description']}"
                         )
 
                     # Fetch Position

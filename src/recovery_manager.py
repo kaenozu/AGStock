@@ -158,7 +158,7 @@ class RecoveryManager:
         try:
             from src.paper_trader import PaperTrader
 
-            pt = PaperTrader()
+            PaperTrader()
             # Implementation would depend on trade tracking
             # For now, just log
             logger.info(f"Rolling back trade {trade_id}")

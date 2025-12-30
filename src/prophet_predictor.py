@@ -5,13 +5,10 @@ Facebook開発の時系列予測モデル
 """
 
 import logging
-from datetime import timedelta
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 from prophet import Prophet
-from sklearn.metrics import mean_squared_error
 
 from src.base_predictor import BasePredictor
 
@@ -25,7 +22,6 @@ class ProphetPredictor(BasePredictor):
     def prepare_model(self, data):
         """モデルの準備"""
         # Prophetは学習時にデータが必要なため、ここでは何もしないか、初期化のみ
-        pass
 
     def fit(self, X, y):
         """モデルの学習"""

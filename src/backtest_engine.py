@@ -94,7 +94,7 @@ class HistoricalBacktester:
             try:
                 # Instantiate strategy to get name if possible
                 strat_name = strat_cls(**params).name
-            except:
+            except BaseException:
                 strat_name = getattr(strat_cls, "name", str(strat_cls))
 
             res = self.run_test(ticker, strat_cls, years, **params)

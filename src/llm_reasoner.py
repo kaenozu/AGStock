@@ -179,10 +179,10 @@ class LLMReasoner:
         system_prompt = f"""
         あなたはAI投資システムの高度なアシスタント「Ghostwriter」です。
         以下の市場・ポートフォリオ状況（Context）を踏まえて、ユーザーの質問に日本語で答えてください。
-        
+
 ## 現在の状況 (Context)
         {context_data}
-        
+
         回答のガイドライン:
             pass
         1. 専門家として振る舞い、論理的に回答してください。
@@ -207,21 +207,21 @@ class LLMReasoner:
         news_text = ""
         for i, item in enumerate(news_list):
             news_text += (
-                f"{i+1}. {item.get('title', '')} ({item.get('published', '')})\n"
+                f"{i + 1}. {item.get('title', '')} ({item.get('published', '')})\n"
             )
 
         prompt = f"""
         あなたはAIヘッジファンドのチーフアナリストです。
         以下の最新ニュースを分析し、現在の市場センチメントをスコアリングしてください。
-        
+
 ## 最新ニュース
         {news_text}
-        
+
 ## 分析タスク
         1. ニュース全体のセンチメントを -10 (超弱気) 〜 +10 (超強気) で評価してください。
         2. その理由を簡潔に要約してください。
         3. 特に注目すべきトピックがあれば挙げてください。
-        
+
 ## 出力フォーマット (JSONのみ)
         {{
             "sentiment_score": 0,
@@ -249,10 +249,10 @@ class LLMReasoner:
         prompt = f"""
         あなたはベテランの証券アナリストです。
         以下の決算資料（テキスト抽出版）を読み込み、投資家向けに要約・評価してください。
-        
+
 ## 決算資料テキスト
         {pdf_text}
-        
+
 ## 分析フォーマット (JSONのみ)
         {{
             "score": 0,  // 0〜10のスコア (10が最高、5が中立)
@@ -283,10 +283,10 @@ class LLMReasoner:
         prompt = f"""
         あなたはPythonのエキスパートであり、定量的トレーディングのスペシャリストです。
         以下の要件に基づいて、`src.strategies.base.Strategy` を継承した独自の戦略クラスを実装してください。
-        
+
 ## ユーザーの要件
         "{description}"
-        
+
 ## 実装ガイドライン
         1. クラス名は `{class_name}` としてください。
         2. `generate_signals(self, df: pd.DataFrame) -> pd.Series` メソッドを実装してください。
@@ -295,12 +295,12 @@ class LLMReasoner:
         3. 必要なTA-Libやpandasの計算ロジックを含めてください。
         4. 説明コメントを日本語で記述してください。
         5. 出力はPythonコードのみ（Markdownの ```python 等は不要）にしてください。
-        
+
 ## テンプレート
         from src.strategies.base import Strategy
         import pandas as pd
         import talib
-        
+
         class {class_name}(Strategy):
             def __init__(self):
                 super().__init__("{class_name}")
@@ -327,13 +327,13 @@ class LLMReasoner:
         return f"""
         あなたはプロの金融アナリストです。以下の市場データとニュースに基づいて、
         市場の状況と今後の予測をJSON形式で出力してください。
-        
+
 ## 市場データ
         {json.dumps(market_data, ensure_ascii=False)}
-        
+
 ## 最新ニュース
         {news_text}
-        
+
 ## 出力フォーマット (JSONのみ)
         {{
             "sentiment": "BULLISH/BEARISH/NEUTRAL",

@@ -7,7 +7,7 @@ import datetime
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 import pandas as pd
 
@@ -112,7 +112,7 @@ class Ghostwriter:
         Converts gathered data into a narrative report using LLM.
         """
         regime = data.get("market_regime", {})
-        
+
         prompt = GHOSTWRITER_REPORT_PROMPT.format(
             start_date=data["start_date"],
             end_date=data["end_date"],
@@ -139,7 +139,7 @@ class Ghostwriter:
         Provides a basic template-based report if AI fails.
         """
         regime = data.get("market_regime", {})
-        
+
         return f"""# 🌩️ Weekly Alpha Report (AI代筆モード)
 
 ## Executive Summary

@@ -4,11 +4,12 @@ Spawns and manages 100 distinct AI personas for hyper-diverse investment debate.
 Implements Council Meta-Learning (Meritocracy through performance tracking).
 """
 
+from datetime import datetime
 import json
 import logging
 import os
 import random
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -52,8 +53,8 @@ class AvatarCouncil:
         for i in range(self.avatar_count):
             arch = random.choice(self.ARCHETYPES)
             personas.append({
-                "id": f"AV-{(i+1):03d}",
-                "name": f"{arch} #{i+1}",
+                "id": f"AV-{(i + 1):03d}",
+                "name": f"{arch} #{i + 1}",
                 "trait": arch,
                 "weight": 1.0,
                 "accuracy_score": 0.5,
@@ -79,30 +80,32 @@ class AvatarCouncil:
         weighted_votes = []
         raw_votes = []
         detailed_votes = []
-        
+
         total_weight = sum([p["weight"] for p in self.personas])
         norm_factor = total_weight / self.avatar_count if total_weight > 0 else 1.0
 
         for p in self.personas:
             # Base logic score
             base_score = random.uniform(20, 80)
-            
+
             # Apply individual bias/traits
             if "Conservative" in p["trait"]:
                 base_score -= 10
             elif "Aggressive" in p["trait"]:
                 base_score += 10
-            
+
             score = max(0, min(100, base_score))
             raw_votes.append(score)
-            
+
             # Apply meritocracy weight
             weighted_votes.append(score * (p["weight"] / norm_factor))
-            
+
             stance = "NEUTRAL"
-            if score > 60: stance = "BULL"
-            elif score < 40: stance = "BEAR"
-            
+            if score > 60:
+                stance = "BULL"
+            elif score < 40:
+                stance = "BEAR"
+
             vote_obj = {
                 "id": p["id"],
                 "name": p["name"],
@@ -112,7 +115,7 @@ class AvatarCouncil:
                 "quote": self._generate_quote(p["trait"], stance)
             }
             detailed_votes.append(vote_obj)
-            
+
             # Record for future feedback
             p.setdefault("pending_votes", []).append({
                 "ticker": ticker,
@@ -121,17 +124,17 @@ class AvatarCouncil:
             })
 
         self._save_state(self.personas)
-        
+
         consensus_score = sum(weighted_votes) / len(weighted_votes)
-        
+
         clusters = {
             "Bulls": len([v for v in raw_votes if v > 60]),
             "Bears": len([v for v in raw_votes if v < 40]),
             "Neutral": len([v for v in raw_votes if 40 <= v <= 60]),
         }
-        
+
         logger.info(f"🏛️ Assembly for {ticker} complete. Weighted Consensus: {consensus_score:.1f}")
-        
+
         return {
             "avg_score": consensus_score,
             "clusters": clusters,
@@ -142,14 +145,14 @@ class AvatarCouncil:
     def update_meritocracy(self, ticker: str, outcome: str):
         """Rewards accurate personas and penalizes inaccurate ones."""
         logger.info(f"🧬 Updating Council Meritocracy for {ticker} (Outcome: {outcome})")
-        
+
         for p in self.personas:
             pending = p.get("pending_votes", [])
             matches = [v for v in pending if v["ticker"] == ticker]
-            
+
             if not matches:
                 continue
-                
+
             vote = matches[0]
             if outcome != "NEUTRAL":
                 if vote["stance"] == outcome:
@@ -173,5 +176,3 @@ class AvatarCouncil:
         else:
             quotes = ["様子見が賢明です。", "材料不足ですね。", "現在はレンジ相場です。"]
         return f"[{trait}] {random.choice(quotes)}"
-
-from datetime import datetime

@@ -6,7 +6,6 @@ import json
 
 import streamlit as st
 
-from src.agents.committee import InvestmentCommittee
 from src.llm_reasoner import get_llm_reasoner
 from src.paper_trader import PaperTrader
 

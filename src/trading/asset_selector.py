@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import List
 
 from src.constants import (
     CRYPTO_PAIRS,
@@ -7,7 +7,6 @@ from src.constants import (
     SP500_TICKERS,
     STOXX50_TICKERS,
 )
-from src.data_loader import fetch_fundamental_data
 
 
 class AssetSelector:

@@ -7,7 +7,6 @@ Ensures 'Bird's Eye' trend alignment.
 import logging
 from typing import Any, Dict
 
-import pandas as pd
 
 from src.agents.base_agent import BaseAgent
 from src.multi_timeframe import MultiTimeframeAnalyzer
@@ -29,8 +28,8 @@ class MTFAnalyst(BaseAgent):
         """
         Performs Weekly trend analysis on the provided price history.
         """
-        ticker = data.get("ticker", "Unknown")
-        # Higher level committee might not always pass raw history, 
+        data.get("ticker", "Unknown")
+        # Higher level committee might not always pass raw history,
         # but for MTF it's required.
         history_df = data.get("history_df")
 
@@ -45,7 +44,7 @@ class MTFAnalyst(BaseAgent):
         try:
             # Resample to Weekly
             weekly_df = self.mtf_analyzer.resample_data(history_df, "W-FRI")
-            
+
             if len(weekly_df) < 20:
                 return AgentAnalysis(
                     agent_name=self.name,
@@ -57,14 +56,14 @@ class MTFAnalyst(BaseAgent):
             # Calculate MTF indicators
             weekly_df["SMA_20"] = weekly_df["Close"].rolling(window=20).mean()
             weekly_df["SMA_50"] = weekly_df["Close"].rolling(window=50).mean()
-            
+
             last_close = weekly_df["Close"].iloc[-1]
             last_sma20 = weekly_df["SMA_20"].iloc[-1]
             last_sma50 = weekly_df["SMA_50"].iloc[-1]
-            
+
             is_bullish = last_sma20 > last_sma50 and last_close > last_sma20
             is_bearish = last_sma20 < last_sma50 and last_close < last_sma20
-            
+
             if is_bullish:
                 decision = TradingDecision.BUY
                 reasoning = (

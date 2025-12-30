@@ -5,7 +5,7 @@
 """
 
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -685,9 +685,9 @@ def _show_stat_cards():
 
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("勝率", f"{win_rate*100:.1f}%")
+        st.metric("勝率", f"{win_rate * 100:.1f}%")
     with col2:
-        st.metric("最大DD", f"{max_dd*100:.2f}%")
+        st.metric("最大DD", f"{max_dd * 100:.2f}%")
     with col3:
         st.metric("連勝数", win_streak)
     with col4:

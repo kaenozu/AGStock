@@ -5,10 +5,10 @@ Implements time series cross-validation to prevent data leakage and overfitting.
 
 import logging
 from typing import List, Tuple, Dict, Any
-from datetime import datetime, timedelta
+from datetime import timedelta
 import numpy as np
 import pandas as pd
-from sklearn.metrics import mean_absolute_percentage_error, accuracy_score
+from sklearn.metrics import mean_absolute_percentage_error
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +112,7 @@ class WalkForwardValidator:
         total_predictions = 0
 
         for i, (train_df, test_df) in enumerate(splits):
-            logger.info(f"Validating split {i+1}/{len(splits)}")
+            logger.info(f"Validating split {i + 1}/{len(splits)}")
 
             # Prepare data
             X_train = train_df[feature_columns]
@@ -206,7 +206,7 @@ class WalkForwardValidator:
         # Start with minimum training size
         for i in range(min_train_size, len(df), self.step_days):
             train_df = df.iloc[:i]
-            test_df = df.iloc[i : i + self.test_period_days]
+            test_df = df.iloc[i: i + self.test_period_days]
 
             if test_df.empty:
                 break

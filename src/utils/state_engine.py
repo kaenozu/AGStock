@@ -1,14 +1,15 @@
 import logging
-import pandas as pd
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
+
 
 class MacroShockManager:
     """
     Monitors economic calendars and significant macro events to trigger safety pauses.
     """
+
     def __init__(self):
         # In a real scenario, this would fetch from an API like AlphaVantage or Investing.com
         # For now, we simulate with a list of known "High Volatility" windows if applicable.
@@ -26,18 +27,19 @@ class MacroShockManager:
             # Window: 30 mins before to 30 mins after
             start_window = event_time - timedelta(minutes=30)
             end_window = event_time + timedelta(minutes=30)
-            
+
             if start_window <= now <= end_window:
                 logger.warning(f"⚠️ MACRO SHOCK DETECTED: {event['name']} is imminent or active.")
                 return True
         return False
+
 
 class SystemStateEngine:
     """
     High-speed In-memory state storage.
     """
     _instance = None
-    
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(SystemStateEngine, cls).__new__(cls)
@@ -54,5 +56,6 @@ class SystemStateEngine:
 
     def get_state(self, key: str, default=None):
         return self.state.get(key, default)
+
 
 state_engine = SystemStateEngine()

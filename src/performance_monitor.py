@@ -177,7 +177,7 @@ class PerformanceMonitor:
             # 実行時間の統計
             cursor.execute(
                 """
-                SELECT 
+                SELECT
                     AVG(duration_seconds) as avg_duration,
                     MAX(duration_seconds) as max_duration,
                     MIN(duration_seconds) as min_duration,
@@ -193,7 +193,7 @@ class PerformanceMonitor:
             # 関数別の実行時間
             cursor.execute(
                 """
-                SELECT 
+                SELECT
                     function_name,
                     AVG(duration_seconds) as avg_duration,
                     COUNT(*) as call_count
@@ -211,7 +211,7 @@ class PerformanceMonitor:
             # メモリ使用量の統計
             cursor.execute(
                 """
-                SELECT 
+                SELECT
                     AVG(memory_mb) as avg_memory,
                     MAX(memory_mb) as peak_memory,
                     AVG(memory_percent) as avg_percent
@@ -226,7 +226,7 @@ class PerformanceMonitor:
             # API呼び出しの統計
             cursor.execute(
                 """
-                SELECT 
+                SELECT
                     COUNT(*) as total_calls,
                     SUM(success) as successful_calls
                 FROM api_calls

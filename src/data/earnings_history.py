@@ -104,7 +104,7 @@ class EarningsHistory:
                 cursor = conn.cursor()
                 cursor.execute(
                     """
-                    SELECT * FROM earnings_reports 
+                    SELECT * FROM earnings_reports
                     WHERE ticker = ? OR company_name LIKE ?
                     ORDER BY timestamp DESC LIMIT 1
                 """,
@@ -118,7 +118,7 @@ class EarningsHistory:
                 item = dict(row)
                 try:
                     item["analysis"] = json.loads(item["raw_json"])
-                except:
+                except BaseException:
                     item["analysis"] = {}
                 return item
         except Exception as e:
@@ -133,7 +133,7 @@ class EarningsHistory:
                 cursor = conn.cursor()
                 cursor.execute(
                     """
-                    SELECT * FROM earnings_reports 
+                    SELECT * FROM earnings_reports
                     ORDER BY timestamp DESC LIMIT ?
                 """,
                     (limit,),
@@ -146,7 +146,7 @@ class EarningsHistory:
                     # Parse raw_json back to dict for easy usage
                     try:
                         item["analysis"] = json.loads(item["raw_json"])
-                    except:
+                    except BaseException:
                         item["analysis"] = {}
                     history.append(item)
                 return history

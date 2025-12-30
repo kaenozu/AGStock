@@ -105,7 +105,7 @@ class DynamicRiskManager:
             current_atr = atr_indicator.average_true_range().iloc[-1]
             historical_atr = (
                 atr_indicator.average_true_range()
-                .iloc[-lookback * 2 : -lookback]
+                .iloc[-lookback * 2: -lookback]
                 .mean()
             )
 
@@ -190,7 +190,7 @@ class DynamicRiskManager:
 
         logger.info(
             f"Stop loss price for {direction}: {stop_loss_price:.2f} "
-            f"({stop_loss_pct*100:.2f}% from entry)"
+            f"({stop_loss_pct * 100:.2f}% from entry)"
         )
 
         return stop_loss_price
@@ -217,7 +217,7 @@ class DynamicRiskManager:
 
         logger.info(
             f"Take profit price for {direction}: {take_profit_price:.2f} "
-            f"({take_profit_pct*100:.2f}% from entry)"
+            f"({take_profit_pct * 100:.2f}% from entry)"
         )
 
         return take_profit_price
