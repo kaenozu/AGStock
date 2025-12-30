@@ -568,8 +568,7 @@ __all__ = [
     "CRYPTO_PAIRS",
     "FX_PAIRS",
     "JP_STOCKS",
-    "fetch_data",
     "fetch_realtime_data",
-    "get_ticker_data",
+    "fetch_stock_data",
     "process_downloaded_data",
 ]
