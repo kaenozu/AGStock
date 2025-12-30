@@ -1,0 +1,23 @@
+{
+    "established_at": "2025-12-29T14:59:16.624270",
+    "dynasty_name": "Antigravity AGStock Dynasty",
+    "legacy_score": 10.0,
+    "current_objective": "FOUNDATION_ESTABLISHMENT",
+    "milestones": [],
+    "generational_assets": {
+        "reserve_ratio": 0.2,
+        "growth_ratio": 0.8
+    },
+    "eternal_goals": [
+        {
+            "id": "G1",
+            "target": "Capital preservation in crisis",
+            "status": "ACTIVE"
+        },
+        {
+            "id": "G2",
+            "target": "Outperform indices by 15%",
+            "status": "ACTIVE"
+        }
+    ]
+}

@@ -1,0 +1,6102 @@
+[
+    {
+        "id": "AV-001",
+        "name": "Deep History Scholar #1",
+        "trait": "Deep History Scholar",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.5779195408926456,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-002",
+        "name": "Speed Demon (HFT) #2",
+        "trait": "Speed Demon (HFT)",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.31004041043644076,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-003",
+        "name": "Speed Demon (HFT) #3",
+        "trait": "Speed Demon (HFT)",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.5685502816548672,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-004",
+        "name": "Macro Oracle #4",
+        "trait": "Macro Oracle",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.34242350269329025,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-005",
+        "name": "Chaos Theory Analyst #5",
+        "trait": "Chaos Theory Analyst",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.16366752889307268,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-006",
+        "name": "Sentiment Whisperer #6",
+        "trait": "Sentiment Whisperer",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.5192931105833901,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-007",
+        "name": "Chaos Theory Analyst #7",
+        "trait": "Chaos Theory Analyst",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.5706468823296467,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-008",
+        "name": "Macro Oracle #8",
+        "trait": "Macro Oracle",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.1335197797081577,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-009",
+        "name": "Chaos Theory Analyst #9",
+        "trait": "Chaos Theory Analyst",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.38139529490993984,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-010",
+        "name": "Macro Oracle #10",
+        "trait": "Macro Oracle",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.4140895854680584,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-011",
+        "name": "Macro Oracle #11",
+        "trait": "Macro Oracle",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.36845416758988014,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-012",
+        "name": "Chaos Theory Analyst #12",
+        "trait": "Chaos Theory Analyst",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.871247839759261,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-013",
+        "name": "Aggressive Disruptor #13",
+        "trait": "Aggressive Disruptor",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.3935908580224955,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-014",
+        "name": "Value Archeologist #14",
+        "trait": "Value Archeologist",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.6521977776090176,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-015",
+        "name": "Stoic Conservative #15",
+        "trait": "Stoic Conservative",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.21292448309068604,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-016",
+        "name": "Aggressive Disruptor #16",
+        "trait": "Aggressive Disruptor",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.4345126114023282,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-017",
+        "name": "Macro Oracle #17",
+        "trait": "Macro Oracle",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.11315162927500023,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-018",
+        "name": "Value Archeologist #18",
+        "trait": "Value Archeologist",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.6186179861634081,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-019",
+        "name": "Chaos Theory Analyst #19",
+        "trait": "Chaos Theory Analyst",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.9463793934580572,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-020",
+        "name": "Chaos Theory Analyst #20",
+        "trait": "Chaos Theory Analyst",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.8980017537132065,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-021",
+        "name": "Sentiment Whisperer #21",
+        "trait": "Sentiment Whisperer",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.25250709510763825,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-022",
+        "name": "Value Archeologist #22",
+        "trait": "Value Archeologist",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.9521998733364284,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-023",
+        "name": "Deep History Scholar #23",
+        "trait": "Deep History Scholar",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.42898728200073355,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-024",
+        "name": "Stoic Conservative #24",
+        "trait": "Stoic Conservative",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.7431197280387434,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-025",
+        "name": "Macro Oracle #25",
+        "trait": "Macro Oracle",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.9282084627775864,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-026",
+        "name": "Sentiment Whisperer #26",
+        "trait": "Sentiment Whisperer",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.6587952671564302,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-027",
+        "name": "Technical Monk #27",
+        "trait": "Technical Monk",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.6155408588559672,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-028",
+        "name": "Sentiment Whisperer #28",
+        "trait": "Sentiment Whisperer",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.7777946433896109,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-029",
+        "name": "Stoic Conservative #29",
+        "trait": "Stoic Conservative",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.6540761638584298,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-030",
+        "name": "Macro Oracle #30",
+        "trait": "Macro Oracle",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.7358405531920038,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-031",
+        "name": "Aggressive Disruptor #31",
+        "trait": "Aggressive Disruptor",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.2693091402970091,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-032",
+        "name": "Speed Demon (HFT) #32",
+        "trait": "Speed Demon (HFT)",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.42711521746804015,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-033",
+        "name": "Value Archeologist #33",
+        "trait": "Value Archeologist",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.28024508631969547,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-034",
+        "name": "Speed Demon (HFT) #34",
+        "trait": "Speed Demon (HFT)",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.7596593466133189,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-035",
+        "name": "Speed Demon (HFT) #35",
+        "trait": "Speed Demon (HFT)",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.15046668239117617,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-036",
+        "name": "Macro Oracle #36",
+        "trait": "Macro Oracle",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.41440788991112476,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-037",
+        "name": "Sentiment Whisperer #37",
+        "trait": "Sentiment Whisperer",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.10490923973857608,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-038",
+        "name": "Aggressive Disruptor #38",
+        "trait": "Aggressive Disruptor",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.7334330459594943,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-039",
+        "name": "Deep History Scholar #39",
+        "trait": "Deep History Scholar",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.501735915322601,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-040",
+        "name": "Chaos Theory Analyst #40",
+        "trait": "Chaos Theory Analyst",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.7074487610513186,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-041",
+        "name": "Technical Monk #41",
+        "trait": "Technical Monk",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.1974630386462639,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-042",
+        "name": "Aggressive Disruptor #42",
+        "trait": "Aggressive Disruptor",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.5960919827248587,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-043",
+        "name": "Macro Oracle #43",
+        "trait": "Macro Oracle",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.5893381989607583,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-044",
+        "name": "Stoic Conservative #44",
+        "trait": "Stoic Conservative",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.3533666392637109,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-045",
+        "name": "Sentiment Whisperer #45",
+        "trait": "Sentiment Whisperer",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.7273569165179015,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-046",
+        "name": "Macro Oracle #46",
+        "trait": "Macro Oracle",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.35265688735301237,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-047",
+        "name": "Stoic Conservative #47",
+        "trait": "Stoic Conservative",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.7568919029159349,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-048",
+        "name": "Speed Demon (HFT) #48",
+        "trait": "Speed Demon (HFT)",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.6287487386827098,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-049",
+        "name": "Deep History Scholar #49",
+        "trait": "Deep History Scholar",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.7417607540161265,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-050",
+        "name": "Aggressive Disruptor #50",
+        "trait": "Aggressive Disruptor",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.23654861603881955,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-051",
+        "name": "Technical Monk #51",
+        "trait": "Technical Monk",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.30724177005084885,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-052",
+        "name": "Speed Demon (HFT) #52",
+        "trait": "Speed Demon (HFT)",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.16509454864106607,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-053",
+        "name": "Deep History Scholar #53",
+        "trait": "Deep History Scholar",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.2277277014968098,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-054",
+        "name": "Chaos Theory Analyst #54",
+        "trait": "Chaos Theory Analyst",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.8648682037751695,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-055",
+        "name": "Aggressive Disruptor #55",
+        "trait": "Aggressive Disruptor",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.9872317495950536,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-056",
+        "name": "Macro Oracle #56",
+        "trait": "Macro Oracle",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.7449100486153194,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-057",
+        "name": "Stoic Conservative #57",
+        "trait": "Stoic Conservative",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.39829214879642827,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-058",
+        "name": "Technical Monk #58",
+        "trait": "Technical Monk",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.9312493296459773,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-059",
+        "name": "Deep History Scholar #59",
+        "trait": "Deep History Scholar",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.3878344663083102,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-060",
+        "name": "Deep History Scholar #60",
+        "trait": "Deep History Scholar",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.3127133582189913,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-061",
+        "name": "Aggressive Disruptor #61",
+        "trait": "Aggressive Disruptor",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.437127961241784,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-062",
+        "name": "Stoic Conservative #62",
+        "trait": "Stoic Conservative",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.6643906567307845,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-063",
+        "name": "Technical Monk #63",
+        "trait": "Technical Monk",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.7532961856447887,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-064",
+        "name": "Chaos Theory Analyst #64",
+        "trait": "Chaos Theory Analyst",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.6356489564072255,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-065",
+        "name": "Sentiment Whisperer #65",
+        "trait": "Sentiment Whisperer",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.5933516023263763,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-066",
+        "name": "Deep History Scholar #66",
+        "trait": "Deep History Scholar",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.7141049565914178,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-067",
+        "name": "Aggressive Disruptor #67",
+        "trait": "Aggressive Disruptor",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.8068453470545698,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-068",
+        "name": "Deep History Scholar #68",
+        "trait": "Deep History Scholar",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.97885396546886,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-069",
+        "name": "Speed Demon (HFT) #69",
+        "trait": "Speed Demon (HFT)",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.8059322797273307,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-070",
+        "name": "Macro Oracle #70",
+        "trait": "Macro Oracle",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.5039970889602556,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-071",
+        "name": "Sentiment Whisperer #71",
+        "trait": "Sentiment Whisperer",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.12693685432691293,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-072",
+        "name": "Aggressive Disruptor #72",
+        "trait": "Aggressive Disruptor",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.6546845091719714,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-073",
+        "name": "Speed Demon (HFT) #73",
+        "trait": "Speed Demon (HFT)",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.8989589431780874,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-074",
+        "name": "Value Archeologist #74",
+        "trait": "Value Archeologist",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.33000992538260476,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-075",
+        "name": "Technical Monk #75",
+        "trait": "Technical Monk",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.18724453884781309,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-076",
+        "name": "Macro Oracle #76",
+        "trait": "Macro Oracle",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.6208213136098828,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-077",
+        "name": "Macro Oracle #77",
+        "trait": "Macro Oracle",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.7153672471965364,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-078",
+        "name": "Value Archeologist #78",
+        "trait": "Value Archeologist",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.4419576098344371,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-079",
+        "name": "Speed Demon (HFT) #79",
+        "trait": "Speed Demon (HFT)",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.9592828514061025,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-080",
+        "name": "Chaos Theory Analyst #80",
+        "trait": "Chaos Theory Analyst",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.758152592585359,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-081",
+        "name": "Sentiment Whisperer #81",
+        "trait": "Sentiment Whisperer",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.5964079850309081,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-082",
+        "name": "Value Archeologist #82",
+        "trait": "Value Archeologist",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.6618915182676417,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-083",
+        "name": "Chaos Theory Analyst #83",
+        "trait": "Chaos Theory Analyst",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.5670584836062198,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-084",
+        "name": "Chaos Theory Analyst #84",
+        "trait": "Chaos Theory Analyst",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.2275340334030488,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-085",
+        "name": "Stoic Conservative #85",
+        "trait": "Stoic Conservative",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.24402674356847132,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-086",
+        "name": "Chaos Theory Analyst #86",
+        "trait": "Chaos Theory Analyst",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.7795875256657878,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-087",
+        "name": "Speed Demon (HFT) #87",
+        "trait": "Speed Demon (HFT)",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.16808625581682762,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-088",
+        "name": "Chaos Theory Analyst #88",
+        "trait": "Chaos Theory Analyst",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.8397254658655189,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-089",
+        "name": "Sentiment Whisperer #89",
+        "trait": "Sentiment Whisperer",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.985635377701694,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-090",
+        "name": "Value Archeologist #90",
+        "trait": "Value Archeologist",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.9269014818482694,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-091",
+        "name": "Speed Demon (HFT) #91",
+        "trait": "Speed Demon (HFT)",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.5772649046325405,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-092",
+        "name": "Macro Oracle #92",
+        "trait": "Macro Oracle",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.6363295859739733,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-093",
+        "name": "Stoic Conservative #93",
+        "trait": "Stoic Conservative",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.3148778937969555,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-094",
+        "name": "Aggressive Disruptor #94",
+        "trait": "Aggressive Disruptor",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.1460068477970751,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-095",
+        "name": "Stoic Conservative #95",
+        "trait": "Stoic Conservative",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.3701032136072868,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-096",
+        "name": "Deep History Scholar #96",
+        "trait": "Deep History Scholar",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.3612209978115668,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-097",
+        "name": "Stoic Conservative #97",
+        "trait": "Stoic Conservative",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.8685463516477151,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-098",
+        "name": "Value Archeologist #98",
+        "trait": "Value Archeologist",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.6934978006184382,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-099",
+        "name": "Macro Oracle #99",
+        "trait": "Macro Oracle",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.339077852848955,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BULL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "BULL",
+                "timestamp": ""
+            }
+        ]
+    },
+    {
+        "id": "AV-100",
+        "name": "Sentiment Whisperer #100",
+        "trait": "Sentiment Whisperer",
+        "weight": 1.0,
+        "accuracy_score": 0.5,
+        "vote_history": [],
+        "risk_appetite": 0.2105735995830316,
+        "pending_votes": [
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            },
+            {
+                "ticker": "7203.T",
+                "stance": "BEAR",
+                "timestamp": ""
+            },
+            {
+                "ticker": "9984.T",
+                "stance": "NEUTRAL",
+                "timestamp": ""
+            }
+        ]
+    }
+]

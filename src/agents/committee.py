@@ -18,6 +18,7 @@ from src.oracle.event_forecaster import EventForecaster
 from src.agents.shadow_council import ShadowCouncil
 from src.data.earnings_history import EarningsHistory
 from src.data.feedback_store import FeedbackStore
+from src.evolution.chart_vision import ChartVisionEngine
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +52,7 @@ class InvestmentCommittee:
         self.last_forecast = None
         self.earnings_history = EarningsHistory()
         self.feedback_store = FeedbackStore()
+        self.vision_engine = ChartVisionEngine()
 
     def review_candidate(
         self, ticker: str, signal_data: Dict[str, Any]
@@ -139,6 +141,15 @@ class InvestmentCommittee:
             }
 
         data["prediction_report"] = pred_report
+
+        # 4. Visual Chart Analysis (Multimodal Phase)
+        history_df = signal_data.get("history_df")
+        if history_df is not None:
+            logger.info("Performing visual chart analysis...")
+            visual_analysis = self.vision_engine.analyze_chart_vision(history_df, ticker)
+            if visual_analysis:
+                data["visual_analysis"] = visual_analysis
+                logger.info(f"Visual Verdict: {visual_analysis.get('verdict')}")
         data["portfolio"] = {
             "cash": 1000000,
             "total_equity": 1000000,
