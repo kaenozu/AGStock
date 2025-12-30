@@ -39,3 +39,5 @@ reports/*.pdf
 # Temporary files
 *.tmp
 temp_*.png
+data/parquet/
+test_config.json

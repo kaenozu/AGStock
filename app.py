@@ -60,20 +60,16 @@ strategies = get_strategies()
 st.title("🌍 AGStock AI Trading System (Pro)")
 st.markdown("日本・米国・欧州の主要株式を対象とした、プロ仕様のバックテストエンジン搭載。")
 
-# Load CSS (v3 with modern design system)
+# Load CSS (Glassmorphism 2.0 Design System)
 try:
-    with open("assets/style_v3.css") as f:
+    with open("src/ui/index.css", encoding="utf-8") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 except FileNotFoundError:
     try:
-        with open("assets/style_v2.css") as f:
+        with open("assets/style_v3.css") as f:
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-    except FileNotFoundError:
-        try:
-            with open("assets/style.css") as f:
-                st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-        except:
-            pass
+    except:
+        pass
 
 # Inject keyboard shortcuts
 try:
@@ -119,7 +115,7 @@ def main():
     # Build tab labels with badges
     trading_badge = f" ({signal_count})" if signal_count > 0 else ""
 
-    tab_list = ["🏠 ダッシュボード", "📈 運用パフォーマンス", "🤖 AI分析センター", f"💼 トレーディング{trading_badge}", "🧪 戦略研究所", "🚀 Mission Control"]
+    tab_list = ["🏠 ダッシュボード", "📈 運用パフォーマンス", "🤖 AI分析センター", f"💼 トレーディング{trading_badge}", "🧪 戦略研究所", "🏆 シャドウ・トーナメント", "🚀 Mission Control"]
 
     tabs = st.tabs(tab_list)
 
@@ -148,44 +144,39 @@ def main():
         from src.ui.lab_hub import render_lab_hub
         render_lab_hub()
     
-    # 5. Mission Control
+    # 5. Tournament
     with tabs[5]:
+        from src.ui.tournament_ui import render_tournament_ui
+        render_tournament_ui()
+
+    # 6. Mission Control
+    with tabs[6]:
         render_mission_control()
 
-    # 6. Real-time Monitor (New Feature)
-    # Ideally should be a separate page or overlay, but adding as expnader or section for now
-    with st.sidebar.expander("⚡ リアルタイム監視", expanded=False):
-        st.markdown("簡易モニタリング起動中...")
-        try:
-            import time
-
-            from src.realtime.streamer import get_streamer
-
-            # Stream top 3 tickers just for demo
-            watchlist = ["7203.T", "9984.T", "6758.T"]
-            streamer = get_streamer(watchlist)
-
-            if st.button("更新 (1分足チェック)"):
+    # 6. Real-time Monitor (Enhanced)
+    with st.sidebar.expander("⚡ リアルタイム監視 (β)", expanded=True):
+        @st.fragment(run_every="30s")
+        def render_realtime_stream():
+            st.markdown("マーケット監視中 (30s自動更新)")
+            try:
+                from src.realtime.streamer import get_streamer
+                watchlist = ["7203.T", "9984.T", "6758.T", "AAPL", "NVDA"]
+                streamer = get_streamer(watchlist)
                 streamer._fetch_latest()  # Force update
                 data = streamer.latest_data
-                for ticker, info in data.items():
-                    price = info["price"]
-                    vol = info["volume"]
-                    st.metric(label=ticker, value=f"{price:,.0f}", delta=None)
-                    st.caption(f"Vol: {vol:,.0f} at {info['time'].strftime('%H:%M:%S')}")
-            else:
-                st.caption("ボタンを押して最新データを取得")
+                
+                cols = st.columns(2)
+                for i, (ticker, info) in enumerate(data.items()):
+                    with cols[i % 2]:
+                        st.metric(label=ticker, value=f"{info['price']:,.1f}", 
+                                  delta=f"{info.get('change', 0):+.2f}%")
+                
+                st.caption(f"Last Update: {datetime.datetime.now().strftime('%H:%M:%S')}")
+            except Exception as e:
+                st.error(f"Stream Error: {e}")
 
-            # Health status
-            if getattr(streamer, "last_update", None):
-                st.caption(
-                    f"最終更新: {streamer.last_update.strftime('%H:%M:%S')} / 失敗回数: {streamer.failure_count}"
-                )
-            if getattr(streamer, "last_error", None):
-                st.warning(f"前回エラー: {streamer.last_error}")
+        render_realtime_stream()
 
-        except Exception as e:
-            st.error(f"Error: {e}")
 
 
 if __name__ == "__main__":

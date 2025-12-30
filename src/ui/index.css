@@ -1,0 +1,89 @@
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-blur: blur(12px);
+    --accent-primary: #00f2ff;
+    --accent-secondary: #7000ff;
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.7);
+    --bg-gradient: radial-gradient(circle at top left, #0d0d12, #1a1a2e);
+}
+
+body {
+    background: var(--bg-gradient);
+    color: var(--text-primary);
+    font-family: 'Outfit', 'Inter', sans-serif;
+}
+
+/* Glassmorphism Card Base */
+.stCard,
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 48px 0 rgba(0, 242, 255, 0.15);
+    border-color: rgba(0, 242, 255, 0.3);
+}
+
+/* Typography & Visuals */
+h1,
+h2,
+h3 {
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+/* Customized Streamlit Elements */
+.stButton>button {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 0.6rem 2rem !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stButton>button:hover {
+    filter: brightness(1.2);
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.5);
+    transform: scale(1.02);
+}
+
+/* Chart Container styling */
+.stPlotlyChart {
+    background: transparent !important;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+/* Sidebar Styling */
+section[data-testid="stSidebar"] {
+    background: rgba(13, 13, 18, 0.95) !important;
+    border-right: 1px solid var(--glass-border);
+}
+
+/* Oracle Chat Bubble Style */
+.oracle-bubble {
+    background: rgba(112, 0, 255, 0.15);
+    border-left: 4px solid var(--accent-secondary);
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 0 16px 16px 0;
+    font-style: italic;
+}
