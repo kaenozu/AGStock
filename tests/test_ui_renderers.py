@@ -1,13 +1,12 @@
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 import pandas as pd
 import pytest
-
-from src.ui_renderers import render_performance_tab
+import streamlit as st
 
 
 class TestUIRenderers:
-    """UIレンダラーのテストクラス"""
+    """ユーザーインターフェースレンダラーのテストクラス"""
 
     @pytest.fixture
     def mock_analyzer(self):
@@ -20,19 +19,26 @@ class TestUIRenderers:
             analyzer.get_strategy_performance.return_value = pd.DataFrame()
             analyzer.get_ticker_performance.return_value = pd.DataFrame()
             analyzer.get_monthly_returns.return_value = pd.DataFrame()
+            analyzer.compare_with_benchmark.return_value = None
 
             yield analyzer
 
     def test_render_performance_tab_empty(self, mock_analyzer):
         """データがない場合のレンダリングテスト"""
-        with patch("streamlit.info") as mock_info:
-            render_performance_tab("日経225", "Japan", [])
+        from src.ui_renderers import render_performance_tab
+        
+        # Reset mock call counts
+        st.info = MagicMock()
+        
+        render_performance_tab("日経225", "Japan", [])
 
-            # "取引履歴がありません" などのメッセージが表示されることを確認
-            assert mock_info.call_count >= 1
+        # "取引履歴がありません" などのメッセージが表示されることを確認
+        assert st.info.call_count >= 1
 
     def test_render_performance_tab_with_data(self, mock_analyzer):
         """データがある場合のレンダリングテスト"""
+        from src.ui_renderers import render_performance_tab
+        
         # Setup mock data
         mock_analyzer.get_cumulative_pnl.return_value = pd.DataFrame(
             {"date": pd.date_range("2025-01-01", periods=10), "cumulative_pnl": range(10)}
@@ -51,23 +57,29 @@ class TestUIRenderers:
             {"year": [2025], "month": [1], "monthly_return": [1000]}
         )
 
-        with patch("streamlit.plotly_chart") as mock_chart:
-            with patch("streamlit.dataframe") as mock_df:
-                render_performance_tab("日経225", "Japan", [])
+        # Reset mock call counts
+        st.plotly_chart = MagicMock()
+        st.dataframe = MagicMock()
+        
+        render_performance_tab("日経225", "Japan", [])
 
-                # チャートとデータフレームが表示されることを確認
-                assert mock_chart.call_count >= 1
-                assert mock_df.call_count >= 1
+        # チャートとデータフレームが表示されることを確認
+        assert st.plotly_chart.call_count >= 1
+        assert st.dataframe.call_count >= 1
 
     def test_render_performance_tab_error_handling(self, mock_analyzer):
         """エラー発生時のハンドリングテスト"""
+        from src.ui_renderers import render_performance_tab
+        
         mock_analyzer.get_cumulative_pnl.side_effect = Exception("Test Error")
 
-        with patch("streamlit.error") as mock_error:
-            render_performance_tab("日経225", "Japan", [])
+        # Reset mock call counts
+        st.error = MagicMock()
+        
+        render_performance_tab("日経225", "Japan", [])
 
-            # エラーメッセージが表示されることを確認
-            mock_error.assert_called_with("パフォーマンス分析エラー: Test Error")
+        # エラーメッセージが表示されることを確認
+        st.error.assert_called_with("パフォーマンス分析エラー: Test Error")
 
     def test_render_paper_trading_tab(self):
         """ペーパートレーディングタブのレンダリングテスト（スモークテスト）"""

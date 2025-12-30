@@ -4,27 +4,66 @@ from unittest.mock import MagicMock
 
 # Mock streamlit to prevent caching issues during testing
 # This must be done before any module imports streamlit
-if "streamlit" not in sys.modules:
-    mock_st = types.ModuleType("streamlit")
+
+# Create mock streamlit module
+mock_st = types.ModuleType("streamlit")
+
+# Make cache_data a flexible pass-through decorator
+def mock_cache_data(*args, **kwargs):
+    # Case 1: Called as @st.cache_data (no parens) -> args[0] is the function
+    if len(args) == 1 and callable(args[0]):
+        return args[0]
     
-    # Make cache_data a flexible pass-through decorator
-    def mock_cache_data(*args, **kwargs):
-        # Case 1: Called as @st.cache_data (no parens) -> args[0] is the function
-        if len(args) == 1 and callable(args[0]):
-            return args[0]
-        
-        # Case 2: Called as @st.cache_data(...) (with parens) -> returns a decorator
-        def decorator(func):
-            return func
-        return decorator
-    
-    mock_st.cache_data = mock_cache_data
-    # Add other common streamlit attributes used at import time if necessary
-    mock_st.session_state = {}
-    mock_st.sidebar = MagicMock()
-    mock_st.columns = MagicMock(return_value=[MagicMock(), MagicMock()])
-    
-    sys.modules["streamlit"] = mock_st
+    # Case 2: Called as @st.cache_data(...) (with parens) -> returns a decorator
+    def decorator(func):
+        return func
+    return decorator
+
+# Make cache_resource similar
+def mock_cache_resource(*args, **kwargs):
+    if len(args) == 1 and callable(args[0]):
+        return args[0]
+    def decorator(func):
+        return func
+    return decorator
+
+mock_st.cache_data = mock_cache_data
+mock_st.cache_resource = mock_cache_resource
+# Add other common streamlit attributes used at import time if necessary
+mock_st.session_state = {}
+mock_st.sidebar = MagicMock()
+mock_st.columns = MagicMock(return_value=[MagicMock(), MagicMock()])
+mock_st.tabs = MagicMock(return_value=[MagicMock(), MagicMock()])
+mock_st.expander = MagicMock()
+mock_st.container = MagicMock()
+mock_st.empty = MagicMock()
+mock_st.markdown = MagicMock()
+mock_st.write = MagicMock()
+mock_st.header = MagicMock()
+mock_st.subheader = MagicMock()
+mock_st.info = MagicMock()
+mock_st.warning = MagicMock()
+mock_st.error = MagicMock()
+mock_st.success = MagicMock()
+mock_st.button = MagicMock(return_value=False)
+mock_st.selectbox = MagicMock(return_value="")
+mock_st.multiselect = MagicMock(return_value=[])
+mock_st.slider = MagicMock(return_value=0)
+mock_st.number_input = MagicMock(return_value=0)
+mock_st.text_input = MagicMock(return_value="")
+mock_st.text_area = MagicMock(return_value="")
+mock_st.checkbox = MagicMock(return_value=False)
+mock_st.radio = MagicMock(return_value="")
+mock_st.plotly_chart = MagicMock()
+mock_st.dataframe = MagicMock()
+mock_st.metric = MagicMock()
+mock_st.spinner = MagicMock()
+mock_st.progress = MagicMock()
+mock_st.set_page_config = MagicMock()
+mock_st.title = MagicMock()
+
+# Replace streamlit module (always, to ensure consistency)
+sys.modules["streamlit"] = mock_st
 
 import numpy as np
 import pandas as pd
@@ -129,5 +168,41 @@ def bollinger_strategy():
 def backtester():
     """Backtesterのインスタンス"""
     from src.backtester import Backtester
-
     return Backtester(initial_capital=1000000)
+
+
+@pytest.fixture(scope="function", autouse=True)
+def mock_yfinance(monkeypatch):
+    """
+    ネットワーク依存を避けるため、yfinance をモックしてテストを安定化。
+    """
+    try:
+        import yfinance as yf  # type: ignore
+    except ImportError:
+        import types
+
+        yf = types.SimpleNamespace()
+        monkeypatch.setitem(sys.modules, "yfinance", yf)
+
+    import pandas as pd
+    import numpy as np
+
+    def _fake_history(period="1y", *args, **kwargs):
+        dates = pd.date_range(end=pd.Timestamp.today(), periods=60, freq="D")
+        base = np.linspace(100, 110, len(dates))
+        data = pd.DataFrame(
+            {"Open": base, "High": base * 1.01, "Low": base * 0.99, "Close": base, "Volume": 1_000_000},
+            index=dates,
+        )
+        return data
+
+    class _FakeTicker:
+        def __init__(self, symbol):
+            self.symbol = symbol
+
+        def history(self, period="1y", *args, **kwargs):
+            return _fake_history(period, *args, **kwargs)
+
+    # モックを適用（存在しない場合も raising=False でスキップ）
+    monkeypatch.setattr("yfinance.Ticker", _FakeTicker, raising=False)
+    monkeypatch.setattr("yfinance.download", lambda ticker, period="1y", progress=False, **_: _fake_history(period), raising=False)

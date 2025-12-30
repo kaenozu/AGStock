@@ -7,9 +7,16 @@ Uses Hugging Face Transformers and FinBERT to analyze sentiment of financial new
 import logging
 from typing import Dict
 
-import torch
-
 logger = logging.getLogger(__name__)
+
+# Optional torch import
+try:
+    import torch
+    TORCH_AVAILABLE = True
+except ImportError:
+    torch = None
+    TORCH_AVAILABLE = False
+    logger.warning("PyTorch not available. BERT sentiment analysis will use fallback mode.")
 
 
 class BERTSentimentAnalyzer:
@@ -21,29 +28,30 @@ class BERTSentimentAnalyzer:
         self.model_name = model_name
         self.tokenizer = None
         self.model = None
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.is_ready = False
 
-        self._load_model()
+        if TORCH_AVAILABLE:
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            self._load_model()
+        else:
+            self.device = None
+            logger.warning("BERT analyzer initialized in fallback mode (no PyTorch)")
 
     def _load_model(self):
         """Load tokenizer and model from Hugging Face"""
         try:
-            from transformers import AutoModelForSequenceClassification, AutoTokenizer
+            from transformers import (AutoModelForSequenceClassification,
+                                      AutoTokenizer)
 
             logger.info(f"Loading BERT model: {self.model_name} on {self.device}...")
             self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-            self.model = AutoModelForSequenceClassification.from_pretrained(
-                self.model_name
-            ).to(self.device)
+            self.model = AutoModelForSequenceClassification.from_pretrained(self.model_name).to(self.device)
             self.model.eval()
             self.is_ready = True
             logger.info("BERT model loaded successfully.")
 
         except ImportError:
-            logger.error(
-                "transformers library not found. Please install it with `pip install transformers`."
-            )
+            logger.error("transformers library not found. Please install it with `pip install transformers`.")
         except Exception as e:
             logger.error(f"Failed to load BERT model: {e}")
 
@@ -61,9 +69,9 @@ class BERTSentimentAnalyzer:
             return self._fallback_analyze(text)
 
         try:
-            inputs = self.tokenizer(
-                text, return_tensors="pt", truncation=True, padding=True, max_length=512
-            ).to(self.device)
+            inputs = self.tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512).to(
+                self.device
+            )
 
             with torch.no_grad():
                 outputs = self.model(**inputs)
@@ -113,30 +121,8 @@ class BERTSentimentAnalyzer:
             return {"score": 0.0, "label": "neutral"}
 
         text_lower = text.lower()
-        positive_words = [
-            "up",
-            "rise",
-            "gain",
-            "bull",
-            "high",
-            "profit",
-            "growth",
-            "good",
-            "success",
-            "beat",
-        ]
-        negative_words = [
-            "down",
-            "fall",
-            "loss",
-            "bear",
-            "low",
-            "drop",
-            "miss",
-            "bad",
-            "fail",
-            "crash",
-        ]
+        positive_words = ["up", "rise", "gain", "bull", "high", "profit", "growth", "good", "success", "beat"]
+        negative_words = ["down", "fall", "loss", "bear", "low", "drop", "miss", "bad", "fail", "crash"]
 
         score = 0
         for word in positive_words:
