@@ -1,4 +1,3 @@
-import random  # for UI mock
 from src.evolution.swarm_intel import SwarmIntelligence
 
 

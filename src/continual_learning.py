@@ -38,10 +38,7 @@ class ConceptDriftDetector(BasePredictor):
         pass
 
     def predict(self, X):
-        return np.zeros(len(X) if hasattr(X, "__len__") else 1)
-
-    def predict(self, X):
-        # ドリフト検出器は予測を行わないため、ダミーを返す
+        """ドリフト検出器は予測を行わないため、ダミーを返す"""
         return np.zeros(len(X) if hasattr(X, "__len__") else 1)
 
     def update_and_check(self, new_value: float) -> bool:

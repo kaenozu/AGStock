@@ -280,7 +280,7 @@ class EventDrivenPredictor:
         # イベント特徴量を追加
         event_type = event["type"]
         enhanced_data[f"event_{event_type}"] = event["magnitude"]
-        enhanced_data[f"event_timestamp"] = event["timestamp"]
+        enhanced_data["event_timestamp"] = event["timestamp"]
 
         return enhanced_data
 

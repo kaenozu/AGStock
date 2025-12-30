@@ -132,7 +132,7 @@ def quick_action_button(
         variant: 'primary', 'secondary', 'danger'
         disabled: Disabled state
     """
-    variant_colors = {
+    {
         "primary": DS.COLORS["primary"],
         "secondary": DS.COLORS["surface"],
         "danger": DS.COLORS["danger"],

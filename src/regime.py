@@ -173,7 +173,7 @@ class RegimeDetector:
 
         # 特徴量の順序: vix_level, vix_change_ratio, sp500_trend, yield_curve, gold_return
         vix_levels = centers[:, 0]  # Scaled VIX level
-        sp500_trends = centers[:, 2]  # Scaled SP500 trend
+        centers[:, 2]  # Scaled SP500 trend
 
         # クラスタをVIXレベルでソート
         sorted_indices = np.argsort(vix_levels)

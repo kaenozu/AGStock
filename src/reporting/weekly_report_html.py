@@ -49,7 +49,7 @@ def generate_html_report(
     positions = pt.get_positions()
 
     # HTML生成
-    html = f"""
+    f"""
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -240,12 +240,6 @@ def send_to_line(report_summary: str):
 
         SmartNotifier()
 
-        message = f"""📊 週次レポート
-
-{report_summary}
-
-詳細はHTMLレポートをご確認ください。
-"""
         # notifier.send_notification(message)
         print("✅ LINEに送信しました")
     except Exception as e:

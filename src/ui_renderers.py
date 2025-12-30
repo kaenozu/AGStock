@@ -19,7 +19,7 @@ def render_market_ticker_selector(key: str = "main"):
     col1, col2 = st.columns(2)
     with col1:
         market = st.selectbox("市場を選択", list(MARKETS.keys()), key=f"market_sel_{key}")
-    
+
     tickers_list = get_cached_tickers(market)
     with col2:
         tickers = st.multiselect(
@@ -28,7 +28,7 @@ def render_market_ticker_selector(key: str = "main"):
             format_func=lambda x: f"{x} {TICKER_NAMES.get(x, '')}",
             key=f"ticker_sel_{key}"
         )
-    
+
     return market, tickers if tickers else tickers_list
 
 
@@ -478,12 +478,12 @@ def render_market_scan_tab(
                 base_conf = 0.5
                 ret_contr = min(0.4, abs(row["Return"]) * 5) # Up to 0.4 from return
                 strat_bonus = 0.1 if "LightGBM" in row["Strategy"] else 0.0
-                
+
                 return max(0.0, min(0.99, base_conf + ret_contr + strat_bonus))
 
             if not results_df.empty:
                 results_df["Confidence"] = results_df.apply(calc_confidence, axis=1)
-                
+
                 actionable_df = results_df[results_df["Action"] != "HOLD"].copy()
 
                 # Filters UI
@@ -498,10 +498,10 @@ def render_market_scan_tab(
                     (actionable_df["Return"] >= min_return_filter) &
                     (actionable_df["Confidence"] >= confidence_threshold)
                 ]
-                
+
                 if actionable_df.empty:
                     st.warning(f"フィルタリングの結果、表示できる銘柄がありません。(Confidence >= {confidence_threshold}, Return >= {min_return_filter})")
-                
+
                 actionable_df = actionable_df.sort_values(by="Return", ascending=False)
 
             # 1. Today's Best Pick
@@ -815,7 +815,7 @@ def render_market_scan_tab(
                 st.subheader("🏆 今日のイチオシ (Today's Best Pick)")
 
                 best_pick = actionable_df.iloc[0]
-                best_ticker = best_pick["Ticker"]
+                best_pick["Ticker"]
                 best_strat_name = best_pick["Strategy"]
 
                 # Calculate Risk Level based on Max Drawdown
@@ -985,9 +985,8 @@ def render_realtime_monitoring_tab(ticker_group, selected_market, custom_tickers
         # ここでは簡易的にループ内でデータ取得を行う
 
         placeholder = st.empty()
-        log_placeholder = st.empty()
+        st.empty()
 
-        logs = []
 
         try:
             # 簡易ループ (実際にはバックグラウンドスレッド推奨だが、UI更新のためメインスレッドで実行)

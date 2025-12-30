@@ -270,7 +270,6 @@ def _display_analysis_result(result: dict, pdf_data: dict):
                         if isinstance(value, (int, float))
                         else str(value)
                     )
-                    delta_color = "normal" if value >= 0 else "inverse"
                     st.metric(label, formatted_value)
 
     st.divider()

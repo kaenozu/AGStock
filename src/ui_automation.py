@@ -111,7 +111,7 @@ def render_automation_tab():
         st.subheader("自動パフォーマンスレポート")
         st.write("週次/月次でAI分析付きPDFレポートを自動生成します。")
 
-        report_frequency = st.selectbox(
+        st.selectbox(
             "レポート頻度", ["毎週日曜日", "毎月末", "手動のみ"]
         )
 

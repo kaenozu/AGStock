@@ -148,7 +148,7 @@ class HyperparameterTuner:
             Sharpe Ratio（最大化）
         """
         # パラメータの提案
-        params = {
+        {
             "hidden_units": trial.suggest_int("hidden_units", 32, 256, step=32),
             "num_layers": trial.suggest_int("num_layers", 1, 4),
             "dropout_rate": trial.suggest_float("dropout_rate", 0.1, 0.5),

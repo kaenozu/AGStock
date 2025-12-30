@@ -4,8 +4,8 @@
 """
 
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from datetime import timedelta
+from typing import Dict, List
 
 import numpy as np
 import pandas as pd
@@ -53,7 +53,7 @@ class PredictionBacktester:
             # インデックスを確実にナイーブにする
             if df.index.tz is not None:
                 df.index = df.index.tz_localize(None)
-            
+
             # バックテスト期間内の各日で予測を実行
             predictions = []
 
@@ -64,7 +64,7 @@ class PredictionBacktester:
                 try:
                     test_date_naive = test_date.tz_localize(None) if test_date.tz else test_date
                     logger.info(f"Processing backtest loop for test_date: {test_date_naive}")
-                    
+
                     historical_data = df[df.index < test_date_naive]
                     logger.info(f"Historical data size: {len(historical_data)}")
 
@@ -84,7 +84,7 @@ class PredictionBacktester:
                     # 実際の結果を取得
                     future_date = test_date_naive + timedelta(days=prediction_days)
                     future_data = df[(df.index >= test_date_naive) & (df.index <= future_date)]
-                    
+
                     logger.info(f"Future data size (for validation): {len(future_data)} (Goal: {prediction_days})")
 
                     if len(future_data) < prediction_days:

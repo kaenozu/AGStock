@@ -255,7 +255,6 @@ def _render_advanced_view():
         st.divider()
 
         st.subheader("🛡️ リスク許容度")
-        current_risk_mode = "安全重視"  # Default or fetch from config if implemented
 
         risk_level = st.radio(
             "AIのリスク特性を選択", ["安全重視（推奨）", "バランス", "積極的"], index=0

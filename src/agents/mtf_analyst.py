@@ -74,8 +74,8 @@ class MTFAnalyst(BaseAgent):
             elif is_bearish:
                 decision = TradingDecision.SELL
                 reasoning = (
-                    f"週足（長期）は下降トレンドの渦中にあります（SMA20 < SMA50）。"
-                    f"価格は主要移動平均線を下回っており、下落圧力が継続しています。"
+                    "週足（長期）は下降トレンドの渦中にあります（SMA20 < SMA50）。"
+                    "価格は主要移動平均線を下回っており、下落圧力が継続しています。"
                 )
                 confidence = 0.8
             else:

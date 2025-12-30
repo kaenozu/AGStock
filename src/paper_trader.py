@@ -693,7 +693,7 @@ class PaperTrader:
 
             # 2. Get Trade Counts
             df_trades = pd.read_sql_query(
-                f"SELECT date, COUNT(*) as trade_count FROM orders GROUP BY date",
+                "SELECT date, COUNT(*) as trade_count FROM orders GROUP BY date",
                 self.conn,
             )
             trade_map = dict(zip(df_trades["date"], df_trades["trade_count"]))

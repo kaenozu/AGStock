@@ -2,7 +2,7 @@
 What-if scenario simulator for current portfolio holdings.
 """
 
-from typing import Dict, List
+from typing import Dict
 
 import pandas as pd
 

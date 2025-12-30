@@ -133,34 +133,34 @@ def render_past_decisions():
         )
         return
 
-    for l in recent_lessons:
+    for lesson in recent_lessons:
         with st.expander(
-            f"{l['timestamp'][:16]} | {l['ticker']} | {l['decision']} -> {l['outcome']}"
+            f"{lesson['timestamp'][:16]} | {lesson['ticker']} | {lesson['decision']} -> {lesson['outcome']}"
         ):
             col1, col2 = st.columns(2)
             with col1:
-                st.write(f"**当初価格:** ¥{l['initial_price']:,.1f}")
+                st.write(f"**当初価格:** ¥{lesson['initial_price']:,.1f}")
                 st.write(
-                    f"**1週間後価格:** ¥{l['price_1w']:,.1f}"
-                    if l["price_1w"]
+                    f"**1週間後価格:** ¥{lesson['price_1w']:,.1f}"
+                    if lesson["price_1w"]
                     else "未更新"
                 )
             with col2:
-                ret = l["return_1w"]
+                ret = lesson["return_1w"]
                 if ret is not None:
                     st.metric("収益率", f"{ret * 100:+.2f}%")
                 else:
                     st.write("結果待ち...")
 
-            st.write(f"**AIの論拠:** {l['rationale']}")
-            if l["lesson_learned"]:
-                st.info(f"💡 **学習した教訓:** {l['lesson_learned']}")
+            st.write(f"**AIの論拠:** {lesson['rationale']}")
+            if lesson["lesson_learned"]:
+                st.info(f"💡 **学習した教訓:** {lesson['lesson_learned']}")
             else:
-                if l["outcome"] == "FAILURE":
+                if lesson["outcome"] == "FAILURE":
                     st.warning(
                         "このケースは失敗として学習モデルにフィードバックされました。"
                     )
-                elif l["outcome"] == "SUCCESS":
+                elif lesson["outcome"] == "SUCCESS":
                     st.success(
                         "このケースは成功パターンとして学習モデルに強化されました。"
                     )

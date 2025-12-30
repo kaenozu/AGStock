@@ -265,7 +265,7 @@ class DailyReviewer:
 
         try:
             with open(journal_path, "w", encoding="utf-8") as f:
-                f.write(f"=== AGStock Daily Journal ===\n")
+                f.write("=== AGStock Daily Journal ===\n")
                 f.write(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
                 f.write(
                     f"Metrics:\n{json.dumps(metrics, indent=2, ensure_ascii=False)}\n\n"

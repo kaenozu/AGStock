@@ -682,7 +682,7 @@ if __name__ == "__main__":
         assets_returns, portfolio_weights, n_simulations=1000
     )
 
-    print(f"\nPortfolio scenario analysis completed")
+    print("\nPortfolio scenario analysis completed")
     print(
         f"Portfolio VaR 5%: {portfolio_result['portfolio_monte_carlo_analysis']['var_5p']:.4f}"
     )

@@ -48,49 +48,6 @@ except ImportError:
 
 T = TypeVar("T")
 
-CRYPTO_PAIRS = [
-    "BTC-USD",
-    "ETH-USD",
-    "XRP-USD",
-    "SOL-USD",
-    "DOGE-USD",
-    "BNB-USD",
-    "ADA-USD",
-    "MATIC-USD",
-    "DOT-USD",
-    "LTC-USD",
-]
-
-FX_PAIRS = [
-    "USDJPY=X",
-    "EURUSD=X",
-    "GBPUSD=X",
-    "AUDUSD=X",
-    "USDCAD=X",
-    "USDCHF=X",
-    "EURJPY=X",
-    "GBPJPY=X",
-]
-
-JP_STOCKS = [
-    "7203.T",
-    "9984.T",
-    "6758.T",
-    "8035.T",
-    "6861.T",
-    "6098.T",
-    "4063.T",
-    "6367.T",
-    "6501.T",
-    "7974.T",
-    "9432.T",
-    "8306.T",
-    "7267.T",
-    "4502.T",
-    "6954.T",
-]
-
-
 # シングルトンキャッシュインスタンスの作成
 def _create_cache_instance():
     """キャッシュマネージャーのインスタンスを作成"""
@@ -604,3 +561,15 @@ def fetch_realtime_data(
     df.dropna(inplace=True)
     _realtime_cache[cache_key] = (now, df)
     return df.copy()
+
+
+# Re-export constants for backward compatibility
+__all__ = [
+    "CRYPTO_PAIRS",
+    "FX_PAIRS",
+    "JP_STOCKS",
+    "fetch_data",
+    "fetch_realtime_data",
+    "get_ticker_data",
+    "process_downloaded_data",
+]

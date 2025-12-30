@@ -8,7 +8,6 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 from typing import Dict, List
-import warnings
 
 # yfinance が使用される場合は、ここでインポート
 try:
@@ -234,7 +233,7 @@ class AdvancedRiskManager:
             logger.debug(f'Correlation calc: ticker={ticker}, existing_ticker={existing_ticker}, correlation={correlation}, abs(correlation)={abs(correlation)}, threshold={self.max_correlation}, condition={abs(correlation) > self.max_correlation}')
 
             if pd.isna(correlation):
-                print(f"DEBUG: Correlation is NaN, treating as 1.0")
+                print("DEBUG: Correlation is NaN, treating as 1.0")
                 # 相関が計算できない場合 (例: すべて同じ値)
                 # 両者が非常に似ている可能性があるため、高相関とみなす。
                 correlation = 1.0 # 便宜上、高相関とみなす
@@ -245,10 +244,10 @@ class AdvancedRiskManager:
             if abs(correlation) > self.max_correlation:
                 reason = f"{ticker} と {existing_ticker} の相関係数 ({correlation:.3f}) が閾値 ({self.max_correlation:.2f}) を超えています。相関が高すぎる。"
                 logger.warning(reason)
-                print(f"DEBUG: High correlation detected, returning False")
+                print("DEBUG: High correlation detected, returning False")
                 return False, reason
             else:
-                print(f"DEBUG: Correlation is within threshold, continuing")
+                print("DEBUG: Correlation is within threshold, continuing")
 
         # すべての既存銘柄との相関が許容範囲内であればOK
         print("DEBUG: All correlations are within threshold. Returning True.")
@@ -360,7 +359,7 @@ class AdvancedRiskManager:
         Returns:
             np.ndarray: 風险均等分配のウェイト
         """
-        n_assets = returns.shape[1]
+        returns.shape[1]
         volatilities = returns.std().values  # 各資産のボラティリティ
 
         # 簡易リスクパリティ（ボラティリティの逆数に比例）

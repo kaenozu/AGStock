@@ -315,7 +315,7 @@ class MLStrategy(Strategy):
         split_idx = int(len(X) * 0.7)
 
         X_train, X_test = X.iloc[:split_idx], X.iloc[split_idx:]
-        y_train, y_test = y.iloc[:split_idx], y.iloc[split_idx:]
+        y_train, _y_test = y.iloc[:split_idx], y.iloc[split_idx:]
 
         if len(X_train) < 10:
             return pd.Series(0, index=df.index)
@@ -1101,7 +1101,9 @@ class AttentionLSTMStrategy(Strategy):
 # -----------------------------------------------------------------------------
 
 
-class EnsembleStrategy(Strategy):
+class DynamicEnsembleStrategy(Strategy):
+    """Dynamic Ensemble Strategy - 動的な戦略アンサンブル"""
+
     def __init__(
         self, strategies: List[Strategy] = None, trend_period: int = 200
     ) -> None:
