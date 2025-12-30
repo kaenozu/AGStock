@@ -63,7 +63,12 @@ from src.agents.ai_veto_agent import AIVetoAgent
 from src.agents.social_analyst import SocialAnalyst
 from src.agents.visual_oracle import VisualOracle
 from src.trading.portfolio_manager import PortfolioManager
-from src.trading.tournament_manager import TournamentManager
+try:
+    from src.trading.tournament_manager import TournamentManager
+    TOURNAMENT_AVAILABLE = True
+except ImportError:
+    TournamentManager = None
+    TOURNAMENT_AVAILABLE = False
 from src.utils.error_handler import autonomous_error_handler
 from src.config import settings
 from src.utils.state_engine import MacroShockManager, state_engine
@@ -164,7 +169,7 @@ class FullyAutomatedTrader:
             self.whale_tracker = WhaleTracker()
             self.portfolio_manager = PortfolioManager()
             self.learning_pipeline = SelfLearningPipeline(self.config)
-            self.tournament_manager = TournamentManager()
+            self.tournament_manager = TournamentManager() if TOURNAMENT_AVAILABLE else None
             self.ai_veto_agent = AIVetoAgent(self.config)
             self.social_analyst = SocialAnalyst(self.config)
             self.visual_oracle = VisualOracle(self.config)
