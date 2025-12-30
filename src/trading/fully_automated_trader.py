@@ -12,6 +12,7 @@ import datetime
 import json
 import logging
 import os
+import traceback
 from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
@@ -20,13 +21,17 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 from src.agents.committee import InvestmentCommittee
 from src.backup_manager import BackupManager
+from src.cache_config import install_cache
 from src.constants import (
     DEFAULT_VOLATILITY_SYMBOL,
     FALLBACK_VOLATILITY_SYMBOLS,
     NIKKEI_225_TICKERS,
     SP500_TICKERS,
+    STOXX50_TICKERS,
 )
 from src.data_loader import (
+    CRYPTO_PAIRS,
+    FX_PAIRS,
     fetch_fundamental_data,
     fetch_stock_data,
     get_latest_price,
@@ -38,9 +43,10 @@ from src.kelly_criterion import KellyCriterion
 from src.paper_trader import PaperTrader
 # New Features from feat-add-position-guards
 from src.regime_detector import RegimeDetector
-from src.schemas import AppConfig
+from src.schemas import AppConfig, TradingDecision
 from src.sentiment import SentimentAnalyzer
 from src.smart_notifier import SmartNotifier
+from src.strategies import CombinedStrategy, LightGBMStrategy, MLStrategy
 from src.strategies.orchestrator import StrategyOrchestrator
 from src.feedback_loop import DailyReviewer
 from src.utils.logger import get_logger, setup_logger
@@ -123,7 +129,7 @@ class FullyAutomatedTrader:
         # New Risk Modules (from feat-add-position-guards)
         try:
             self.regime_detector = RegimeDetector()
-            self.orchestrator = StrategyOrchestrator(self.config)  # Added
+            self.orchestrator = StrategyOrchestrator(self.config) # Added
             self.risk_manager = DynamicRiskManager(self.regime_detector)
             self.kelly_criterion = KellyCriterion()
             self.dynamic_stop_manager = DynamicStopManager()
@@ -136,7 +142,7 @@ class FullyAutomatedTrader:
             self.ai_veto_agent = AIVetoAgent(self.config)
             self.social_analyst = SocialAnalyst(self.config)
             self.visual_oracle = VisualOracle(self.config)
-
+            
             self.log('Phase 73: Self-Learning Pipeline (Optima) initialized')
             self.log('Phase 73: Social Heat Analyst initialized')
             self.log('Phase 72: Portfolio Risk Parity Manager initialized')
@@ -563,9 +569,8 @@ class FullyAutomatedTrader:
         """UniverseManagerから動的にグローバル銘柄を取得"""
         # 保有ポジション
         positions = self.pt.get_positions()
-        pos_tickers = [str(t) for t in (positions['ticker']
-                                        if 'ticker' in positions.columns else positions.index).tolist() if t]
-
+        pos_tickers = [str(t) for t in (positions['ticker'] if 'ticker' in positions.columns else positions.index).tolist() if t]
+        
         # AIによる推薦銘柄（25銘柄+）
         ai_candidates = self.universe_manager.get_top_candidates(limit=25)
         result = list(dict.fromkeys(pos_tickers + ai_candidates))
@@ -598,7 +603,7 @@ class FullyAutomatedTrader:
         self.self_healing.monitor_and_heal()
         vix = self._get_vix_level() or 20.0
         # Get simple performance summary for optimizer
-        perf = {'win_rate': 0.55}  # Placeholder until RealStats linked
+        perf = {'win_rate': 0.55} # Placeholder until RealStats linked
         new_params = self.param_optimizer.optimize_parameters(perf, vix)
         self.log(f'🧬 自己最適化適用: TP={new_params["take_profit_pct"]}, SL={new_params["stop_loss_pct"]}')
         """市場をスキャンして新規シグナルを検出（グローバル分散対応）"""
@@ -651,7 +656,7 @@ class FullyAutomatedTrader:
             # VIXはscan_market冒頭で取得済み
             regime = self.regime_detector.detect_regime(df, vix)
             active_squad = self.orchestrator.get_active_squad(regime)
-
+            
             # 各戦略でシグナル生成
             for strategy in active_squad:
                 strategy_name = strategy.name
@@ -662,8 +667,7 @@ class FullyAutomatedTrader:
                         # 🐋 Whale Flow Detection
                         whale_alert = self.whale_tracker.detect_whale_movement(ticker, df)
                         if whale_alert['detected']:
-                            self.log(f"🐋 WHALE ALERT ({ticker}): {
-                                     whale_alert['action_type']} (Ratio: {whale_alert['volume_ratio']})")
+                            self.log(f"🐋 WHALE ALERT ({ticker}): {whale_alert['action_type']} (Ratio: {whale_alert['volume_ratio']})")
                         continue
 
                     last_signal = sig_series.iloc[-1]
@@ -767,7 +771,7 @@ class FullyAutomatedTrader:
         # Fetch history for all tickers in signals for volatility analysis
         tickers = list(set([s["ticker"] for s in signals]))
         history = fetch_stock_data(tickers, period="100d")
-
+        
         if history:
             weights = self.portfolio_manager.calculate_risk_parity_weights(tickers, history)
             for sig in signals:
@@ -786,21 +790,21 @@ class FullyAutomatedTrader:
         for sig in signals:
             ticker = sig["ticker"]
             action = sig["action"]
-
+            
             # AI Veto
             is_safe, veto_reason = self.ai_veto_agent.review_signal(
                 ticker, action, sig["price"], sig["reason"]
             )
-
+            
             # Social Heat (Phase 73)
             social_data = self.social_analyst.analyze_heat(ticker)
             heat = social_data.get("heat_level", 5.0)
             social_risk = social_data.get("social_risk", "LOW")
-
+            
             # Visual Analysis (Phase 74)
             visual_data = self.visual_oracle.analyze_chart(ticker, sig.get("history", pd.DataFrame()))
-            visual_data.get("action", "HOLD")
-            visual_data.get("visual_confidence", 0.5)
+            visual_action = visual_data.get("action", "HOLD")
+            visual_conf = visual_data.get("visual_confidence", 0.5)
 
             if not is_safe:
                 self.log(f"  ❌ VETO: {ticker} - {veto_reason}", "WARNING")
@@ -816,7 +820,7 @@ class FullyAutomatedTrader:
                 sentiment_adj = 0.8  # Reduce size for hype
             elif social_data.get("sentiment") == "PANIC":
                 sentiment_adj = 0.5  # Heavy reduction for panic
-
+    
             sig["confidence"] *= sentiment_adj
             approved_signals.append(sig)
 
@@ -888,11 +892,11 @@ class FullyAutomatedTrader:
             return "好調な市場環境です。トレンドフォローを継続しましょう。"
         else:
             return "市場は不安定です。リスク管理を徹底し、ポジションサイズを抑制してください。"
-
+    
     def run_post_market_analysis(self) -> None:
         """Phase 63: Post-market autonomous feedback loop"""
         self.log("🔄 Running Post-Market Analysis...")
-
+        
         try:
             reviewer = DailyReviewer(self.config_path)
             result = reviewer.run_daily_review()
@@ -901,14 +905,7 @@ class FullyAutomatedTrader:
             adjustments = result.get("adjustments", {})
             journal = result.get("journal", "")
 
-            self.log(
-                f"📊 Daily Metrics: Win Rate={
-                    metrics.get(
-                        'win_rate',
-                        0):.1f}%, P&L=¥{
-                    metrics.get(
-                        'daily_pnl',
-                        0):,.0f}")
+            self.log(f"📊 Daily Metrics: Win Rate={metrics.get('win_rate', 0):.1f}%, P&L=¥{metrics.get('daily_pnl', 0):,.0f}")
 
             if adjustments and "reason" in adjustments:
                 self.log(f"⚙️ Auto-Adjustment: {adjustments['reason']}")
@@ -923,7 +920,7 @@ class FullyAutomatedTrader:
     def daily_routine(self, force_run: bool = False) -> None:
         """日常業務を実行"""
         self.log(f"--- 日次ルーティン開始 (Force: {force_run}) ---")
-
+        
         # 1. 安全確認
         if not force_run:
             safe, reason = self.is_safe_to_trade()
@@ -938,8 +935,8 @@ class FullyAutomatedTrader:
                 # Use a few key tickers for optimization
                 self.learning_pipeline.run_optimization(tickers=["7203.T", "9984.T", "^GSPC", "AAPL", "MSFT"])
                 self.log(
-                    "Phase 72 & 73 & 74 のすべての実装が完了しました。システムはこれまで以上に守りに強く、自己進化する準備が整っています。"
-                )
+                "Phase 72 & 73 & 74 のすべての実装が完了しました。システムはこれまで以上に守りに強く、自己進化する準備が整っています。"
+            )
             except Exception as e:
                 self.log(f"自己学習エラー: {e}", "WARNING")
 
@@ -952,5 +949,5 @@ class FullyAutomatedTrader:
 
         # 4. Phase 63: Post-Market Analysis & Self-Tuning
         self.run_post_market_analysis()
-
+        
         self.log("--- 日次ルーティン完了 ---")

@@ -1,10 +1,12 @@
 import datetime
 from typing import Dict, List
 
+import pandas as pd
 
 from src.constants import NIKKEI_225_TICKERS, SP500_TICKERS  # 地域判定のため
-from src.data_loader import (fetch_fundamental_data, get_latest_price)
-from src.ensemble_predictor import EnsemblePredictor, EnhancedEnsemblePredictor  # 中期予測フィルター
+from src.data_loader import (fetch_fundamental_data, fetch_stock_data,
+                             get_latest_price)
+from src.ensemble_predictor import EnsemblePredictor  # 中期予測フィルター
 from src.sentiment import SentimentAnalyzer
 from src.strategies import (CombinedStrategy, DividendStrategy,
                             LightGBMStrategy, MLStrategy)
@@ -196,8 +198,7 @@ class MarketScanner:
                                         win_loss_ratio = 1.5  # Default if no losses yet
 
                                     self.logger.info(
-                                        f"📊 実績ベース Kelly: 勝率={win_rate:.1f}, 損益比={
-                                            win_loss_ratio:.2f} (過去{len(closed_trades)}件)"
+                                        f"📊 実績ベース Kelly: 勝率={win_rate:.1f}, 損益比={win_loss_ratio:.2f} (過去{len(closed_trades)}件)"
                                     )
                                 else:
                                     # Not enough history, use conservative defaults
