@@ -757,8 +757,6 @@ if __name__ == "__main__":
     mlops = MLopsManager()
 
     # モックモデルの作成
-    from tensorflow import keras
-
     model = keras.Sequential(
         [
             keras.layers.Dense(10, activation="relu", input_shape=(10,)),

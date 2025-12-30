@@ -10,7 +10,7 @@ from __future__ import annotations
 
 def _pytest_cov_installed() -> bool:
     try:
-        import pytest_cov  # type: ignore
+        import pytest_cov  # type: ignore  # noqa: F401
     except ImportError:
         return False
     return True

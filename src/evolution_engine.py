@@ -232,7 +232,6 @@ class EvolutionEngine:
 if __name__ == "__main__":
     # Ensure this block is guarded for multiprocessing on Windows
     logging.basicConfig(level=logging.INFO)
-    from src.config import settings
 
     # Test run
     engine = EvolutionEngine(population_size=20)
