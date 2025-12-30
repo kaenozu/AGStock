@@ -19,6 +19,7 @@ from src.agents.shadow_council import ShadowCouncil
 from src.data.earnings_history import EarningsHistory
 from src.data.feedback_store import FeedbackStore
 from src.evolution.chart_vision import ChartVisionEngine
+from src.agents.mtf_analyst import MTFAnalyst
 
 logger = logging.getLogger(__name__)
 
@@ -32,10 +33,12 @@ class InvestmentCommittee:
         self.market_analyst = MarketAnalyst()
         self.risk_manager = RiskManager(config.risk if config else None)
         self.macro_strategist = MacroStrategist()
+        self.mtf_analyst = MTFAnalyst()
         self.agents: List[BaseAgent] = [
             self.market_analyst,
             self.risk_manager,
             self.macro_strategist,
+            self.mtf_analyst,
         ]
         self.last_meeting_result: Dict[str, Any] = None
         # Initialize the advanced predictor
@@ -150,6 +153,8 @@ class InvestmentCommittee:
             if visual_analysis:
                 data["visual_analysis"] = visual_analysis
                 logger.info(f"Visual Verdict: {visual_analysis.get('verdict')}")
+        
+        data["history_df"] = history_df # Inject for agents like MTFAnalyst
         data["portfolio"] = {
             "cash": 1000000,
             "total_equity": 1000000,
