@@ -8,11 +8,11 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 from typing import Dict, List
+import warnings
 
 # yfinance が使用される場合は、ここでインポート
 try:
     import yfinance as yf
-
     YFINANCE_AVAILABLE = True
 except ImportError:
     yf = None  # yfinanceがなければNoneとして扱う
@@ -38,15 +38,9 @@ class AdvancedRiskManager:
             config (Dict): 設定値 (例: {"max_daily_loss_pct": -3.0})
         """
         self.config = config or {}
-        self.max_daily_loss_pct = self.config.get("auto_trading", {}).get(
-            "max_daily_loss_pct", -3.0
-        )
-        self.market_crash_threshold = self.config.get("auto_trading", {}).get(
-            "market_crash_threshold", -3.0
-        )
-        self.max_correlation = self.config.get("auto_trading", {}).get(
-            "max_correlation", 0.7
-        )
+        self.max_daily_loss_pct = self.config.get("auto_trading", {}).get("max_daily_loss_pct", -3.0)
+        self.market_crash_threshold = self.config.get("auto_trading", {}).get("market_crash_threshold", -3.0)
+        self.max_correlation = self.config.get("auto_trading", {}).get("max_correlation", 0.7)
 
         # 他の初期化
         self.confidence_level = self.config.get("var_confidence_level", 0.05)
@@ -71,8 +65,8 @@ class AdvancedRiskManager:
             return True, "履歴不足のためスキップ", []
 
         # 最新2日間の資産額を取得
-        equity_history = equity_history.sort_values(by="date", ascending=False)
-        recent_equities = equity_history.head(2)["total_equity"].values
+        equity_history = equity_history.sort_values(by='date', ascending=False)
+        recent_equities = equity_history.head(2)['total_equity'].values
 
         if len(recent_equities) < 2:
             # 2日分のデータがない場合
@@ -90,20 +84,14 @@ class AdvancedRiskManager:
             signals = []
             current_positions = paper_trader.get_positions()
             for ticker in current_positions.index:
-                signals.append(
-                    {
-                        "ticker": ticker,
-                        "action": "SELL",
-                        "reason": f"Drawdown protection triggered. Daily loss: {daily_change_pct:.2f}% exceeded threshold: {self.max_daily_loss_pct:.2f}%",
-                        "strategy": "Drawdown Protection",
-                    }
-                )
+                signals.append({
+                    "ticker": ticker,
+                    "action": "SELL",
+                    "reason": f"Drawdown protection triggered. Daily loss: {daily_change_pct:.2f}% exceeded threshold: {self.max_daily_loss_pct:.2f}%",
+                    "strategy": "Drawdown Protection"
+                })
 
-            logger.warning(
-                f"Drawdown protection triggered. Daily loss: {
-                    daily_change_pct:.2f}% exceeded threshold: {
-                    self.max_daily_loss_pct:.2f}%"
-            )
+            logger.warning(f"Drawdown protection triggered. Daily loss: {daily_change_pct:.2f}% exceeded threshold: {self.max_daily_loss_pct:.2f}%")
             # 日本語のreasonを設定
             reason_jp = f"損失率が{self.max_daily_loss_pct:.2f}%を超過しています。緊急決済します。"
             return False, reason_jp, signals
@@ -128,43 +116,35 @@ class AdvancedRiskManager:
         # 主要市場のシンボル
         markets = {
             "^N225": "日経平均",  # 日経225
-            "^GSPC": "S&P500",  # S&P 500
+            "^GSPC": "S&P500",   # S&P 500
             "^DJI": "ダウ平均",  # Dow Jones Industrial Average
         }
 
         for symbol, name in markets.items():
             try:
                 # 直近2日のデータを取得
-                hist = yf.Ticker(symbol).history(
-                    period="5d"
-                )  # 5日間を取って最新2日分を使う
+                hist = yf.Ticker(symbol).history(period="5d")  # 5日間を取って最新2日分を使う
                 if len(hist) < 2:
                     logger.warning(f"Not enough data for {symbol}")
                     continue
 
                 # 2日前と昨日の終値を比較 (最新の2点)
-                recent_close = hist["Close"].tail(2).values
+                recent_close = hist['Close'].tail(2).values
                 day_before_yesterday_close = recent_close[0]
                 yesterday_close = recent_close[1]
 
-                daily_change_pct = (
-                    (yesterday_close - day_before_yesterday_close)
-                    / day_before_yesterday_close
-                    * 100
-                )
+                daily_change_pct = (yesterday_close - day_before_yesterday_close) / day_before_yesterday_close * 100
 
                 # 閾値を下回っていたらクラッシュと判定
                 # market_crash_threshold は百分率で保存されているため、100倍は不要
                 if daily_change_pct < self.market_crash_threshold:
-                    reason = f"{name} ({symbol}) が前日比で{
-                        daily_change_pct:.2f}%急落し、クラッシュ検知閾値({
-                        self.market_crash_threshold:.2f}%)を下回りました。"
+                    reason = f"{name} ({symbol}) が前日比で{daily_change_pct:.2f}%急落し、クラッシュ検知閾値({self.market_crash_threshold:.2f}%)を下回りました。"
                     logger.warning(reason)
                     return False, reason
 
             except Exception as e:
                 logger.error(f"Error fetching data for {symbol}: {e}")
-        # エラー時は処理を続ける（他の市場をチェック）
+                # エラー時は処理を続ける（他の市場をチェック）
 
         # すべての市場が閾値以上であればクラッシュなし
         return True, "正常な市場条件です。"
@@ -181,9 +161,7 @@ class AdvancedRiskManager:
         Returns:
             tuple: (is_safe_to_buy: bool, reason: str)
         """
-        print(
-            f"DEBUG: check_correlation called with ticker={ticker}, existing_positions={existing_positions}"
-        )
+        print(f"DEBUG: check_correlation called with ticker={ticker}, existing_positions={existing_positions}")
 
         if not existing_positions:
             # 既存ポジションがなければOK
@@ -191,21 +169,16 @@ class AdvancedRiskManager:
 
         # 銘柄リストを結合
         all_tickers = [ticker] + existing_positions
-        unique_tickers = list(set(all_tickers))  # 重複を排除
+        unique_tickers = list(set(all_tickers)) # 重複を排除
 
         try:
             # 価格データを取得
             # fetch_stock_data は Dict[ticker, DataFrame] を返す想定
-            data_map = fetch_stock_data(
-                unique_tickers, period="3mo"
-            )  # 3ヶ月分のデータを使用
+            data_map = fetch_stock_data(unique_tickers, period="3mo")  # 3ヶ月分のデータを使用
         except Exception as e:
             logger.error(f"相関チェックのためのデータ取得に失敗: {e}")
             # データ取得失敗時は、リスクをとって許可する（テストの意図）
-            return (
-                True,
-                f"データ不足のため、相関チェックをスキップします。エラー: {str(e)}",
-            )
+            return True, f"データ不足のため、相関チェックをスキップします。エラー: {str(e)}"
 
         if not data_map:
             # データマップがなければスキップ
@@ -215,13 +188,13 @@ class AdvancedRiskManager:
         # 各銘柄のリターンを計算
         returns_map = {}
         for tkr, df in data_map.items():
-            if df is not None and not df.empty and "Close" in df.columns:
+            if df is not None and not df.empty and 'Close' in df.columns:
                 # 終値リターン
-                df["Return"] = df["Close"].pct_change()
-                returns_map[tkr] = df["Return"].dropna()
+                df['Return'] = df['Close'].pct_change()
+                returns_map[tkr] = df['Return'].dropna()
             else:
                 logger.warning(f"No valid price data for {tkr}")
-                returns_map[tkr] = pd.Series(dtype=float)  # 空のSeries
+                returns_map[tkr] = pd.Series(dtype=float) # 空のSeries
 
         if ticker not in returns_map or returns_map[ticker].empty:
             logger.warning(f"No return data for new ticker: {ticker}")
@@ -241,16 +214,12 @@ class AdvancedRiskManager:
 
             # デバッグ: new_returns と existing_returns の内容を確認
             print(f"DEBUG: new_returns for {ticker}: {new_returns.head()}")
-            print(
-                f"DEBUG: existing_returns for {existing_ticker}: {existing_returns.head()}"
-            )
+            print(f"DEBUG: existing_returns for {existing_ticker}: {existing_returns.head()}")
 
             # 共通の日付で計算
             common_dates = new_returns.index.intersection(existing_returns.index)
             if len(common_dates) < 5:  # 少なくとも5日分は必要
-                logger.info(
-                    f"Not enough common dates for {ticker}-{existing_ticker}: {len(common_dates)}"
-                )
+                logger.info(f"Not enough common dates for {ticker}-{existing_ticker}: {len(common_dates)}")
                 continue
 
             new_common = new_returns.loc[common_dates]
@@ -262,29 +231,19 @@ class AdvancedRiskManager:
             print(f"DEBUG: Correlation value: {correlation}, type: {type(correlation)}")
 
             # デバッグ出力を追加
-            logger.debug(
-                f"Correlation calc: ticker={ticker}, existing_ticker={existing_ticker}, correlation={correlation}, abs(correlation)={abs(
-                    correlation)}, threshold={self.max_correlation}, condition={abs(correlation) > self.max_correlation}"
-            )
+            logger.debug(f'Correlation calc: ticker={ticker}, existing_ticker={existing_ticker}, correlation={correlation}, abs(correlation)={abs(correlation)}, threshold={self.max_correlation}, condition={abs(correlation) > self.max_correlation}')
 
             if pd.isna(correlation):
                 print(f"DEBUG: Correlation is NaN, treating as 1.0")
                 # 相関が計算できない場合 (例: すべて同じ値)
                 # 両者が非常に似ている可能性があるため、高相関とみなす。
-                correlation = 1.0  # 便宜上、高相関とみなす
-                logger.info(
-                    f"Correlation for {ticker}-{existing_ticker} is NaN, treating as 1.0 for safety."
-                )
+                correlation = 1.0 # 便宜上、高相関とみなす
+                logger.info(f"Correlation for {ticker}-{existing_ticker} is NaN, treating as 1.0 for safety.")
 
             # 閾値を超えたら危険
-            print(
-                f"DEBUG: Checking if abs({correlation}) > {
-                    self.max_correlation} -> {abs(correlation) > self.max_correlation}"
-            )
+            print(f"DEBUG: Checking if abs({correlation}) > {self.max_correlation} -> {abs(correlation) > self.max_correlation}")
             if abs(correlation) > self.max_correlation:
-                reason = f"{ticker} と {existing_ticker} の相関係数 ({
-                    correlation:.3f}) が閾値 ({
-                    self.max_correlation:.2f}) を超えています。相関が高すぎる。"
+                reason = f"{ticker} と {existing_ticker} の相関係数 ({correlation:.3f}) が閾値 ({self.max_correlation:.2f}) を超えています。相関が高すぎる。"
                 logger.warning(reason)
                 print(f"DEBUG: High correlation detected, returning False")
                 return False, reason
@@ -296,7 +255,7 @@ class AdvancedRiskManager:
         return True, f"{ticker} は既存のポジションとの相関が低いです。"
 
     # --- 以前のVaR、CVaRなどのメソッドも維持 ---
-    def calculate_var(self, returns: pd.Series, method: str = "historical") -> float:
+    def calculate_var(self, returns: pd.Series, method: str = 'historical') -> float:
         """
         Value at Risk (VaR) を計算
 
@@ -307,13 +266,13 @@ class AdvancedRiskManager:
         Returns:
             float: VaR (負の値で返す)
         """
-        if method == "historical":
+        if method == 'historical':
             var = returns.quantile(self.confidence_level)
-        elif method == "parametric":
+        elif method == 'parametric':
             mu = returns.mean()
             sigma = returns.std()
             var = mu + sigma * stats.norm.ppf(self.confidence_level)
-        elif method == "monte_carlo":
+        elif method == 'monte_carlo':
             # 簡略化のため、正規分布に基づくMC
             mu = returns.mean()
             sigma = returns.std()
@@ -324,7 +283,7 @@ class AdvancedRiskManager:
 
         return var
 
-    def calculate_cvar(self, returns: pd.Series, method: str = "historical") -> float:
+    def calculate_cvar(self, returns: pd.Series, method: str = 'historical') -> float:
         """
         Conditional VaR (Expected Shortfall) を計算
 
@@ -336,10 +295,10 @@ class AdvancedRiskManager:
             float: CVaR (負の値で返す)
         """
         var = self.calculate_var(returns, method=method)
-        if method == "historical":
+        if method == 'historical':
             tail_losses = returns[returns <= var]
             cvar = tail_losses.mean() if len(tail_losses) > 0 else var
-        elif method == "parametric":
+        elif method == 'parametric':
             mu = returns.mean()
             sigma = returns.std()
             z_alpha = stats.norm.ppf(self.confidence_level)
@@ -350,9 +309,7 @@ class AdvancedRiskManager:
 
         return cvar
 
-    def calculate_portfolio_var(
-        self, returns: pd.DataFrame, weights: np.ndarray
-    ) -> float:
+    def calculate_portfolio_var(self, returns: pd.DataFrame, weights: np.ndarray) -> float:
         """
         ポートフォリオ収益率行列とウェイトベクトルからポートフォリオVaRを計算
 
@@ -369,7 +326,7 @@ class AdvancedRiskManager:
 
     def _interpret_var(self, var: float) -> str:
         """VaRの解釈を返す"""
-        return f"At {self.confidence_level * 100:.0f}% confidence, expected loss is {abs(var) * 100:.2f}%"
+        return f"At {self.confidence_level*100:.0f}% confidence, expected loss is {abs(var)*100:.2f}%"
 
     def stress_test(self, baseline_returns: pd.Series, scenarios: List[Dict]) -> Dict:
         """
@@ -392,9 +349,7 @@ class AdvancedRiskManager:
             results[name] = {"VaR": var, "CVaR": cvar}
         return results
 
-    def calculate_risk_parity_weights(
-        self, returns: pd.DataFrame, tolerance: float = 1e-6
-    ) -> np.ndarray:
+    def calculate_risk_parity_weights(self, returns: pd.DataFrame, tolerance: float = 1e-6) -> np.ndarray:
         """
         リスクパリティによる資産配分ウェイトを計算する (簡略化版)
 
@@ -405,7 +360,7 @@ class AdvancedRiskManager:
         Returns:
             np.ndarray: 風险均等分配のウェイト
         """
-        returns.shape[1]
+        n_assets = returns.shape[1]
         volatilities = returns.std().values  # 各資産のボラティリティ
 
         # 簡易リスクパリティ（ボラティリティの逆数に比例）
@@ -413,4 +368,3 @@ class AdvancedRiskManager:
         inv_vols = 1.0 / (volatilities + tolerance)  # zero division 防止
         weights = inv_vols / inv_vols.sum()
         return weights
-# CI trigger

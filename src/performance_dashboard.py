@@ -38,26 +38,13 @@ def create_performance_dashboard():
         )
 
     with col2:
-        st.metric(
-            "シャープレシオ",
-            f"{metrics['sharpe_ratio']:.2f}",
-            help="リスク調整後リターン（1.0以上が良好）",
-        )
+        st.metric("シャープレシオ", f"{metrics['sharpe_ratio']:.2f}", help="リスク調整後リターン（1.0以上が良好）")
 
     with col3:
-        st.metric(
-            "最大ドローダウン",
-            f"{metrics['max_drawdown_pct']:.2f}%",
-            delta=None,
-            delta_color="inverse",
-        )
+        st.metric("最大ドローダウン", f"{metrics['max_drawdown_pct']:.2f}%", delta=None, delta_color="inverse")
 
     with col4:
-        st.metric(
-            "勝率",
-            f"{metrics['win_rate'] * 100:.1f}%",
-            delta=f"損益比: {metrics['win_loss_ratio']:.2f}",
-        )
+        st.metric("勝率", f"{metrics['win_rate']*100:.1f}%", delta=f"損益比: {metrics['win_loss_ratio']:.2f}")
 
     # 2. 資産推移グラフ
     st.header("💰 資産推移")
@@ -78,12 +65,7 @@ def create_performance_dashboard():
         )
 
         # 初期資本のライン
-        fig.add_hline(
-            y=metrics["initial_capital"],
-            line_dash="dash",
-            line_color="gray",
-            annotation_text="初期資本",
-        )
+        fig.add_hline(y=metrics["initial_capital"], line_dash="dash", line_color="gray", annotation_text="初期資本")
 
         fig.update_layout(
             title="資産推移",
@@ -102,10 +84,7 @@ def create_performance_dashboard():
 
     if not metrics["monthly_returns"].empty:
         monthly_df = pd.DataFrame(
-            {
-                "月": metrics["monthly_returns"].index.astype(str),
-                "リターン(%)": metrics["monthly_returns"].values * 100,
-            }
+            {"月": metrics["monthly_returns"].index.astype(str), "リターン(%)": metrics["monthly_returns"].values * 100}
         )
 
         fig = px.bar(
@@ -132,9 +111,7 @@ def create_performance_dashboard():
             st.metric(
                 "アウトパフォーマンス",
                 f"{benchmark_nikkei['outperformance_pct']:.2f}%",
-                delta=f"自分: {
-                    benchmark_nikkei['my_return_pct']:.2f}% | 日経: {
-                    benchmark_nikkei['benchmark_return_pct']:.2f}%",
+                delta=f"自分: {benchmark_nikkei['my_return_pct']:.2f}% | 日経: {benchmark_nikkei['benchmark_return_pct']:.2f}%",
             )
 
     with col2:
@@ -144,9 +121,7 @@ def create_performance_dashboard():
             st.metric(
                 "アウトパフォーマンス",
                 f"{benchmark_sp500['outperformance_pct']:.2f}%",
-                delta=f"自分: {
-                    benchmark_sp500['my_return_pct']:.2f}% | S&P: {
-                    benchmark_sp500['benchmark_return_pct']:.2f}%",
+                delta=f"自分: {benchmark_sp500['my_return_pct']:.2f}% | S&P: {benchmark_sp500['benchmark_return_pct']:.2f}%",
             )
 
     # 5. 戦略別パフォーマンス
@@ -165,9 +140,7 @@ def create_performance_dashboard():
     trade_history = pt.get_trade_history()
 
     if not trade_history.empty:
-        recent_trades = trade_history.tail(10)[
-            ["timestamp", "ticker", "action", "price", "quantity", "realized_pnl"]
-        ]
+        recent_trades = trade_history.tail(10)[["timestamp", "ticker", "action", "price", "quantity", "realized_pnl"]]
         st.dataframe(recent_trades, use_container_width=True)
     else:
         st.info("まだ取引履歴がありません")

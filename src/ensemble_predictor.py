@@ -17,11 +17,14 @@
 """
 
 import logging
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
+import tensorflow as tf
 
+from src.advanced_ensemble import (AdvancedEnsemble,
+                                   create_model_diversity_ensemble)
 from src.advanced_models import AdvancedModels
 # 新しい高度な機能のインポート
 from src.continual_learning import (ConceptDriftDetector,
@@ -31,6 +34,7 @@ from src.data_preprocessing import preprocess_for_prediction
 from src.enhanced_features import generate_enhanced_features
 from src.fundamental_analyzer import FundamentalAnalyzer
 from src.future_predictor import FuturePredictor
+from src.optimization import MultiModelOptimizer
 from src.lgbm_predictor import LGBMPredictor
 from src.mlops_manager import MLopsManager
 from src.multi_asset_analytics import MultiAssetPredictor
@@ -147,7 +151,7 @@ class EnhancedEnsemblePredictor:
 
             X, y = [], []
             for i in range(sequence_length, len(feature_data) - days_ahead + 1):
-                X.append(feature_data[i - sequence_length: i])
+                X.append(feature_data[i - sequence_length : i])
                 y.append(target_data[i + days_ahead - 1])
 
             if len(X) < 2:  # 少なくとも2つのサンプルが必要
@@ -328,9 +332,7 @@ class EnhancedEnsemblePredictor:
                         }
 
                         logger.info(
-                            f"{model_name}予測: {
-                                predictions[model_name]['trend']} ({
-                                predictions[model_name]['change_pct']:+.1f}%)"
+                            f"{model_name}予測: {predictions[model_name]['trend']} ({predictions[model_name]['change_pct']:+.1f}%)"
                         )
                 except Exception as e:
                     logger.warning(f"{model_name} prediction failed: {e}")
@@ -514,8 +516,7 @@ class EnhancedEnsemblePredictor:
                     self.performance_history = self.performance_history[-100:]
 
                 logger.info(
-                    f"Updated prediction performance for {ticker}: Expected={
-                        expected_return:.2f}%, Actual={actual_return:.2f}%"
+                    f"Updated prediction performance for {ticker}: Expected={expected_return:.2f}%, Actual={actual_return:.2f}%"
                 )
                 break
 
