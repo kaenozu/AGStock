@@ -1,5 +1,8 @@
 import logging
 from datetime import datetime
+import json
+import os
+import pandas as pd
 from typing import Any, Dict, List, Optional
 
 from src.agents.base_agent import BaseAgent
@@ -269,8 +272,34 @@ class InvestmentCommittee:
         result["sizing_recommendation"] = sizing
 
         self.last_meeting_result = result
+        self.save_meeting_minutes(ticker, result)
         logger.info(f"🏛️ Meeting Adjourned. Decision: {final_decision.value}")
         return result
+
+    def save_meeting_minutes(self, ticker: str, result: Dict[str, Any]):
+        """Saves the meeting result to a persistent JSON file."""
+        from src.paths import DATA_DIR
+        minutes_dir = DATA_DIR / "meeting_minutes"
+        minutes_dir.mkdir(parents=True, exist_ok=True)
+        
+        filename = f"{datetime.now().strftime('%Y%m%d')}_{ticker}.json"
+        filepath = minutes_dir / filename
+        
+        try:
+            # Load existing if any (append mode)
+            existing = []
+            if filepath.exists():
+                with open(filepath, "r", encoding="utf-8") as f:
+                    existing = json.load(f)
+            
+            existing.append(result)
+            
+            with open(filepath, "w", encoding="utf-8") as f:
+                json.dump(existing, f, ensure_ascii=False, indent=2, default=str)
+                
+            logger.info(f"Saved meeting minutes to {filepath}")
+        except Exception as e:
+            logger.error(f"Failed to save meeting minutes: {e}")
 
     def conduct_debate(
         self,
