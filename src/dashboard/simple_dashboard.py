@@ -10,6 +10,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+from src.constants import TICKER_NAMES
 from src.dashboard_utils import check_and_execute_missed_trades
 from src.formatters import format_currency
 from src.paper_trader import PaperTrader
@@ -247,7 +248,6 @@ def show_main_dashboard():
                 with col2:
                     # 最新の取引
                     latest = today_trades.iloc[-1]
-                    from src.constants import TICKER_NAMES
 
                     company_name = TICKER_NAMES.get(latest["ticker"], latest["ticker"])
                     action_emoji = "🟢" if latest["action"] == "BUY" else "🔴"
@@ -423,7 +423,6 @@ def show_main_dashboard():
             entry_price = pos.get("entry_price", 0)
 
             # 会社名取得
-            from src.constants import TICKER_NAMES
 
             company_name = TICKER_NAMES.get(ticker, ticker)
 
