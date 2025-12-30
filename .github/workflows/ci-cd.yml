@@ -65,7 +65,6 @@ jobs:
     
     - name: Run security scan
       uses: pyupio/safety@v1
-      continue-on-error: true
       with:
         api-key: ${{ secrets.SAFETY_API_KEY }}
         args: --file requirements.txt
