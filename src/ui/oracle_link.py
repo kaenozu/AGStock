@@ -7,7 +7,8 @@ def get_persona(mood: str) -> str:
 #         if mood == "BULLISH":
 #             return (
 #             base_prompt
-#             + " The market is rising. Be optimistic, energetic, and aggressive. Use emojis like 🚀, 🌕. Encourage the Emperor to seize the opportunity."
+#             + " The market is rising. Be optimistic, energetic, and aggressive. "
+#             + "Use emojis like 🚀, 🌕. Encourage the Emperor to seize the opportunity."
 #         )
 #     elif mood == "BEARISH":
 #         return (

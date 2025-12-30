@@ -1,5 +1,6 @@
 EARNINGS_ANALYSIS_SYSTEM_PROMPT = """
-You are an expert financial analyst AI. Your task is to analyze the provided text from a corporate earnings report (text extracted from PDF) and extract structured insights.
+You are an expert financial analyst AI. Your task is to analyze the provided text
+from a corporate earnings report (text extracted from PDF) and extract structured insights.
 
 Output MUST be a valid JSON object. Do not include markdown formatting (like ```json ... ```) or any preamble/postscript.
 

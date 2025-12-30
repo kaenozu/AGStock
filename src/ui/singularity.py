@@ -22,7 +22,8 @@ def render_singularity_core():
     #         prompt = st.text_area(
     #             "Strategy Logic / Hypothesis",
     #             height=200,
-    #             placeholder="Example: Create a trend-following strategy that buys when 20-day SMA crosses above 50-day SMA, but only if RSI is below 70.",
+    #             placeholder="Example: Create a trend-following strategy that buys when "
+    #                         "20-day SMA crosses above 50-day SMA, but only if RSI is below 70.",
     #         )
     #             name_input = st.text_input("Strategy Name (Optional)", placeholder="MySuperStrategy")
     #             generate_btn = st.button("🧬 Evolve New Strategy", type="primary")

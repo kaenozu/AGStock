@@ -49,8 +49,7 @@ def __init__(self, risk_threshold: int = 70):
 #                     else:
 #     pass
 #                         action["reduce_exposure_pct"] = 20
-#                         action["reason"] = (
-#                             f"Caution: Upcoming {precog_results['events'][0]['name'] if precog_results['events'] else 'macro event'}. Defensive stance active."
-#                         )
+#                         event_name = precog_results['events'][0]['name'] if precog_results['events'] else 'macro event'
+#                         action["reason"] = f"Caution: Upcoming {event_name}. Defensive stance active."
 #                     return action
 #         """
