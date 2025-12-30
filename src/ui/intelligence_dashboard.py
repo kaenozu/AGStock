@@ -110,6 +110,9 @@ def render_intelligence_dashboard():
     except Exception as e:
         st.error(f"反省ログの読み込みに失敗しました: {e}")
 
+    st.markdown("---")
+    render_rl_monitor()
+    
     # --- 4. Strategy Evolution Gallery ---
     st.markdown("---")
     st.subheader("🧬 Strategy Evolution Gallery")
@@ -125,6 +128,33 @@ def render_intelligence_dashboard():
             st.info("AIによって生成（進化）された新しい戦略ファイルはまだありません。")
     else:
         st.info("進化ラボは現在クローズしています。")
+
+def render_rl_monitor():
+    """Visualizes the RL agent's learning progress."""
+    st.subheader("🤖 RL Training Monitor")
+    log_path = "data/rl_training_log.csv"
+    
+    if os.path.exists(log_path):
+        try:
+            df = pd.read_csv(log_path)
+            st.markdown("強化学習エージェントが過去のシミュレーション環境でどれだけ成長したかを示します。")
+            
+            # Learning Curve
+            fig = px.line(df, x="episode", y="pnl_pct", 
+                         title="Learning Curve (PNL % per Episode)",
+                         markers=True)
+            fig.update_layout(template="plotly_dark", height=350)
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # Stats
+            avg_pnl = df["pnl_pct"].mean()
+            max_pnl = df["pnl_pct"].max()
+            st.caption(f"Average PnL: {avg_pnl:+.2f}% | Best Episode: {max_pnl:+.2f}%")
+            
+        except Exception as e:
+            st.error(f"RLログの読み込みに失敗しました: {e}")
+    else:
+        st.info("RLエージェントの学習ログが見つかりません。`python train_rl_agent.py` を実行して学習を開始してください。")
 
 if __name__ == "__main__":
     render_intelligence_dashboard()
