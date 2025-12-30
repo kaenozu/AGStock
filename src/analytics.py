@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import sqlite3
 import logging
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 

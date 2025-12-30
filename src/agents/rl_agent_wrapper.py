@@ -13,7 +13,8 @@ class RLAgentWrapper:
     The RL layer learns to 'trust' or 'override' the base agent based on market state.
     """
 
-    def __init__(self, base_agent: BaseAgent, name_suffix: str = "", learning_rate: float = 0.1, discount_factor: float = 0.9):
+    def __init__(self, base_agent: BaseAgent, name_suffix: str = "",
+                 learning_rate: float = 0.1, discount_factor: float = 0.9):
         self.agent = base_agent
         self.name = f"{base_agent.name}{name_suffix}"
         self.lr = learning_rate
@@ -40,8 +41,6 @@ class RLAgentWrapper:
 
     def update(self, reward: float):
         """Update Q-table (stub)."""
-        pass
 
     def save(self):
         """Save Q-table (stub)."""
-        pass

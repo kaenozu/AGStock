@@ -124,7 +124,7 @@ class RealtimeDataLoader:
                     continue
 
                 # 最新の行を取得
-                latest_row = df.iloc[-1]
+                df.iloc[-1]
                 latest_time = df.index[-1]
 
                 # タイムゾーン情報を削除して比較

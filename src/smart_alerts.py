@@ -7,9 +7,8 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
-import pandas as pd
 import yfinance as yf
 
 from src.data_loader import fetch_stock_data, get_latest_price
@@ -25,10 +24,10 @@ class SmartAlerts:
     """
 
     DEFAULT_ALERTS = {
-        "daily_loss_threshold": -3.0,  #%
-        "position_change_threshold": 10.0,  #%
+        "daily_loss_threshold": -3.0,  # %
+        "position_change_threshold": 10.0,  # %
         "vix_threshold": 30.0,
-        "large_profit_threshold": 5.0,  #%
+        "large_profit_threshold": 5.0,  # %
         "enabled": True,
         "active_mode": False
     }
@@ -44,7 +43,7 @@ class SmartAlerts:
         """Loads configuration with defaults."""
         if not self.config_path.exists():
             return {"alerts": self.DEFAULT_ALERTS}
-            
+
         try:
             config = json.loads(self.config_path.read_text(encoding="utf-8"))
             if "alerts" not in config:
@@ -79,7 +78,7 @@ class SmartAlerts:
         """Checks daily equity drawdown."""
         alerts = []
         equity_history = self.pt.get_equity_history()
-        
+
         if len(equity_history) < 2:
             return alerts
 
@@ -108,7 +107,7 @@ class SmartAlerts:
         """Monitors significant price changes in individual holdings."""
         alerts = []
         positions = self.pt.get_positions()
-        
+
         if positions.empty:
             return alerts
 
@@ -193,7 +192,7 @@ class SmartAlerts:
         # Sort by severity (HIGH first)
         severity_map = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
         all_alerts.sort(key=lambda x: severity_map.get(x["severity"], 3))
-        
+
         return all_alerts
 
     def send_notifications(self, alerts: List[Dict[str, Any]]) -> None:

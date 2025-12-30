@@ -11,7 +11,7 @@ import yfinance as yf
 
 from src.broker import Broker
 from src.broker import Position as BrokerPosition
-from src.constants import DEFAULT_VOLATILITY_SYMBOL, FALLBACK_VOLATILITY_SYMBOLS
+from src.constants import DEFAULT_VOLATILITY_SYMBOL
 from src.strategies import Order, OrderType, Strategy
 
 # Configure logging

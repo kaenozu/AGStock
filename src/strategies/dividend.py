@@ -34,5 +34,5 @@ class DividendStrategy(Strategy):
 
     def get_signal_explanation(self, signal: int) -> str:
         if signal == 1:
-            return f"配当利回りが基準({self.min_yield*100}%)を上回っています。"
+            return f"配当利回りが基準({self.min_yield * 100}%)を上回っています。"
         return "配当利回りは基準以下です。"

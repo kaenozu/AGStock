@@ -127,7 +127,7 @@ class DynamicRebalancer:
 
             current_price = portfolio[ticker]["current_price"]
             current_quantity = portfolio[ticker]["quantity"]
-            current_value = current_quantity * current_price
+            current_quantity * current_price
 
             # 目標数量を計算
             target_value = total_value * target_weight

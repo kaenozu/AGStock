@@ -8,8 +8,7 @@ import logging
 import time
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timedelta
-from typing import Dict, Optional, Set, Tuple, Any, Callable
+from typing import Dict, Optional, Any, Callable
 import threading
 
 import pandas as pd
@@ -160,7 +159,6 @@ class SmartCache:
                 logger.debug(f"Request deduplication: {key}")
                 # Wait for pending request to complete
                 # (In sync context, we'll just fetch again - async would wait)
-                pass
 
         # Fetch data
         try:

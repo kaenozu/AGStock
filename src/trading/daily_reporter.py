@@ -3,9 +3,10 @@ Daily Reporter Component
 Responsible for generating daily reports, notifications, and running autonomous self-reflection loops.
 """
 
+import os
 import datetime
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 import google.generativeai as genai
 import pandas as pd
@@ -50,11 +51,11 @@ class DailyReporter:
         self.logger.info("📡 Generating daily report...")
         balance = self.pt.get_current_balance()
         daily_pnl = self._calculate_daily_pnl()
-        
+
         # Gather today's trades
         history = self.pt.get_trade_history()
         today = datetime.date.today()
-        
+
         if not history.empty:
             if "timestamp" in history.columns:
                 history["timestamp"] = pd.to_datetime(history["timestamp"])
@@ -110,10 +111,10 @@ class DailyReporter:
         try:
             reviewer = DailyReviewer(self.config_path)
             result = reviewer.run_daily_review()
-            
+
             metrics = result.get("metrics", {})
             adjustments = result.get("adjustments", {})
-            
+
             self.logger.info(
                 f"📊 Review Results: P&L=¥{metrics.get('daily_pnl', 0):,.0f}, Adjustments: {bool(adjustments)}"
             )
@@ -148,20 +149,20 @@ class DailyReporter:
                 Ticker: {ticker}
                 Decided: {f['decision']}
                 Rationale: {f['rationale']}
-                Result: 1-week return {f['return_1w']*100:.2f}% (Wait & See target failed).
-                
+                Result: 1-week return {f['return_1w'] * 100:.2f}% (Wait & See target failed).
+
                 Identify WHY it failed and provide one concise lesson in Japanese.
                 Format:
                 Analysis: <text>
                 Lesson: <text>
                 """
-                
+
                 response = model.generate_content(prompt)
                 res_text = response.text
-                
+
                 analysis = res_text.split("Lesson:")[0].replace("Analysis:", "").strip()
                 lesson = res_text.split("Lesson:")[1].strip() if "Lesson:" in res_text else "リスク管理の徹底。"
-                
+
                 self.feedback_store.save_reflection(f["id"], analysis, lesson)
                 self.logger.info(f"✅ {ticker} の分析完了: {lesson}")
 
@@ -202,7 +203,7 @@ class DailyReporter:
             # Sync outcomes for tracked tickers
             positions = self.pt.get_positions()
             tickers = positions["ticker"].tolist() if not positions.empty else []
-            
+
             if tickers:
                 data = fetch_stock_data(tickers, period="5d")
                 for ticker in tickers:
@@ -222,5 +223,3 @@ class DailyReporter:
             self.logger.info("✅ All performance systems synchronized.")
         except Exception as e:
             self.logger.error(f"Performance sync failed: {e}")
-
-import os

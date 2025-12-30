@@ -4,14 +4,10 @@ RSSフィードやWebから市場ニュースを収集し、LLM分析用に整�
 """
 
 import logging
-import re
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import feedparser
-import pandas as pd
-import requests
-from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +89,7 @@ class NewsAggregator:
 
         context = "### 最新市場ニュース\n"
         for i, news in enumerate(self.cached_news[:10]):
-            context += f"{i+1}. {news['title']} ({news['source']})\n"
+            context += f"{i + 1}. {news['title']} ({news['source']})\n"
 
         return context
 

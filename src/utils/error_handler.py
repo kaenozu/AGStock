@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 class AGStockError(Exception):
     """Base exception for AGStock applications."""
+
     def __init__(
         self,
         message: str,
@@ -32,22 +33,18 @@ class AGStockError(Exception):
 
 class DataFetchError(AGStockError):
     """Errors related to fetching market or external data."""
-    pass
 
 
 class AnalysisError(AGStockError):
     """Errors occurring during strategy analysis or model inference."""
-    pass
 
 
 class ExecutionError(AGStockError):
     """Errors occurring during trade execution or order processing."""
-    pass
 
 
 class ConfigurationError(AGStockError):
     """Errors related to system settings or missing API keys."""
-    pass
 
 
 def handle_error(error: Exception, context: str = "", show_to_user: bool = True) -> None:
@@ -115,6 +112,7 @@ def validate_api_key(name: str, value: Optional[str]) -> bool:
         )
     return True
 
+
 class ErrorRecovery:
     """Utility for automatic error recovery strategies."""
 
@@ -124,17 +122,18 @@ class ErrorRecovery:
         import time
         delay = initial_delay
         last_exception = None
-        
+
         for i in range(max_retries):
             try:
                 return func()
             except Exception as e:
                 last_exception = e
-                logger.warning(f"Retry {i+1}/{max_retries} failed: {e}. Retrying in {delay}s...")
+                logger.warning(f"Retry {i + 1}/{max_retries} failed: {e}. Retrying in {delay}s...")
                 time.sleep(delay)
                 delay *= 2
-                
+
         raise last_exception
+
 
 def autonomous_error_handler(
     name: str = "System",
@@ -153,10 +152,10 @@ def autonomous_error_handler(
             except Exception as e:
                 error_msg = f"Critical Error in {name}.{func.__name__}: {str(e)}"
                 stack_trace = traceback.format_exc()
-                
+
                 # Take System Snapshot (Time Travel Debug)
                 snapshot_path = take_system_snapshot(name, func.__name__)
-                
+
                 # Log with extended info
                 logger.error(
                     error_msg,
@@ -168,10 +167,10 @@ def autonomous_error_handler(
                         "snapshot": snapshot_path
                     }
                 )
-                
+
                 # Self-Diagnosis
                 diagnose_environment()
-                
+
                 if notification_enabled:
                     try:
                         # Attempt to notify via existing channels
@@ -192,16 +191,18 @@ def autonomous_error_handler(
         return wrapper
     return decorator
 
+
 def diagnose_environment():
     """Perform a lightweight system check to see if environment issues caused the error."""
     logger.info("🛠 Running Self-Diagnosis...")
-    
+
     # 1. Disk Space
     try:
         total, used, free = shutil.disk_usage(".")
         logger.info(f"Disk Check: Total={total // (2**30)}GB, Free={free // (2**30)}GB")
-    except Exception: pass
-    
+    except Exception:
+        pass
+
     # 2. Database Connectivity
     try:
         from src.paths import STOCK_DATA_DB
@@ -217,21 +218,23 @@ def diagnose_environment():
         import psutil
         mem = psutil.virtual_memory()
         logger.info(f"Memory Check: {mem.percent}% used")
-    except ImportError: pass
+    except ImportError:
+        pass
+
 
 def take_system_snapshot(module: str, function: str) -> str:
     """Saves a JSON snapshot of the system state for debugging."""
     try:
         from src.paths import LOGS_DIR
         from src.utils.state_engine import state_engine
-        
+
         snapshot_dir = LOGS_DIR / "snapshots"
         snapshot_dir.mkdir(parents=True, exist_ok=True)
-        
+
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"snapshot_{timestamp}_{module}_{function}.json"
         filepath = snapshot_dir / filename
-        
+
         snapshot = {
             "timestamp": timestamp,
             "module": module,
@@ -243,11 +246,11 @@ def take_system_snapshot(module: str, function: str) -> str:
                 "python": sys.version
             }
         }
-        
+
         import json
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(snapshot, f, ensure_ascii=False, indent=2, default=str)
-            
+
         logger.info(f"📸 System snapshot saved: {filepath}")
         return str(filepath)
     except Exception as e:
@@ -257,16 +260,16 @@ def take_system_snapshot(module: str, function: str) -> str:
 
 class SafeExecution:
     """Context manager for safe execution of code blocks."""
-    
+
     def __init__(self, context: str = "", default_return: Any = None, show_error: bool = True):
         self.context = context
         self.default_return = default_return
         self.show_error = show_error
         self.result = default_return
-        
+
     def __enter__(self):
         return self
-        
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         if exc_type is not None:
             if self.show_error:

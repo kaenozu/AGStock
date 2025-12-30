@@ -6,7 +6,7 @@ Portfolio Risk Analysis Module
 """
 
 from functools import lru_cache
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 import pandas as pd
 import yfinance as yf

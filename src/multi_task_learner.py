@@ -4,7 +4,7 @@ Multi-Task Learner - マルチタスク学習
 """
 
 import logging
-from typing import Dict, Optional, Tuple
+from typing import Dict, Tuple
 
 import numpy as np
 import pandas as pd

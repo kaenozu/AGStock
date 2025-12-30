@@ -3,7 +3,9 @@ Rich Notification System
 リッチメッセージ（チャート画像付き）通知システム
 """
 
-import os
+import pandas as pd
+from typing import Dict, List, Optional
+from datetime import datetime
 from io import BytesIO
 
 import matplotlib
@@ -11,11 +13,6 @@ import matplotlib.pyplot as plt
 import requests
 
 matplotlib.use("Agg")  # バックエンド設定
-from datetime import datetime
-from typing import Dict, List, Optional
-
-import pandas as pd
-import plotly.graph_objects as go
 
 
 class RichNotifier:

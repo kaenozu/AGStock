@@ -1,5 +1,4 @@
 import logging
-import os
 
 from src.smart_notifier import SmartNotifier
 

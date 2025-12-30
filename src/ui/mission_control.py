@@ -46,7 +46,7 @@ def render_mission_control():
                         uptime = datetime.now() - last_dt
                         uptime_str = f"{uptime.seconds // 3600}h {(uptime.seconds % 3600) // 60}m"
                         st.metric("Time Since Update", uptime_str)
-                    except:
+                    except BaseException:
                         st.metric("Time Since Update", "N/A")
 
             except Exception as e:
@@ -71,10 +71,10 @@ def render_mission_control():
             st.subheader("Yahoo Finance")
             # Simple check - try to import yfinance
             try:
-                import yfinance as yf
+                pass
 
                 st.success("✅ Available")
-            except:
+            except BaseException:
                 st.error("❌ Not installed")
 
         with col3:

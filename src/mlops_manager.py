@@ -6,32 +6,23 @@
 - モニタリングとアラート
 """
 
-import asyncio
 import hashlib
 import json
 import logging
 import os
 import pickle
-import shutil
 import sqlite3
-import subprocess
-import threading
-import time
 import warnings
-from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
-from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Tuple
 
 import mlflow
 import numpy as np
 import pandas as pd
-import tensorflow as tf
 import yaml
 from mlflow.models.signature import infer_signature
-from mlflow.utils.environment import _mlflow_conda_env
 from tensorflow import keras
 
 warnings.filterwarnings("ignore")
@@ -583,13 +574,13 @@ class MonitoringSystem:
 
         if resolved:
             query = """
-                SELECT * FROM monitoring_alerts 
+                SELECT * FROM monitoring_alerts
                 WHERE timestamp >= ? AND resolved = 1
                 ORDER BY timestamp DESC
             """
         else:
             query = """
-                SELECT * FROM monitoring_alerts 
+                SELECT * FROM monitoring_alerts
                 WHERE timestamp >= ? AND resolved = 0
                 ORDER BY timestamp DESC
             """
@@ -607,7 +598,7 @@ class MonitoringSystem:
 
         cursor.execute(
             """
-            UPDATE monitoring_alerts 
+            UPDATE monitoring_alerts
             SET resolved = 1, resolved_timestamp = ?
             WHERE id = ?
         """,
@@ -766,7 +757,6 @@ if __name__ == "__main__":
     mlops = MLopsManager()
 
     # モックモデルの作成
-    import tensorflow as tf
     from tensorflow import keras
 
     model = keras.Sequential(

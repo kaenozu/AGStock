@@ -8,7 +8,6 @@ import os
 from typing import Dict, List, Any
 
 import chromadb
-from chromadb.config import Settings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
@@ -37,7 +36,7 @@ class EarningsRAG:
         try:
             self.collection = self.client.get_collection(name="earnings_reports")
             logger.info("Loaded existing earnings collection")
-        except:
+        except BaseException:
             self.collection = self.client.create_collection(
                 name="earnings_reports",
                 metadata={"description": "Earnings reports vector store"},

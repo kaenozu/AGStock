@@ -8,7 +8,7 @@ import os
 import time
 import shutil
 from datetime import datetime
-from typing import List, Callable, Dict, Any
+from typing import Dict, Any
 
 from src.rag.pdf_loader import PDFLoader
 from src.rag.earnings_rag import EarningsRAG

@@ -1,5 +1,3 @@
-import streamlit as st
-from src.agents.cfo_agent import CFOAgent
 
 
 def render_cfo_panel():
@@ -10,30 +8,22 @@ def render_cfo_panel():
     #         st.markdown("AGStock の最高財務責任者（CFO）として、運用状況、リスク、今後の戦略についてご説明します。")
     #     # Initialize CFO Agent
     #         if "cfo_agent" not in st.session_state:
-    pass
     #             st.session_state.cfo_agent = CFOAgent()
     #             cfo = st.session_state.cfo_agent
     #     # Chat Interface
     #         if "cfo_chat_history" not in st.session_state:
-    pass
     #             st.session_state.cfo_chat_history = []
     #     # Display Chat History
     #         for message in st.session_state.cfo_chat_history:
-    pass
     #             with st.chat_message(message["role"]):
-    pass
     #                 st.markdown(message["content"])
     #     # User Input
     #         if prompt := st.chat_input("運用の状況について質問してください（例：ポートフォリオの最大のリスクは？）"):
-    pass
     #             with st.chat_message("user"):
-    pass
     #                 st.markdown(prompt)
     #             st.session_state.cfo_chat_history.append({"role": "user", "content": prompt})
     #                 with st.chat_message("assistant"):
-    pass
     #                     with st.spinner("データを精査中..."):
-    pass
 
 
 #                         response = cfo.answer_query(prompt)

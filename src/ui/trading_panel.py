@@ -3,7 +3,6 @@ Trading Panel UI Module
 Handles the Paper Trading interface (manual trading, positions, history).
 """
 
-import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 

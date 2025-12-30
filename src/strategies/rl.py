@@ -117,7 +117,7 @@ class RLStrategy(Strategy):
 
             self.agent.update_target_model()
             logger.info(
-                f"Episode {e+1}/{episodes} - Total Reward: {total_reward:.2f}, Epsilon: {self.agent.epsilon:.2f}"
+                f"Episode {e + 1}/{episodes} - Total Reward: {total_reward:.2f}, Epsilon: {self.agent.epsilon:.2f}"
             )
 
         try:

@@ -8,8 +8,6 @@ from typing import Any, Dict, List
 import numpy as np
 import pandas as pd
 
-from src.logger_config import logger
-
 
 def calculate_performance_metrics(
     equity_curve: pd.Series, trades: List[Dict[str, Any]], initial_capital: float

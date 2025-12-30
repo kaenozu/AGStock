@@ -1,7 +1,6 @@
 import io
 import logging
 import re
-from datetime import datetime
 from pathlib import Path
 from typing import BinaryIO, Dict, List, Optional, Union, Any
 
@@ -119,7 +118,7 @@ class PDFLoader:
             elif hasattr(source, "read"):
                 try:
                     source.seek(0)
-                except:
+                except BaseException:
                     pass
                 pdf_file = source
                 should_close = False
@@ -140,7 +139,7 @@ class PDFLoader:
                             try:
                                 df = pd.DataFrame(table[1:], columns=table[0])
                                 tables.append(df)
-                            except:
+                            except BaseException:
                                 # Fallback: no header
                                 df = pd.DataFrame(table)
                                 tables.append(df)
@@ -181,7 +180,7 @@ class PDFLoader:
                         metadata["date"] = reader.metadata.creation_date.strftime(
                             "%Y-%m-%d"
                         )
-                    except:
+                    except BaseException:
                         pass
 
             # Text-based extraction

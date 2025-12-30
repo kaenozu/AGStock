@@ -138,7 +138,8 @@ class ProductionManager:
 """
 
         for trade in trades:
-            report += f"- {trade.get('action')} {trade.get('quantity')} shares of {trade.get('ticker')} @ ¥{trade.get('price'):.2f}\n"
+            report += f"- {trade.get('action')} {trade.get('quantity')
+                                                 } shares of {trade.get('ticker')} @ ¥{trade.get('price'):.2f}\n"
 
         report += "\n## Risk Metrics\n"
         report += f"- Max Position Size: {self.config.get('max_position_size', 0.2):.1%}\n"

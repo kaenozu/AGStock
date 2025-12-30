@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import List, Dict, Any
+from typing import Dict, Any
 import google.generativeai as genai
 
 logger = logging.getLogger(__name__)

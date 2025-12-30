@@ -69,7 +69,7 @@ class MarketAnalyst(BaseAgent):
         regime_msg = ""
         if regime_info:
             regime_name = regime_info["regime_name"]
-            regime_val = regime_info["regime"]
+            regime_info["regime"]
             regime_msg = f" [Market Regime: {regime_name}]"
 
             # Logic: If Bear Market, discount Bullish news
@@ -119,7 +119,8 @@ class MarketAnalyst(BaseAgent):
             f"\n[Self-Learning Lessons: {lessons_learned}]" if lessons_learned else ""
         )
 
-        reasoning = f"Sentiment: {sentiment}. {quant_reasoning} {earnings_msg} Key Drivers: {', '.join(impact.get('key_drivers', []))}. {regime_msg}{lessons_msg}"
+        reasoning = f"Sentiment: {sentiment}. {quant_reasoning} {earnings_msg} Key Drivers: {
+            ', '.join(impact.get('key_drivers', []))}. {regime_msg}{lessons_msg}"
 
         analysis = self._create_response(final_decision, final_confidence, reasoning)
         self.log_analysis(analysis)

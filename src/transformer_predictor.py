@@ -5,11 +5,10 @@ Temporal Fusion Transformerを使用した予測モジュール
 
 import logging
 import os
-from typing import Dict, List, Optional, Tuple
+from typing import Dict
 
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
 
 from src.base_predictor import BasePredictor
 

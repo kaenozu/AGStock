@@ -4,11 +4,10 @@ Time Series Cross-Validation - 時系列専用CV
 """
 
 import logging
-from typing import Dict, Generator, List, Tuple
+from typing import Dict, Generator, Tuple
 
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import TimeSeriesSplit
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,4 @@
 import logging
-import os
-import json
-import google.generativeai as genai
 from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
@@ -18,7 +15,6 @@ class IntuitionEngine:
 def __init__(self):
     self._init_gemini()
     #     def _init_gemini(self):
-    pass
 
 
 #         """
@@ -36,7 +32,6 @@ def get_instinct(self, ticker: str, market_context: Dict[str, Any]) -> Dict[str,
     #         """
     #         Uses Gemini to 'feel' the market pulse based on raw data noise.
     #                 if not self.has_ai:
-    pass
 
 
 #                     return {"error": "AI not available"}
@@ -59,4 +54,5 @@ def get_instinct(self, ticker: str, market_context: Dict[str, Any]) -> Dict[str,
 #             return json.loads(data)
 #         except Exception as e:
 #             logger.error(f"Intuition engine failed for {ticker}: {e}")
-#             return {"instinct_score": 50, "instinct_direction": "CALM", "wild_card": "The signal is too noisy to interpret."}
+# return {"instinct_score": 50, "instinct_direction": "CALM", "wild_card":
+# "The signal is too noisy to interpret."}

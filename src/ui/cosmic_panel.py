@@ -1,8 +1,5 @@
 import random  # for UI mock
-import streamlit as st
-import pandas as pd
 from src.evolution.swarm_intel import SwarmIntelligence
-from src.agents.lineage_manager import LineageManager
 
 
 def render_cosmic_dashboard():
@@ -12,7 +9,6 @@ def render_cosmic_dashboard():
     #             st.subheader("🌌 Cosmic Dashboard: Hive Mind & Dynasty")
     #             col1, col2 = st.columns([1, 1])
     #             with col1:
-    pass
 
 
 #                 st.write("""" 📡 Swarm Intelligence (集合知能)")

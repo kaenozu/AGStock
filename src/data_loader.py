@@ -321,7 +321,6 @@ def process_downloaded_data(
             # For now, we do NOT drop them to avoid breaking series continuity blindly,
             # but we will log it. The user request implies "clipping".
             # Let's simple clip columns if they exist.
-            pass
 
         if not df.empty:
             processed[ticker] = df

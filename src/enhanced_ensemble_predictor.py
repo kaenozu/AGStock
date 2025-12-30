@@ -18,11 +18,10 @@
 """
 
 import logging
-from typing import Dict, List, Optional, Tuple
+from typing import Dict
 
 import numpy as np
 import pandas as pd
-import tensorflow as tf
 
 from src.advanced_ensemble import create_model_diversity_ensemble
 from src.advanced_models import AdvancedModels

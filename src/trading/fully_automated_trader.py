@@ -13,7 +13,6 @@ import datetime
 import json
 import logging
 import os
-import traceback
 from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
@@ -23,17 +22,13 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 from src.agents.committee import InvestmentCommittee
 from src.backup_manager import BackupManager
-from src.cache_config import install_cache
 from src.constants import (
     DEFAULT_VOLATILITY_SYMBOL,
     FALLBACK_VOLATILITY_SYMBOLS,
     NIKKEI_225_TICKERS,
     SP500_TICKERS,
-    STOXX50_TICKERS,
 )
 from src.data_loader import (
-    CRYPTO_PAIRS,
-    FX_PAIRS,
     fetch_fundamental_data,
     fetch_stock_data,
     get_latest_price,
@@ -46,10 +41,9 @@ from src.paper_trader import PaperTrader
 
 # New Features from feat-add-position-guards
 from src.regime_detector import RegimeDetector
-from src.schemas import AppConfig, TradingDecision
+from src.schemas import AppConfig
 from src.sentiment import SentimentAnalyzer
 from src.smart_notifier import SmartNotifier
-from src.strategies import CombinedStrategy, LightGBMStrategy, MLStrategy
 from src.strategies.orchestrator import StrategyOrchestrator
 from src.feedback_loop import DailyReviewer
 from src.utils.logger import get_logger, setup_logger
@@ -744,7 +738,9 @@ class FullyAutomatedTrader:
                         )
                         if whale_alert["detected"]:
                             self.log(
-                                f"🐋 WHALE ALERT ({ticker}): {whale_alert['action_type']} (Ratio: {whale_alert['volume_ratio']})"
+                                f"🐋 WHALE ALERT ({ticker}): {
+                                    whale_alert['action_type']} (Ratio: {
+                                    whale_alert['volume_ratio']})"
                             )
                         continue
 
@@ -902,8 +898,8 @@ class FullyAutomatedTrader:
             visual_data = self.visual_oracle.analyze_chart(
                 ticker, sig.get("history", pd.DataFrame())
             )
-            visual_action = visual_data.get("action", "HOLD")
-            visual_conf = visual_data.get("visual_confidence", 0.5)
+            visual_data.get("action", "HOLD")
+            visual_data.get("visual_confidence", 0.5)
 
             if not is_safe:
                 self.log(f"  ❌ VETO: {ticker} - {veto_reason}", "WARNING")

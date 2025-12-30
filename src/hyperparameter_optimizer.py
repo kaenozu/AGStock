@@ -9,14 +9,12 @@ Optunaを使用して、各予測モデルの最適なハイパーパラメー�
 
 import logging
 import warnings
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, Dict
 
 import lightgbm as lgb
 import numpy as np
 import optuna
-import pandas as pd
-import tensorflow as tf
-from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import TimeSeriesSplit
 from tensorflow import keras
 
@@ -171,7 +169,7 @@ def create_transformer_objective(X: np.ndarray, y: np.ndarray, cv_folds: int = 3
         # ハイパーパラメータの提案
         hidden_size = trial.suggest_int("hidden_size", 32, 128)
         num_heads = trial.suggest_int("num_heads", 2, 8)
-        num_layers = trial.suggest_int("num_layers", 1, 3)
+        trial.suggest_int("num_layers", 1, 3)
         dropout = trial.suggest_float("dropout", 0.1, 0.5)
         learning_rate = trial.suggest_float("learning_rate", 1e-4, 1e-2, log=True)
         batch_size = trial.suggest_categorical("batch_size", [16, 32, 64])

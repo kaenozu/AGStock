@@ -350,7 +350,7 @@ if __name__ == "__main__":
     print("\nResults:")
     print(f"  Fetched: {len(data)}/{len(test_tickers)} tickers")
     print(f"  Time: {elapsed:.2f} seconds")
-    print(f"  Average: {elapsed/len(test_tickers):.2f} sec/ticker")
+    print(f"  Average: {elapsed / len(test_tickers):.2f} sec/ticker")
 
     for ticker, df in data.items():
         if df is not None:

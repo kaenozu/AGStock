@@ -4,7 +4,6 @@
 システムの実績を分析・可視化
 """
 
-import datetime
 from typing import Dict, Tuple
 
 import numpy as np

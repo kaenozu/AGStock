@@ -234,7 +234,7 @@ class PortfolioManager:
         days_since_rebalance = 0
 
         for i in range(len(prices)):
-            date = prices.index[i]
+            prices.index[i]
             current_prices = prices.iloc[i]
 
             # Calculate Equity

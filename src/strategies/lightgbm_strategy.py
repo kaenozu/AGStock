@@ -1,7 +1,6 @@
 import logging
 from typing import Dict
 
-import lightgbm as lgb
 import numpy as np
 import pandas as pd
 

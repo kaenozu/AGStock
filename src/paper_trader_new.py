@@ -4,17 +4,12 @@
 SQLiteデータベースを使用してポジション、残高、および注成履歴を管理します。
 """
 
-import datetime
 import json
 import logging
 import sqlite3
 from pathlib import Path
-from typing import Dict, Optional, Union, Any
+from typing import Dict, Union, Any
 
-import pandas as pd
-
-from src.data_loader import fetch_stock_data
-from src.helpers import retry_with_backoff
 
 logger = logging.getLogger(__name__)
 

@@ -28,7 +28,7 @@ class MacroStrategist(BaseAgent):
 
         score = macro_data.get("macro_score", 50.0)
         vix = macro_data.get("vix", {}).get("value", 20.0)
-        usdjpy = macro_data.get("usdjpy", {}).get("value", 150.0)
+        macro_data.get("usdjpy", {}).get("value", 150.0)
         sox_change = macro_data.get("sox", {}).get("change_pct", 0.0)
 
         # Decision logic based on macro stability

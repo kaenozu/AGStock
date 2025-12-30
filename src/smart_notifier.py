@@ -4,19 +4,17 @@
 チャート画像付きの通知、重要度フィルタリング、モバイル対応を提供
 """
 
-import io
 import json
 import os
 import tempfile
 from datetime import datetime
 from datetime import time as dt_time
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import pandas as pd
 import requests
-from matplotlib.figure import Figure
 
 from src.notifier import Notifier
 
@@ -133,7 +131,7 @@ class SmartNotifier(Notifier):
             start_hour, start_min = map(int, start_str.split(":"))
             end_hour, end_min = map(int, end_str.split(":"))
             return (dt_time(start_hour, start_min), dt_time(end_hour, end_min))
-        except:
+        except BaseException:
             return (dt_time(22, 0), dt_time(7, 0))  # デフォルト
 
     def is_quiet_time(self) -> bool:
@@ -346,7 +344,7 @@ class SmartNotifier(Notifier):
         if chart_path and os.path.exists(chart_path):
             try:
                 os.unlink(chart_path)
-            except:
+            except BaseException:
                 pass
 
     def send_line_notify(

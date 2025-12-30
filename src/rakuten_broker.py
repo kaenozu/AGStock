@@ -99,7 +99,7 @@ class RakutenBroker:
                     EC.element_to_be_clickable((By.ID, self.SELECTORS["login_btn_top"]))
                 )
                 login_btn.click()
-            except:
+            except BaseException:
                 # 直接ログインページへ
                 self.driver.get("https://www.rakuten-sec.co.jp/ITS/V_ACT_Login.html")
 
@@ -293,7 +293,7 @@ class RakutenBroker:
                 text.replace("¥", "").replace(",", "").replace("円", "").strip()
             )
             return float(clean_text)
-        except:
+        except BaseException:
             return 0.0
 
 

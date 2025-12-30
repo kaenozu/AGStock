@@ -1,8 +1,5 @@
 import logging
 import os
-import time
-import traceback
-from typing import Optional, Dict, Any
 import google.generativeai as genai
 
 logger = logging.getLogger(__name__)
@@ -55,7 +52,7 @@ class SelfHealingEngine:
         ---
         {error_context[-2000:]}
         ---
-        As an expert AI DevOps engineer, suggest a fix. 
+        As an expert AI DevOps engineer, suggest a fix.
         If it's a configuration issue, suggest the new config.json value.
         If it's a code issue, provide a brief description of the fix.
         Keep it concise.

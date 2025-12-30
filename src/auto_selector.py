@@ -1,5 +1,4 @@
 import logging
-from datetime import datetime, timedelta
 from typing import Any, Dict, List, Type
 
 import numpy as np
@@ -10,7 +9,6 @@ from src.data_loader import fetch_stock_data
 from src.regime_detector import MarketRegime, RegimeDetector
 from src.strategies import (
     BollingerBandsStrategy,
-    LightGBMStrategy,
     RSIStrategy,
     SMACrossoverStrategy,
     Strategy,

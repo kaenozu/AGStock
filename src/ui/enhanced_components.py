@@ -3,7 +3,6 @@ Enhanced UI Components
 Provides reusable, high-quality UI widgets with loading states and polished UX.
 """
 
-import time
 from typing import Any, Callable, List, Optional, Tuple
 
 import pandas as pd
@@ -12,6 +11,7 @@ import streamlit as st
 
 class LoadingContext:
     """Context manager for loading spinners."""
+
     def __init__(self, message: str = "読み込み中..."):
         self.message = message
         self.spinner = None
@@ -36,7 +36,7 @@ def async_component(
     placeholder = st.empty()
     with placeholder.container():
         st.info(f"⏳ {placeholder_text}")
-    
+
     try:
         result = loader_func()
         placeholder.empty()
@@ -75,7 +75,7 @@ def status_badge(status: str, message: str = ""):
     }
     color = colors.get(status, "#6c757d")
     icon = icons.get(status, "•")
-    
+
     st.markdown(f"""
     <div style='
         background-color: {color}20;
@@ -103,7 +103,7 @@ def data_table_with_search(df: pd.DataFrame, search_columns: list = None):
 
     # Search box
     search_term = st.text_input("🔍 検索", key=f"search_{id(df)}")
-    
+
     if search_term and search_columns:
         # Simple string containment search
         mask = df[search_columns].apply(
@@ -175,7 +175,7 @@ def step_progress(steps: List[str], current_step: int):
 
 class FormValidator:
     """Simple validator logic for UI forms."""
-    
+
     @staticmethod
     def validate_ticker(ticker: str) -> Tuple[bool, str]:
         if not ticker:

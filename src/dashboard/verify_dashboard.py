@@ -2,6 +2,7 @@
 ダッシュボード機能の検証
 """
 
+from src.prediction_dashboard import create_prediction_analysis_dashboard
 import sys
 from unittest.mock import MagicMock
 
@@ -10,8 +11,6 @@ st_mock = MagicMock()
 st_mock.columns = lambda n: [MagicMock() for _ in range(n)]
 st_mock.session_state = {}
 sys.modules["streamlit"] = st_mock
-
-from src.prediction_dashboard import create_prediction_analysis_dashboard
 
 
 def verify_dashboard():

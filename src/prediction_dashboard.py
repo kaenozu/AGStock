@@ -8,7 +8,6 @@ from datetime import datetime, timedelta
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
-from plotly.subplots import make_subplots
 
 from src.prediction_backtester import PredictionBacktester
 

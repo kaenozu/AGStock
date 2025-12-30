@@ -118,7 +118,7 @@ class MacroStrategist(Agent):
                 # Simplify: just look at SP500 and USDJPY
                 sp500 = macro_dict.get("SP500")
                 usdjpy = macro_dict.get("USDJPY")
-            except:
+            except BaseException:
                 return AgentVote(self.name, "HOLD", 0.5, "Macro data unavailable.")
         else:
             # Assuming data structure passed in

@@ -4,8 +4,8 @@
 """
 
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from datetime import timedelta
+from typing import Dict, List
 
 import numpy as np
 import pandas as pd
@@ -76,7 +76,8 @@ class PredictionBacktester:
 
                     if len(historical_data) < 50:
                         logger.warning(
-                            f"Insufficient historical data for {test_date_naive}: {len(historical_data)} rows. Skipping."
+                            f"Insufficient historical data for {test_date_naive}: {
+                                len(historical_data)} rows. Skipping."
                         )
                         continue
 
@@ -255,4 +256,3 @@ class PredictionBacktester:
         """
         # 実装は複雑になるため、まずは統合アンサンブルのみを評価
         # 将来的には各モデル単体のバックテストも追加可能
-        pass

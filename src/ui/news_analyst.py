@@ -100,13 +100,10 @@ def render_news_analyst():
 
                 # Color logic
                 if score > 3:
-                    color = "green"
                     label = "強気 (BULLISH)"
                 elif score < -3:
-                    color = "red"
                     label = "弱気 (BEARISH)"
                 else:
-                    color = "gray"
                     label = "中立 (NEUTRAL)"
 
                 st.metric(

@@ -5,7 +5,7 @@ RL Strategy - 強化学習ベースの取引戦略
 
 import logging
 import os
-from typing import Dict, Optional
+from typing import Dict
 
 import numpy as np
 import pandas as pd

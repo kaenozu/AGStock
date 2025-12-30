@@ -4,11 +4,10 @@ Prediction Cache - 予測キャッシュ
 """
 
 import hashlib
-import json
 import logging
 from datetime import datetime, timedelta
 from functools import wraps
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 

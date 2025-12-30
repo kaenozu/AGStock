@@ -21,7 +21,6 @@ class BasePredictor(ABC):
             X (pd.DataFrame): 特徴量データ
             y (pd.Series): ターゲット変数
         """
-        pass
 
     @abstractmethod
     def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
@@ -32,7 +31,6 @@ class BasePredictor(ABC):
             X (pd.DataFrame): 特徴量データ（prepare_modelで加工済みであることを想定する場合もあるが、基本はここでも受け取る）
             y (pd.Series): ターゲット変数
         """
-        pass
 
     @abstractmethod
     def predict(self, X: pd.DataFrame) -> np.ndarray:
@@ -45,7 +43,6 @@ class BasePredictor(ABC):
         Returns:
             np.ndarray: 予測結果の配列
         """
-        pass
 
     def predict_point(self, features: np.ndarray) -> float:
         """

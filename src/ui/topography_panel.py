@@ -1,5 +1,3 @@
-import streamlit as st
-from src.ui.topography_engine import TopographyEngine
 
 
 def render_topography_panel():
@@ -15,10 +13,8 @@ def render_topography_panel():
     #     # For now, we use high-quality mock data representing the current energy.
     #         market_data = topographer.get_mock_market_data()
     #             with st.spinner("3D地形データを生成中..."):
-    pass
     #                 fig = topographer.generate_3d_topography(market_data)
     #             if fig:
-    pass
 
 
 #                 st.plotly_chart(fig, use_container_width=True)

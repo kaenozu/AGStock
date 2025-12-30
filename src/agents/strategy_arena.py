@@ -2,7 +2,7 @@ import sqlite3
 import json
 import os
 import logging
-from typing import Dict, List, Any
+from typing import Dict, Any
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -112,5 +112,5 @@ class StrategyArena:
             with open(self.weights_path, "r") as f:
                 data = json.load(f)
                 return data.get("weights", {})
-        except:
+        except BaseException:
             return {}

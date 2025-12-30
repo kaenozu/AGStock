@@ -57,7 +57,7 @@ class SignalIntegrator:
         if df is None or df.empty:
             return self._empty_result()
 
-        latest_idx = df.index[-1]
+        df.index[-1]
         reasons = []
 
         # 1. Technical Analysis (Score: -1 to 1)
@@ -81,7 +81,7 @@ class SignalIntegrator:
             )
         elif ai_score < -0.4:
             reasons.append(
-                f"AIモデルが下落を予測しています (確信度: {1-ai_prediction:.1%})"
+                f"AIモデルが下落を予測しています (確信度: {1 - ai_prediction:.1%})"
             )
 
         # 3. Multi-Timeframe Analysis (Score: -1 to 1)

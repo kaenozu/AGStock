@@ -1,6 +1,4 @@
 import logging
-import yfinance as yf
-from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +26,6 @@ def __init__(self):
     pass
 
     #     def get_macro_sentiment(self) -> Dict[str, Any]:
-    pass
 
 
 #         """

@@ -12,12 +12,10 @@ import warnings
 from typing import Tuple
 
 import numpy as np
-import pandas as pd
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
-from src.base_predictor import BasePredictor
 
 warnings.filterwarnings("ignore")
 
@@ -358,7 +356,7 @@ class NBEATS(keras.Model):
         x = self.preprocess(x)
 
         # 各スタックを処理
-        forecast = tf.zeros_like(x[:, -self.forecast_size :], dtype=tf.float32)
+        forecast = tf.zeros_like(x[:, -self.forecast_size:], dtype=tf.float32)
 
         for stack_blocks in self.blocks:
             backcast = x
@@ -480,7 +478,7 @@ class AdvancedModels:
             return
 
         for i in range(self.lookback, len(X_np)):
-            X_seq.append(X_np[i - self.lookback : i])
+            X_seq.append(X_np[i - self.lookback: i])
             y_seq.append(y_np[i])
 
         X_seq = np.array(X_seq)
@@ -517,7 +515,7 @@ class AdvancedModels:
                 )  # Using past data only
                 X_seq.append(seq)
             else:
-                X_seq.append(X_np[i - self.lookback : i])
+                X_seq.append(X_np[i - self.lookback: i])
 
         X_seq = np.array(X_seq)
         # Handle empty

@@ -7,7 +7,6 @@ import json
 
 import streamlit as st
 
-from src.constants import MARKETS, TICKER_NAMES
 from src.schemas import load_config as load_config_schema
 
 from src import demo_data  # noqa: F401  # imported for side-effects if needed
@@ -102,7 +101,7 @@ def render_sidebar():
                 if status == "error":
                     st.sidebar.caption(f"Err: {info.get('message', '')[:20]}...")
 
-        except Exception as e:
+        except Exception:
             st.sidebar.warning(f"ステータス読込エラー")
     else:
         st.sidebar.warning("⚠️ ステータス情報なし")

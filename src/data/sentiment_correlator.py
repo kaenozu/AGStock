@@ -1,6 +1,6 @@
 import logging
 import statistics
-from typing import Dict, List, Any
+from typing import Dict, Any
 from src.news_collector import NewsCollector
 from src.social_sentiment import SocialSentimentEngine
 from src.bert_sentiment import BERTSentimentAnalyzer

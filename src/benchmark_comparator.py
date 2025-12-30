@@ -290,11 +290,11 @@ class BenchmarkComparator:
 
         if alpha > 0:
             interpretation.append(
-                f"✅ プラスアルファ（+{alpha*100:.2f}%）- ベンチマークを上回る"
+                f"✅ プラスアルファ（+{alpha * 100:.2f}%）- ベンチマークを上回る"
             )
         else:
             interpretation.append(
-                f"❌ マイナスアルファ（{alpha*100:.2f}%）- ベンチマーク未達"
+                f"❌ マイナスアルファ（{alpha * 100:.2f}%）- ベンチマーク未達"
             )
 
         if info_ratio > 0.5:

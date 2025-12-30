@@ -3,11 +3,9 @@ Earnings Analyst UI
 決算分析のStreamlitインターフェース
 """
 
-import json
 import logging
 from datetime import datetime
 
-import pandas as pd
 import streamlit as st
 
 from src.rag.pdf_loader import PDFLoader
@@ -210,7 +208,7 @@ def _render_settings():
 
     st.markdown("### モデル設定")
     model_options = ["gemini-1.5-pro", "gemini-1.5-flash"]
-    selected_model = st.selectbox("使用するモデル", model_options)
+    st.selectbox("使用するモデル", model_options)
     st.caption("Flash: 高速・低コスト | Pro: 高精度")
 
     if st.button("設定を保存"):

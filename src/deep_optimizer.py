@@ -4,17 +4,12 @@ Optunaを使用してLSTM, Transformerのハイパーパラメータを徹底的
 """
 
 import logging
-from typing import Any, Dict, Tuple
+from typing import Any, Dict
 
 import numpy as np
 import optuna
 import pandas as pd
-import torch
-import torch.nn as nn
-from tqdm import tqdm
 
-from src.future_predictor import FuturePredictor
-from src.transformer_model import TemporalFusionTransformer
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +39,9 @@ class DeepOptimizer:
 
         def objective(trial):
             # ハイパーパラメータ探索空間
-            hidden_size = trial.suggest_int("hidden_size", 32, 256)
-            num_layers = trial.suggest_int("num_layers", 1, 4)
-            dropout = trial.suggest_float("dropout", 0.0, 0.5)
+            trial.suggest_int("hidden_size", 32, 256)
+            trial.suggest_int("num_layers", 1, 4)
+            trial.suggest_float("dropout", 0.0, 0.5)
             learning_rate = trial.suggest_float("learning_rate", 1e-4, 1e-2, log=True)
             seq_length = trial.suggest_int("seq_length", 10, 60)
 
@@ -117,8 +112,8 @@ class DeepOptimizer:
 
     def run_full_optimization(self, df: pd.DataFrame):
         """全モデルの最適化を実行"""
-        lstm_params = self.optimize_lstm(df)
-        tft_params = self.optimize_transformer(df)
+        self.optimize_lstm(df)
+        self.optimize_transformer(df)
 
         # 最適化結果を保存
         import json

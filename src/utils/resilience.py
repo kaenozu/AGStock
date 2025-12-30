@@ -6,18 +6,21 @@ Provides decorators and classes to prevent cascading failures.
 import time
 import logging
 import functools
-from typing import Callable, Any, Optional
+from typing import Any
 
 logger = logging.getLogger("IronDome")
 
+
 class CircuitBreakerOpenException(Exception):
     pass
+
 
 class CircuitBreaker:
     """
     Manages the state of a circuit breaker.
     States: CLOSED (Normal), OPEN (Failing), HALF-OPEN (Recovery Test)
     """
+
     def __init__(self, failure_threshold: int = 5, recovery_timeout: int = 300, name: str = "Circuit"):
         self.failure_threshold = failure_threshold
         self.recovery_timeout = recovery_timeout
@@ -47,10 +50,11 @@ class CircuitBreaker:
         self.failures += 1
         self.last_failure_time = time.time()
         logger.warning(f"🛡️ Iron Dome: '{self.name}' failure detected ({self.failures}/{self.failure_threshold}).")
-        
+
         if self.failures >= self.failure_threshold:
             self.state = "OPEN"
             logger.error(f"🛡️ Iron Dome: '{self.name}' threshold exceeded. Circuit OPEN for {self.recovery_timeout}s.")
+
 
 def circuit_breaker(failure_threshold: int = 3, recovery_timeout: int = 60, fallback_value: Any = None):
     """
@@ -74,7 +78,7 @@ def circuit_breaker(failure_threshold: int = 3, recovery_timeout: int = 60, fall
                 breaker.record_failure()
                 logger.error(f"Error in secured function '{func.__qualname__}': {e}")
                 return fallback_value
-        
+
         # Attach breaker to wrapper for inspection if needed
         wrapper.breaker = breaker
         return wrapper

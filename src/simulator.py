@@ -4,7 +4,7 @@
 シミュレーションのロジックと結果の計算を分離することで、単一責任の原則を適用します。
 """
 
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -174,8 +174,8 @@ class TradeSimulator:
                         highest_prices,
                         trailing_stop_levels,
                         exit_executed,
-        date=None,
-        index=None,
+                        date=None,
+                        index=None,
                     )
 
                 # 整数信号による新規ポジション
@@ -327,20 +327,24 @@ class TradeSimulator:
             should_execute = True
         elif today_sig.type == OrderType.LIMIT:
             if today_sig.action.upper() == "BUY":
-                if df["Low"].iloc[-1] if index is None else df["Low"].iloc[min(index+1, len(df)-1)] <= today_sig.price:
+                if df["Low"].iloc[-1] if index is None else df["Low"].iloc[min(
+                        index + 1, len(df) - 1)] <= today_sig.price:
                     should_execute = True
                     fill_price = min(today_sig.price, exec_price)
             else:  # SELL
-                if df["High"].iloc[-1] if index is None else df["High"].iloc[min(index+1, len(df)-1)] >= today_sig.price:
+                if df["High"].iloc[-1] if index is None else df["High"].iloc[min(
+                        index + 1, len(df) - 1)] >= today_sig.price:
                     should_execute = True
                     fill_price = max(today_sig.price, exec_price)
         elif today_sig.type == OrderType.STOP:
             if today_sig.action.upper() == "BUY":
-                if df["High"].iloc[-1] if index is None else df["High"].iloc[min(index+1, len(df)-1)] >= today_sig.price:
+                if df["High"].iloc[-1] if index is None else df["High"].iloc[min(
+                        index + 1, len(df) - 1)] >= today_sig.price:
                     should_execute = True
                     fill_price = max(today_sig.price, exec_price)
             else:  # SELL
-                if df["Low"].iloc[-1] if index is None else df["Low"].iloc[min(index+1, len(df)-1)] <= today_sig.price:
+                if df["Low"].iloc[-1] if index is None else df["Low"].iloc[min(
+                        index + 1, len(df) - 1)] <= today_sig.price:
                     should_execute = True
                     fill_price = min(today_sig.price, exec_price)
 

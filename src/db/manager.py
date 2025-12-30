@@ -3,7 +3,6 @@ from sqlalchemy import func
 from src.db.database import SessionLocal
 from src.db.models import MarketScan, TradeLog, CouncilVote, SystemEvent
 import logging
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 

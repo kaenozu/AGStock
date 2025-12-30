@@ -51,7 +51,7 @@ class PsychologicalGuard:
         if unrealized_pnl_pct <= self.config["max_loss_per_trade"]:
             return {
                 "action": "SELL_NOW",
-                "reason": f"損切りライン到達: {unrealized_pnl_pct*100:.1f}%",
+                "reason": f"損切りライン到達: {unrealized_pnl_pct * 100:.1f}%",
                 "urgency": "HIGH",
                 "psychological_trap": "損失回避バイアス",
             }
@@ -80,7 +80,7 @@ class PsychologicalGuard:
         if drawdown_from_peak <= -self.config["trailing_stop_pct"]:
             return {
                 "action": "SELL_NOW",
-                "reason": f"トレーリングストップ: ピークから{abs(drawdown_from_peak)*100:.1f}%下落",
+                "reason": f"トレーリングストップ: ピークから{abs(drawdown_from_peak) * 100:.1f}%下落",
                 "urgency": "MEDIUM",
                 "psychological_trap": "後悔回避バイアス",
             }
@@ -107,7 +107,7 @@ class PsychologicalGuard:
         if position_pct > max_allowed:
             return {
                 "action": "REDUCE_SIZE",
-                "reason": f"ポジションサイズ超過: {position_pct*100:.1f}% > {max_allowed*100:.0f}%",
+                "reason": f"ポジションサイズ超過: {position_pct * 100:.1f}% > {max_allowed * 100:.0f}%",
                 "recommended_size": total_equity * max_allowed,
                 "psychological_trap": "過信バイアス",
             }

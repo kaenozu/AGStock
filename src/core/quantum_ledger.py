@@ -9,7 +9,7 @@ import json
 import logging
 import os
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +81,7 @@ class QuantumLedger:
                         b.hash = b_data["hash"]
                         b.nonce = b_data["nonce"]
                         self.chain.append(b)
-                
+
                 if not self.is_chain_valid():
                     logger.error("🚨 CRITICAL: Ledger integrity compromised. Re-initializing.")
                     self._reset_chain()
@@ -122,14 +122,14 @@ class QuantumLedger:
         """Verifies the integrity of the entire blockchain."""
         for i in range(1, len(self.chain)):
             current = self.chain[i]
-            previous = self.chain[i-1]
-            
+            previous = self.chain[i - 1]
+
             # Check current block hash integrity
             if current.hash != current.calculate_hash():
                 return False
-            
+
             # Check link to previous block
             if current.previous_hash != previous.hash:
                 return False
-                
+
         return True

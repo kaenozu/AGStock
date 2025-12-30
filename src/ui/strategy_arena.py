@@ -5,7 +5,6 @@ Allows users to compare multiple trading strategies on historical data.
 
 import logging
 
-import pandas as pd
 import streamlit as st
 
 from src.backtest_engine import HistoricalBacktester
@@ -89,7 +88,7 @@ def render_strategy_arena():
             2. **期間**を設定します (長期間ほど信頼性が高まります)。
             3. **比較したい戦略**にチェックを入れます。
             4. **バトル開始**ボタンをクリック！
-            
+
             **Update**: New! **Multi-Timeframe** 戦略が追加されました。週足トレンドを見てダマシを防ぎます。
             """
             )

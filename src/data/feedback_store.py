@@ -2,7 +2,7 @@ import sqlite3
 import datetime
 import json
 import logging
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +87,7 @@ class FeedbackStore:
                 # Find decisions that are older than 5 days and don't have price_1w yet
                 cursor.execute(
                     """
-                    SELECT * FROM decision_feedback 
+                    SELECT * FROM decision_feedback
                     WHERE ticker = ? AND price_1w IS NULL
                 """,
                     (ticker,),
@@ -125,7 +125,7 @@ class FeedbackStore:
 
                         cursor.execute(
                             """
-                            UPDATE decision_feedback 
+                            UPDATE decision_feedback
                             SET price_1w = ?, return_1w = ?, outcome = ?
                             WHERE id = ?
                         """,
@@ -145,7 +145,7 @@ class FeedbackStore:
                 cursor = conn.cursor()
                 cursor.execute(
                     """
-                    SELECT * FROM decision_feedback 
+                    SELECT * FROM decision_feedback
                     WHERE ticker = ? AND outcome IS NOT NULL
                     ORDER BY timestamp DESC LIMIT ?
                 """,
@@ -164,7 +164,7 @@ class FeedbackStore:
                 cursor = conn.cursor()
                 cursor.execute(
                     """
-                    SELECT * FROM decision_feedback 
+                    SELECT * FROM decision_feedback
                     WHERE outcome = 'FAILURE'
                     ORDER BY timestamp DESC LIMIT ?
                 """,

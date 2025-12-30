@@ -4,9 +4,8 @@ Analyzes multiple timeframes for signal confirmation.
 """
 
 import logging
-from typing import Dict, Optional
+from typing import Dict
 import pandas as pd
-import numpy as np
 
 from src.data_loader import fetch_stock_data
 from src.exceptions import DataFetchError

@@ -259,7 +259,7 @@ def render_performance_tab(
                     top5 = returns_df.nlargest(5, "Return")[
                         ["Ticker", "Name", "Return"]
                     ]
-                    top5["Return"] = top5["Return"].apply(lambda x: f"{x*100:+.2f}%")
+                    top5["Return"] = top5["Return"].apply(lambda x: f"{x * 100:+.2f}%")
                     st.dataframe(top5, use_container_width=True)
 
                 with col2:
@@ -268,7 +268,7 @@ def render_performance_tab(
                         ["Ticker", "Name", "Return"]
                     ]
                     bottom5["Return"] = bottom5["Return"].apply(
-                        lambda x: f"{x*100:+.2f}%"
+                        lambda x: f"{x * 100:+.2f}%"
                     )
                     st.dataframe(bottom5, use_container_width=True)
 
@@ -586,7 +586,8 @@ def render_market_scan_tab(
 
                 if actionable_df.empty:
                     st.warning(
-                        f"フィルタリングの結果、表示できる銘柄がありません。(Confidence >= {confidence_threshold}, Return >= {min_return_filter})"
+                        f"フィルタリングの結果、表示できる銘柄がありません。(Confidence >= {confidence_threshold}, Return >= {
+                            min_return_filter})"
                     )
 
                 actionable_df = actionable_df.sort_values(by="Return", ascending=False)
@@ -957,7 +958,7 @@ def render_market_scan_tab(
                 st.subheader("🏆 今日のイチオシ (Today's Best Pick)")
 
                 best_pick = actionable_df.iloc[0]
-                best_ticker = best_pick["Ticker"]
+                best_pick["Ticker"]
                 best_strat_name = best_pick["Strategy"]
 
                 # Calculate Risk Level based on Max Drawdown
@@ -1063,7 +1064,7 @@ def render_market_scan_tab(
                             roe = fund.get("returnOnEquity")
                             actionable_df.at[idx, "PER"] = f"{pe:.1f}x" if pe else "N/A"
                             actionable_df.at[idx, "ROE"] = (
-                                f"{roe*100:.1f}%" if roe else "N/A"
+                                f"{roe * 100:.1f}%" if roe else "N/A"
                             )
 
                     display_df = actionable_df[
@@ -1081,10 +1082,10 @@ def render_market_scan_tab(
                         ]
                     ].copy()
                     display_df["Return"] = display_df["Return"].apply(
-                        lambda x: f"{x*100:.1f}%"
+                        lambda x: f"{x * 100:.1f}%"
                     )
                     display_df["Max Drawdown"] = display_df["Max Drawdown"].apply(
-                        lambda x: f"{x*100:.1f}%"
+                        lambda x: f"{x * 100:.1f}%"
                     )
                     display_df["Last Price"] = display_df["Last Price"].apply(
                         lambda x: f"¥{x:,.0f}"
@@ -1152,9 +1153,7 @@ def render_realtime_monitoring_tab(ticker_group, selected_market, custom_tickers
         # ここでは簡易的にループ内でデータ取得を行う
 
         placeholder = st.empty()
-        log_placeholder = st.empty()
-
-        logs = []
+        st.empty()
 
         try:
             # 簡易ループ (実際にはバックグラウンドスレッド推奨だが、UI更新のためメインスレッドで実行)

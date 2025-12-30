@@ -8,15 +8,13 @@
 
 import logging
 import warnings
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import shap
 import tensorflow as tf
-from sklearn.ensemble import RandomForestRegressor
-from tensorflow import keras
 
 # LIMEはオプショナルな依存関係
 try:
@@ -287,13 +285,10 @@ class XAIFramework:
 
             # Grad-CAM (画像や時系列特徴量の可視化に有効)
             # if method in ["gradcam", "all"] and self.gradcam_explainer:
-            pass
             #     try:
-            pass
             #         gradcam_explanation = self.gradcam_explainer.generate_heatmap(X_instance)
             #         explanations["gradcam"] = gradcam_explanation
             #                 except Exception as e:
-            pass
         #                 logger.warning(f"Grad-CAM explanation failed: {e}")
 
         # LIME
@@ -332,7 +327,6 @@ class XAIFramework:
 
             # Grad-CAMの場合はヒートマップを表示（テキストレポートには不向き）
             # if "gradcam" in explanations:
-            pass
         #     report.append("Grad-CAM heatmap is available for visualization.")
 
         return "\n".join(report)

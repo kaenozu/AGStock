@@ -1,3 +1,5 @@
+from src.multi_timeframe import MultiTimeframeAnalyzer
+from src.dynamic_ensemble import DynamicEnsemble
 import importlib
 import inspect
 import logging
@@ -459,7 +461,7 @@ class DeepLearningStrategy(Strategy):
     def _create_sequences(self, data):
         X, y = [], []
         for i in range(self.lookback, len(data)):
-            X.append(data[i - self.lookback : i])
+            X.append(data[i - self.lookback: i])
             y.append(data[i, 0])
         return np.array(X), np.array(y)
 
@@ -808,7 +810,7 @@ class TransformerStrategy(Strategy):
             data = df_feat[numeric_cols].values
             X, y = [], []
             for i in range(len(data) - self.sequence_length - 1):
-                X.append(data[i : (i + self.sequence_length)])
+                X.append(data[i: (i + self.sequence_length)])
                 y.append(
                     data[i + self.sequence_length + 1, 0]
                 )  # Close price as target (simplified)
@@ -841,7 +843,7 @@ class TransformerStrategy(Strategy):
             if len(df_feat) < self.sequence_length:
                 return "HOLD"
 
-            recent_data = df_feat[numeric_cols].iloc[-self.sequence_length :].values
+            recent_data = df_feat[numeric_cols].iloc[-self.sequence_length:].values
             X = np.expand_dims(recent_data, axis=0)
 
             pred = self.model.predict(X)[0][0]
@@ -953,7 +955,7 @@ class RLStrategy(Strategy):
 
             self.agent.update_target_model()
             logger.info(
-                f"Episode {e+1}/{episodes} - Total Reward: {total_reward:.2f}, Epsilon: {self.agent.epsilon:.2f}"
+                f"Episode {e + 1}/{episodes} - Total Reward: {total_reward:.2f}, Epsilon: {self.agent.epsilon:.2f}"
             )
 
 
@@ -978,7 +980,7 @@ class GRUStrategy(Strategy):
             data = df_feat[numeric_cols].values
             X, y = [], []
             for i in range(len(data) - self.sequence_length - 1):
-                X.append(data[i : (i + self.sequence_length)])
+                X.append(data[i: (i + self.sequence_length)])
                 y.append(
                     data[i + self.sequence_length + 1, 0]
                 )  # Close price as target (simplified)
@@ -1011,7 +1013,7 @@ class GRUStrategy(Strategy):
             if len(df_feat) < self.sequence_length:
                 return "HOLD"
 
-            recent_data = df_feat[numeric_cols].iloc[-self.sequence_length :].values
+            recent_data = df_feat[numeric_cols].iloc[-self.sequence_length:].values
             X = np.expand_dims(recent_data, axis=0)
 
             pred = self.model.predict(X)[0][0]
@@ -1047,7 +1049,7 @@ class AttentionLSTMStrategy(Strategy):
             data = df_feat[numeric_cols].values
             X, y = [], []
             for i in range(len(data) - self.sequence_length - 1):
-                X.append(data[i : (i + self.sequence_length)])
+                X.append(data[i: (i + self.sequence_length)])
                 y.append(data[i + self.sequence_length + 1, 0])
 
             X, y = np.array(X), np.array(y)
@@ -1078,7 +1080,7 @@ class AttentionLSTMStrategy(Strategy):
             if len(df_feat) < self.sequence_length:
                 return "HOLD"
 
-            recent_data = df_feat[numeric_cols].iloc[-self.sequence_length :].values
+            recent_data = df_feat[numeric_cols].iloc[-self.sequence_length:].values
             X = np.expand_dims(recent_data, axis=0)
 
             pred = self.model.predict(X)[0][0]
@@ -1097,7 +1099,6 @@ class AttentionLSTMStrategy(Strategy):
 # -----------------------------------------------------------------------------
 # Ensemble Strategy
 # -----------------------------------------------------------------------------
-from src.dynamic_ensemble import DynamicEnsemble
 
 
 class EnsembleStrategy(Strategy):
@@ -1149,7 +1150,6 @@ class EnsembleStrategy(Strategy):
         # 履歴に保存されている予測を使用するか、別途管理が必要
         # DynamicEnsemble.update は予測値も引数に取るため、
         # 呼び出し元で予測値を保持しておく必要がある
-        pass
 
     def analyze(self, df: pd.DataFrame) -> Dict[str, Any]:
         """詳細分析結果を返す"""
@@ -1176,7 +1176,6 @@ class EnsembleStrategy(Strategy):
 # -----------------------------------------------------------------------------
 # Multi-Timeframe Strategy
 # -----------------------------------------------------------------------------
-from src.multi_timeframe import MultiTimeframeAnalyzer
 
 
 class MultiTimeframeStrategy(Strategy):

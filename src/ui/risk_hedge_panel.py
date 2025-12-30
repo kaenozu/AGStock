@@ -4,7 +4,6 @@ Risk Hedge UI Panel
 """
 
 import streamlit as st
-import pandas as pd
 from src.strategies.options_strategy import OptionsEngine
 
 

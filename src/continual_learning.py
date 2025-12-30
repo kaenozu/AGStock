@@ -6,16 +6,12 @@
 - 自己教師あり学習
 """
 
-import copy
 import logging
 import os
 import pickle
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, List, Optional
 
 import numpy as np
-import pandas as pd
-import tensorflow as tf
 from sklearn.metrics import mean_squared_error
 from tensorflow import keras
 
@@ -269,7 +265,7 @@ class AdaptiveEnsemblePredictor:
         # 履歴が一定数以上溜まったら重みを更新
         if len(self.performance_history[0]) >= self.adaptation_window:
             recent_performances = [
-                np.mean(self.performance_history[i][-self.adaptation_window :])
+                np.mean(self.performance_history[i][-self.adaptation_window:])
                 for i in range(len(self.base_predictors))
             ]
 
@@ -285,7 +281,7 @@ class AdaptiveEnsemblePredictor:
             # 履歴を保持
             for i in range(len(self.base_predictors)):
                 self.performance_history[i] = self.performance_history[i][
-                    -self.adaptation_window :
+                    -self.adaptation_window:
                 ]
 
 

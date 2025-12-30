@@ -83,7 +83,7 @@ class AdaptiveEnsemble:
         # Keep only recent history
         if len(self.performance_history[model_name]) > self.lookback_period:
             self.performance_history[model_name] = self.performance_history[model_name][
-                -self.lookback_period :
+                -self.lookback_period:
             ]
 
     def calculate_weights(self, regime: Optional[str] = None) -> Dict[str, float]:

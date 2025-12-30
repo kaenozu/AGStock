@@ -4,7 +4,7 @@ Orchestrates the final execution of trade signals through multiple layers of val
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from src.agents.ai_veto_agent import AIVetoAgent
 from src.agents.social_analyst import SocialAnalyst
@@ -27,7 +27,7 @@ class TradeExecutor:
         self.config = config
         self.engine = engine
         self.logger = logger
-        
+
         # Risk & AI components
         try:
             self.portfolio_manager = PortfolioManager()
@@ -48,10 +48,10 @@ class TradeExecutor:
             return []
 
         self.logger.info(f"Processing {len(signals)} signals...")
-        
+
         # 1. AI Verification Layer
         verified_signals = self._verify_with_ai(signals)
-        
+
         if not verified_signals:
             self.logger.warning("All signals were vetoed or failed AI verification.")
             return []
@@ -59,7 +59,7 @@ class TradeExecutor:
         # 2. Price Fetching
         tickers = [s["ticker"] for s in verified_signals]
         market_data = fetch_stock_data(tickers, period="5d")
-        
+
         prices = {}
         for ticker in tickers:
             if ticker in market_data:
@@ -69,11 +69,11 @@ class TradeExecutor:
 
         # 3. Execution via Engine
         executed_trades = self.engine.execute_orders(verified_signals, prices)
-        
+
         # 4. Feedback Loop Logging (Phase 42)
         if executed_trades:
             self._log_execution_feedback(executed_trades)
-            
+
         return executed_trades
 
     def _verify_with_ai(self, signals: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -83,23 +83,24 @@ class TradeExecutor:
         vetted_signals = []
         for signal in signals:
             ticker = signal.get("ticker")
-            if not ticker: continue
-            
+            if not ticker:
+                continue
+
             # Veto Check
             veto_reason = self.ai_veto_agent.check_veto(signal)
             if veto_reason:
                 self.logger.info(f"🚫 VETOED {ticker}: {veto_reason}")
                 continue
-                
+
             # Social Sentiment Check (Informational)
             sentiment = self.social_analyst.analyze(ticker)
             signal["social_sentiment"] = sentiment
-            
+
             # Visual check if needed (Conceptual Phase)
             # signal["visual_score"] = self.visual_oracle.check_chart(ticker)
-            
+
             vetted_signals.append(signal)
-            
+
         return vetted_signals
 
     def _log_execution_feedback(self, executed_trades: List[Dict[str, Any]]) -> None:
@@ -109,7 +110,7 @@ class TradeExecutor:
                 self.feedback_store.add_feedback(
                     ticker=trade["ticker"],
                     trade_id=str(trade.get("trade_id", "auto")),
-                    expected_pnl=0.0, # Will be filled by rebalancer
+                    expected_pnl=0.0,  # Will be filled by rebalancer
                     entry_context=trade.get("reason", "manual_execution")
                 )
             except Exception as e:

@@ -1,5 +1,5 @@
 import logging
-from typing import List, Dict, Any
+from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +92,6 @@ def filter_strategies(self, strategies: List[str], current_paradigm: str) -> Lis
 
 
 def trigger_metamorphosis(self, current_paradigm: str):
-    pass
     logger.warning(f"🧬 SYSTEM METAMORPHOSIS: Evolving for {current_paradigm}")
     try:
         from src.evolution.strategy_generator import StrategyGenerator

@@ -1,3 +1,4 @@
+from src.prompts.earnings_prompts import EARNINGS_ANALYSIS_SYSTEM_PROMPT
 import logging
 from typing import Dict
 
@@ -27,9 +28,6 @@ class PDFExtractor:
                 "PDF extraction returned no text. The PDF may be image-based or corrupted."
             )
         return text
-
-
-from src.prompts.earnings_prompts import EARNINGS_ANALYSIS_SYSTEM_PROMPT
 
 
 class EarningsAnalyzer:

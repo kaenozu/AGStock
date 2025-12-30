@@ -8,17 +8,11 @@
 
 import logging
 import warnings
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
-import matplotlib.dates as mdates
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
 import yfinance as yf
-from scipy import stats
-from scipy.stats import lognorm, multivariate_normal, norm
 from sklearn.covariance import LedoitWolf
 
 from src.base_predictor import BasePredictor
@@ -232,7 +226,7 @@ class MonteCarloSimulator:
             # ラ関行列の平方根を計算（コレスキー分解）
             try:
                 L = np.linalg.cholesky(covariance_matrix * dt)
-            except:
+            except BaseException:
                 # 正定値でない場合はレドイット=ウルフ推定器を使用
                 lw = LedoitWolf()
                 lw.fit(

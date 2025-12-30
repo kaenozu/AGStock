@@ -1,7 +1,7 @@
 import logging
 import pandas as pd
 import yfinance as yf
-from typing import List, Dict, Any, Optional
+from typing import List
 import google.generativeai as genai
 import os
 from src.constants import NIKKEI_225_TICKERS, SP500_TICKERS
@@ -69,7 +69,7 @@ class UniverseManager:
         # Optimization: Process in chunks of 50 to avoid URL length issues
         chunk_size = 50
         for i in range(0, len(ticker_list), chunk_size):
-            chunk = ticker_list[i : i + chunk_size]
+            chunk = ticker_list[i: i + chunk_size]
             try:
                 # Batch download: significantly faster
                 data = yf.download(chunk, period="1mo", progress=False, threads=True)[
@@ -114,7 +114,7 @@ class UniverseManager:
 
         prompt = f"""
         Analyze this list of stock tickers: {candidates}.
-        Based on current global market trends (2025 technology boom, AI, energy shift, inflation), 
+        Based on current global market trends (2025 technology boom, AI, energy shift, inflation),
         pick the TOP {limit} stocks that have the highest probability of growth in the next 1-2 weeks.
         Only return a comma-separated list of tickers. No explanation.
         Example: 7203.T, NVDA, AAPL

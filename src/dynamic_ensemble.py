@@ -80,7 +80,7 @@ class DynamicEnsemble:
             return
 
         # 直近の履歴を取得
-        recent_history = self.history[-self.window_size :]
+        recent_history = self.history[-self.window_size:]
 
         scores = {name: 0.0 for name in self.weights.keys()}
 

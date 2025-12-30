@@ -113,7 +113,7 @@ class SentimentAnalyzer:
             # Add index for faster queries
             cursor.execute(
                 """
-                CREATE INDEX IF NOT EXISTS idx_timestamp 
+                CREATE INDEX IF NOT EXISTS idx_timestamp
                 ON sentiment_history(timestamp)
             """
             )

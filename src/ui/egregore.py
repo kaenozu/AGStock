@@ -1,8 +1,5 @@
 import streamlit as st
-import os
 import random
-from src.agents.oracle import OracleEngine
-from src.ui.styles import DS
 
 
 def render_sidebar_egregore():
@@ -15,7 +12,6 @@ def render_sidebar_egregore():
     #         mood = "NEUTRAL"
     #         oracle_text = "Omniscience is online."
     #             try:
-    pass
     #                 # Try to peek at recent oracle prophecy without generating new one
     #     # Assuming OracleEngine can fetch latest from DB or cache
     #     # For now, we instantiate and check if we can get last state.
@@ -25,14 +21,11 @@ def render_sidebar_egregore():
     #     # Let's use session state or random for "breathing" effect if no active signal.
     #     # Real logic: Check session state
     #             if "oracle_mood" in st.session_state:
-    pass
     #                 mood = st.session_state["oracle_mood"]
     #             else:
-    pass
     #                 # Fallback: Check time of day or random
     #                 mood = random.choice(["BULLISH", "BEARISH", "NEUTRAL"])
     #             except Exception:
-    pass
     #                 pass
     #      Map mood to avatar
     #         avatar_map = {
@@ -45,10 +38,8 @@ def render_sidebar_egregore():
     #             image_path = avatar_map.get(mood, "assets/avatars/neutral.png")
     #      If image doesn't exist, fallback to emoji
     #         if os.path.exists(image_path):
-    pass
     #             st.sidebar.image(image_path, caption=f"Divine Presence: {mood}", use_column_width=True)
     #         else:
-    pass
 
 
 #             st.sidebar.markdown(f"""" 🤖 Divine Presence: {mood}")

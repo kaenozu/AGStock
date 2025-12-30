@@ -3,7 +3,7 @@
 数値、通貨、パーセンテージなどの統一されたフォーマット関数
 """
 
-from typing import Optional, Union
+from typing import Optional
 
 import pandas as pd
 
@@ -46,9 +46,9 @@ def format_currency_jp(value: Optional[float]) -> str:
         return "N/A"
 
     if value >= 100_000_000:
-        return f"¥{value/100_000_000:.2f}億"
+        return f"¥{value / 100_000_000:.2f}億"
     if value >= 10_000:
-        return f"¥{value/10_000:.1f}万"
+        return f"¥{value / 10_000:.1f}万"
     return f"¥{value:,.0f}"
 
 
@@ -144,7 +144,7 @@ def format_date(date, format_str: str = "%Y-%m-%d") -> str:
             return date.strftime(format_str)
         else:
             return pd.to_datetime(date).strftime(format_str)
-    except:
+    except BaseException:
         return str(date)
 
 

@@ -6,8 +6,8 @@ Implements post-market analysis and self-tuning capabilities.
 import json
 import logging
 import os
-from datetime import datetime, timedelta
-from typing import Dict, Any, Optional
+from datetime import datetime
+from typing import Dict, Any
 
 import pandas as pd
 from src.paper_trader import PaperTrader
@@ -211,7 +211,7 @@ class DailyReviewer:
         prompt = f"""
         あなたはAGStock自律トレーディングシステムのAIアナリストです。
         本日の取引結果を振り返り、簡潔な日報を作成してください。
-        
+
 ## 本日の成績
         - 取引回数: {metrics.get('total_trades', 0)}回
         - 決済済み: {metrics.get('closed_positions', 0)}件
@@ -219,10 +219,10 @@ class DailyReviewer:
         - 損益: ¥{metrics.get('daily_pnl', 0):,.0f}
         - 平均利益: ¥{metrics.get('avg_profit', 0):,.0f}
         - 平均損失: ¥{metrics.get('avg_loss', 0):,.0f}
-        
+
 ## 自動調整
         {adjustments.get('reason', '調整なし')}
-        
+
         以下の形式で日報を作成してください（200文字以内）：
         - 本日の総評（1行）
         - 良かった点/改善点（各1行）

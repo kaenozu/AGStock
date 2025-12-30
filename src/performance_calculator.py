@@ -4,11 +4,10 @@
 シミュレーションとパフォーマンス計算を分離し、単一責任の原則を適用します。
 """
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 import numpy as np
 import pandas as pd
-from scipy import stats
 
 
 class PerformanceCalculator:

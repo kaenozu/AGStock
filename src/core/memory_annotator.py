@@ -1,6 +1,4 @@
 import logging
-import sqlite3
-from typing import Dict, Any, List
 from src.core.experience_manager import ExperienceManager
 
 logger = logging.getLogger(__name__)
@@ -15,11 +13,9 @@ class MemoryAnnotator:
 #     Matches entries in FeedbackStore with ChromeDB experience records.
 #     """
 def __init__(self, feedback_db_path: str = "committee_feedback.db"):
-    pass
     self.feedback_db_path = feedback_db_path
     self.experience_manager = ExperienceManager()
     #     def sync_outcomes(self):
-    pass
 
 
 #         """
@@ -64,7 +60,6 @@ def __init__(self, feedback_db_path: str = "committee_feedback.db"):
 #                 logger.error(f"Failed to sync outcomes to memory: {e}")
 #     """
 def _update_by_metadata(self, ticker: str, return_pct: float, outcome: str):
-    pass
     try:
         # We filter by ticker and status='PENDING'
         results = self.experience_manager.collection.get(

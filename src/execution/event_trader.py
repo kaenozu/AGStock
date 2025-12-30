@@ -1,6 +1,5 @@
 import logging
 from typing import Dict, Any
-from src.schemas import TradingDecision
 
 logger = logging.getLogger(__name__)
 

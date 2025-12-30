@@ -1,7 +1,3 @@
-import streamlit as st
-import random
-from src.llm_reasoner import get_llm_reasoner
-from src.core.voice import VoiceEngine
 
 
 def get_persona(mood: str) -> str:
@@ -31,7 +27,6 @@ def render_oracle_chat(mood: str = "NEUTRAL"):
     #     st.caption(f"Current Mood: {mood}")
     # # Init history
     #     if "oracle_messages" not in st.session_state:
-    pass
     #         st.session_state.oracle_messages = []
     # # Initial greeting
     #         greeting = {
@@ -43,32 +38,23 @@ def render_oracle_chat(mood: str = "NEUTRAL"):
     # # Display
     #     chat_container = st.container()
     #     with chat_container:
-    pass
     #         for msg in st.session_state.oracle_messages:
-    pass
     #             with st.chat_message(msg["role"]):
-    pass
     #                 st.markdown(msg["content"])
     # # Input
     #     prompt = st.chat_input("Speak to the Egregore...")
     #         if prompt:
-    pass
     #             # Show user message
     #         st.session_state.oracle_messages.append({"role": "user", "content": prompt})
     #         with chat_container:
-    pass
     #             with st.chat_message("user"):
-    pass
     #                 st.markdown(prompt)
     # # Generate Reply
     #         with chat_container:
-    pass
     #             with st.chat_message("assistant"):
-    pass
     #                 placeholder = st.empty()
     #                 placeholder.markdown("...")
     #                     try:
-    pass
     #                         reasoner = get_llm_reasoner()
     # # Construct Prompt with Persona
     #                     system_prompt = get_persona(mood)
@@ -79,17 +65,13 @@ def render_oracle_chat(mood: str = "NEUTRAL"):
     #                     st.session_state.oracle_messages.append({"role": "assistant", "content": response})
     # # Voice Response
     #                     try:
-    pass
     #                         voice = VoiceEngine()
     #                         audio_path = voice.speak(response)
     #                         if audio_path:
-    pass
     #                             st.audio(audio_path, format="audio/mp3", start_time=0)
     #                     except Exception:
-    pass
     #                         pass
     #                     except Exception as e:
-    pass
 
 
 #                         placeholder.error(f"Silence... (Error: {e})")

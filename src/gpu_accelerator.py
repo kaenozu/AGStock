@@ -5,7 +5,7 @@ GPU Acceleration Check - GPU加速チェック
 
 import logging
 import os
-from typing import Dict, Optional
+from typing import Dict
 
 logger = logging.getLogger(__name__)
 

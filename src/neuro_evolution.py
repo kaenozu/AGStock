@@ -7,9 +7,8 @@ import json
 import logging
 import os
 import random
-from typing import Any, Dict, List
+from typing import Any, Dict
 
-import numpy as np
 import pandas as pd
 
 from src.vector_backtester import get_vector_backtester

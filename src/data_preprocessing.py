@@ -11,7 +11,7 @@
 
 import logging
 import warnings
-from typing import Dict, List, Optional, Tuple, Union
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -380,7 +380,7 @@ def apply_target_encoding_with_cv(
             continue
 
         # カテゴリごとの平均計算
-        means = df_out.groupby(col)[target_col].mean()
+        df_out.groupby(col)[target_col].mean()
 
         # クロスバリデーションでリーク防止
         tscv = TimeSeriesSplit(n_splits=cv_folds)
@@ -518,7 +518,7 @@ def prepare_ml_dataset(
 
     X, y = [], []
     for i in range(sequence_length, len(X_data) - forecast_horizon + 1):
-        X.append(X_data[i - sequence_length : i])
+        X.append(X_data[i - sequence_length: i])
         y.append(y_data[i + forecast_horizon - 1])  # 1ステップ先予測
 
     return np.array(X, dtype=np.float32), np.array(y, dtype=np.float32)
@@ -567,7 +567,7 @@ if __name__ == "__main__":
     print(f"\nWalk-forward validation created {len(splits)} splits")
     for i, (train, test) in enumerate(splits):
         print(
-            f"Split {i+1}: Train from {train.index[0]} to {train.index[-1]} ({len(train)} samples), "
+            f"Split {i + 1}: Train from {train.index[0]} to {train.index[-1]} ({len(train)} samples), "
             f"Test from {test.index[0]} to {test.index[-1]} ({len(test)} samples)"
         )
 

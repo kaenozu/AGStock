@@ -5,7 +5,7 @@ Dynamically spawns specialized agents based on market conditions or user request
 
 import logging
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import google.generativeai as genai
 
@@ -34,7 +34,7 @@ class SpecializedAgent(BaseAgent):
 
         以下の銘柄データを分析し、あなたの役割に忠実な判断を下してください。
         銘柄: {ticker}
-        データ概略: {str(data)[:2000]} 
+        データ概略: {str(data)[:2000]}
 
         【出力要件】
         1. 判断（TradingDecision）: BUY, SELL, または HOLD
@@ -53,7 +53,7 @@ class SpecializedAgent(BaseAgent):
                     reasoning="API Key missing for specialized agent.",
                     confidence=0.0
                 )
-            
+
             genai.configure(api_key=api_key)
             model = genai.GenerativeModel("gemini-1.5-flash")
             response = model.generate_content(prompt)
@@ -69,16 +69,16 @@ class SpecializedAgent(BaseAgent):
                 agent_name=self.name,
                 decision=decision,
                 reasoning=text[:500],
-                confidence=0.7 # Placeholder confidence
+                confidence=0.7  # Placeholder confidence
             )
 
         except Exception as e:
             logger.error(f"Specialized Agent {self.name} failed: {e}")
             return AgentAnalysis(
-                 agent_name=self.name,
-                 decision=TradingDecision.HOLD,
-                 reasoning=f"Error: {e}",
-                 confidence=0.0
+                agent_name=self.name,
+                decision=TradingDecision.HOLD,
+                reasoning=f"Error: {e}",
+                confidence=0.0
             )
 
 

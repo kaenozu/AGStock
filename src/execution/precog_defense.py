@@ -1,5 +1,4 @@
 import logging
-from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 
@@ -14,13 +13,11 @@ class PrecogDefense:
 
 
 def __init__(self, risk_threshold: int = 70):
-    pass
     self.risk_threshold = risk_threshold
 
     #     def evaluate_emergency_action(
     #         self, precog_results: Dict[str, Any]
     #     ) -> Dict[str, Any]:
-    pass
 
 
 #         """

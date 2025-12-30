@@ -114,7 +114,7 @@ class BatchProcessor:
         results = {}
 
         for i in range(0, len(items), batch_size):
-            batch = items[i : i + batch_size]
+            batch = items[i: i + batch_size]
             try:
                 batch_results = fetch_func(batch)
                 results.update(batch_results)

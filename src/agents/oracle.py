@@ -1,9 +1,4 @@
 import logging
-from typing import Dict, List, Any
-from sqlalchemy import func
-from src.db.manager import DatabaseManager
-from src.db.models import MarketScan, CouncilVote
-import random
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +16,6 @@ def __init__(self):
     pass
 
     #     def consul_the_archives(self) -> Dict[str, Any]:
-    pass
     #         """
     #                 Queries the DB for recent events to form a briefing.
     #                         db = DatabaseManager()

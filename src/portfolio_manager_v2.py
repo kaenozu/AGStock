@@ -4,7 +4,7 @@ Portfolio Manager V2 - AIポートフォリオ管理
 """
 
 import logging
-from typing import Dict, List, Tuple
+from typing import Dict
 
 import numpy as np
 import pandas as pd

@@ -22,7 +22,7 @@ def load_custom_strategies() -> list:
 
         # Determine relative module path based on directory name
         dir_name = os.path.basename(custom_dir)
-        
+
         for filename in os.listdir(custom_dir):
             if filename.endswith(".py") and filename != "__init__.py":
                 filepath = os.path.join(custom_dir, filename)

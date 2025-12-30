@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from enum import Enum
 from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
@@ -154,7 +154,7 @@ class OrderHistoryQuery:
         offset = max(page - 1, 0) * page_size
         return {
             "offset": offset,
-            "items": list(items)[offset : offset + page_size],
+            "items": list(items)[offset: offset + page_size],
             "page_size": page_size,
         }
 

@@ -6,10 +6,9 @@ Automatically finds optimal hyperparameters for models.
 import os
 import json
 import logging
-from typing import Dict, Any, Callable, Optional, List
+from typing import Dict, Any, Callable, Optional
 import optuna
 from optuna.samplers import TPESampler
-import numpy as np
 import pandas as pd
 from sklearn.model_selection import cross_val_score
 

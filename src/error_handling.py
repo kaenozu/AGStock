@@ -29,8 +29,6 @@ class ErrorCategory(Enum):
 class RetryableError(Exception):
     """リトライ可能なエラーを示す基底クラス"""
 
-    pass
-
 
 def retry(
     max_attempts: int = 3,
@@ -270,12 +268,12 @@ def log_error_with_context(exception: Exception, context: str, level: str = "err
     error_info = get_user_friendly_message(exception, context)
 
     log_message = (
-        f"\n{'='*60}\n"
+        f"\n{'=' * 60}\n"
         f"Error Category: {error_info['category'].value}\n"
         f"Title: {error_info['title']}\n"
         f"Message: {error_info['message']}\n"
         f"Technical Details: {error_info['technical_details']}\n"
-        f"{'='*60}"
+        f"{'=' * 60}"
     )
 
     log_func = getattr(logger, level, logger.error)

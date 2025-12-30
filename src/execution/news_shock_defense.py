@@ -1,7 +1,5 @@
 import logging
-import re
 from typing import Dict, List, Any, Optional
-from src.schemas import TradingDecision
 
 logger = logging.getLogger(__name__)
 

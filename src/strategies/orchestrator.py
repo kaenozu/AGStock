@@ -4,7 +4,7 @@ Dynamically selects the active "Squad" of strategies based on the Market Regime.
 """
 
 import logging
-from typing import List, Dict, Any, Type
+from typing import List, Dict, Any
 from src.strategies.base import Strategy
 from src.strategies.meta_registry import get_strategies_for_regime
 from src.strategies.loader import load_custom_strategies

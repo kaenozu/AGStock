@@ -7,9 +7,8 @@ combining their best logics while mitigating their shared weaknesses.
 import importlib.util
 import logging
 import os
-import random
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 import google.generativeai as genai
 
@@ -65,7 +64,7 @@ class GeneticBreeder:
         # 2. Crossover & Mutation (AI Guided)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         child_class_name = f"GeneticStrategy_{timestamp}"
-        
+
         try:
             child_code = self._breed_code(p1_code, p2_code, child_class_name)
             if not child_code:
@@ -77,7 +76,7 @@ class GeneticBreeder:
                 filepath = os.path.join(self.output_dir, filename)
                 with open(filepath, "w", encoding="utf-8") as f:
                     f.write(child_code)
-                
+
                 logger.info(f"✅ Genetic Child SUCCESS: {filepath}")
                 return filepath
             else:
@@ -92,26 +91,28 @@ class GeneticBreeder:
         weights = self.arena.get_weights()
         if not weights:
             return []
-            
+
         # Select top performing ones
         sorted_strats = sorted(weights.items(), key=lambda x: x[1], reverse=True)
-        candidates = [name for name, _ in sorted_strats[:5]] # Top 5
-        
+        candidates = [name for name, _ in sorted_strats[:5]]  # Top 5
+
         selected = []
         search_dirs = ["src/strategies", "src/strategies/custom", "src/strategies/evolved"]
-        
+
         for name in candidates:
             code = self._find_code_by_class(name, search_dirs)
             if code:
                 selected.append((name, code))
-                if len(selected) >= 2: break
-                
+                if len(selected) >= 2:
+                    break
+
         return selected
 
     def _find_code_by_class(self, class_name: str, search_dirs: List[str]) -> Optional[str]:
         """Locates source code for a given class name."""
         for d in search_dirs:
-            if not os.path.exists(d): continue
+            if not os.path.exists(d):
+                continue
             for f in os.listdir(d):
                 if f.endswith(".py"):
                     try:
@@ -119,7 +120,7 @@ class GeneticBreeder:
                             content = file.read()
                             if f"class {class_name}" in content:
                                 return content
-                    except:
+                    except BaseException:
                         continue
         return None
 
@@ -140,7 +141,7 @@ class GeneticBreeder:
         2. 新しい戦略のクラス名は `{child_name}` にしてください。
         3. `base.py` の `Strategy` クラスを継承し、`generate_signals` メソッドを実装してください。
         4. ロジックは複雑にせず、堅牢性を重視してください。
-        
+
         出力はPythonコードのみ（Markdownなし）にしてください。
         """
         response = self.model.generate_content(prompt)
@@ -152,21 +153,21 @@ class GeneticBreeder:
         try:
             with open(tmp_path, "w", encoding="utf-8") as f:
                 f.write(code)
-            
+
             spec = importlib.util.spec_from_file_location("tmp_module", tmp_path)
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
-            
+
             strategy_class = getattr(module, class_name)
             strategy_inst = strategy_class()
-            
+
             # Run Stress Test simulator
             results = self.simulator.run_stress_test(strategy_inst)
-            
+
             # Criteria: 50% success across scenarios or specific bear market survival
             bear_perf = results.get("Bear Market", {}).get("total_return", -100)
-            return bear_perf > -15.0 # Stop-loss effectiveness check
-            
+            return bear_perf > -15.0  # Stop-loss effectiveness check
+
         except Exception as e:
             logger.error(f"Child validation error: {e}")
             return False

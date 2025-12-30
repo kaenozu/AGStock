@@ -73,7 +73,6 @@ class StreamingPipeline:
 
         # 学習済みフラグを立てる（デモ用、実際はロード時に判定）
         # 注意: 実際には学習データでtrain()を呼ぶか、save/loadの実装が必要
-        pass
 
     def process_update(self, updated_data: Dict[str, pd.DataFrame]):
         """
