@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+import pandas as pd
 from typing import Any, Dict, List, Optional
 
 from src.agents.base_agent import BaseAgent
