@@ -3,10 +3,9 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
+import streamlit as st
 
-from src.ui_renderers import (render_integrated_signal, render_market_scan_tab,
-                              render_paper_trading_tab, render_performance_tab,
-                              render_realtime_monitoring_tab)
+# Import modules after streamlit mock is active (via tests/__init__.py)
 
 
 class TestUIRenderers(unittest.TestCase):
@@ -14,6 +13,16 @@ class TestUIRenderers(unittest.TestCase):
         self.mock_st = patch("src.ui_renderers.st").start()
         self.mock_plotly = patch("src.ui_renderers.go").start()
         self.mock_px = patch("src.ui_renderers.px").start()
+
+        # Import here after mocks are set up
+        from src.ui_renderers import (render_integrated_signal, render_market_scan_tab,
+                                      render_paper_trading_tab, render_performance_tab,
+                                      render_realtime_monitoring_tab)
+        self.render_integrated_signal = render_integrated_signal
+        self.render_market_scan_tab = render_market_scan_tab
+        self.render_paper_trading_tab = render_paper_trading_tab
+        self.render_performance_tab = render_performance_tab
+        self.render_realtime_monitoring_tab = render_realtime_monitoring_tab
 
         # Setup common mock returns
         # Make st.columns dynamic to handle different lengths
@@ -48,7 +57,7 @@ class TestUIRenderers(unittest.TestCase):
                 # Let's check the code. It takes ticker_group etc.
                 # It probably instantiates PerformanceAnalyzer.
 
-                render_performance_tab("All", "Japan", [], "JPY")
+                self.render_performance_tab("All", "Japan", [], "JPY")
 
                 # Verify st calls
                 self.assertTrue(
@@ -73,9 +82,9 @@ class TestUIRenderers(unittest.TestCase):
             trader.get_positions.return_value = pd.DataFrame()
             trader.get_trade_history.return_value = pd.DataFrame()  # Add this line if needed
 
-            render_paper_trading_tab()
+            self.render_paper_trading_tab()
 
-            render_paper_trading_tab()
+            self.render_paper_trading_tab()
 
             # st.metric is called on columns, not st directly. So check header instead.
             self.assertTrue(self.mock_st.header.called)
@@ -95,7 +104,9 @@ class TestUIRenderers(unittest.TestCase):
             "src.sentiment.SentimentAnalyzer"
         ) as MockSA, patch(
             "src.data_loader.fetch_external_data"
-        ) as mock_macro:
+        ) as mock_macro, patch(
+            "src.ui_components.display_sentiment_gauge"
+        ) as mock_gauge:
 
             trader = MockBacktester.return_value
             trader.run.return_value = {
@@ -125,7 +136,7 @@ class TestUIRenderers(unittest.TestCase):
             # Set st.radio return value to integer to avoid TypeError in timedelta
             self.mock_st.radio.return_value = 7
 
-            render_market_scan_tab(
+            self.render_market_scan_tab(
                 "All", "Japan", [], "1y", [MagicMock(name="Strategy1")], True, 0.1, False, 50, 5, 10, 100
             )
 
@@ -138,7 +149,7 @@ class TestUIRenderers(unittest.TestCase):
             index=pd.date_range("2023-01-01", periods=10),
         )
 
-        render_integrated_signal(df, "7203.T", ai_prediction=0.5)
+        self.render_integrated_signal(df, "7203.T", ai_prediction=0.5)
 
         self.assertTrue(self.mock_st.plotly_chart.called)
 
