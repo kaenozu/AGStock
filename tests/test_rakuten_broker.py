@@ -1,6 +1,13 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from src.rakuten_broker import RakutenBroker
+
+try:
+    from src.rakuten_broker import RakutenBroker, SELENIUM_AVAILABLE
+except ImportError:
+    SELENIUM_AVAILABLE = False
+    RakutenBroker = None
+
+pytestmark = pytest.mark.skipif(not SELENIUM_AVAILABLE, reason="Selenium not available")
 
 class TestRakutenBroker:
     @pytest.fixture

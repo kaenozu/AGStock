@@ -225,3 +225,15 @@ CYCLE_SECTOR_MAP: Dict[str, List[str]] = {
     "early_recession": ["XLE", "XLP"],          # 逆金融相場: エネルギー、生活必需品
     "recession": ["XLU", "XLV", "XLP"],         # 逆業績相場: 公益、ヘルスケア、生活必需品
 }
+
+# Backtest defaults
+# Backtest defaults
+BACKTEST_DEFAULT_INITIAL_CAPITAL: float = 1000000.0  # 100万円
+BACKTEST_DEFAULT_COMMISSION_RATE: float = 0.001  # 0.1%
+BACKTEST_DEFAULT_SLIPPAGE: float = 0.0005  # 0.05%
+BACKTEST_DEFAULT_SLIPPAGE_RATE: float = 0.0005  # Alias for SLIPPAGE
+BACKTEST_DEFAULT_STOP_LOSS_PCT: float = 0.05  # 5%
+BACKTEST_DEFAULT_TAKE_PROFIT_PCT: float = 0.10  # 10%
+BACKTEST_RETRAIN_PERIOD_DAYS: int = 30
+BACKTEST_MIN_TRAINING_PERIOD_DAYS: int = 60
+BACKTEST_DEFAULT_POSITION_SIZE: float = 0.1  # 10% of capital per position

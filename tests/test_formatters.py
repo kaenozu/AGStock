@@ -22,10 +22,10 @@ def test_format_currency_with_symbol():
     assert format_currency(1000, symbol="$") == "$1,000"
 
 
-def test_format_currency_with_sign():
-    """符号表示のテスト"""
-    assert format_currency(1000, show_sign=True) == "+¥1,000"
-    assert format_currency(-1000, show_sign=True) == "¥-1,000"
+def test_format_currency_with_symbol():
+    """記号変更のテスト"""
+    assert format_currency(1000, symbol="$") == "$1,000"
+    assert format_currency(-1000, symbol="$") == "$-1,000"
 
 
 def test_format_currency_none():

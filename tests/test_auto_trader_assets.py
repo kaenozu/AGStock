@@ -19,7 +19,7 @@ sys.modules["streamlit"] = mock_st
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from fully_automated_trader import FullyAutomatedTrader
+from src.trading.fully_automated_trader import FullyAutomatedTrader
 from src.data_loader import CRYPTO_PAIRS, FX_PAIRS
 from src.constants import NIKKEI_225_TICKERS
 

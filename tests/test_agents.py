@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 from src.agents import (
-    TechnicalAnalyst, FundamentalAnalyst, MacroStrategist, 
+    TechnicalAnalyst, FundamentalAnalyst, MacroStrategist,
     RiskManager, PortfolioManager, AgentVote
 )
 

@@ -5,10 +5,18 @@ Uses Hugging Face Transformers and FinBERT to analyze sentiment of financial new
 """
 
 import logging
-import torch
 from typing import Dict
 
 logger = logging.getLogger(__name__)
+
+# Optional torch import
+try:
+    import torch
+    TORCH_AVAILABLE = True
+except ImportError:
+    torch = None
+    TORCH_AVAILABLE = False
+    logger.warning("PyTorch not available. BERT sentiment analysis will use fallback mode.")
 
 class BERTSentimentAnalyzer:
     """
@@ -19,10 +27,14 @@ class BERTSentimentAnalyzer:
         self.model_name = model_name
         self.tokenizer = None
         self.model = None
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.is_ready = False
         
-        self._load_model()
+        if TORCH_AVAILABLE:
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            self._load_model()
+        else:
+            self.device = None
+            logger.warning("BERT analyzer initialized in fallback mode (no PyTorch)")
         
     def _load_model(self):
         """Load tokenizer and model from Hugging Face"""
