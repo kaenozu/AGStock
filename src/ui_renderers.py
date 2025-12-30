@@ -23,8 +23,8 @@ def render_market_ticker_selector(key: str = "main"):
     tickers_list = get_cached_tickers(market)
     with col2:
         tickers = st.multiselect(
-            "銘柄を選択 (空欄で全銘柄)", 
-            tickers_list, 
+            "銘柄を選択 (空欄で全銘柄)",
+            tickers_list,
             format_func=lambda x: f"{x} {TICKER_NAMES.get(x, '')}",
             key=f"ticker_sel_{key}"
         )
