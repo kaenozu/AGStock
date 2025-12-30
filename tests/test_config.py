@@ -1,171 +1,103 @@
 """
-Configのテスト
+Configのテスト - Pydanticベースの新しいConfig用
 """
-
-import os
-from pathlib import Path
-from unittest.mock import mock_open, patch
 
 import pytest
-import yaml
 
 
-@pytest.fixture
-def clean_config():
-    """各テスト前にConfigをリセット"""
-    from src.config import Config
+def test_config_pydantic_structure():
+    """新しいPydantic Configの構造テスト"""
+    from src.config import Config, settings
 
-    Config._instance = None
-    Config._config = {}
-    yield
-    Config._instance = None
-    Config._config = {}
+    # settingsはConfigインスタンス
+    assert isinstance(settings, Config)
 
-
-def test_config_singleton(clean_config):
-    """シングルトンパターンのテスト"""
-    from src.config import Config
-
-    config1 = Config()
-    config2 = Config()
-
-    assert config1 is config2
+    # 各セクションが存在
+    assert hasattr(settings, "trading")
+    assert hasattr(settings, "ai")
+    assert hasattr(settings, "system")
+    assert hasattr(settings, "risk_management")
 
 
-def test_config_load_from_yaml(clean_config):
-    """YAMLファイルからの設定読み込みテスト"""
-    yaml_content = """
-system:
-  initial_capital: 5000000
-risk_management:
-  max_position_size: 0.15
-"""
+def test_config_trading_defaults():
+    """トレード設定のデフォルト値テスト"""
+    from src.config import settings
 
-    with patch("pathlib.Path.exists", return_value=True), patch("builtins.open", mock_open(read_data=yaml_content)):
-        from src.config import Config
-
-        config = Config()
-
-        assert config.get("system.initial_capital") == 5000000
-        assert config.get("risk_management.max_position_size") == 0.15
+    assert settings.trading.max_daily_trades == 5
+    assert settings.trading.daily_loss_limit_pct == -5.0
+    assert settings.trading.max_position_size == 0.2
+    assert settings.trading.min_cash_reserve == 200000.0
 
 
-def test_config_fallback_defaults(clean_config):
-    """設定ファイルがない場合のデフォルト値テスト"""
-    with patch("pathlib.Path.exists", return_value=False):
-        from src.config import Config
+def test_config_ai_defaults():
+    """AI設定のデフォルト値テスト"""
+    from src.config import settings
 
-        config = Config()
-
-        assert config.get("system.initial_capital") == 10000000
-        assert config.get("risk_management.max_position_size") == 0.2
-
-
-def test_config_get_nested_value(clean_config):
-    """ネストされた値の取得テスト"""
-    with patch("pathlib.Path.exists", return_value=False):
-        from src.config import Config
-
-        config = Config()
-
-        value = config.get("system.initial_capital")
-        assert value == 10000000
+    assert settings.ai.enabled is True
+    assert settings.ai.model_name == "gemini-2.0-flash-exp"
+    assert settings.ai.confidence_threshold == 0.7
+    assert settings.ai.debate_rounds == 3
 
 
-def test_config_get_nonexistent_key(clean_config):
+def test_config_system_defaults():
+    """システム設定のデフォルト値テスト"""
+    from src.config import settings
+
+    assert settings.system.initial_capital == 10000000
+    assert settings.system.realtime_ttl_seconds == 30
+
+
+def test_config_get_method():
+    """後方互換性のあるgetメソッドテスト"""
+    from src.config import config
+
+    # ネストされた値へのアクセス
+    assert config.get("system.initial_capital") == 10000000
+    assert config.get("trading.max_daily_trades") == 5
+    assert config.get("risk_management.max_position_size") == 0.2
+
+
+def test_config_get_nonexistent_key():
     """存在しないキーの取得テスト"""
-    with patch("pathlib.Path.exists", return_value=False):
-        from src.config import Config
+    from src.config import config
 
-        config = Config()
+    # 存在しないキーはNoneを返す
+    assert config.get("nonexistent.key") is None
+    # デフォルト値を指定
+    assert config.get("nonexistent.key", default="fallback") == "fallback"
 
-        value = config.get("nonexistent.key", default="default_value")
-        assert value == "default_value"
 
-
-def test_config_get_with_default(clean_config):
+def test_config_get_with_default():
     """デフォルト値付きの取得テスト"""
-    with patch("pathlib.Path.exists", return_value=False):
-        from src.config import Config
+    from src.config import config
 
-        config = Config()
-
-        value = config.get("unknown.path", default=999)
-        assert value == 999
+    assert config.get("unknown.path", default=999) == 999
 
 
-def test_config_env_override_slack(clean_config):
-    """環境変数によるSlack設定の上書きテスト"""
-    with patch("pathlib.Path.exists", return_value=False), patch.dict(
-        os.environ, {"SLACK_WEBHOOK_URL": "https://hooks.slack.com/test"}
-    ):
-        from src.config import Config
-
-        config = Config()
-
-        assert config.get("notifications.slack.webhook_url") == "https://hooks.slack.com/test"
-
-
-def test_config_env_override_discord(clean_config):
-    """環境変数によるDiscord設定の上書きテスト"""
-    with patch("pathlib.Path.exists", return_value=False), patch.dict(
-        os.environ, {"DISCORD_WEBHOOK_URL": "https://discord.com/api/webhooks/test"}
-    ):
-        from src.config import Config
-
-        config = Config()
-
-        assert config.get("notifications.discord.webhook_url") == "https://discord.com/api/webhooks/test"
-
-
-def test_config_env_override_pushover(clean_config):
-    """環境変数によるPushover設定の上書きテスト"""
-    with patch("pathlib.Path.exists", return_value=False), patch.dict(
-        os.environ, {"PUSHOVER_USER_KEY": "test_user_key", "PUSHOVER_API_TOKEN": "test_api_token"}
-    ):
-        from src.config import Config
-
-        config = Config()
-
-        assert config.get("notifications.pushover.user_key") == "test_user_key"
-        assert config.get("notifications.pushover.api_token") == "test_api_token"
-
-
-def test_config_env_override_email(clean_config):
-    """環境変数によるEmail設定の上書きテスト"""
-    with patch("pathlib.Path.exists", return_value=False), patch.dict(
-        os.environ,
-        {
-            "EMAIL_ENABLED": "true",
-            "EMAIL_FROM": "from@example.com",
-            "EMAIL_TO": "to@example.com",
-            "EMAIL_PASSWORD": "secret",
-        },
-    ):
-        from src.config import Config
-
-        config = Config()
-
-        assert config.get("notifications.email.enabled") is True
-        assert config.get("notifications.email.from_address") == "from@example.com"
-        assert config.get("notifications.email.to_address") == "to@example.com"
-        assert config.get("notifications.email.password") == "secret"
-
-
-def test_config_env_email_enabled_false(clean_config):
-    """EMAIL_ENABLEDがfalseの場合のテスト"""
-    with patch("pathlib.Path.exists", return_value=False), patch.dict(os.environ, {"EMAIL_ENABLED": "false"}):
-        from src.config import Config
-
-        config = Config()
-
-        assert config.get("notifications.email.enabled") is False
-
-
-def test_global_config_instance(clean_config):
+def test_global_config_instance():
     """グローバルインスタンスのテスト"""
-    with patch("pathlib.Path.exists", return_value=False):
-        from src.config import config
+    from src.config import config, settings
 
-        assert config is not None
-        assert config.get("system.initial_capital") == 10000000
+    assert config is not None
+    assert settings is not None
+    # configはConfigSingletonのインスタンス
+    assert config.get("system.initial_capital") == 10000000
+
+
+def test_config_tickers():
+    """ティッカーリストのテスト"""
+    from src.config import settings
+
+    assert len(settings.tickers_jp) > 0
+    assert len(settings.tickers_us) > 0
+    assert "7203.T" in settings.tickers_jp
+    assert "AAPL" in settings.tickers_us
+
+
+def test_config_ensure_dirs():
+    """ディレクトリ作成のテスト"""
+    from src.config import settings
+    from pathlib import Path
+
+    settings.ensure_dirs()
+    assert Path(settings.system.data_dir).exists()
