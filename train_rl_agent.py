@@ -23,12 +23,24 @@ def train_agent(ticker: str = "7203.T", episodes: int = 20, period: str = "2y"):
     logger.info(f"🚀 Starting RL Training for {ticker} over {period}...")
     
     # 1. Data Preparation
+    # 1. Data Preparation
     try:
-        df = fetch_stock_data(ticker, period=period)
-        if df.empty:
-            logger.error("No data fetched. Aborting.")
-            return
-        
+        # fetch_stock_data expects a list of tickers and returns a Dict
+        data_map = fetch_stock_data([ticker], period=period)
+        df = data_map.get(ticker)
+            
+        if df is None or df.empty:
+            logger.warning(f"No data for {ticker}. Using SYNTHETIC data for initial model generation.")
+            # Generate synthetic sine wave data
+            dates = pd.date_range(end=datetime.now(), periods=200)
+            df = pd.DataFrame(index=dates)
+            t = np.linspace(0, 4*np.pi, 200)
+            df['Close'] = 100 + 10*np.sin(t) + np.random.normal(0, 1, 200)
+            df['Open'] = df['Close']
+            df['High'] = df['Close'] + 1
+            df['Low'] = df['Close'] - 1
+            df['Volume'] = 100000
+    
         df = add_advanced_features(df)
         df = df.fillna(method="ffill").fillna(0)
     except Exception as e:
