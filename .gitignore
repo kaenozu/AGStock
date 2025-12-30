@@ -41,3 +41,4 @@ reports/*.pdf
 temp_*.png
 data/parquet/
 test_config.json
+*.png
