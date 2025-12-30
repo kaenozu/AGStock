@@ -51,8 +51,13 @@ class ChartVisionEngine:
             plt.plot(df_tail.index, df_tail["Close"], label="Close Price", color="cyan", linewidth=2)
 
             # Add simple SMAs for visual context
-            plt.plot(df_tail.index, df_tail["Close"].rolling(
-                window=20).mean(), label="20 SMA", color="orange", alpha=0.7)
+            plt.plot(
+                df_tail.index,
+                df_tail["Close"].rolling(
+                    window=20).mean(),
+                label="20 SMA",
+                color="orange",
+                alpha=0.7)
 
             plt.title(f"{ticker} Technical Layout", color="white")
             plt.grid(True, alpha=0.2)

@@ -14,5 +14,26 @@
   "trading_settings": {
     "default_position_size_usd": 10000,
     "min_stock_price_threshold": 5.0
+  },
+  "data_quality": {
+    "max_missing_ratio": 0.05,
+    "max_zscore": 6.0,
+    "max_price_jump_pct": 20.0
+  },
+  "operational_risk": {
+    "max_latency_ms": 1500,
+    "max_slippage_pct": 1.5,
+    "max_consecutive_losses": 5
+  },
+  "notifications": {
+    "slack": {
+      "webhook_url": ""
+    },
+    "discord": {
+      "webhook_url": ""
+    },
+    "line": {
+      "token": ""
+    }
   }
 }

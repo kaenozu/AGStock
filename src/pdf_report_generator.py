@@ -394,8 +394,14 @@ Keep it concise (max 200 words).
             logger.info(f"Weekly report generated: {output_path}")
 
             if html_output_path:
-                self._generate_html_report(html_output_path, balance, trade_stats,
-                                           allocation, chart_path, allocation_path, ai_analysis)
+                self._generate_html_report(
+                    html_output_path,
+                    balance,
+                    trade_stats,
+                    allocation,
+                    chart_path,
+                    allocation_path,
+                    ai_analysis)
             return True
 
         except Exception as e:

@@ -78,8 +78,13 @@ class FuturePredictor:
 
             for i in range(num_layers):
                 is_last = (i == num_layers - 1)
-                self.model.add(LSTM(units=hidden_dim, return_sequences=not is_last,
-                               input_shape=(X_seq.shape[1], X_seq.shape[2])))
+                self.model.add(
+                    LSTM(
+                        units=hidden_dim,
+                        return_sequences=not is_last,
+                        input_shape=(
+                            X_seq.shape[1],
+                            X_seq.shape[2])))
                 self.model.add(Dropout(dropout_rate))
 
             self.model.add(Dense(units=1))

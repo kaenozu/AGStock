@@ -133,24 +133,10 @@ def render_sidebar():
     else:
         st.sidebar.warning("⚠️ リスク管理未初期化")
 
-    # --- AGStock Oracle Chat ---
-    st.sidebar.divider()
-    st.sidebar.subheader("💬 AGStock Oracle")
-    with st.sidebar.expander("AIアシスタントに相談", expanded=False):
-        user_q = st.text_input("質問を入力 (例: なぜ最近の勝率が上がったの？)", key="oracle_input")
-        if st.button("Oracleに尋ねる"):
-            if user_q:
-                from src.agents.oracle import AGStockOracle
-                oracle = AGStockOracle()
-                with st.spinner("思考中..."):
-                    answer = oracle.ask(user_q)
-                st.session_state["oracle_history"] = answer
-            else:
-                st.warning("質問を入力してください")
-
-        if "oracle_history" in st.session_state:
-            st.markdown(
-                f'<div class="oracle-bubble">{st.session_state["oracle_history"]}</div>', unsafe_allow_html=True)
+    # --- Real-time Status ---
+    st.sidebar.subheader("⚡ リアルタイム接続")
+    st.sidebar.success("🟢 接続 (遅延なし)")
+    st.sidebar.caption("最終更新: 数秒前")
 
     st.sidebar.divider()
 

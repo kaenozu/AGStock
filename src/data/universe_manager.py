@@ -128,11 +128,3 @@ class UniverseManager:
             t for t in ai_tickers if t in candidates or "." in t or len(t) <= 5
         ]
         return valid_tickers[:limit]
-
-    def get_top_tickers(self) -> List[str]:
-        """Backward compatibility or convenience."""
-        return self.get_top_candidates(limit=50)
-
-    def get_all_tickers(self) -> List[str]:
-        """Returns the full set of configured tickers."""
-        return list(set(self.jp_universe + self.us_universe))
