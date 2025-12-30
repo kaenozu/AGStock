@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from enum import Enum
 from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
@@ -42,9 +42,13 @@ class ColorTokens:
         if missing:
             raise KeyError(f"Missing states: {', '.join(sorted(missing))}")
 
-        undefined_tokens = [state for state, token in self.state_map.items() if token not in self.tokens]
+        undefined_tokens = [
+            state for state, token in self.state_map.items() if token not in self.tokens
+        ]
         if undefined_tokens:
-            raise KeyError(f"Undefined tokens for states: {', '.join(sorted(undefined_tokens))}")
+            raise KeyError(
+                f"Undefined tokens for states: {', '.join(sorted(undefined_tokens))}"
+            )
         return True
 
 
@@ -85,7 +89,11 @@ class PerformanceFilter:
         else:
             start, end = cls._start_date_for_period(period, now), now
 
-        filtered = [point for point in series if point.value is not None and start <= point.date <= end]
+        filtered = [
+            point
+            for point in series
+            if point.value is not None and start <= point.date <= end
+        ]
         return sorted(filtered, key=lambda p: p.date)
 
 
@@ -140,11 +148,13 @@ class OrderHistoryQuery:
         return sorted(result, key=lambda item: item.get("timestamp"), reverse=True)
 
     @staticmethod
-    def paginate(items: Sequence[Dict[str, object]], page: int, page_size: int) -> Dict[str, object]:
+    def paginate(
+        items: Sequence[Dict[str, object]], page: int, page_size: int
+    ) -> Dict[str, object]:
         offset = max(page - 1, 0) * page_size
         return {
             "offset": offset,
-            "items": list(items)[offset : offset + page_size],
+            "items": list(items)[offset: offset + page_size],
             "page_size": page_size,
         }
 
@@ -174,7 +184,9 @@ class AlertStateMachine:
 
 
 class RetryPolicy:
-    def __init__(self, max_attempts: int, base_delay: int, max_delay: Optional[int] = None) -> None:
+    def __init__(
+        self, max_attempts: int, base_delay: int, max_delay: Optional[int] = None
+    ) -> None:
         if max_attempts <= 0:
             raise ValueError("max_attempts must be positive")
         if base_delay <= 0:
@@ -302,7 +314,12 @@ class MetricTooltipCatalog:
     def validate(self) -> None:
         allowed_units = {"percent", "ratio", "absolute"}
         for name, config in self.metrics.items():
-            if "formula" not in config or "period" not in config or "precision" not in config or "unit" not in config:
+            if (
+                "formula" not in config
+                or "period" not in config
+                or "precision" not in config
+                or "unit" not in config
+            ):
                 raise ValueError(f"Metric '{name}' is missing required fields")
             if not isinstance(config["precision"], int) or config["precision"] < 0:
                 raise ValueError(f"Metric '{name}' precision must be int")

@@ -7,7 +7,6 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from src.data_loader import fetch_stock_data
-from src.realtime_data import RealtimeDataLoader
 
 
 def render_realtime_monitor():
@@ -20,7 +19,9 @@ def render_realtime_monitor():
     tickers = [t.strip() for t in tickers_input.split(",")]
 
     # 更新間隔
-    interval = st.selectbox("更新間隔", [30, 60, 120, 300], format_func=lambda x: f"{x}秒")
+    interval = st.selectbox(
+        "更新間隔", [30, 60, 120, 300], format_func=lambda x: f"{x}秒"
+    )
 
     col1, col2 = st.columns(2)
 
@@ -55,7 +56,11 @@ def render_realtime_monitor():
                 change = (latest["Close"] - prev["Close"]) / prev["Close"] * 100
 
                 with cols[i]:
-                    st.metric(ticker.replace(".T", ""), f"¥{latest['Close']:,.0f}", f"{change:+.2f}%")
+                    st.metric(
+                        ticker.replace(".T", ""),
+                        f"¥{latest['Close']:,.0f}",
+                        f"{change:+.2f}%",
+                    )
 
         st.markdown("---")
 
@@ -71,13 +76,21 @@ def render_realtime_monitor():
             close_col = df["Close"]
             if hasattr(close_col, "columns"):
                 # MultiIndex の場合
-                close_values = close_col.iloc[:, 0] if close_col.shape[1] > 0 else close_col
+                close_values = (
+                    close_col.iloc[:, 0] if close_col.shape[1] > 0 else close_col
+                )
             else:
                 close_values = close_col
 
             fig = go.Figure()
             fig.add_trace(
-                go.Scatter(x=df.index, y=close_values, mode="lines", name="価格", line=dict(color="#667eea", width=2))
+                go.Scatter(
+                    x=df.index,
+                    y=close_values,
+                    mode="lines",
+                    name="価格",
+                    line=dict(color="#667eea", width=2),
+                )
             )
 
             fig.update_layout(
@@ -94,13 +107,20 @@ def render_realtime_monitor():
             if "Volume" in df.columns:
                 volume_col = df["Volume"]
                 if hasattr(volume_col, "columns"):
-                    volume_values = volume_col.iloc[:, 0] if volume_col.shape[1] > 0 else volume_col
+                    volume_values = (
+                        volume_col.iloc[:, 0] if volume_col.shape[1] > 0 else volume_col
+                    )
                 else:
                     volume_values = volume_col
 
                 fig_vol = go.Figure()
                 fig_vol.add_trace(
-                    go.Bar(x=df.index, y=volume_values, name="出来高", marker_color="rgba(102, 126, 234, 0.5)")
+                    go.Bar(
+                        x=df.index,
+                        y=volume_values,
+                        name="出来高",
+                        marker_color="rgba(102, 126, 234, 0.5)",
+                    )
                 )
                 fig_vol.update_layout(title="出来高", height=200)
                 st.plotly_chart(fig_vol, use_container_width=True)
@@ -117,5 +137,7 @@ def render_realtime_monitor():
         alert_price = st.number_input("価格", value=1500.0, step=10.0)
 
         if st.button("アラートを設定"):
-            st.success(f"アラート設定: {alert_ticker} が ¥{alert_price:,.0f} を{alert_type}通知")
+            st.success(
+                f"アラート設定: {alert_ticker} が ¥{alert_price:,.0f} を{alert_type}通知"
+            )
             st.info("※ アラート機能はバックグラウンドプロセスで動作します。")

@@ -8,25 +8,24 @@
 
 import logging
 import warnings
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import shap
 import tensorflow as tf
-from sklearn.ensemble import RandomForestRegressor
-from tensorflow import keras
 
 # LIMEはオプショナルな依存関係
 try:
     import lime
     import lime.lime_tabular
+
     LIME_AVAILABLE = True
 except ImportError:
     LIME_AVAILABLE = False
     lime = None
-    # lime.lime_tabular は lime が None の場合はアクセスしないので、ここでは代入しない
+# lime.lime_tabular は lime が None の場合はアクセスしないので、ここでは代入しない
 
 
 warnings.filterwarnings("ignore")
@@ -46,12 +45,14 @@ class SHAPExplainer:
         """SHAPエクスプラナの準備"""
         try:
             # モデルの種類に応じてSHAPエクスプラナを選択
-            if hasattr(self.model, 'predict_proba'):
+            if hasattr(self.model, "predict_proba"):
                 # 例: sklearn
                 self.explainer = shap.Explainer(self.model.predict, self.training_data)
-            elif hasattr(self.model, 'model') and hasattr(self.model.model, 'predict'):
+            elif hasattr(self.model, "model") and hasattr(self.model.model, "predict"):
                 # 例: keras
-                self.explainer = shap.Explainer(self.model.model.predict, self.training_data)
+                self.explainer = shap.Explainer(
+                    self.model.model.predict, self.training_data
+                )
             else:
                 # 一般的なpredictメソッドを持つモデル
                 self.explainer = shap.Explainer(self.model.predict, self.training_data)
@@ -70,7 +71,10 @@ class SHAPExplainer:
             # 特徴量名を仮定
             feature_names = [f"Feature_{i}" for i in range(instance.shape[1])]
             # SHAP値から貢献度を抽出
-            contributions = {name: float(val) for name, val in zip(feature_names, shap_values.values[0])}
+            contributions = {
+                name: float(val)
+                for name, val in zip(feature_names, shap_values.values[0])
+            }
             return contributions
         except Exception as e:
             logger.error(f"Error in SHAP explanation: {e}")
@@ -97,14 +101,14 @@ class GradCAMExplainer:
         self.model = model
         self.layer_name = layer_name
         # Grad-CAMのための内部モデル構築（TensorFlow/Keras向け）
-        if hasattr(model, 'model'):
+        if hasattr(model, "model"):
             self.keras_model = model.model
         else:
             self.keras_model = model
 
     def generate_heatmap(self, input_image: np.ndarray):
         """特定入力に対するGrad-CAMヒートマップを生成"""
-        if not hasattr(self.keras_model, 'get_layer'):
+        if not hasattr(self.keras_model, "get_layer"):
             logger.warning("Grad-CAM is not supported for this model type.")
             return np.zeros_like(input_image)
 
@@ -140,7 +144,9 @@ class GradCAMExplainer:
             # 空間平均プーリング（Global Average Pooling）
             weights = tf.reduce_mean(output_grads, axis=(1, 2))
             # 特徴マップに重みを乗算し合計
-            cam = tf.reduce_sum(weights[:, :, tf.newaxis, tf.newaxis] * conv_outputs, axis=1)
+            cam = tf.reduce_sum(
+                weights[:, :, tf.newaxis, tf.newaxis] * conv_outputs, axis=1
+            )
             cam = tf.nn.relu(cam)  # ReLUを適用
             # 正規化
             cam = (cam - tf.reduce_min(cam)) / (tf.reduce_max(cam) - tf.reduce_min(cam))
@@ -163,7 +169,7 @@ class GradCAMExplainer:
             return
 
         plt.figure(figsize=(10, 4))
-        sns.heatmap(heatmap[0], cmap='viridis', cbar=True)
+        sns.heatmap(heatmap[0], cmap="viridis", cbar=True)
         plt.title("Grad-CAM Heatmap")
         plt.show()
 
@@ -173,15 +179,17 @@ class LIMEExplainer:
 
     def __init__(self, model, training_data):
         if not LIME_AVAILABLE:
-            raise ImportError("LIME is not available. Please install it to use LIMEExplainer.")
+            raise ImportError(
+                "LIME is not available. Please install it to use LIMEExplainer."
+            )
         self.model = model
         self.training_data = training_data
         # LIMEエクスプレイナーの初期化
         self.explainer = lime.lime_tabular.LimeTabularExplainer(
             training_data,
-            mode='regression',  # または 'classification'
+            mode="regression",  # または 'classification'
             feature_names=[f"Feature_{i}" for i in range(training_data.shape[1])],
-            random_state=42
+            random_state=42,
         )
 
     def explain_instance(self, instance: np.ndarray, num_features: int = 10):
@@ -194,15 +202,19 @@ class LIMEExplainer:
             # 予測関数を定義 (LIMEは1次元配列を期待)
             def predict_fn(x):
                 # xは (n_samples, n_features) の形であることを期待
-                if hasattr(self.model, 'predict'):
+                if hasattr(self.model, "predict"):
                     return self.model.predict(x)
-                elif hasattr(self.model, 'model') and hasattr(self.model.model, 'predict'):
+                elif hasattr(self.model, "model") and hasattr(
+                    self.model.model, "predict"
+                ):
                     return self.model.model.predict(x)
                 else:
                     raise ValueError("Model does not have a 'predict' method.")
 
             explanation = self.explainer.explain_instance(
-                instance[0], predict_fn, num_features=num_features  # LIMEは1つのインスタンスを期待
+                instance[0],
+                predict_fn,
+                num_features=num_features,  # LIMEは1つのインスタンスを期待
             )
             # LIMEの説明から特徴量と寄与度を抽出
             contributions = {exp[0]: exp[1] for exp in explanation.as_list()}
@@ -211,17 +223,22 @@ class LIMEExplainer:
             logger.error(f"Error in LIME explanation: {e}")
             return {}
 
-    def plot_lime_explanation(self, instance: np.ndarray, num_features: int = 10) -> None:
+    def plot_lime_explanation(
+        self, instance: np.ndarray, num_features: int = 10
+    ) -> None:
         """LIME説明のプロット"""
         if not LIME_AVAILABLE:
             logger.warning("LIME is not available.")
             return
 
         try:
+
             def predict_fn(x):
-                if hasattr(self.model, 'predict'):
+                if hasattr(self.model, "predict"):
                     return self.model.predict(x)
-                elif hasattr(self.model, 'model') and hasattr(self.model.model, 'predict'):
+                elif hasattr(self.model, "model") and hasattr(
+                    self.model.model, "predict"
+                ):
                     return self.model.model.predict(x)
                 else:
                     raise ValueError("Model does not have a 'predict' method.")
@@ -240,7 +257,9 @@ class XAIFramework:
     def __init__(self, model=None, training_data: np.ndarray = None):
         self.model = model
         self.training_data = training_data
-        self.shap_explainer = SHAPExplainer(model, training_data) if training_data is not None else None
+        self.shap_explainer = (
+            SHAPExplainer(model, training_data) if training_data is not None else None
+        )
         self.gradcam_explainer = GradCAMExplainer(model)
         self.lime_explainer = None
         # LIMEはオプショナル
@@ -264,13 +283,13 @@ class XAIFramework:
             except Exception as e:
                 logger.warning(f"SHAP explanation failed: {e}")
 
-        # Grad-CAM (画像や時系列特徴量の可視化に有効)
-        # if method in ["gradcam", "all"] and self.gradcam_explainer:
-        #     try:
-        #         gradcam_explanation = self.gradcam_explainer.generate_heatmap(X_instance)
-        #         explanations["gradcam"] = gradcam_explanation
-        #     except Exception as e:
-        #         logger.warning(f"Grad-CAM explanation failed: {e}")
+            # Grad-CAM (画像や時系列特徴量の可視化に有効)
+            # if method in ["gradcam", "all"] and self.gradcam_explainer:
+            #     try:
+            #         gradcam_explanation = self.gradcam_explainer.generate_heatmap(X_instance)
+            #         explanations["gradcam"] = gradcam_explanation
+            #                 except Exception as e:
+        #                 logger.warning(f"Grad-CAM explanation failed: {e}")
 
         # LIME
         if method in ["lime", "all"] and self.lime_explainer:
@@ -282,26 +301,32 @@ class XAIFramework:
 
         return explanations
 
-    def generate_report(self, explanations: Dict, feature_names: List[str] = None) -> str:
+    def generate_report(
+        self, explanations: Dict, feature_names: List[str] = None
+    ) -> str:
         """説明のレポートを生成"""
         report = []
 
         if "shap" in explanations:
             report.append("SHAP Feature Contribution:")
             shap_explanation = explanations["shap"]
-            sorted_shap = sorted(shap_explanation.items(), key=lambda x: abs(x[1]), reverse=True)
+            sorted_shap = sorted(
+                shap_explanation.items(), key=lambda x: abs(x[1]), reverse=True
+            )
             for feature, contribution in sorted_shap[:5]:  # 上位5件
                 report.append(f"  {feature}: {contribution:.4f}")
 
         if "lime" in explanations:
             report.append("LIME Feature Contribution:")
             lime_explanation = explanations["lime"]
-            sorted_lime = sorted(lime_explanation.items(), key=lambda x: abs(x[1]), reverse=True)
+            sorted_lime = sorted(
+                lime_explanation.items(), key=lambda x: abs(x[1]), reverse=True
+            )
             for feature, contribution in sorted_lime[:5]:  # 上位5件
                 report.append(f"  {feature}: {contribution:.4f}")
 
-        # Grad-CAMの場合はヒートマップを表示（テキストレポートには不向き）
-        # if "gradcam" in explanations:
+            # Grad-CAMの場合はヒートマップを表示（テキストレポートには不向き）
+            # if "gradcam" in explanations:
         #     report.append("Grad-CAM heatmap is available for visualization.")
 
         return "\n".join(report)
@@ -315,7 +340,9 @@ class XAIFramework:
         elif method == "gradcam":
             self.gradcam_explainer.plot_heatmap(X_instance)
         else:
-            logger.warning(f"Visualization method '{method}' not supported or not available.")
+            logger.warning(
+                f"Visualization method '{method}' not supported or not available."
+            )
 
 
 # 使用例 (mainブロック)

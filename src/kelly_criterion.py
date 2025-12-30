@@ -4,6 +4,7 @@ Kelly Criterion for Position Sizing (Phase 30-3)
 This module calculates optimal position sizes using the Kelly Criterion.
 f* = (p * b - q) / b
 where:
+    pass
 - p: Probability of winning
 - b: Win/Loss ratio (Average Gain / Average Loss)
 - q: Probability of losing (1 - p)

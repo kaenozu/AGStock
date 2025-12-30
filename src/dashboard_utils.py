@@ -9,15 +9,18 @@ import time
 import pandas as pd
 import streamlit as st
 
-from src.data_loader import fetch_stock_data, get_latest_price
+from src.data_loader import fetch_stock_data
 from src.paper_trader import PaperTrader
-from src import demo_data
 import os
 
 
 def _demo_mode() -> bool:
     env_flag = os.getenv("USE_DEMO_DATA", "")
-    return bool(st.session_state.get("use_demo_data")) or env_flag.lower() in {"1", "true", "yes"}
+    return bool(st.session_state.get("use_demo_data")) or env_flag.lower() in {
+        "1",
+        "true",
+        "yes",
+    }
 
 
 def check_and_execute_missed_trades():
@@ -84,7 +87,6 @@ def check_and_execute_missed_trades():
     except Exception as e:
         # エラーは無視（通常の表示を続ける）
         print(f"Auto-trade check error: {e}")
-        pass
 
 
 def get_multi_timeframe_trends(ticker: str) -> dict:
@@ -96,7 +98,9 @@ def get_multi_timeframe_trends(ticker: str) -> dict:
             return {"short": "up", "medium": "neutral", "long": "up"}
 
         # Fetch data (1 year to calculate long term MA)
-        data_map = fetch_stock_data([ticker], period="2y")  # Fetch a bit more to be safe
+        data_map = fetch_stock_data(
+            [ticker], period="2y"
+        )  # Fetch a bit more to be safe
         if ticker not in data_map or data_map[ticker].empty:
             return {"short": "neutral", "medium": "neutral", "long": "neutral"}
 
@@ -108,9 +112,19 @@ def get_multi_timeframe_trends(ticker: str) -> dict:
 
         # Calculate SMAs
         sma5 = close.rolling(window=5).mean().iloc[-1]
-        sma20 = close.rolling(window=20).mean().iloc[-1] if len(close) >= 20 else close.mean()
-        sma60 = close.rolling(window=60).mean().iloc[-1] if len(close) >= 60 else close.mean()
-        sma200 = close.rolling(window=200).mean().iloc[-1] if len(close) >= 200 else sma60
+        sma20 = (
+            close.rolling(window=20).mean().iloc[-1]
+            if len(close) >= 20
+            else close.mean()
+        )
+        sma60 = (
+            close.rolling(window=60).mean().iloc[-1]
+            if len(close) >= 60
+            else close.mean()
+        )
+        sma200 = (
+            close.rolling(window=200).mean().iloc[-1] if len(close) >= 200 else sma60
+        )
 
         current_price = close.iloc[-1]
 
@@ -189,7 +203,16 @@ def get_market_regime(ticker: str = "^N225") -> dict:
             description = "下落傾向"
             strategy_desc = "戻り売り / 防御的ポートフォリオ"
 
-        return {"regime": regime, "description": description, "strategy_desc": strategy_desc, "trends": trends}
+        return {
+            "regime": regime,
+            "description": description,
+            "strategy_desc": strategy_desc,
+            "trends": trends,
+        }
 
     except Exception as e:
-        return {"regime": "unknown", "description": f"判定エラー ({e})", "strategy_desc": "保守的運用"}
+        return {
+            "regime": "unknown",
+            "description": f"判定エラー ({e})",
+            "strategy_desc": "保守的運用",
+        }

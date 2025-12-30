@@ -3,7 +3,6 @@ Enhanced Performance Dashboard
 ベンチマーク比較機能を含む高度なパフォーマンスダッシュボード
 """
 
-from datetime import datetime, timedelta
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -11,7 +10,7 @@ import streamlit as st
 
 from src.benchmark_comparator import BenchmarkComparator
 from src.design_tokens import Colors
-from src.formatters import format_currency, format_percentage
+from src.formatters import format_percentage
 from src.paper_trader import PaperTrader
 
 
@@ -23,11 +22,13 @@ def create_performance_dashboard():
 
     # データ取得
     pt = PaperTrader()
-    balance = pt.get_current_balance()
+    pt.get_current_balance()
     equity_history = pt.get_equity_history()
 
     if equity_history.empty:
-        st.info("📈 取引履歴がありません。Paper Tradingを開始してデータを蓄積してください。")
+        st.info(
+            "📈 取引履歴がありません。Paper Tradingを開始してデータを蓄積してください。"
+        )
         return
 
     # ベンチマーク選択
@@ -35,7 +36,12 @@ def create_performance_dashboard():
     col1, col2 = st.columns([2, 1])
 
     with col1:
-        benchmark_options = {"日経225": "nikkei225", "TOPIX": "topix", "S&P 500": "sp500", "NASDAQ": "nasdaq"}
+        benchmark_options = {
+            "日経225": "nikkei225",
+            "TOPIX": "topix",
+            "S&P 500": "sp500",
+            "NASDAQ": "nasdaq",
+        }
         selected_benchmark_name = st.selectbox(
             "比較対象",
             list(benchmark_options.keys()),
@@ -45,7 +51,10 @@ def create_performance_dashboard():
 
     with col2:
         period_days = st.selectbox(
-            "期間", [30, 90, 180, 365], format_func=lambda x: f"{x}日間", index=2  # デフォルト180日
+            "期間",
+            [30, 90, 180, 365],
+            format_func=lambda x: f"{x}日間",
+            index=2,  # デフォルト180日
         )
 
     # ベンチマーク比較分析
@@ -65,10 +74,14 @@ def create_performance_dashboard():
             portfolio_returns = equity_recent["equity"].pct_change().dropna()
 
             # ベンチマークデータ取得
-            benchmark_data = comparator.fetch_benchmark_data(selected_benchmark, period=f"{period_days}d")
+            benchmark_data = comparator.fetch_benchmark_data(
+                selected_benchmark, period=f"{period_days}d"
+            )
 
             if benchmark_data is None or benchmark_data.empty:
-                st.error("ベンチマークデータの取得に失敗しました。ネットワーク接続を確認してください。")
+                st.error(
+                    "ベンチマークデータの取得に失敗しました。ネットワーク接続を確認してください。"
+                )
                 return
 
             benchmark_returns = benchmark_data["Close"].pct_change().dropna()
@@ -83,7 +96,9 @@ def create_performance_dashboard():
             benchmark_returns_aligned = benchmark_returns.loc[common_dates]
 
             # 比較レポート生成
-            report = comparator.generate_comparison_report(portfolio_returns_aligned, selected_benchmark)
+            report = comparator.generate_comparison_report(
+                portfolio_returns_aligned, selected_benchmark
+            )
 
         except Exception as e:
             st.error(f"分析エラー: {str(e)}")
@@ -97,8 +112,14 @@ def create_performance_dashboard():
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        portfolio_total_return = equity_recent["equity"].iloc[-1] / equity_recent["equity"].iloc[0] - 1
-        st.metric("ポートフォリオ", format_percentage(portfolio_total_return, decimals=2), help="選択期間の総リターン")
+        portfolio_total_return = (
+            equity_recent["equity"].iloc[-1] / equity_recent["equity"].iloc[0] - 1
+        )
+        st.metric(
+            "ポートフォリオ",
+            format_percentage(portfolio_total_return, decimals=2),
+            help="選択期間の総リターン",
+        )
 
     with col2:
         st.metric(
@@ -110,7 +131,9 @@ def create_performance_dashboard():
     with col3:
         alpha = report["alpha"]
         alpha_color = "green" if alpha > 0 else "red"
-        st.metric("アルファ (α)", f"{alpha:+.2f}%", help="ベンチマークを上回る超過リターン")
+        st.metric(
+            "アルファ (α)", f"{alpha:+.2f}%", help="ベンチマークを上回る超過リターン"
+        )
         st.markdown(f":{alpha_color}[{'市場超過' if alpha > 0 else '市場未達'}]")
 
     with col4:
@@ -128,7 +151,11 @@ def create_performance_dashboard():
     col5, col6, col7 = st.columns(3)
 
     with col5:
-        st.metric("情報比率 (IR)", f"{report['information_ratio']:.2f}", help="アクティブリターンの効率性")
+        st.metric(
+            "情報比率 (IR)",
+            f"{report['information_ratio']:.2f}",
+            help="アクティブリターンの効率性",
+        )
         if report["information_ratio"] > 0.5:
             st.success("✅ 優秀")
         elif report["information_ratio"] > 0:
@@ -138,11 +165,17 @@ def create_performance_dashboard():
 
     with col6:
         tracking_error = report["tracking_error"]
-        st.metric("トラッキングエラー", format_percentage(tracking_error, decimals=2), help="ベンチマークとの乖離度")
+        st.metric(
+            "トラッキングエラー",
+            format_percentage(tracking_error, decimals=2),
+            help="ベンチマークとの乖離度",
+        )
 
     with col7:
         active_return = report["active_return"]
-        st.metric("アクティブリターン", f"{active_return:+.2f}%", help="ベンチマークとの差")
+        st.metric(
+            "アクティブリターン", f"{active_return:+.2f}%", help="ベンチマークとの差"
+        )
 
     st.divider()
 
@@ -212,29 +245,49 @@ def create_performance_dashboard():
         fig_hist1 = go.Figure(
             data=[
                 go.Histogram(
-                    x=portfolio_returns_aligned * 100, nbinsx=30, marker_color=Colors.PRIMARY_CYAN, opacity=0.7
+                    x=portfolio_returns_aligned * 100,
+                    nbinsx=30,
+                    marker_color=Colors.PRIMARY_CYAN,
+                    opacity=0.7,
                 )
             ]
         )
-        fig_hist1.update_layout(xaxis_title="日次リターン (%)", yaxis_title="頻度", height=300, showlegend=False)
+        fig_hist1.update_layout(
+            xaxis_title="日次リターン (%)",
+            yaxis_title="頻度",
+            height=300,
+            showlegend=False,
+        )
         st.plotly_chart(fig_hist1, use_container_width=True)
 
         # 統計
         st.caption(
-            f"平均: {portfolio_returns_aligned.mean()*100:.2f}% | 標準偏差: {portfolio_returns_aligned.std()*100:.2f}%"
+            f"平均: {portfolio_returns_aligned.mean() * 100:.2f}% | 標準偏差: {portfolio_returns_aligned.std() * 100:.2f}%"
         )
 
     with col_dist2:
         st.markdown(f"**{selected_benchmark_name}**")
         fig_hist2 = go.Figure(
-            data=[go.Histogram(x=benchmark_returns_aligned * 100, nbinsx=30, marker_color=Colors.WARNING, opacity=0.7)]
+            data=[
+                go.Histogram(
+                    x=benchmark_returns_aligned * 100,
+                    nbinsx=30,
+                    marker_color=Colors.WARNING,
+                    opacity=0.7,
+                )
+            ]
         )
-        fig_hist2.update_layout(xaxis_title="日次リターン (%)", yaxis_title="頻度", height=300, showlegend=False)
+        fig_hist2.update_layout(
+            xaxis_title="日次リターン (%)",
+            yaxis_title="頻度",
+            height=300,
+            showlegend=False,
+        )
         st.plotly_chart(fig_hist2, use_container_width=True)
 
         # 統計
         st.caption(
-            f"平均: {benchmark_returns_aligned.mean()*100:.2f}% | 標準偏差: {benchmark_returns_aligned.std()*100:.2f}%"
+            f"平均: {benchmark_returns_aligned.mean() * 100:.2f}% | 標準偏差: {benchmark_returns_aligned.std() * 100:.2f}%"
         )
 
     st.divider()
@@ -245,20 +298,28 @@ def create_performance_dashboard():
     recommendations = []
 
     if report["alpha"] < 0:
-        recommendations.append("⚠️ アルファがマイナスです。戦略の見直しを検討してください。")
+        recommendations.append(
+            "⚠️ アルファがマイナスです。戦略の見直しを検討してください。"
+        )
     else:
         recommendations.append("✅ ベンチマークを上回るパフォーマンスです。")
 
     if report["information_ratio"] < 0.5:
-        recommendations.append("💡 情報比率が低めです。リスクに見合ったリターンが得られているか確認しましょう。")
+        recommendations.append(
+            "💡 情報比率が低めです。リスクに見合ったリターンが得られているか確認しましょう。"
+        )
 
     if report["beta"] > 1.5:
-        recommendations.append("⚠️ ベータが高く、市場変動の影響を大きく受けます。リスク許容度を確認してください。")
+        recommendations.append(
+            "⚠️ ベータが高く、市場変動の影響を大きく受けます。リスク許容度を確認してください。"
+        )
     elif report["beta"] < 0.5:
         recommendations.append("💡 ベータが低く、保守的なポートフォリオです。")
 
     if report["tracking_error"] > 0.1:
-        recommendations.append("📊 ベンチマークとの乖離が大きいです。意図的なアクティブ運用か確認しましょう。")
+        recommendations.append(
+            "📊 ベンチマークとの乖離が大きいです。意図的なアクティブ運用か確認しましょう。"
+        )
 
     if not recommendations:
         recommendations.append("✅ 現状維持で問題ありません。")

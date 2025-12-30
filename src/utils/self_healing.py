@@ -1,11 +1,9 @@
 import logging
 import os
-import time
-import traceback
-from typing import Optional, Dict, Any
 import google.generativeai as genai
 
 logger = logging.getLogger(__name__)
+
 
 class SelfHealingEngine:
     """
@@ -31,7 +29,7 @@ class SelfHealingEngine:
         with open(self.log_path, "r", encoding="utf-8") as f:
             f.seek(self.last_position)
             new_logs = f.read()
-        
+
         self.last_position = current_size
 
         if "ERROR" in new_logs or "CRITICAL" in new_logs:
@@ -47,22 +45,23 @@ class SelfHealingEngine:
 
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel("gemini-1.5-pro")
-        
+
         prompt = f"""
         The AGStock system encountered the following errors in its logs:
+            pass
         ---
         {error_context[-2000:]}
         ---
-        As an expert AI DevOps engineer, suggest a fix. 
+        As an expert AI DevOps engineer, suggest a fix.
         If it's a configuration issue, suggest the new config.json value.
         If it's a code issue, provide a brief description of the fix.
         Keep it concise.
         """
-        
+
         try:
             response = model.generate_content(prompt)
             logger.info(f"✨ AI Healing Suggestion: {response.text}")
-            # In a real 'Singularity' scenario, we might apply the fix via file_edit tools.
-            # For now, we log the path to enlightenment.
+        # In a real 'Singularity' scenario, we might apply the fix via file_edit tools.
+        # For now, we log the path to enlightenment.
         except Exception as e:
             logger.error(f"Healing analysis failed: {e}")

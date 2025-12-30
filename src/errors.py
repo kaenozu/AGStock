@@ -23,7 +23,12 @@ class AGStockException(Exception):
         details (dict): エラーに関する追加の詳細情報
     """
 
-    def __init__(self, message: str, error_code: Optional[str] = None, details: Optional[dict] = None):
+    def __init__(
+        self,
+        message: str,
+        error_code: Optional[str] = None,
+        details: Optional[dict] = None,
+    ):
         """AGStockExceptionの初期化
 
         Args:
@@ -35,7 +40,9 @@ class AGStockException(Exception):
         self.message = message
         self.error_code = error_code or "UNKNOWN_ERROR"
         self.details = details or {}
-        logger.error(f"{self.__class__.__name__}: {message} (Code: {self.error_code}, Details: {self.details})")
+        logger.error(
+            f"{self.__class__.__name__}: {message} (Code: {self.error_code}, Details: {self.details})"
+        )
 
 
 class DataLoadError(AGStockException):
@@ -44,7 +51,9 @@ class DataLoadError(AGStockException):
     データ取得や読み込み処理で発生する例外を表します。
     """
 
-    def __init__(self, message: str, ticker: Optional[str] = None, details: Optional[dict] = None):
+    def __init__(
+        self, message: str, ticker: Optional[str] = None, details: Optional[dict] = None
+    ):
         """DataLoadErrorの初期化
 
         Args:
@@ -52,7 +61,11 @@ class DataLoadError(AGStockException):
             ticker (Optional[str]): 関連する銘柄コード
             details (Optional[dict]): エラーに関する追加の詳細情報
         """
-        super().__init__(message=message, error_code="DATA_LOAD_ERROR", details={**(details or {}), "ticker": ticker})
+        super().__init__(
+            message=message,
+            error_code="DATA_LOAD_ERROR",
+            details={**(details or {}), "ticker": ticker},
+        )
 
 
 class RiskManagementError(AGStockException):
@@ -61,7 +74,12 @@ class RiskManagementError(AGStockException):
     リスク管理処理で発生する例外を表します。
     """
 
-    def __init__(self, message: str, risk_type: Optional[str] = None, details: Optional[dict] = None):
+    def __init__(
+        self,
+        message: str,
+        risk_type: Optional[str] = None,
+        details: Optional[dict] = None,
+    ):
         """RiskManagementErrorの初期化
 
         Args:
@@ -70,7 +88,9 @@ class RiskManagementError(AGStockException):
             details (Optional[dict]): エラーに関する追加の詳細情報
         """
         super().__init__(
-            message=message, error_code="RISK_MANAGEMENT_ERROR", details={**(details or {}), "risk_type": risk_type}
+            message=message,
+            error_code="RISK_MANAGEMENT_ERROR",
+            details={**(details or {}), "risk_type": risk_type},
         )
 
 
@@ -80,7 +100,12 @@ class StrategyError(AGStockException):
     トレード戦略の実行や計算で発生する例外を表します。
     """
 
-    def __init__(self, message: str, strategy_name: Optional[str] = None, details: Optional[dict] = None):
+    def __init__(
+        self,
+        message: str,
+        strategy_name: Optional[str] = None,
+        details: Optional[dict] = None,
+    ):
         """StrategyErrorの初期化
 
         Args:
@@ -89,7 +114,9 @@ class StrategyError(AGStockException):
             details (Optional[dict]): エラーに関する追加の詳細情報
         """
         super().__init__(
-            message=message, error_code="STRATEGY_ERROR", details={**(details or {}), "strategy_name": strategy_name}
+            message=message,
+            error_code="STRATEGY_ERROR",
+            details={**(details or {}), "strategy_name": strategy_name},
         )
 
 
@@ -100,7 +127,11 @@ class ExecutionError(AGStockException):
     """
 
     def __init__(
-        self, message: str, ticker: Optional[str] = None, action: Optional[str] = None, details: Optional[dict] = None
+        self,
+        message: str,
+        ticker: Optional[str] = None,
+        action: Optional[str] = None,
+        details: Optional[dict] = None,
     ):
         """ExecutionErrorの初期化
 
@@ -123,7 +154,12 @@ class ConfigurationError(AGStockException):
     設定値の読み込みや検証で発生する例外を表します。
     """
 
-    def __init__(self, message: str, config_key: Optional[str] = None, details: Optional[dict] = None):
+    def __init__(
+        self,
+        message: str,
+        config_key: Optional[str] = None,
+        details: Optional[dict] = None,
+    ):
         """ConfigurationErrorの初期化
 
         Args:
@@ -132,7 +168,9 @@ class ConfigurationError(AGStockException):
             details (Optional[dict]): エラーに関する追加の詳細情報
         """
         super().__init__(
-            message=message, error_code="CONFIGURATION_ERROR", details={**(details or {}), "config_key": config_key}
+            message=message,
+            error_code="CONFIGURATION_ERROR",
+            details={**(details or {}), "config_key": config_key},
         )
         self.config_key = config_key
 
@@ -143,7 +181,12 @@ class BacktestError(AGStockException):
     バックテストの実行で発生する例外を表します。
     """
 
-    def __init__(self, message: str, strategy_name: Optional[str] = None, details: Optional[dict] = None):
+    def __init__(
+        self,
+        message: str,
+        strategy_name: Optional[str] = None,
+        details: Optional[dict] = None,
+    ):
         """BacktestErrorの初期化
 
         Args:
@@ -152,7 +195,9 @@ class BacktestError(AGStockException):
             details (Optional[dict]): エラーに関する追加の詳細情報
         """
         super().__init__(
-            message=message, error_code="BACKTEST_ERROR", details={**(details or {}), "strategy_name": strategy_name}
+            message=message,
+            error_code="BACKTEST_ERROR",
+            details={**(details or {}), "strategy_name": strategy_name},
         )
 
 
@@ -162,7 +207,12 @@ class CacheError(AGStockException):
     キャッシュ操作で発生する例外を表します。
     """
 
-    def __init__(self, message: str, cache_key: Optional[str] = None, details: Optional[dict] = None):
+    def __init__(
+        self,
+        message: str,
+        cache_key: Optional[str] = None,
+        details: Optional[dict] = None,
+    ):
         """CacheErrorの初期化
 
         Args:
@@ -170,4 +220,8 @@ class CacheError(AGStockException):
             cache_key (Optional[str]): 関連するキャッシュキー
             details (Optional[dict]): エラーに関する追加の詳細情報
         """
-        super().__init__(message=message, error_code="CACHE_ERROR", details={**(details or {}), "cache_key": cache_key})
+        super().__init__(
+            message=message,
+            error_code="CACHE_ERROR",
+            details={**(details or {}), "cache_key": cache_key},
+        )

@@ -3,7 +3,6 @@ Trading Panel UI Module
 Handles the Paper Trading interface (manual trading, positions, history).
 """
 
-import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
@@ -51,7 +50,9 @@ def render_trading_panel(sidebar_config):
             pos_display = positions.copy()
 
             # Add Company Name
-            pos_display["name"] = pos_display["ticker"].map(lambda x: TICKER_NAMES.get(x, x))
+            pos_display["name"] = pos_display["ticker"].map(
+                lambda x: TICKER_NAMES.get(x, x)
+            )
 
             # Calculate metrics
             if "current_price" in pos_display.columns:
@@ -61,12 +62,16 @@ def render_trading_panel(sidebar_config):
             else:
                 pos_display["unrealized_pnl_pct"] = 0.0
 
-            pos_display["acquisition_cost"] = pos_display["entry_price"] * pos_display["quantity"]
+            pos_display["acquisition_cost"] = (
+                pos_display["entry_price"] * pos_display["quantity"]
+            )
 
             # Select and Reorder columns - Market Value is usually returned by get_positions as 'market_value'
             # If not, calculate it
             if "market_value" not in pos_display.columns:
-                pos_display["market_value"] = pos_display["current_price"] * pos_display["quantity"]
+                pos_display["market_value"] = (
+                    pos_display["current_price"] * pos_display["quantity"]
+                )
 
             target_cols = [
                 "name",
@@ -122,7 +127,9 @@ def render_trading_panel(sidebar_config):
             # Unit size logic from sidebar config
             trading_unit_step = sidebar_config.get("trading_unit", 100)
 
-            qty_input = st.number_input("数量", min_value=1, step=trading_unit_step, value=trading_unit_step)
+            qty_input = st.number_input(
+                "数量", min_value=1, step=trading_unit_step, value=trading_unit_step
+            )
 
             submitted = st.form_submit_button("注文実行")
             if submitted and ticker_input:
@@ -131,8 +138,16 @@ def render_trading_panel(sidebar_config):
                 if ticker_input in price_data and not price_data[ticker_input].empty:
                     current_price = price_data[ticker_input]["Close"].iloc[-1]
 
-                    if pt.execute_trade(ticker_input, action_input, qty_input, current_price, reason="Manual"):
-                        st.success(f"{action_input}注文完了しました: {ticker_input} @ {current_price}")
+                    if pt.execute_trade(
+                        ticker_input,
+                        action_input,
+                        qty_input,
+                        current_price,
+                        reason="Manual",
+                    ):
+                        st.success(
+                            f"{action_input}注文完了しました: {ticker_input} @ {current_price}"
+                        )
                         st.experimental_rerun()
                     else:
                         st.error("注文失敗しました。資金不足または保有株不足です。")
@@ -162,7 +177,12 @@ def render_trading_panel(sidebar_config):
                 line=dict(color="gold", width=2),
             )
         )
-        fig_equity.add_hline(y=pt.initial_capital, line_dash="dash", line_color="gray", annotation_text="初期資産")
+        fig_equity.add_hline(
+            y=pt.initial_capital,
+            line_dash="dash",
+            line_color="gray",
+            annotation_text="初期資産",
+        )
         fig_equity.update_layout(
             title="資産推移 - ペーパートレーディング -",
             xaxis_title="日付",
@@ -183,14 +203,20 @@ def render_trading_panel(sidebar_config):
     markets_list = MARKETS.get(selected_market, MARKETS["Japan"])
 
     alert_ticker = st.selectbox(
-        "監視する銘柄", options=markets_list[:10], format_func=lambda x: f"{x} - {TICKER_NAMES.get(x, '')}"
+        "監視する銘柄",
+        options=markets_list[:10],
+        format_func=lambda x: f"{x} - {TICKER_NAMES.get(x, '')}",
     )
 
     col_a1, col_a2 = st.columns(2)
     with col_a1:
         alert_type = st.selectbox("アラートタイプ", ["価格上昇", "価格下落"])
     with col_a2:
-        threshold = st.number_input("閾値 (%)", min_value=1.0, max_value=50.0, value=5.0, step=0.5)
+        threshold = st.number_input(
+            "閾値 (%)", min_value=1.0, max_value=50.0, value=5.0, step=0.5
+        )
 
     if st.button("アラートを設定"):
-        st.success(f"✅{alert_ticker} の{alert_type}アラート({threshold}%)を設定しました (デモ)")
+        st.success(
+            f"✅{alert_ticker} の{alert_type}アラート({threshold}%)を設定しました (デモ)"
+        )

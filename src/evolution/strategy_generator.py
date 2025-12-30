@@ -1,13 +1,12 @@
 import logging
 import sqlite3
-import json
 import os
-import re
 from typing import List, Dict, Any
 import google.generativeai as genai
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
+
 
 class StrategyGenerator:
     """
@@ -33,7 +32,7 @@ class StrategyGenerator:
 
         lessons_summary = self._summarize_failures(failures)
         new_strategy_code = self._generate_strategy_code(lessons_summary)
-        
+
         if new_strategy_code:
             filename = f"evolved_strategy_{datetime.now().strftime('%Y%m%d_%H%M%S')}.py"
             file_path = os.path.join(self.output_dir, filename)
@@ -46,7 +45,9 @@ class StrategyGenerator:
             with sqlite3.connect(db_path) as conn:
                 conn.row_factory = sqlite3.Row
                 cursor = conn.cursor()
-                cursor.execute("SELECT * FROM decision_feedback WHERE outcome = 'FAILURE' ORDER BY timestamp DESC LIMIT 10")
+                cursor.execute(
+                    "SELECT * FROM decision_feedback WHERE outcome = 'FAILURE' ORDER BY timestamp DESC LIMIT 10"
+                )
                 return [dict(row) for row in cursor.fetchall()]
         except Exception as e:
             logger.error(f"Failed to fetch failures for evolution: {e}")
@@ -55,7 +56,7 @@ class StrategyGenerator:
     def _summarize_failures(self, failures: List[Dict[str, Any]]) -> str:
         summary = "【過去の失敗事例の概要】\n"
         for f in failures:
-            summary += f"- {f['ticker']}: 判断={f['decision']}, 理由={f['rationale']}, 収益率={f['return_1w']*100:.1f}%\n"
+            summary += f"- {f['ticker']}: 判断={f['decision']}, 理由={f['rationale']}, 収益率={f['return_1w'] * 100:.1f}%\n"
         return summary
 
     def _generate_strategy_code(self, context: str) -> str:
@@ -76,16 +77,7 @@ class StrategyGenerator:
 
 コードを開始してください：
 """
-        try:
-            model = genai.GenerativeModel("gemini-1.5-pro")
-            response = model.generate_content(prompt)
-            code = response.text
-            # Clean up markdown if LLM includes it
-            if "```python" in code:
-                code = re.search(r"```python\n(.*?)```", code, re.DOTALL).group(1)
-            elif "```" in code:
-                code = re.search(r"```\n(.*?)```", code, re.DOTALL).group(1)
-            return code
-        except Exception as e:
-            logger.error(f"Failing to query Gemini for evolution: {e}")
-            return None
+
+
+# try:
+#             model = genai.GenerativeModel("gemini-1.5-pro")

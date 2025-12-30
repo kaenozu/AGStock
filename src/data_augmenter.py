@@ -4,7 +4,7 @@ Data Augmentation - データ拡張
 """
 
 import logging
-from typing import Optional, Tuple
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
@@ -85,7 +85,9 @@ class DataAugmenter:
 
         return df.iloc[new_indices].reset_index(drop=True)
 
-    def generate_synthetic_sample(self, df: pd.DataFrame, n_samples: int = 100) -> pd.DataFrame:
+    def generate_synthetic_sample(
+        self, df: pd.DataFrame, n_samples: int = 100
+    ) -> pd.DataFrame:
         """
         統計的特性を保持した合成データを生成
 
@@ -117,11 +119,18 @@ class DataAugmenter:
         synthetic_df = pd.DataFrame(
             {
                 "Close": synthetic_prices[1:],
-                "Open": np.array(synthetic_prices[1:]) * np.random.uniform(0.99, 1.01, n_samples),
-                "High": np.array(synthetic_prices[1:]) * np.random.uniform(1.0, 1.02, n_samples),
-                "Low": np.array(synthetic_prices[1:]) * np.random.uniform(0.98, 1.0, n_samples),
+                "Open": np.array(synthetic_prices[1:])
+                * np.random.uniform(0.99, 1.01, n_samples),
+                "High": np.array(synthetic_prices[1:])
+                * np.random.uniform(1.0, 1.02, n_samples),
+                "Low": np.array(synthetic_prices[1:])
+                * np.random.uniform(0.98, 1.0, n_samples),
                 "Volume": (
-                    np.random.randint(int(df["Volume"].mean() * 0.5), int(df["Volume"].mean() * 1.5), n_samples)
+                    np.random.randint(
+                        int(df["Volume"].mean() * 0.5),
+                        int(df["Volume"].mean() * 1.5),
+                        n_samples,
+                    )
                     if "Volume" in df.columns
                     else np.zeros(n_samples)
                 ),

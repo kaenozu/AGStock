@@ -4,14 +4,10 @@ LightGBM予測モデル
 """
 
 import logging
-from datetime import timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict
 
 import lightgbm as lgb
-import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
 
 from src.base_predictor import BasePredictor
 
@@ -28,6 +24,7 @@ class LGBMPredictor(BasePredictor):
         try:
             import os
             import json
+
             if os.path.exists("model_params.json"):
                 with open("model_params.json", "r", encoding="utf-8") as f:
                     all_params = json.load(f)
@@ -38,23 +35,22 @@ class LGBMPredictor(BasePredictor):
 
     def prepare_model(self, X, y):
         """モデルの準備（LGBMでは特に必要なし）"""
-        pass
 
     def fit(self, X, y):
         """モデルの学習"""
         # データチェック
         if len(X) != len(y):
             raise ValueError("X and y must have same length")
-            
+
         # Use optimized params or default
         params = {
             "n_estimators": 100,
             "learning_rate": 0.05,
             "max_depth": 5,
-            "verbose": -1
+            "verbose": -1,
         }
         params.update(self.params)
-        
+
         self.model = lgb.LGBMRegressor(**params)
         self.model.fit(X, y)
         return self
@@ -75,7 +71,9 @@ class LGBMPredictor(BasePredictor):
         """
         try:
             if df is None or df.empty or len(df) < 50:
-                return {"error": f"データ不足 (データ数: {len(df) if df is not None else 0})"}
+                return {
+                    "error": f"データ不足 (データ数: {len(df) if df is not None else 0})"
+                }
 
             # 1. 特徴量生成
             data = df.copy()
@@ -112,7 +110,9 @@ class LGBMPredictor(BasePredictor):
             split_idx = int(len(X) * 0.8)
             X_train, y_train = X[:split_idx], y[:split_idx]
 
-            self.model = lgb.LGBMRegressor(n_estimators=100, learning_rate=0.05, max_depth=5, verbose=-1)
+            self.model = lgb.LGBMRegressor(
+                n_estimators=100, learning_rate=0.05, max_depth=5, verbose=-1
+            )
             self.model.fit(X_train, y_train)
 
             # 5. 未来予測（再帰的）

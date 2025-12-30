@@ -5,18 +5,24 @@ import logging
 import os
 import time
 from datetime import datetime, timedelta
-from typing import (Any, Awaitable, Callable, Dict, Mapping, Optional,
-                    Sequence, TypeVar)
+from typing import Any, Awaitable, Callable, Dict, Mapping, Optional, Sequence, TypeVar
 
 import pandas as pd
 import streamlit as st
 import yfinance as yf
 
-from src.constants import (CRYPTO_PAIRS, DEFAULT_REALTIME_BACKOFF_SECONDS,
-                           DEFAULT_REALTIME_TTL_SECONDS, FUNDAMENTAL_CACHE_TTL,
-                           FX_PAIRS, JP_STOCKS, MARKET_SUMMARY_CACHE_KEY,
-                           MARKET_SUMMARY_TTL, MINIMUM_DATA_POINTS,
-                           STALE_DATA_MAX_AGE)
+from src.constants import (
+    CRYPTO_PAIRS,
+    DEFAULT_REALTIME_BACKOFF_SECONDS,
+    DEFAULT_REALTIME_TTL_SECONDS,
+    FUNDAMENTAL_CACHE_TTL,
+    FX_PAIRS,
+    JP_STOCKS,
+    MARKET_SUMMARY_CACHE_KEY,
+    MARKET_SUMMARY_TTL,
+    MINIMUM_DATA_POINTS,
+    STALE_DATA_MAX_AGE,
+)
 from src.data_manager import DataManager
 from src.helpers import retry_with_backoff
 
@@ -99,7 +105,9 @@ def _create_cache_instance():
 _cache_instance: Optional[CacheManager] = _create_cache_instance()
 _realtime_cache: Dict[str, tuple[float, pd.DataFrame]] = {}
 try:
-    _DEFAULT_REALTIME_TTL = int(os.getenv("REALTIME_TTL_SECONDS", str(DEFAULT_REALTIME_TTL_SECONDS)))
+    _DEFAULT_REALTIME_TTL = int(
+        os.getenv("REALTIME_TTL_SECONDS", str(DEFAULT_REALTIME_TTL_SECONDS))
+    )
 except Exception:
     _DEFAULT_REALTIME_TTL = DEFAULT_REALTIME_TTL_SECONDS
 
@@ -155,7 +163,9 @@ def _attempt_async_fetch(
         max_concurrent = 10
 
     async def _runner() -> Dict[str, pd.DataFrame]:
-        return await loader.fetch_multiple_async(list(tickers), period, interval, max_concurrent=max_concurrent)
+        return await loader.fetch_multiple_async(
+            list(tickers), period, interval, max_concurrent=max_concurrent
+        )
 
     try:
         return _run_coroutine(_runner)
@@ -207,7 +217,11 @@ def _download_and_cache_missing(
         raise DataLoadError(
             message=f"Failed to download data for tickers: {tickers}",
             ticker=",".join(tickers) if tickers else None,
-            details={"period": period, "interval": interval, "original_error": str(exc)},
+            details={
+                "period": period,
+                "interval": interval,
+                "original_error": str(exc),
+            },
         ) from exc
 
     if raw.empty:
@@ -278,32 +292,35 @@ def process_downloaded_data(
 
         # --- Strict Data Quality Check ---
         if len(df) < MINIMUM_DATA_POINTS:
-            logger.warning(f"Ticker {ticker} specifically excluded: insufficient data points ({len(df)} < {MINIMUM_DATA_POINTS})")
+            logger.warning(
+                f"Ticker {ticker} specifically excluded: insufficient data points ({len(df)} < {MINIMUM_DATA_POINTS})"
+            )
             continue
-            
+
         # --- Outlier Clipping ---
         # Clip daily returns > 20% (approx) to strictly avoid noise from bad data ticks
         # Simple heuristic: If Close price changes by > 20% in one day AND reverts, it might be an error.
         # Here we just clip the high/low/close to ensure no single day creates massive gradients.
         # Note: This is a simple rigorous clip. Real market crash could be 20%, but reliable stocks rarely move that much.
         # For safety, we only clip extreme single-day artifacts in High/Low relative to Open/Close.
-        
+
         # Method: Calculate daily return, if abs(return) > 0.3 (30%), clip it (simple version)
         # Better: Just ensure consistency or fetch confirm.
         # Given request: "strict outlier clip". Let's clip returns to [-0.25, 0.25] for model stability
-        # But we modify the prices? No, usually better to clip features. 
+        # But we modify the prices? No, usually better to clip features.
         # However, request says "src/data_loader.pyで欠損補完・外れ値クリップ".
         # We will implement a basic price continuity check.
-        
+
         pct_change = df["Close"].pct_change()
         # Identify indices where change is extreme (> 30%)
         outliers = pct_change.abs() > 0.30
         if outliers.any():
-            logger.warning(f"Ticker {ticker} has {outliers.sum()} extreme price jumps (>30%). detailed check recommended.")
-            # For now, we do NOT drop them to avoid breaking series continuity blindly, 
+            logger.warning(
+                f"Ticker {ticker} has {outliers.sum()} extreme price jumps (>30%). detailed check recommended."
+            )
+            # For now, we do NOT drop them to avoid breaking series continuity blindly,
             # but we will log it. The user request implies "clipping".
             # Let's simple clip columns if they exist.
-            pass
 
         if not df.empty:
             processed[ticker] = df
@@ -329,6 +346,7 @@ def parse_period(period: str) -> datetime:
 def _sanitize_price_history(df: pd.DataFrame) -> pd.DataFrame:
     """
     軽量なデータサニタイズ:
+        pass
     - 日付順ソート・重複除去
     - 未来日付の除外
     - 価格列の外れ値クリップ (1%/99%分位)
@@ -354,7 +372,9 @@ def _sanitize_price_history(df: pd.DataFrame) -> pd.DataFrame:
     now = pd.Timestamp.utcnow().tz_localize(None)
     clean = clean[clean.index <= now + pd.Timedelta(minutes=1)]
 
-    price_cols = [c for c in ["Open", "High", "Low", "Close", "Adj Close"] if c in clean.columns]
+    price_cols = [
+        c for c in ["Open", "High", "Low", "Close", "Adj Close"] if c in clean.columns
+    ]
     for col in price_cols:
         try:
             q_low = clean[col].quantile(0.01)
@@ -398,7 +418,9 @@ def fetch_stock_data(
         if needs_refresh:
             need_refresh.append(ticker)
 
-    downloaded = _download_and_cache_missing(need_refresh, period, interval, start_date, db)
+    downloaded = _download_and_cache_missing(
+        need_refresh, period, interval, start_date, db
+    )
     result.update(downloaded)
 
     # Sanitize to avoid leaks/outliers
@@ -530,7 +552,9 @@ def fetch_market_summary() -> tuple[pd.DataFrame, Dict[str, Any]]:
     return summary_df, stats
 
 
-DEFAULT_BACKOFF = int(os.getenv("REALTIME_BACKOFF_SECONDS", str(DEFAULT_REALTIME_BACKOFF_SECONDS)))
+DEFAULT_BACKOFF = int(
+    os.getenv("REALTIME_BACKOFF_SECONDS", str(DEFAULT_REALTIME_BACKOFF_SECONDS))
+)
 
 
 @retry_with_backoff(retries=2, backoff_in_seconds=DEFAULT_BACKOFF)

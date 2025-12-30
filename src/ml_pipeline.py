@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
 import joblib
+import numpy as np
 import pandas as pd
 
 from src.drift_monitor import DriftMonitor

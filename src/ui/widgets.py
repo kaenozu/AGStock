@@ -14,11 +14,11 @@ def metric_card(
     delta: Optional[str] = None,
     delta_color: Optional[str] = None,
     icon: Optional[str] = None,
-    help_text: Optional[str] = None
+    help_text: Optional[str] = None,
 ):
     """
     Enhanced metric card with custom styling.
-    
+
     Args:
         label: Metric label
         value: Main value to display
@@ -30,11 +30,11 @@ def metric_card(
     # Auto-detect delta color
     if delta and not delta_color:
         try:
-            delta_num = float(delta.replace('%', '').replace('+', ''))
+            delta_num = float(delta.replace("%", "").replace("+", ""))
             delta_color = DS.get_metric_color(delta_num)
         except Exception:
-            delta_color = DS.COLORS['text_secondary']
-    
+            delta_color = DS.COLORS["text_secondary"]
+
     # Build HTML
     card_html = f"""
     <div style="
@@ -65,7 +65,7 @@ def metric_card(
          f'margin-top: {DS.SPACING["xs"]};">{delta}</div>' if delta else ''}
     </div>
     """
-    
+
     st.markdown(card_html, unsafe_allow_html=True)
 
 
@@ -73,11 +73,11 @@ def alert_banner(
     message: str,
     type: str = "info",
     dismissible: bool = False,
-    icon: Optional[str] = None
+    icon: Optional[str] = None,
 ):
     """
     Alert banner for notifications.
-    
+
     Args:
         message: Alert message
         type: 'info', 'success', 'warning', 'danger'
@@ -85,15 +85,15 @@ def alert_banner(
         icon: Custom icon (auto-selected if None)
     """
     type_config = {
-        'info': {'color': DS.COLORS['info'], 'icon': 'ℹ️'},
-        'success': {'color': DS.COLORS['success'], 'icon': '✅'},
-        'warning': {'color': DS.COLORS['warning'], 'icon': '⚠️'},
-        'danger': {'color': DS.COLORS['danger'], 'icon': '❌'},
+        "info": {"color": DS.COLORS["info"], "icon": "ℹ️"},
+        "success": {"color": DS.COLORS["success"], "icon": "✅"},
+        "warning": {"color": DS.COLORS["warning"], "icon": "⚠️"},
+        "danger": {"color": DS.COLORS["danger"], "icon": "❌"},
     }
-    
-    config = type_config.get(type, type_config['info'])
-    display_icon = icon or config['icon']
-    
+
+    config = type_config.get(type, type_config["info"])
+    display_icon = icon or config["icon"]
+
     banner_html = f"""
     <div style="
         background: {config['color']}22;
@@ -111,7 +111,7 @@ def alert_banner(
          f'cursor: pointer;">✕</button>' if dismissible else ''}
     </div>
     """
-    
+
     st.markdown(banner_html, unsafe_allow_html=True)
 
 
@@ -120,11 +120,11 @@ def quick_action_button(
     icon: str,
     on_click: Optional[Callable] = None,
     variant: str = "primary",
-    disabled: bool = False
+    disabled: bool = False,
 ):
     """
     Quick action button with icon.
-    
+
     Args:
         label: Button label
         icon: Emoji icon
@@ -133,19 +133,16 @@ def quick_action_button(
         disabled: Disabled state
     """
     variant_colors = {
-        'primary': DS.COLORS['primary'],
-        'secondary': DS.COLORS['surface'],
-        'danger': DS.COLORS['danger'],
+        "primary": DS.COLORS["primary"],
+        "secondary": DS.COLORS["surface"],
+        "danger": DS.COLORS["danger"],
     }
-    
+
     # Use Streamlit button with custom styling
     button_key = f"quick_action_{label.replace(' ', '_')}"
-    
+
     if st.button(
-        f"{icon} {label}",
-        key=button_key,
-        disabled=disabled,
-        use_container_width=True
+        f"{icon} {label}", key=button_key, disabled=disabled, use_container_width=True
     ):
         if on_click:
             on_click()
@@ -154,7 +151,7 @@ def quick_action_button(
 def skeleton_loader(height: str = "100px", count: int = 1):
     """
     Skeleton loading placeholder.
-    
+
     Args:
         height: Height of skeleton
         count: Number of skeleton items
@@ -163,7 +160,7 @@ def skeleton_loader(height: str = "100px", count: int = 1):
     for i in range(count):
         skeleton_html += f"""
         <div style="
-            background: linear-gradient(90deg, {DS.COLORS['surface']} 25%, 
+            background: linear-gradient(90deg, {DS.COLORS['surface']} 25%,
                         {DS.COLORS['surface_hover']} 50%, {DS.COLORS['surface']} 75%);
             background-size: 200% 100%;
             animation: loading 1.5s ease-in-out infinite;
@@ -172,7 +169,7 @@ def skeleton_loader(height: str = "100px", count: int = 1):
             margin-bottom: {DS.SPACING['md']};
         "></div>
         """
-    
+
     skeleton_html = f"""
     <style>
     @keyframes loading {{
@@ -182,19 +179,14 @@ def skeleton_loader(height: str = "100px", count: int = 1):
     </style>
     {skeleton_html}
     """
-    
+
     st.markdown(skeleton_html, unsafe_allow_html=True)
 
 
-def mini_chart(
-    data: list,
-    color: str = None,
-    height: int = 40,
-    width: int = 100
-):
+def mini_chart(data: list, color: str = None, height: int = 40, width: int = 100):
     """
     Mini sparkline chart.
-    
+
     Args:
         data: List of values
         color: Line color
@@ -203,78 +195,75 @@ def mini_chart(
     """
     if not data:
         return
-    
-    color = color or DS.COLORS['primary']
-    
+
+    color = color or DS.COLORS["primary"]
+
     # Normalize data to 0-1 range
     min_val = min(data)
     max_val = max(data)
     range_val = max_val - min_val if max_val != min_val else 1
-    
+
     normalized = [(v - min_val) / range_val for v in data]
-    
+
     # Create SVG path
     points = []
     step = width / (len(data) - 1) if len(data) > 1 else width
-    
+
     for i, val in enumerate(normalized):
         x = i * step
         y = height - (val * height)
         points.append(f"{x},{y}")
-    
+
     path = "M " + " L ".join(points)
-    
+
     svg = f"""
     <svg width="{width}" height="{height}" style="display: block;">
         <path d="{path}" fill="none" stroke="{color}" stroke-width="2" />
     </svg>
     """
-    
+
     st.markdown(svg, unsafe_allow_html=True)
 
 
 def progress_ring(
-    percentage: float,
-    size: int = 60,
-    stroke_width: int = 4,
-    color: str = None
+    percentage: float, size: int = 60, stroke_width: int = 4, color: str = None
 ):
     """
     Circular progress indicator.
-    
+
     Args:
         percentage: Progress percentage (0-100)
         size: Ring diameter
         stroke_width: Ring thickness
         color: Ring color
     """
-    color = color or DS.COLORS['primary']
+    color = color or DS.COLORS["primary"]
     percentage = max(0, min(100, percentage))
-    
+
     radius = (size - stroke_width) / 2
     circumference = 2 * 3.14159 * radius
     offset = circumference - (percentage / 100 * circumference)
-    
+
     svg = f"""
     <svg width="{size}" height="{size}">
         <circle
-            cx="{size/2}"
-            cy="{size/2}"
+            cx ="{size / 2}"
+            cy ="{size / 2}"
             r="{radius}"
             fill="none"
             stroke="{DS.COLORS['border']}"
             stroke-width="{stroke_width}"
         />
         <circle
-            cx="{size/2}"
-            cy="{size/2}"
+            cx ="{size / 2}"
+            cy ="{size / 2}"
             r="{radius}"
             fill="none"
             stroke="{color}"
             stroke-width="{stroke_width}"
             stroke-dasharray="{circumference}"
             stroke-dashoffset="{offset}"
-            transform="rotate(-90 {size/2} {size/2})"
+            transform = "rotate(-90 {size / 2} {size / 2})"
             style="transition: stroke-dashoffset 0.5s ease;"
         />
         <text
@@ -283,10 +272,10 @@ def progress_ring(
             text-anchor="middle"
             dy=".3em"
             fill="{DS.COLORS['text']}"
-            font-size="{size/4}"
+            font-size="{size / 4}"
             font-weight="bold"
         >{int(percentage)}%</text>
     </svg>
     """
-    
+
     st.markdown(svg, unsafe_allow_html=True)

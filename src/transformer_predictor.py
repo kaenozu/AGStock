@@ -5,11 +5,10 @@ Temporal Fusion Transformerを使用した予測モジュール
 
 import logging
 import os
-from typing import Dict, List, Optional, Tuple
+from typing import Dict
 
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
 
 from src.base_predictor import BasePredictor
 
@@ -30,10 +29,14 @@ class TransformerPredictor(BasePredictor):
         """モデルの準備"""
         try:
             from src.transformer_model import TemporalFusionTransformer
+
             # X is likely a DataFrame of features
             n_features = X.shape[1] if hasattr(X, "shape") else 10
             self.model = TemporalFusionTransformer(
-                input_size=n_features, hidden_size=64, num_attention_heads=4, dropout=0.1
+                input_size=n_features,
+                hidden_size=64,
+                num_attention_heads=4,
+                dropout=0.1,
             )
             self.is_ready = True
         except Exception as e:
@@ -43,31 +46,32 @@ class TransformerPredictor(BasePredictor):
         """モデルの学習"""
         if not self.is_ready or self.model is None:
             self.prepare_model(X, y)
-            
+
         try:
             # X and y might need reshaping for TFT depending on implementation
             # Assuming TFT handle (samples, features) and (samples,)
-            # But TFT expects sequences. 
+            # But TFT expects sequences.
             # EnhancedEnsemblePredictor passes 2D X.
-            # We might need to reshape to 3D if underlying model expects it, 
+            # We might need to reshape to 3D if underlying model expects it,
             # OR we trust `self.model.fit` to handle it.
             # Given we don't see src/transformer_model.py, we assume standard fit interface or adapt.
-            
+
             # Simple adaptation:
-            if hasattr(self.model, "fit"):
-                # If X is DataFrame, convert to numpy
-                X_np = X.values if hasattr(X, "values") else X
-                y_np = y.values if hasattr(y, "values") else y
-                
-                # 2次元の場合は3次元(batch, 1, features)に変換
-                if X_np.ndim == 2:
-                    X_np = X_np.reshape(X_np.shape[0], 1, X_np.shape[1])
-                
-                # Check if we need to sequence-ize it. 
-                # EnhancedEnsemblePredictor logic suggests it treats models as sklearn-like (taking 2D X).
-                # But TFT is time-series. 
-                # Hopefully underlying fit handles it or ignores it.
-                self.model.fit(X_np, y_np, epochs=10, batch_size=32, verbose=0)
+            pass
+            #             if hasattr(self.model, "fit"):
+            # If X is DataFrame, convert to numpy
+            X_np = X.values if hasattr(X, "values") else X
+            y_np = y.values if hasattr(y, "values") else y
+
+            # 2次元の場合は3次元(batch, 1, features)に変換
+            if X_np.ndim == 2:
+                X_np = X_np.reshape(X_np.shape[0], 1, X_np.shape[1])
+
+            # Check if we need to sequence-ize it.
+            # EnhancedEnsemblePredictor logic suggests it treats models as sklearn-like (taking 2D X).
+            # But TFT is time-series.
+            # Hopefully underlying fit handles it or ignores it.
+            self.model.fit(X_np, y_np, epochs=10, batch_size=32, verbose=0)
         except Exception as e:
             logger.warning(f"TFT fit failed, skipping: {e}")
 
@@ -77,11 +81,11 @@ class TransformerPredictor(BasePredictor):
             return np.zeros(len(X))
         try:
             X_np = X.values if hasattr(X, "values") else X
-            
+
             # 2次元の場合は3次元(batch, 1, features)に変換
             if X_np.ndim == 2:
                 X_np = X_np.reshape(X_np.shape[0], 1, X_np.shape[1])
-                
+
             return self.model.predict(X_np)
         except Exception as e:
             logger.warning(f"TFT predict failed: {e}")
@@ -124,13 +128,24 @@ class TransformerPredictor(BasePredictor):
                 return
 
             # TFTモデル初期化
-            n_features = len([c for c in df.columns if c not in ["Date", "Open", "High", "Low", "Close", "Volume"]])
+            n_features = len(
+                [
+                    c
+                    for c in df.columns
+                    if c not in ["Date", "Open", "High", "Low", "Close", "Volume"]
+                ]
+            )
             self.model = TemporalFusionTransformer(
-                input_size=max(n_features, 10), hidden_size=64, num_attention_heads=4, dropout=0.1
+                input_size=max(n_features, 10),
+                hidden_size=64,
+                num_attention_heads=4,
+                dropout=0.1,
             )
 
             # データ準備
-            X, y = self.model.prepare_sequences(df, sequence_length=30, forecast_horizon=5)
+            X, y = self.model.prepare_sequences(
+                df, sequence_length=30, forecast_horizon=5
+            )
 
             if len(X) < 50:
                 logger.warning("Not enough sequences for TFT training")
@@ -138,7 +153,9 @@ class TransformerPredictor(BasePredictor):
 
             # 訓練
             logger.info("Training TFT model...")
-            self.model.fit(X, y, epochs=30, batch_size=32, validation_split=0.2, verbose=0)
+            self.model.fit(
+                X, y, epochs=30, batch_size=32, validation_split=0.2, verbose=0
+            )
 
             # 保存
             os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
@@ -178,7 +195,9 @@ class TransformerPredictor(BasePredictor):
                 return {"error": "Insufficient data for TFT prediction"}
 
             # 最後のシーケンスを取得
-            X, _ = self.model.prepare_sequences(df_features, sequence_length=30, forecast_horizon=days_ahead)
+            X, _ = self.model.prepare_sequences(
+                df_features, sequence_length=30, forecast_horizon=days_ahead
+            )
 
             if len(X) == 0:
                 return {"error": "Failed to prepare sequences"}
@@ -190,7 +209,9 @@ class TransformerPredictor(BasePredictor):
             # 価格に変換（正規化を元に戻す）
             current_price = df["Close"].iloc[-1]
             # 予測値は変化率として解釈
-            predicted_prices = [current_price * (1 + p) for p in predictions[:days_ahead]]
+            predicted_prices = [
+                current_price * (1 + p) for p in predictions[:days_ahead]
+            ]
 
             # トレンド判定
             trend = "FLAT"
@@ -204,7 +225,9 @@ class TransformerPredictor(BasePredictor):
                 "predictions": predicted_prices,
                 "peak_price": max(predicted_prices),
                 "trend": trend,
-                "change_pct": (predicted_prices[-1] - current_price) / current_price * 100,
+                "change_pct": (predicted_prices[-1] - current_price)
+                / current_price
+                * 100,
                 "model": "TFT",
             }
 

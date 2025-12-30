@@ -1,5 +1,4 @@
 import logging
-import os
 
 from src.smart_notifier import SmartNotifier
 
@@ -9,13 +8,21 @@ class EmergencyHandler:
     システムの緊急停止処理を管理します。
     """
 
-    def __init__(self, config: dict, paper_trader, logger: logging.Logger, notifier: SmartNotifier):
+    def __init__(
+        self,
+        config: dict,
+        paper_trader,
+        logger: logging.Logger,
+        notifier: SmartNotifier,
+    ):
         self.config = config
         self.pt = paper_trader
         self.logger = logger
         self.notifier = notifier
         self.backup_enabled = True  # FullyAutomatedTraderから引き継ぎ
-        self.backup_manager = None  # FullyAutomatedTraderから引き継ぎ、必要なら初期化時に設定
+        self.backup_manager = (
+            None  # FullyAutomatedTraderから引き継ぎ、必要なら初期化時に設定
+        )
 
     def trigger_emergency_stop(self, reason: str):
         """

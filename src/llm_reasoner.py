@@ -39,7 +39,7 @@ class LLMReasoner:
         self.openai_client = None
 
         # Model Names
-        self.gemini_model_name = "gemini-2.0-flash-exp" # Latest experimental model
+        self.gemini_model_name = "gemini-2.0-flash-exp"  # Latest experimental model
         self.openai_model_name = "gpt-4o-mini"
         self.ollama_url = "http://localhost:11434/api/generate"
         self.ollama_model = "llama3"
@@ -55,22 +55,28 @@ class LLMReasoner:
         try:
             with open("config.json", "r", encoding="utf-8") as f:
                 config = json.load(f)
-    
+
                 def is_valid(k):
                     return k and k != "YOUR_API_KEY_HERE" and not k.startswith("YOUR_")
 
-                self.gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")  # From ENV
+                self.gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv(
+                    "GOOGLE_API_KEY"
+                )  # From ENV
                 if not self.gemini_api_key:
-                    k = config.get("gemini_api_key") or config.get("gemini", {}).get("api_key")
+                    k = config.get("gemini_api_key") or config.get("gemini", {}).get(
+                        "api_key"
+                    )
                     if is_valid(k):
                         self.gemini_api_key = k
 
                 self.openai_api_key = os.getenv("OPENAI_API_KEY")
                 if not self.openai_api_key:
-                    k = config.get("openai_api_key") or config.get("ai_committee", {}).get("api_key")
+                    k = config.get("openai_api_key") or config.get(
+                        "ai_committee", {}
+                    ).get("api_key")
                     if is_valid(k):
                         self.openai_api_key = k
-            
+
         except Exception as e:
             logger.warning(f"Could not load config.json: {e}")
 
@@ -137,7 +143,9 @@ class LLMReasoner:
     def analyze_image(self, image_path: str, prompt: str) -> Dict[str, Any]:
         """画像分析 (マルチモーダル)"""
         if self.provider != "gemini":
-            logger.warning(f"Vision analysis is only supported for Gemini. Current: {self.provider}")
+            logger.warning(
+                f"Vision analysis is only supported for Gemini. Current: {self.provider}"
+            )
             return self._get_fallback_response("Vision not supported for this provider")
 
         try:
@@ -151,7 +159,9 @@ class LLMReasoner:
             logger.error(f"Image analysis error: {e}")
             return self._get_fallback_response(str(e))
 
-    def analyze_market_impact(self, news_text: str, market_data: Dict[str, Any]) -> Dict[str, Any]:
+    def analyze_market_impact(
+        self, news_text: str, market_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """ニュースと市場データからインパクトを分析"""
         prompt = self._create_prompt(news_text, market_data)
 
@@ -162,16 +172,19 @@ class LLMReasoner:
         else:
             return self._call_ollama(prompt, json_mode=True)
 
-    def chat_with_context(self, user_message: str, history: list, context_data: str) -> str:
+    def chat_with_context(
+        self, user_message: str, history: list, context_data: str
+    ) -> str:
         """コンテキストを考慮してチャット応答を生成"""
         system_prompt = f"""
         あなたはAI投資システムの高度なアシスタント「Ghostwriter」です。
         以下の市場・ポートフォリオ状況（Context）を踏まえて、ユーザーの質問に日本語で答えてください。
-        
-        ## 現在の状況 (Context)
+
+## 現在の状況 (Context)
         {context_data}
-        
+
         回答のガイドライン:
+            pass
         1. 専門家として振る舞い、論理的に回答してください。
         2. データに基づかない推測をする場合は、その旨を明示してください。
         3. 投資助言ではないことを含ませつつ、有益な視点を提供してください。
@@ -193,21 +206,23 @@ class LLMReasoner:
 
         news_text = ""
         for i, item in enumerate(news_list):
-            news_text += f"{i+1}. {item.get('title', '')} ({item.get('published', '')})\n"
+            news_text += (
+                f"{i + 1}. {item.get('title', '')} ({item.get('published', '')})\n"
+            )
 
         prompt = f"""
         あなたはAIヘッジファンドのチーフアナリストです。
         以下の最新ニュースを分析し、現在の市場センチメントをスコアリングしてください。
-        
-        ## 最新ニュース
+
+## 最新ニュース
         {news_text}
-        
-        ## 分析タスク
+
+## 分析タスク
         1. ニュース全体のセンチメントを -10 (超弱気) 〜 +10 (超強気) で評価してください。
         2. その理由を簡潔に要約してください。
         3. 特に注目すべきトピックがあれば挙げてください。
-        
-        ## 出力フォーマット (JSONのみ)
+
+## 出力フォーマット (JSONのみ)
         {{
             "sentiment_score": 0,
             "sentiment_label": "BULLISH/BEARISH/NEUTRAL",
@@ -234,11 +249,11 @@ class LLMReasoner:
         prompt = f"""
         あなたはベテランの証券アナリストです。
         以下の決算資料（テキスト抽出版）を読み込み、投資家向けに要約・評価してください。
-        
-        ## 決算資料テキスト
+
+## 決算資料テキスト
         {pdf_text}
-        
-        ## 分析フォーマット (JSONのみ)
+
+## 分析フォーマット (JSONのみ)
         {{
             "score": 0,  // 0〜10のスコア (10が最高、5が中立)
             "summary": "全体の要約（日本語で200文字程度）",
@@ -261,16 +276,18 @@ class LLMReasoner:
         else:
             return self._call_ollama(prompt, json_mode=True)
 
-    def generate_strategy_code(self, description: str, class_name: str = "CustomGenStrategy") -> str:
+    def generate_strategy_code(
+        self, description: str, class_name: str = "CustomGenStrategy"
+    ) -> str:
         """ユーザーの説明に基づいて戦略コード(Python)を生成"""
         prompt = f"""
         あなたはPythonのエキスパートであり、定量的トレーディングのスペシャリストです。
         以下の要件に基づいて、`src.strategies.base.Strategy` を継承した独自の戦略クラスを実装してください。
-        
-        ## ユーザーの要件
+
+## ユーザーの要件
         "{description}"
-        
-        ## 実装ガイドライン
+
+## 実装ガイドライン
         1. クラス名は `{class_name}` としてください。
         2. `generate_signals(self, df: pd.DataFrame) -> pd.Series` メソッドを実装してください。
            - `df` には 'Close', 'High', 'Low', 'Volume' カラムが含まれます。
@@ -278,21 +295,21 @@ class LLMReasoner:
         3. 必要なTA-Libやpandasの計算ロジックを含めてください。
         4. 説明コメントを日本語で記述してください。
         5. 出力はPythonコードのみ（Markdownの ```python 等は不要）にしてください。
-        
-        ## テンプレート
+
+## テンプレート
         from src.strategies.base import Strategy
         import pandas as pd
         import talib
-        
+
         class {class_name}(Strategy):
             def __init__(self):
                 super().__init__("{class_name}")
 
             def generate_signals(self, df: pd.DataFrame) -> pd.Series:
-                # ここにロジックを実装
+# ここにロジックを実装
                 pass
         """
-        
+
         # User Request: Prioritize Gemini 2.0 for coding tasks
         if self.gemini_api_key:
             if not hasattr(self, "gemini_model") or self.gemini_model is None:
@@ -310,14 +327,14 @@ class LLMReasoner:
         return f"""
         あなたはプロの金融アナリストです。以下の市場データとニュースに基づいて、
         市場の状況と今後の予測をJSON形式で出力してください。
-        
-        ## 市場データ
+
+## 市場データ
         {json.dumps(market_data, ensure_ascii=False)}
-        
-        ## 最新ニュース
+
+## 最新ニュース
         {news_text}
-        
-        ## 出力フォーマット (JSONのみ)
+
+## 出力フォーマット (JSONのみ)
         {{
             "sentiment": "BULLISH/BEARISH/NEUTRAL",
             "reasoning": "簡潔な分析理由（100文字以内）",

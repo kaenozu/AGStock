@@ -8,7 +8,6 @@ from typing import Any, Dict, List, Optional, Union
 import numpy as np
 import pandas as pd
 
-from src.logger_config import logger
 from src.strategies.base import Order, OrderType
 
 
@@ -206,20 +205,20 @@ class BacktestExecutor:
                 should_execute = True
             elif signal.type == OrderType.LIMIT:
                 if signal.action.upper() == "BUY":
-                    if aligned_data[ticker]["Low"].iloc[i + 1] <= signal.price:
+                    if today_low <= signal.price:
                         should_execute = True
                         fill_price = min(signal.price, exec_price)
                 else:  # SELL
-                    if aligned_data[ticker]["High"].iloc[i + 1] >= signal.price:
+                    if today_high >= signal.price:
                         should_execute = True
                         fill_price = max(signal.price, exec_price)
             elif signal.type == OrderType.STOP:
                 if signal.action.upper() == "BUY":
-                    if aligned_data[ticker]["High"].iloc[i + 1] >= signal.price:
+                    if today_high >= signal.price:
                         should_execute = True
                         fill_price = max(signal.price, exec_price)
                 else:  # SELL
-                    if aligned_data[ticker]["Low"].iloc[i + 1] <= signal.price:
+                    if today_low <= signal.price:
                         should_execute = True
                         fill_price = min(signal.price, exec_price)
 

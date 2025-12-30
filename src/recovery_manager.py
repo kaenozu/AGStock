@@ -21,7 +21,12 @@ class RecoveryManager:
         self.failure_count = {}
         self.circuit_open_until = {}
 
-    def retry_with_backoff(self, func: Callable, max_retries: Optional[int] = None, backoff_factor: float = 2.0) -> Any:
+    def retry_with_backoff(
+        self,
+        func: Callable,
+        max_retries: Optional[int] = None,
+        backoff_factor: float = 2.0,
+    ) -> Any:
         """
         Retry a function with exponential backoff.
 
@@ -44,7 +49,9 @@ class RecoveryManager:
                     logger.error(f"Failed after {retries} attempts: {e}")
                     raise
 
-                logger.warning(f"Attempt {attempt + 1} failed: {e}. Retrying in {delay}s...")
+                logger.warning(
+                    f"Attempt {attempt + 1} failed: {e}. Retrying in {delay}s..."
+                )
                 time.sleep(delay)
                 delay *= backoff_factor
 
@@ -76,11 +83,18 @@ class RecoveryManager:
 
                 except Exception:
                     # Increment failure count
-                    self.failure_count[service_name] = self.failure_count.get(service_name, 0) + 1
+                    self.failure_count[service_name] = (
+                        self.failure_count.get(service_name, 0) + 1
+                    )
 
                     # Open circuit if threshold exceeded
-                    if self.failure_count[service_name] >= self.circuit_breaker_threshold:
-                        self.circuit_open_until[service_name] = time.time() + self.circuit_breaker_timeout
+                    if (
+                        self.failure_count[service_name]
+                        >= self.circuit_breaker_threshold
+                    ):
+                        self.circuit_open_until[service_name] = (
+                            time.time() + self.circuit_breaker_timeout
+                        )
                         logger.error(f"Circuit breaker opened for {service_name}")
 
                     raise
@@ -144,7 +158,7 @@ class RecoveryManager:
         try:
             from src.paper_trader import PaperTrader
 
-            pt = PaperTrader()
+            PaperTrader()
             # Implementation would depend on trade tracking
             # For now, just log
             logger.info(f"Rolling back trade {trade_id}")
@@ -175,7 +189,11 @@ class RecoveryManager:
 
             detector = AnomalyDetector()
             detector.send_alert(
-                {"type": "EMERGENCY_SHUTDOWN", "severity": "CRITICAL", "message": f"System shutdown: {reason}"}
+                {
+                    "type": "EMERGENCY_SHUTDOWN",
+                    "severity": "CRITICAL",
+                    "message": f"System shutdown: {reason}",
+                }
             )
 
             logger.info("Emergency shutdown complete")
@@ -195,7 +213,9 @@ def auto_retry(max_retries: int = 3):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            return recovery_manager.retry_with_backoff(lambda: func(*args, **kwargs), max_retries=max_retries)
+            return recovery_manager.retry_with_backoff(
+                lambda: func(*args, **kwargs), max_retries=max_retries
+            )
 
         return wrapper
 

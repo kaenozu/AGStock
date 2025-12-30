@@ -3,9 +3,10 @@ from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 
+
 class PositionSizer:
     """
-    Calculates the optimal trade size using the Kelly Criterion 
+    Calculates the optimal trade size using the Kelly Criterion
     and historical performance metrics.
     """
 
@@ -13,7 +14,9 @@ class PositionSizer:
         self.max_position_pct = max_position_pct
         self.default_win_rate = default_win_rate
 
-    def calculate_size(self, ticker: str, total_equity: float, win_rate: float = None) -> Dict[str, Any]:
+    def calculate_size(
+        self, ticker: str, total_equity: float, win_rate: float = None
+    ) -> Dict[str, Any]:
         """
         Uses Kelly Criterion: f* = (bp - q) / b
         f* = Fraction of capital to bet
@@ -23,18 +26,18 @@ class PositionSizer:
         """
         p = win_rate if win_rate is not None else self.default_win_rate
         q = 1.0 - p
-        
+
         # Assume generic b=1.5 (Profit 1.5x of Risk) if not specified
-        b = 1.5 
-        
+        b = 1.5
+
         kelly_f = (b * p - q) / b
-        
+
         # Adjust for 'Fractional Kelly' for safety (e.g., half-Kelly)
-        safe_f = max(0, kelly_f * 0.5) 
-        
+        safe_f = max(0, kelly_f * 0.5)
+
         # Cap at max position size
         final_f = min(safe_f, self.max_position_pct)
-        
+
         amount = total_equity * final_f
 
         return {
@@ -42,5 +45,5 @@ class PositionSizer:
             "equity_fraction": round(final_f, 4),
             "amount": round(amount, 0),
             "method": "Kelly Criterion (Half-Kelly)",
-            "params": {"win_rate": p, "profit_loss_ratio": b}
+            "params": {"win_rate": p, "profit_loss_ratio": b},
         }

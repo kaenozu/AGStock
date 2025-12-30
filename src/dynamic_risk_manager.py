@@ -68,7 +68,9 @@ class DynamicRiskManager:
         }
 
         # 履歴に追加
-        self.parameter_history.append({"timestamp": pd.Timestamp.now(), "params": self.current_params.copy()})
+        self.parameter_history.append(
+            {"timestamp": pd.Timestamp.now(), "params": self.current_params.copy()}
+        )
 
         logger.info(f"Parameters updated for regime: {self.current_regime}")
         logger.info(
@@ -79,7 +81,9 @@ class DynamicRiskManager:
 
         return self.current_params
 
-    def _calculate_volatility_adjustment(self, df: pd.DataFrame, lookback: int = 20) -> float:
+    def _calculate_volatility_adjustment(
+        self, df: pd.DataFrame, lookback: int = 20
+    ) -> float:
         """
         ボラティリティに基づく調整係数を計算
 
@@ -94,16 +98,24 @@ class DynamicRiskManager:
             from ta.volatility import AverageTrueRange
 
             # ATR計算
-            atr_indicator = AverageTrueRange(high=df["High"], low=df["Low"], close=df["Close"], window=lookback)
+            atr_indicator = AverageTrueRange(
+                high=df["High"], low=df["Low"], close=df["Close"], window=lookback
+            )
 
             current_atr = atr_indicator.average_true_range().iloc[-1]
-            historical_atr = atr_indicator.average_true_range().iloc[-lookback * 2 : -lookback].mean()
+            historical_atr = (
+                atr_indicator.average_true_range()
+                .iloc[-lookback * 2: -lookback]
+                .mean()
+            )
 
             # 現在のボラティリティ / 過去の平均ボラティリティ
             adjustment = current_atr / historical_atr if historical_atr > 0 else 1.0
 
         except Exception as e:
-            logger.warning(f"Error calculating volatility adjustment: {e}. Using default.")
+            logger.warning(
+                f"Error calculating volatility adjustment: {e}. Using default."
+            )
             adjustment = 1.0
 
         # 極端な値を制限
@@ -176,11 +188,16 @@ class DynamicRiskManager:
         else:  # short
             stop_loss_price = entry_price * (1 + stop_loss_pct)
 
-        logger.info(f"Stop loss price for {direction}: {stop_loss_price:.2f} " f"({stop_loss_pct*100:.2f}% from entry)")
+        logger.info(
+            f"Stop loss price for {direction}: {stop_loss_price:.2f} "
+            f"({stop_loss_pct * 100:.2f}% from entry)"
+        )
 
         return stop_loss_price
 
-    def calculate_take_profit(self, entry_price: float, direction: str = "long") -> float:
+    def calculate_take_profit(
+        self, entry_price: float, direction: str = "long"
+    ) -> float:
         """
         動的利確価格を計算
 
@@ -199,12 +216,15 @@ class DynamicRiskManager:
             take_profit_price = entry_price * (1 - take_profit_pct)
 
         logger.info(
-            f"Take profit price for {direction}: {take_profit_price:.2f} " f"({take_profit_pct*100:.2f}% from entry)"
+            f"Take profit price for {direction}: {take_profit_price:.2f} "
+            f"({take_profit_pct * 100:.2f}% from entry)"
         )
 
         return take_profit_price
 
-    def should_enter_trade(self, signal_strength: float = 0.7, min_strength: float = 0.6) -> bool:
+    def should_enter_trade(
+        self, signal_strength: float = 0.7, min_strength: float = 0.6
+    ) -> bool:
         """
         トレードに入るべきか判断
 
@@ -247,7 +267,9 @@ class DynamicRiskManager:
             "take_profit_pct": self.current_params.get("take_profit", 0) * 100,
             "position_size_multiplier": self.current_params.get("position_size", 1.0),
             "strategy": self.current_params.get("strategy", "unknown"),
-            "volatility_adjustment": self.current_params.get("volatility_adjustment", 1.0),
+            "volatility_adjustment": self.current_params.get(
+                "volatility_adjustment", 1.0
+            ),
         }
 
     def get_parameter_history(self, n: int = 10) -> list:
@@ -296,7 +318,9 @@ if __name__ == "__main__":
     entry_price = 100
     stop_loss = risk_manager.calculate_stop_loss(entry_price, "long")
     take_profit = risk_manager.calculate_take_profit(entry_price, "long")
-    print(f"Entry: {entry_price}, Stop loss: {stop_loss:.2f}, Take profit: {take_profit:.2f}")
+    print(
+        f"Entry: {entry_price}, Stop loss: {stop_loss:.2f}, Take profit: {take_profit:.2f}"
+    )
 
     # リスク指標
     metrics = risk_manager.get_risk_metrics()

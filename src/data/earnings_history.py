@@ -6,6 +6,7 @@ from typing import List, Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
+
 class EarningsHistory:
     """Manages persistence of earnings analysis reports."""
 
@@ -18,7 +19,8 @@ class EarningsHistory:
         try:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
+                cursor.execute(
+                    """
                     CREATE TABLE IF NOT EXISTS earnings_reports (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         timestamp TEXT NOT NULL,
@@ -31,19 +33,26 @@ class EarningsHistory:
                         sector TEXT,
                         industry TEXT
                     )
-                """)
+                """
+                )
                 # Handle migration if ticker column doesn't exist
                 try:
                     cursor.execute("SELECT ticker FROM earnings_reports LIMIT 1")
                 except sqlite3.OperationalError:
-                    cursor.execute("ALTER TABLE earnings_reports ADD COLUMN ticker TEXT")
-                
+                    cursor.execute(
+                        "ALTER TABLE earnings_reports ADD COLUMN ticker TEXT"
+                    )
+
                 try:
                     cursor.execute("SELECT sector FROM earnings_reports LIMIT 1")
                 except sqlite3.OperationalError:
-                    cursor.execute("ALTER TABLE earnings_reports ADD COLUMN sector TEXT")
-                    cursor.execute("ALTER TABLE earnings_reports ADD COLUMN industry TEXT")
-                
+                    cursor.execute(
+                        "ALTER TABLE earnings_reports ADD COLUMN sector TEXT"
+                    )
+                    cursor.execute(
+                        "ALTER TABLE earnings_reports ADD COLUMN industry TEXT"
+                    )
+
                 conn.commit()
         except Exception as e:
             logger.error(f"Failed to initialize earnings DB: {e}")
@@ -64,10 +73,23 @@ class EarningsHistory:
 
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT INTO earnings_reports (timestamp, ticker, company_name, period, score, summary, raw_json, sector, industry)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (timestamp, ticker, company_name, period, score, summary, raw_json, sector, industry))
+                """,
+                    (
+                        timestamp,
+                        ticker,
+                        company_name,
+                        period,
+                        score,
+                        summary,
+                        raw_json,
+                        sector,
+                        industry,
+                    ),
+                )
                 conn.commit()
             return True
         except Exception as e:
@@ -80,20 +102,23 @@ class EarningsHistory:
             with sqlite3.connect(self.db_path) as conn:
                 conn.row_factory = sqlite3.Row
                 cursor = conn.cursor()
-                cursor.execute("""
-                    SELECT * FROM earnings_reports 
+                cursor.execute(
+                    """
+                    SELECT * FROM earnings_reports
                     WHERE ticker = ? OR company_name LIKE ?
                     ORDER BY timestamp DESC LIMIT 1
-                """, (ticker, f"%{ticker}%"))
+                """,
+                    (ticker, f"%{ticker}%"),
+                )
                 row = cursor.fetchone()
-                
+
                 if not row:
                     return None
-                
+
                 item = dict(row)
                 try:
                     item["analysis"] = json.loads(item["raw_json"])
-                except:
+                except BaseException:
                     item["analysis"] = {}
                 return item
         except Exception as e:
@@ -106,19 +131,22 @@ class EarningsHistory:
             with sqlite3.connect(self.db_path) as conn:
                 conn.row_factory = sqlite3.Row
                 cursor = conn.cursor()
-                cursor.execute("""
-                    SELECT * FROM earnings_reports 
+                cursor.execute(
+                    """
+                    SELECT * FROM earnings_reports
                     ORDER BY timestamp DESC LIMIT ?
-                """, (limit,))
+                """,
+                    (limit,),
+                )
                 rows = cursor.fetchall()
-                
+
                 history = []
                 for row in rows:
                     item = dict(row)
                     # Parse raw_json back to dict for easy usage
                     try:
                         item["analysis"] = json.loads(item["raw_json"])
-                    except:
+                    except BaseException:
                         item["analysis"] = {}
                     history.append(item)
                 return history

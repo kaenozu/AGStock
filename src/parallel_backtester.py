@@ -21,7 +21,11 @@ class ParallelBacktester:
         self.n_jobs = n_jobs or max(1, cpu_count() - 1)
 
     def run_parallel_backtest(
-        self, tickers: List[str], strategies: List, data_map: Dict[str, pd.DataFrame], **kwargs
+        self,
+        tickers: List[str],
+        strategies: List,
+        data_map: Dict[str, pd.DataFrame],
+        **kwargs,
     ) -> pd.DataFrame:
         """
         並列バックテスト実行
@@ -54,7 +58,9 @@ class ParallelBacktester:
             return pd.DataFrame()
 
     @staticmethod
-    def _run_single_backtest(ticker: str, strategy, data: pd.DataFrame, params: Dict) -> Dict:
+    def _run_single_backtest(
+        ticker: str, strategy, data: pd.DataFrame, params: Dict
+    ) -> Dict:
         """
         単一バックテスト実行
 
@@ -75,7 +81,8 @@ class ParallelBacktester:
             from src.backtester import Backtester
 
             backtester = Backtester(
-                initial_capital=params.get("initial_capital", 1000000), commission=params.get("commission", 0.001)
+                initial_capital=params.get("initial_capital", 1000000),
+                commission=params.get("commission", 0.001),
             )
 
             result = backtester.run(data, signals)
@@ -90,7 +97,11 @@ class ParallelBacktester:
                 "num_trades": result.get("num_trades", 0),
             }
         except Exception as e:
-            return {"ticker": ticker, "strategy": strategy.__class__.__name__, "error": str(e)}
+            return {
+                "ticker": ticker,
+                "strategy": strategy.__class__.__name__,
+                "error": str(e),
+            }
 
     def run_walk_forward_parallel(
         self,
@@ -125,8 +136,8 @@ class ParallelBacktester:
 
             # ウォークフォワードウィンドウ生成
             for i in range(0, len(data) - train_size - test_size, test_size):
-                train_data = data.iloc[i : i + train_size]
-                test_data = data.iloc[i + train_size : i + train_size + test_size]
+                train_data = data.iloc[i: i + train_size]
+                test_data = data.iloc[i + train_size: i + train_size + test_size]
 
                 tasks.append((ticker, strategy, train_data, test_data, i, kwargs))
 
@@ -138,7 +149,12 @@ class ParallelBacktester:
 
     @staticmethod
     def _run_walk_forward_window(
-        ticker: str, strategy, train_data: pd.DataFrame, test_data: pd.DataFrame, window_idx: int, params: Dict
+        ticker: str,
+        strategy,
+        train_data: pd.DataFrame,
+        test_data: pd.DataFrame,
+        window_idx: int,
+        params: Dict,
     ) -> Dict:
         """ウォークフォワードウィンドウ実行"""
         try:
@@ -150,7 +166,9 @@ class ParallelBacktester:
 
             from src.backtester import Backtester
 
-            backtester = Backtester(initial_capital=params.get("initial_capital", 1000000))
+            backtester = Backtester(
+                initial_capital=params.get("initial_capital", 1000000)
+            )
 
             result = backtester.run(test_data, signals)
 
@@ -185,19 +203,21 @@ def benchmark_backtest_speed():
     for ticker in tickers:
         if ticker in data_map:
             for strategy in strategies:
-                result = ParallelBacktester._run_single_backtest(ticker, strategy, data_map[ticker], {})
+                result = ParallelBacktester._run_single_backtest(
+                    ticker, strategy, data_map[ticker], {}
+                )
                 results_single.append(result)
     single_time = time.time() - start
 
     # マルチプロセス
     start = time.time()
     backtester = ParallelBacktester()
-    results_parallel = backtester.run_parallel_backtest(tickers, strategies, data_map)
+    backtester.run_parallel_backtest(tickers, strategies, data_map)
     parallel_time = time.time() - start
 
     print(f"Single-threaded: {single_time:.2f}s")
     print(f"Multi-process: {parallel_time:.2f}s")
-    print(f"Speedup: {single_time/parallel_time:.2f}x")
+    print(f"Speedup: {single_time / parallel_time:.2f}x")
 
 
 if __name__ == "__main__":

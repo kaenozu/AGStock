@@ -4,9 +4,8 @@ Reddit, RSSフィードから投資家の「熱量(Hype)」を測定する
 """
 
 import logging
-import re
 from collections import Counter
-from typing import Dict, List
+from typing import Dict
 
 import feedparser
 

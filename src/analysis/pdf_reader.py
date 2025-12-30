@@ -1,3 +1,4 @@
+from src.prompts.earnings_prompts import EARNINGS_ANALYSIS_SYSTEM_PROMPT
 import logging
 from typing import Dict
 
@@ -23,11 +24,10 @@ class PDFExtractor:
         """
         text = PDFLoader.extract_text(file_stream, return_error_message=True)
         if not text:
-            logger.error("PDF extraction returned no text. The PDF may be image-based or corrupted.")
+            logger.error(
+                "PDF extraction returned no text. The PDF may be image-based or corrupted."
+            )
         return text
-
-
-from src.prompts.earnings_prompts import EARNINGS_ANALYSIS_SYSTEM_PROMPT
 
 
 class EarningsAnalyzer:
@@ -46,8 +46,10 @@ class EarningsAnalyzer:
         if len(text) > max_chars:
             text = text[:max_chars] + "...(truncated)..."
 
-        prompt = f"{EARNINGS_ANALYSIS_SYSTEM_PROMPT}\n\n## EARNINGS REPORT TEXT:\n{text}"
-        
+        prompt = (
+            f"{EARNINGS_ANALYSIS_SYSTEM_PROMPT}\n\n## EARNINGS REPORT TEXT:\n{text}"
+        )
+
         try:
             return self.llm.generate_json(prompt)
         except Exception as e:
@@ -58,5 +60,5 @@ class EarningsAnalyzer:
                 "bullish_factors": [],
                 "bearish_factors": [],
                 "key_metrics": {},
-                "risk_assessment": "Analysis Error"
+                "risk_assessment": "Analysis Error",
             }

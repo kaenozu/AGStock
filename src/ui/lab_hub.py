@@ -21,6 +21,6 @@ def render_lab_hub():
 
     with tabs[2]:
         render_rl_training_ui()
-        
+
     with tabs[3]:
         render_gen_lab()

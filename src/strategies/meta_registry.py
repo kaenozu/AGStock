@@ -19,10 +19,10 @@ from src.strategies import (
 
 # Universal strategies that should run in all conditions
 UNIVERSAL_STRATEGIES = [
-    EnsembleStrategy,    # The Meta-Model
-    SentimentStrategy,   # News impact is independent of price action
-    DeepLearningStrategy, # Robust ML
-    LightGBMStrategy,    # Robust ML
+    EnsembleStrategy,  # The Meta-Model
+    SentimentStrategy,  # News impact is independent of price action
+    DeepLearningStrategy,  # Robust ML
+    LightGBMStrategy,  # Robust ML
 ]
 
 # Regime-Specific Strategy Mapping
@@ -31,7 +31,7 @@ REGIME_STRATEGY_MAP = {
     "trending_up": [
         SMACrossoverStrategy,
         MultiTimeframeStrategy,
-        TransformerStrategy, # Good at catching trends
+        TransformerStrategy,  # Good at catching trends
     ],
     "trending_down": [
         SMACrossoverStrategy,
@@ -43,17 +43,18 @@ REGIME_STRATEGY_MAP = {
         BollingerBandsStrategy,
     ],
     "low_volatility": [
-        RSIStrategy, # scalping in quiet markets
+        RSIStrategy,  # scalping in quiet markets
         CombinedStrategy,
     ],
     "high_volatility": [
-        BollingerBandsStrategy, # Mean reversion at extremes
-        RLStrategy,             # Adaptive agent for complex conditions
+        BollingerBandsStrategy,  # Mean reversion at extremes
+        RLStrategy,  # Adaptive agent for complex conditions
     ],
     "uncertain": [
-        CombinedStrategy,       # Conservative multi-factor
-    ]
+        CombinedStrategy,  # Conservative multi-factor
+    ],
 }
+
 
 def get_strategies_for_regime(regime: str) -> list:
     """
@@ -62,7 +63,7 @@ def get_strategies_for_regime(regime: str) -> list:
     """
     # 1. Start with Universal
     strategy_classes = list(UNIVERSAL_STRATEGIES)
-    
+
     # 2. Add Regime Specific
     # Map 'high_volatility' -> use list
     specific = REGIME_STRATEGY_MAP.get(regime, REGIME_STRATEGY_MAP.get("ranging"))
@@ -70,5 +71,5 @@ def get_strategies_for_regime(regime: str) -> list:
         for s in specific:
             if s not in strategy_classes:
                 strategy_classes.append(s)
-                
+
     return strategy_classes

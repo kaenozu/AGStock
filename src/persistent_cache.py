@@ -50,7 +50,9 @@ class PersistentCache:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
 
-                cursor.execute("SELECT value, expires_at FROM cache WHERE key = ?", (key,))
+                cursor.execute(
+                    "SELECT value, expires_at FROM cache WHERE key = ?", (key,)
+                )
 
                 row = cursor.fetchone()
 
@@ -108,7 +110,10 @@ class PersistentCache:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
 
-                cursor.execute("DELETE FROM cache WHERE expires_at < ?", (datetime.now().isoformat(),))
+                cursor.execute(
+                    "DELETE FROM cache WHERE expires_at < ?",
+                    (datetime.now().isoformat(),),
+                )
 
                 deleted = cursor.rowcount
                 conn.commit()
@@ -129,10 +134,17 @@ class PersistentCache:
                 cursor.execute("SELECT COUNT(*) FROM cache")
                 total = cursor.fetchone()[0]
 
-                cursor.execute("SELECT COUNT(*) FROM cache WHERE expires_at >= ?", (datetime.now().isoformat(),))
+                cursor.execute(
+                    "SELECT COUNT(*) FROM cache WHERE expires_at >= ?",
+                    (datetime.now().isoformat(),),
+                )
                 valid = cursor.fetchone()[0]
 
-            return {"total_entries": total, "valid_entries": valid, "expired_entries": total - valid}
+            return {
+                "total_entries": total,
+                "valid_entries": valid,
+                "expired_entries": total - valid,
+            }
 
         except Exception as e:
             logger.warning(f"Stats error: {e}")

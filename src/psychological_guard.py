@@ -51,7 +51,7 @@ class PsychologicalGuard:
         if unrealized_pnl_pct <= self.config["max_loss_per_trade"]:
             return {
                 "action": "SELL_NOW",
-                "reason": f"損切りライン到達: {unrealized_pnl_pct*100:.1f}%",
+                "reason": f"損切りライン到達: {unrealized_pnl_pct * 100:.1f}%",
                 "urgency": "HIGH",
                 "psychological_trap": "損失回避バイアス",
             }
@@ -80,14 +80,16 @@ class PsychologicalGuard:
         if drawdown_from_peak <= -self.config["trailing_stop_pct"]:
             return {
                 "action": "SELL_NOW",
-                "reason": f"トレーリングストップ: ピークから{abs(drawdown_from_peak)*100:.1f}%下落",
+                "reason": f"トレーリングストップ: ピークから{abs(drawdown_from_peak) * 100:.1f}%下落",
                 "urgency": "MEDIUM",
                 "psychological_trap": "後悔回避バイアス",
             }
 
         return {"action": "HOLD", "reason": "OK"}
 
-    def check_position_size(self, ticker: str, target_value: float, total_equity: float) -> Dict:
+    def check_position_size(
+        self, ticker: str, target_value: float, total_equity: float
+    ) -> Dict:
         """
         ポジションサイズチェック
 
@@ -105,7 +107,7 @@ class PsychologicalGuard:
         if position_pct > max_allowed:
             return {
                 "action": "REDUCE_SIZE",
-                "reason": f"ポジションサイズ超過: {position_pct*100:.1f}% > {max_allowed*100:.0f}%",
+                "reason": f"ポジションサイズ超過: {position_pct * 100:.1f}% > {max_allowed * 100:.0f}%",
                 "recommended_size": total_equity * max_allowed,
                 "psychological_trap": "過信バイアス",
             }
@@ -143,13 +145,22 @@ class PsychologicalGuard:
             action: BUY or SELL
             pnl: 損益（SELLの場合）
         """
-        trade = {"timestamp": datetime.now(), "ticker": ticker, "action": action, "pnl": pnl}
+        trade = {
+            "timestamp": datetime.now(),
+            "ticker": ticker,
+            "action": action,
+            "pnl": pnl,
+        }
 
         self.trade_history.append(trade)
 
         # 損失が大きい場合、クーリングオフ期間を設定
-        if action == "SELL" and pnl < self.config["revenge_trading_threshold"] * 10000:  # 仮に資産1000万円として
-            end_date = datetime.now() + timedelta(days=self.config["cooling_period_days"])
+        if (
+            action == "SELL" and pnl < self.config["revenge_trading_threshold"] * 10000
+        ):  # 仮に資産1000万円として
+            end_date = datetime.now() + timedelta(
+                days=self.config["cooling_period_days"]
+            )
             self.cooling_off_stocks[ticker] = end_date
             self.logger.warning(f"Cooling period set for {ticker} until {end_date}")
 
@@ -166,7 +177,9 @@ class PsychologicalGuard:
         target_date = date or datetime.now().date()
 
         # 今日の取引回数
-        today_trades = [t for t in self.trade_history if t["timestamp"].date() == target_date]
+        today_trades = [
+            t for t in self.trade_history if t["timestamp"].date() == target_date
+        ]
 
         if len(today_trades) >= self.config["max_daily_trades"]:
             return {
@@ -200,7 +213,9 @@ class PsychologicalGuard:
 
         return {"action": "OK", "reason": "Holding period sufficient"}
 
-    def comprehensive_check(self, position: Dict, peak_price: float, total_equity: float) -> Dict:
+    def comprehensive_check(
+        self, position: Dict, peak_price: float, total_equity: float
+    ) -> Dict:
         """
         包括的なチェック
 
@@ -218,9 +233,13 @@ class PsychologicalGuard:
         checks = {
             "stop_loss": self.check_stop_loss(position),
             "trailing_stop": self.check_trailing_stop(position, peak_price),
-            "cooling_period": {"action": "BLOCKED"} if self.is_in_cooling_period(ticker) else {"action": "OK"},
+            "cooling_period": {"action": "BLOCKED"}
+            if self.is_in_cooling_period(ticker)
+            else {"action": "OK"},
             "overtrading": self.check_overtrading(),
-            "holding_period": self.check_min_holding_period(position.get("entry_date", datetime.now())),
+            "holding_period": self.check_min_holding_period(
+                position.get("entry_date", datetime.now())
+            ),
         }
 
         # 最も優先度の高いアクションを決定
@@ -230,7 +249,11 @@ class PsychologicalGuard:
         if checks["trailing_stop"]["action"] == "SELL_NOW":
             # 最低保有期間チェック
             if checks["holding_period"]["action"] == "WAIT":
-                return {"action": "WAIT", "reason": "トレーリングストップだが最低保有期間未達", "details": checks}
+                return {
+                    "action": "WAIT",
+                    "reason": "トレーリングストップだが最低保有期間未達",
+                    "details": checks,
+                }
             return checks["trailing_stop"]
 
         if checks["cooling_period"]["action"] == "BLOCKED":

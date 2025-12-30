@@ -6,16 +6,12 @@
 - 自己教師あり学習
 """
 
-import copy
 import logging
 import os
 import pickle
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, List, Optional
 
 import numpy as np
-import pandas as pd
-import tensorflow as tf
 from sklearn.metrics import mean_squared_error
 from tensorflow import keras
 
@@ -71,10 +67,14 @@ class ConceptDriftDetector(BasePredictor):
             mean_change = abs(ref_mean - curr_mean) / (ref_std + 1e-8)
             std_change = abs(ref_std - curr_std) / (ref_std + 1e-8)
 
-            drift_detected = (mean_change > self.threshold) or (std_change > self.threshold)
+            drift_detected = (mean_change > self.threshold) or (
+                std_change > self.threshold
+            )
 
             if drift_detected:
-                logger.info(f"Concept drift detected: mean_change={mean_change:.3f}, std_change={std_change:.3f}")
+                logger.info(
+                    f"Concept drift detected: mean_change={mean_change:.3f}, std_change={std_change:.3f}"
+                )
                 # 現在のウィンドウを新しいリファレンスにする
                 self.reference_window = self.current_window.copy()
                 self.current_window = []
@@ -105,18 +105,27 @@ class OnlineLearningPredictor:
             # 既存モデルを微調整
             if isinstance(self.base_model, keras.Model):
                 # Kerasモデルの場合はfine-tuning
-                self.base_model.compile(optimizer=keras.optimizers.Adam(learning_rate=self.learning_rate), loss="mse")
-                self.base_model.fit(X, y, epochs=1, verbose=0, batch_size=min(32, len(X)))
+                self.base_model.compile(
+                    optimizer=keras.optimizers.Adam(learning_rate=self.learning_rate),
+                    loss="mse",
+                )
+                self.base_model.fit(
+                    X, y, epochs=1, verbose=0, batch_size=min(32, len(X))
+                )
             elif hasattr(self.base_model, "partial_fit"):
                 # sklearnのオンライン学習対応モデル
                 self.base_model.partial_fit(X, y)
             else:
                 # 通常の学習（オンライン更新は不可）
-                logger.warning("Model does not support online learning, using full retraining")
+                logger.warning(
+                    "Model does not support online learning, using full retraining"
+                )
 
         self.is_trained = True
 
-    def predict_and_update(self, X: np.ndarray, true_y: Optional[np.ndarray] = None) -> np.ndarray:
+    def predict_and_update(
+        self, X: np.ndarray, true_y: Optional[np.ndarray] = None
+    ) -> np.ndarray:
         """予測とモデル更新"""
         pred = self.base_model.predict(X)
 
@@ -130,8 +139,8 @@ class OnlineLearningPredictor:
 
             if drift_detected:
                 logger.info("Retraining model due to concept drift...")
-                # ここでは単純に再学習（実際にはより洗練された方法が必要）
-                # self.retrain_with_recent_data() などのメソッドを実装
+        # ここでは単純に再学習（実際にはより洗練された方法が必要）
+        # self.retrain_with_recent_data() などのメソッドを実装
 
         return pred
 
@@ -197,7 +206,11 @@ class SelfSupervisedLearner:
     def fit(self, X: np.ndarray, epochs: int = 50, validation_split: float = 0.2):
         """自己教師あり学習の実行（オートエンコーダーとして）"""
         return self.model.fit(
-            X, X, epochs=epochs, validation_split=validation_split, verbose=0  # 入力と出力が同じ（再構成タスク）
+            X,
+            X,
+            epochs=epochs,
+            validation_split=validation_split,
+            verbose=0,  # 入力と出力が同じ（再構成タスク）
         )
 
     def extract_features(self, X: np.ndarray) -> np.ndarray:
@@ -216,7 +229,9 @@ class AdaptiveEnsemblePredictor:
         self.prediction_buffer = []
         self.truth_buffer = []
 
-    def predict_and_adapt(self, X: np.ndarray, true_y: Optional[np.ndarray] = None) -> np.ndarray:
+    def predict_and_adapt(
+        self, X: np.ndarray, true_y: Optional[np.ndarray] = None
+    ) -> np.ndarray:
         """予測と重みの適応"""
         # すべてのベース予測器から予測を得る
         predictions = []
@@ -250,7 +265,7 @@ class AdaptiveEnsemblePredictor:
         # 履歴が一定数以上溜まったら重みを更新
         if len(self.performance_history[0]) >= self.adaptation_window:
             recent_performances = [
-                np.mean(self.performance_history[i][-self.adaptation_window :])
+                np.mean(self.performance_history[i][-self.adaptation_window:])
                 for i in range(len(self.base_predictors))
             ]
 
@@ -259,11 +274,15 @@ class AdaptiveEnsemblePredictor:
             if total_perf > 0:
                 self.weights = np.array(recent_performances) / total_perf
             else:
-                self.weights = np.ones(len(self.base_predictors)) / len(self.base_predictors)
+                self.weights = np.ones(len(self.base_predictors)) / len(
+                    self.base_predictors
+                )
 
             # 履歴を保持
             for i in range(len(self.base_predictors)):
-                self.performance_history[i] = self.performance_history[i][-self.adaptation_window :]
+                self.performance_history[i] = self.performance_history[i][
+                    -self.adaptation_window:
+                ]
 
 
 class ContinualLearningSystem(BasePredictor):
@@ -275,7 +294,9 @@ class ContinualLearningSystem(BasePredictor):
 
         # 自己教師あり学習器
         self.self_supervised_learner = SelfSupervisedLearner(
-            input_dim=base_model.input_shape[-1] if hasattr(base_model, "input_shape") else features_dim
+            input_dim=base_model.input_shape[-1]
+            if hasattr(base_model, "input_shape")
+            else features_dim
         )
 
         # オンライン学習予測器
@@ -302,7 +323,9 @@ class ContinualLearningSystem(BasePredictor):
 
         self.is_initialized = True
 
-    def predict_with_adaptation(self, X: np.ndarray, true_y: Optional[np.ndarray] = None) -> np.ndarray:
+    def predict_with_adaptation(
+        self, X: np.ndarray, true_y: Optional[np.ndarray] = None
+    ) -> np.ndarray:
         """適応的予測"""
         if not self.is_initialized:
             self.initialize()
@@ -330,7 +353,11 @@ if __name__ == "__main__":
 
     # シンプルなモデルでテスト
     model = keras.Sequential(
-        [keras.layers.LSTM(10, return_sequences=True), keras.layers.LSTM(10), keras.layers.Dense(1)]
+        [
+            keras.layers.LSTM(10, return_sequences=True),
+            keras.layers.LSTM(10),
+            keras.layers.Dense(1),
+        ]
     )
     model.compile(optimizer="adam", loss="mse")
 

@@ -10,8 +10,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, Callable, Dict, Optional
 
 import numpy as np
 import pandas as pd
@@ -179,19 +178,30 @@ class DataProcessorOptimizer:
                 if str(col_type)[:3] == "int":
                     if c_min > np.iinfo(np.int8).min and c_max < np.iinfo(np.int8).max:
                         df_optimized[col] = df_optimized[col].astype(np.int8)
-                    elif c_min > np.iinfo(np.int16).min and c_max < np.iinfo(np.int16).max:
+                    elif (
+                        c_min > np.iinfo(np.int16).min
+                        and c_max < np.iinfo(np.int16).max
+                    ):
                         df_optimized[col] = df_optimized[col].astype(np.int16)
-                    elif c_min > np.iinfo(np.int32).min and c_max < np.iinfo(np.int32).max:
+                    elif (
+                        c_min > np.iinfo(np.int32).min
+                        and c_max < np.iinfo(np.int32).max
+                    ):
                         df_optimized[col] = df_optimized[col].astype(np.int32)
 
                 elif str(col_type)[:5] == "float":
-                    if c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
+                    if (
+                        c_min > np.finfo(np.float32).min
+                        and c_max < np.finfo(np.float32).max
+                    ):
                         df_optimized[col] = df_optimized[col].astype(np.float32)
 
         return df_optimized
 
     @staticmethod
-    def chunked_operation(df: pd.DataFrame, func: Callable, chunk_size: int = 10000) -> pd.DataFrame:
+    def chunked_operation(
+        df: pd.DataFrame, func: Callable, chunk_size: int = 10000
+    ) -> pd.DataFrame:
         """チャンク単位で操作を行うことでメモリ効率を改善
 
         Args:
@@ -204,7 +214,7 @@ class DataProcessorOptimizer:
         """
         chunks = []
         for i in range(0, len(df), chunk_size):
-            chunk = df.iloc[i : i + chunk_size]
+            chunk = df.iloc[i: i + chunk_size]
             processed_chunk = func(chunk)
             chunks.append(processed_chunk)
 

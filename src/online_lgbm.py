@@ -5,8 +5,7 @@ LightGBMモデルに継続的学習機能を追加
 
 import logging
 import os
-from datetime import datetime, timedelta
-from typing import Optional
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
@@ -33,10 +32,19 @@ class OnlineLGBMPredictor:
             from src.online_learning import OnlineLearner
 
             # ベースモデル
-            base_model = LGBMClassifier(n_estimators=100, max_depth=5, learning_rate=0.1, random_state=42, verbose=-1)
+            base_model = LGBMClassifier(
+                n_estimators=100,
+                max_depth=5,
+                learning_rate=0.1,
+                random_state=42,
+                verbose=-1,
+            )
 
             self.learner = OnlineLearner(
-                base_model=base_model, update_frequency="weekly", decay_rate=0.95, performance_threshold=0.9
+                base_model=base_model,
+                update_frequency="weekly",
+                decay_rate=0.95,
+                performance_threshold=0.9,
             )
 
             # 保存済みモデルをロード
@@ -69,13 +77,19 @@ class OnlineLGBMPredictor:
                 return False
 
             # ターゲット作成（翌日リターン）
-            df_features["target"] = (df_features["Close"].shift(-1) > df_features["Close"]).astype(int)
+            df_features["target"] = (
+                df_features["Close"].shift(-1) > df_features["Close"]
+            ).astype(int)
             df_features = df_features.dropna()
 
             # 特徴量とターゲット
             exclude_cols = ["Date", "Open", "High", "Low", "Close", "Volume", "target"]
             feature_cols = [c for c in df_features.columns if c not in exclude_cols]
-            feature_cols = df_features[feature_cols].select_dtypes(include=[np.number]).columns.tolist()
+            feature_cols = (
+                df_features[feature_cols]
+                .select_dtypes(include=[np.number])
+                .columns.tolist()
+            )
 
             X = df_features[feature_cols]
             y = df_features["target"]

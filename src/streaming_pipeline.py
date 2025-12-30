@@ -73,7 +73,6 @@ class StreamingPipeline:
 
         # 学習済みフラグを立てる（デモ用、実際はロード時に判定）
         # 注意: 実際には学習データでtrain()を呼ぶか、save/loadの実装が必要
-        pass
 
     def process_update(self, updated_data: Dict[str, pd.DataFrame]):
         """
@@ -172,7 +171,9 @@ class StreamingPipeline:
             "sell_votes": sell_count,
         }
 
-    def _check_alerts(self, ticker: str, predictions: Dict[str, Any], latest_row: pd.Series):
+    def _check_alerts(
+        self, ticker: str, predictions: Dict[str, Any], latest_row: pd.Series
+    ):
         """アラート条件をチェック"""
 
         # 判定用データ作成
@@ -180,7 +181,9 @@ class StreamingPipeline:
             "ticker": ticker,
             "current_price": latest_row["Close"],
             "signal": predictions["final_signal"],
-            "confidence": max([p["confidence"] for p in predictions["details"].values()] or [0]),
+            "confidence": max(
+                [p["confidence"] for p in predictions["details"].values()] or [0]
+            ),
             "timestamp": predictions["timestamp"],
         }
 

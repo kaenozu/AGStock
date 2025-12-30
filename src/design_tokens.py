@@ -117,7 +117,22 @@ ACTION_TYPES = {
 
 # センチメントラベル設定
 SENTIMENT_LABELS = {
-    "Positive": {"label_ja": "ポジティブ", "color": Colors.SUCCESS, "emoji": "🟢", "threshold": 0.15},
-    "Neutral": {"label_ja": "中立", "color": Colors.NEUTRAL, "emoji": "🟡", "threshold": -0.15},
-    "Negative": {"label_ja": "ネガティブ", "color": Colors.DANGER, "emoji": "🔴", "threshold": -1.0},
+    "Positive": {
+        "label_ja": "ポジティブ",
+        "color": Colors.SUCCESS,
+        "emoji": "🟢",
+        "threshold": 0.15,
+    },
+    "Neutral": {
+        "label_ja": "中立",
+        "color": Colors.NEUTRAL,
+        "emoji": "🟡",
+        "threshold": -0.15,
+    },
+    "Negative": {
+        "label_ja": "ネガティブ",
+        "color": Colors.DANGER,
+        "emoji": "🔴",
+        "threshold": -1.0,
+    },
 }

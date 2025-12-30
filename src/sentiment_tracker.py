@@ -16,7 +16,10 @@ log_dir.mkdir(exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler(log_dir / "sentiment_tracker.log"), logging.StreamHandler()],
+    handlers=[
+        logging.FileHandler(log_dir / "sentiment_tracker.log"),
+        logging.StreamHandler(),
+    ],
 )
 logger = logging.getLogger(__name__)
 
@@ -36,7 +39,9 @@ def main():
         # Save to database
         analyzer.save_sentiment_history(sentiment)
 
-        logger.info(f"Sentiment captured: {sentiment['label']} (Score: {sentiment['score']:.3f})")
+        logger.info(
+            f"Sentiment captured: {sentiment['label']} (Score: {sentiment['score']:.3f})"
+        )
         logger.info(f"News analyzed: {sentiment['news_count']} articles")
 
         # Display top news (optional)

@@ -21,7 +21,10 @@ from src.performance_optimizer import optimizer
 
 # ページ設定
 st.set_page_config(
-    page_title="AGStock 統合ダッシュボード", page_icon="🚀", layout="wide", initial_sidebar_state="expanded"
+    page_title="AGStock 統合ダッシュボード",
+    page_icon="🚀",
+    layout="wide",
+    initial_sidebar_state="expanded",
 )
 
 # カスタムCSS
@@ -32,7 +35,7 @@ st.markdown(
     .main {
         padding: 1rem;
     }
-    
+
     /* メトリックカード */
     .metric-card {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -42,28 +45,28 @@ st.markdown(
         margin: 5px 0;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    
+
     .metric-value {
         font-size: 1.8em;
         font-weight: bold;
         margin: 5px 0;
     }
-    
+
     .metric-label {
         font-size: 0.9em;
         opacity: 0.9;
     }
-    
+
     /* タブスタイル */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
     }
-    
+
     .stTabs [data-baseweb="tab"] {
         padding: 10px 20px;
         border-radius: 5px 5px 0 0;
     }
-    
+
     /* ボタン */
     .stButton > button {
         width: 100%;
@@ -107,7 +110,9 @@ def show_quick_stats():
         )
 
     with col2:
-        total_return = (balance["total_equity"] - pt.initial_capital) / pt.initial_capital
+        total_return = (
+            balance["total_equity"] - pt.initial_capital
+        ) / pt.initial_capital
         color = "#10b981" if total_return >= 0 else "#ef4444"
         st.markdown(
             f"""
@@ -153,7 +158,6 @@ def show_quick_stats():
 
 def check_and_execute_missed_trades():
     """前日の取引漏れをチェック"""
-    pass
 
 
 def main():
@@ -191,24 +195,24 @@ def main():
         with st.expander("📖 使い方ガイド", expanded=False):
             st.markdown(
                 """
-            ### 🌅 朝活タブ
+### 🌅 朝活タブ
             **毎朝5分でチェック**
             - ポートフォリオの健康度を確認
             - AIの推奨アクションを確認
             - 承認/却下ボタンで取引実行
-            
-            ### 📊 週末戦略タブ
+
+### 📊 週末戦略タブ
             **週末30分で振り返り**
             - 今週の成績を確認
             - AIの戦略アドバイスを確認
             - 来週の方針を決定
-            
-            ### ⚙️ 設定タブ
+
+### ⚙️ 設定タブ
             - 初期資金の設定
             - リスク許容度の調整
             - 通知設定
-            
-            ### 💡 Tips
+
+### 💡 Tips
             - 最初は「却下」で様子見推奨
             - 信頼度80%以上のみ承認
             - 1日1-2件まで
@@ -240,30 +244,34 @@ def main():
     st.markdown("---")
 
     # タブ構成
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["🏠 ホーム", "🌅 朝活", "📊 週末戦略", "⚙️ 設定", "📈 詳細分析"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(
+        ["🏠 ホーム", "🌅 朝活", "📊 週末戦略", "⚙️ 設定", "📈 詳細分析"]
+    )
 
     # タブ1: ホーム
     with tab1:
         # 初めての方へ（目立つように）
-        st.info("👋 **初めての方へ:** まずは `START_HERE.md` を読んでください！3ステップで始められます。")
+        st.info(
+            "👋 **初めての方へ:** まずは `START_HERE.md` を読んでください！3ステップで始められます。"
+        )
 
         with st.expander("🎯 今すぐ始める3ステップ", expanded=True):
             st.markdown(
                 """
-            ### ステップ1️⃣: このダッシュボードを見る
+### ステップ1️⃣: このダッシュボードを見る
             今、あなたはここにいます！ ✅
-            
-            ### ステップ2️⃣: 「🌅 朝活」タブをクリック
+
+### ステップ2️⃣: 「🌅 朝活」タブをクリック
             ↑ 上のタブをクリックしてください
-            
-            ### ステップ3️⃣: AIの推奨を見る（押さない！）
+
+### ステップ3️⃣: AIの推奨を見る（押さない！）
             - 最初の3日間は**「見るだけ」**
             - 慣れてから「✅承認」ボタンを押す
             - **1日1件まで**
-            
+
             ---
-            
-            ### 💡 重要なポイント
+
+### 💡 重要なポイント
             - これは**練習モード**（本当のお金は動きません）
             - 焦らず、ゆっくり慣れましょう
             - 困ったら `START_HERE.md` を読んでください
@@ -305,7 +313,9 @@ def main():
                 recent = history.tail(5)
                 for idx, trade in recent.iterrows():
                     action_emoji = "🟢" if trade["action"] == "BUY" else "🔴"
-                    st.caption(f"{action_emoji} {trade['ticker']} - {trade['action']} - {trade.get('quantity', 0)}株")
+                    st.caption(
+                        f"{action_emoji} {trade['ticker']} - {trade['action']} - {trade.get('quantity', 0)}株"
+                    )
             else:
                 st.info("取引履歴がありません")
 
@@ -392,7 +402,9 @@ def main():
                 st.markdown(f"**リスク許容度:** {profile.get('risk_tolerance', 'N/A')}")
 
             if "capital" in config:
-                st.markdown(f"**初期資金:** {format_currency(config['capital'].get('initial_capital', 0))}")
+                st.markdown(
+                    f"**初期資金:** {format_currency(config['capital'].get('initial_capital', 0))}"
+                )
 
             if "auto_trading" in config:
                 auto = config["auto_trading"]
@@ -444,7 +456,11 @@ def main():
             )
 
             fig.update_layout(
-                title="資産推移", xaxis_title="日付", yaxis_title="総資産 (円)", hovermode="x unified", height=400
+                title="資産推移",
+                xaxis_title="日付",
+                yaxis_title="総資産 (円)",
+                hovermode="x unified",
+                height=400,
             )
 
             st.plotly_chart(fig, use_container_width=True)
@@ -458,7 +474,14 @@ def main():
         if not positions.empty:
             st.dataframe(
                 positions[
-                    ["ticker", "quantity", "entry_price", "current_price", "unrealized_pnl", "unrealized_pnl_pct"]
+                    [
+                        "ticker",
+                        "quantity",
+                        "entry_price",
+                        "current_price",
+                        "unrealized_pnl",
+                        "unrealized_pnl_pct",
+                    ]
                 ],
                 use_container_width=True,
             )

@@ -9,6 +9,10 @@ import pytest
 
 from src.auth import AuthManager
 
+# Test constants (not actual secrets)
+TEST_PASSWORD = os.getenv('TEST_PASSWORD', 'TestPassword123')  # For testing only
+TEST_SECRET_KEY = os.getenv('TEST_SECRET_KEY', 'test-secret-key')  # For testing only
+
 
 class TestAuthManager:
     """認証マネージャーのテスト"""
@@ -20,7 +24,7 @@ class TestAuthManager:
         fd, db_path = tempfile.mkstemp(suffix=".db")
         os.close(fd)
 
-        auth = AuthManager("test-secret-key", db_path)
+        auth = AuthManager(TEST_SECRET_KEY, db_path)
         yield auth
 
         # クリーンアップ
@@ -36,7 +40,7 @@ class TestAuthManager:
 
     def test_password_hashing(self, auth_manager):
         """パスワードハッシュ化のテスト"""
-        password = "TestPassword123"
+        password = TEST_PASSWORD
         hashed = auth_manager.hash_password(password)
 
         assert hashed != password
@@ -50,19 +54,19 @@ class TestAuthManager:
         assert not is_strong
 
         # 強いパスワード
-        is_strong, msg = auth_manager.check_password_strength("StrongPass123")
+        is_strong, msg = auth_manager.check_password_strength(TEST_PASSWORD)
         assert is_strong
         assert msg == "OK"
 
     def test_create_user(self, auth_manager):
         """ユーザー作成のテスト"""
-        user_id = auth_manager.create_user("testuser", "test@example.com", "TestPassword123")
+        user_id = auth_manager.create_user("testuser", "test@example.com", TEST_PASSWORD)
 
         assert user_id is not None
         assert user_id > 0
 
         # 重複ユーザー
-        duplicate_id = auth_manager.create_user("testuser", "test2@example.com", "TestPassword123")
+        duplicate_id = auth_manager.create_user("testuser", "test2@example.com", TEST_PASSWORD)
         assert duplicate_id is None
 
     def test_weak_password_rejection(self, auth_manager):
@@ -72,9 +76,9 @@ class TestAuthManager:
 
     def test_login_success(self, auth_manager):
         """ログイン成功のテスト"""
-        auth_manager.create_user("testuser", "test@example.com", "TestPassword123")
+        auth_manager.create_user("testuser", "test@example.com", TEST_PASSWORD)
 
-        token = auth_manager.login("testuser", "TestPassword123")
+        token = auth_manager.login("testuser", TEST_PASSWORD)
         assert token is not None
 
         # トークン検証
@@ -102,12 +106,12 @@ class TestAuthManager:
 
         # ロック中はログインできない
         with pytest.raises(ValueError):
-            auth_manager.login("testuser", "TestPassword123")
+            auth_manager.login("testuser", TEST_PASSWORD)
 
     def test_logout(self, auth_manager):
         """ログアウトのテスト"""
-        auth_manager.create_user("testuser", "test@example.com", "TestPassword123")
-        token = auth_manager.login("testuser", "TestPassword123")
+        auth_manager.create_user("testuser", "test@example.com", TEST_PASSWORD)
+        token = auth_manager.login("testuser", TEST_PASSWORD)
 
         # ログアウト
         success = auth_manager.logout(token)
@@ -119,8 +123,8 @@ class TestAuthManager:
 
     def test_session_cleanup(self, auth_manager):
         """セッションクリーンアップのテスト"""
-        auth_manager.create_user("testuser", "test@example.com", "TestPassword123")
-        token = auth_manager.login("testuser", "TestPassword123")
+        auth_manager.create_user("testuser", "test@example.com", TEST_PASSWORD)
+        token = auth_manager.login("testuser", TEST_PASSWORD)
 
         # 期限切れセッションを削除
         deleted = auth_manager.cleanup_expired_sessions()

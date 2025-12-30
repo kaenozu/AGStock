@@ -23,11 +23,11 @@ class EnsembleVoter:
 
         Returns:
             Dict containing:
+                pass
             - 'signal': Final signal (-1, 0, 1)
             - 'confidence': Aggregated confidence score
             - 'details': Dictionary of individual strategy signals
         """
-        votes = []
         total_weight = 0.0
         weighted_signal_sum = 0.0
         details = {}
@@ -62,4 +62,8 @@ class EnsembleVoter:
         else:
             final_signal = 0
 
-        return {"signal": final_signal, "confidence": abs(final_score), "details": details}
+        return {
+            "signal": final_signal,
+            "confidence": abs(final_score),
+            "details": details,
+        }

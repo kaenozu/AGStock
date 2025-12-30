@@ -6,12 +6,10 @@ Ensemble Weight Optimizer - アンサンブル重み最適化
 import json
 import logging
 import os
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from datetime import datetime
+from typing import Dict, List
 
 import numpy as np
-import pandas as pd
-from scipy.optimize import minimize
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +35,13 @@ class EnsembleWeightOptimizer:
                 pass
 
         # デフォルト重み
-        return {"lstm": 0.25, "lgbm": 0.25, "prophet": 0.15, "sma": 0.10, "transformer": 0.25}
+        return {
+            "lstm": 0.25,
+            "lgbm": 0.25,
+            "prophet": 0.15,
+            "sma": 0.10,
+            "transformer": 0.25,
+        }
 
     def _save_weights(self, weights: Dict[str, float]):
         """最適重みを保存"""
@@ -46,7 +50,9 @@ class EnsembleWeightOptimizer:
         with open(WEIGHTS_PATH, "w") as f:
             json.dump(weights, f, indent=2)
 
-    def optimize_weights(self, predictions_history: List[Dict], actual_returns: List[float]) -> Dict[str, float]:
+    def optimize_weights(
+        self, predictions_history: List[Dict], actual_returns: List[float]
+    ) -> Dict[str, float]:
         """
         過去の予測履歴から最適な重みを計算
 

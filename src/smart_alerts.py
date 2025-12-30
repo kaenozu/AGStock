@@ -1,12 +1,13 @@
 """
-スマートアラートシステム - 重要なイベントのみ通知
-
-条件ベースで重要度を判定し、必要な時だけ通知
+Smart Alerts System
+Evaluates market conditions and portfolio changes to trigger notifications or emergency stops.
 """
 
 import json
-from datetime import datetime, timedelta
-from typing import Dict, List
+import logging
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List
 
 import yfinance as yf
 
@@ -14,68 +15,70 @@ from src.data_loader import fetch_stock_data, get_latest_price
 from src.paper_trader import PaperTrader
 from src.smart_notifier import SmartNotifier
 
+logger = logging.getLogger(__name__)
+
 
 class SmartAlerts:
-    """スマートアラートシステム"""
+    """
+    Monitors portfolio performance, volatility, and market stress (VIX) to send alerts.
+    """
+
+    DEFAULT_ALERTS = {
+        "daily_loss_threshold": -3.0,  # %
+        "position_change_threshold": 10.0,  # %
+        "vix_threshold": 30.0,
+        "large_profit_threshold": 5.0,  # %
+        "enabled": True,
+        "active_mode": False
+    }
 
     def __init__(self, config_path: str = "config.json"):
         self.pt = PaperTrader()
         self.notifier = SmartNotifier(config_path)
-        self.config = self._load_config(config_path)
-        self.alert_config = self.config.get("alerts", {})
+        self.config_path = Path(config_path)
+        self.config = self._load_config()
+        self.alert_config = self.config.get("alerts", self.DEFAULT_ALERTS)
 
-    def _load_config(self, path: str) -> dict:
-        """設定読み込み"""
+    def _load_config(self) -> Dict[str, Any]:
+        """Loads configuration with defaults."""
+        if not self.config_path.exists():
+            return {"alerts": self.DEFAULT_ALERTS}
+
         try:
-            with open(path, "r", encoding="utf-8") as f:
-                config = json.load(f)
+            config = json.loads(self.config_path.read_text(encoding="utf-8"))
+            if "alerts" not in config:
+                config["alerts"] = self.DEFAULT_ALERTS
+            return config
+        except Exception as e:
+            logger.error(f"Failed to load config for alerts: {e}")
+            return {"alerts": self.DEFAULT_ALERTS}
 
-                # デフォルトアラート設定
-                if "alerts" not in config:
-                    config["alerts"] = {
-                        "daily_loss_threshold": -3.0,  # -3%
-                        "position_change_threshold": 10.0,  # 10%
-                        "vix_threshold": 30.0,
-                        "large_profit_threshold": 5.0,  # +5%
-                        "enabled": True,
-                    }
-
-                return config
-        except:
-            return {
-                "alerts": {
-                    "daily_loss_threshold": -3.0,
-                    "position_change_threshold": 10.0,
-                    "vix_threshold": 30.0,
-                    "large_profit_threshold": 5.0,
-                    "enabled": True,
-                }
-            }
-
-    def trigger_emergency_stop(self, reason: str):
-        """緊急停止を実行（Active Defense）"""
+    def trigger_emergency_stop(self, reason: str) -> None:
+        """
+        Executes an emergency stop via FullyAutomatedTrader if active_mode is ON.
+        """
         if not self.alert_config.get("active_mode", False):
-            print(f"⚠️ [Active Mode OFF] 緊急停止条件スキップ: {reason}")
+            logger.warning(f"🛡️ [Active Defense OFF] Skipping emergency stop: {reason}")
             return
 
-        print(f"🚨 緊急停止トリガー: {reason}")
+        logger.critical(f"🚨 EMERGENCY STOP TRIGGERED: {reason}")
         try:
-            # 循環参照回避のためここでインポート
+            # Lazy import to avoid circular dependencies
             from src.trading.fully_automated_trader import FullyAutomatedTrader
-            
             trader = FullyAutomatedTrader()
             trader.emergency_stop(reason)
-            
-            # 追加通知
-            self.notifier.send_line_notify(f"🛡️ 【Active Defense】緊急停止を実行しました\n理由: {reason}")
+
+            self.notifier.send_line_notify(
+                f"🛡️ 【Active Defense】緊急停止を実行しました\n理由: {reason}"
+            )
         except Exception as e:
-            print(f"緊急停止実行エラー: {e}")
+            logger.error(f"Emergency stop execution failed: {e}")
 
-    def check_daily_loss(self) -> List[Dict]:
-        """日次損失チェック"""
+    def check_daily_loss(self) -> List[Dict[str, Any]]:
+        """Checks daily equity drawdown."""
         alerts = []
-
         equity_history = self.pt.get_equity_history()
+
         if len(equity_history) < 2:
             return alerts
 
@@ -86,27 +89,25 @@ class SmartAlerts:
         threshold = self.alert_config.get("daily_loss_threshold", -3.0)
 
         if daily_change_pct < threshold:
-            alerts.append(
-                {
-                    "type": "DAILY_LOSS",
-                    "severity": "HIGH",
-                    "title": "⚠️ 日次損失アラート",
-                    "message": f"本日の資産が{abs(daily_change_pct):.1f}%減少しました（閾値: {abs(threshold):.1f}%）",
-                    "value": daily_change_pct,
-                }
-            )
-            
-            # Active Defense: 5%以上の下落で緊急停止
+            alerts.append({
+                "type": "DAILY_LOSS",
+                "severity": "HIGH",
+                "title": "⚠️ 日次損失アラート",
+                "message": f"本日の資産が{abs(daily_change_pct):.1f}%減少しました（閾値: {abs(threshold):.1f}%）",
+                "value": daily_change_pct,
+            })
+
+            # Force stop if loss exceeds 5%
             if daily_change_pct < -5.0:
                 self.trigger_emergency_stop(f"日次損失拡大 ({daily_change_pct:.1f}%)")
 
         return alerts
 
-    def check_position_volatility(self) -> List[Dict]:
-        """保有銘柄の大きな変動をチェック"""
+    def check_position_volatility(self) -> List[Dict[str, Any]]:
+        """Monitors significant price changes in individual holdings."""
         alerts = []
-
         positions = self.pt.get_positions()
+
         if positions.empty:
             return alerts
 
@@ -116,11 +117,11 @@ class SmartAlerts:
             ticker = pos.get("ticker", idx)
             entry_price = pos.get("entry_price") or pos.get("avg_price")
 
-            if entry_price is None:
+            if not entry_price:
                 continue
 
             try:
-                # 最新価格取得
+                # Use current price from data_loader
                 data = fetch_stock_data([ticker], period="5d")
                 if not data or ticker not in data:
                     continue
@@ -131,174 +132,101 @@ class SmartAlerts:
 
                 change_pct = ((current_price - entry_price) / entry_price) * 100
 
-                # 大きな変動（プラス/マイナス両方）
                 if abs(change_pct) > threshold:
                     severity = "MEDIUM" if change_pct > 0 else "HIGH"
                     emoji = "📈" if change_pct > 0 else "📉"
-
-                    alerts.append(
-                        {
-                            "type": "POSITION_VOLATILITY",
-                            "severity": severity,
-                            "title": f"{emoji} {ticker} 大幅変動",
-                            "message": f"{ticker}が{change_pct:+.1f}%変動しました（現在価格: ¥{current_price:,.0f}）",
-                            "ticker": ticker,
-                            "value": change_pct,
-                        }
-                    )
+                    alerts.append({
+                        "type": "POSITION_VOLATILITY",
+                        "severity": severity,
+                        "title": f"{emoji} {ticker} 大幅変動",
+                        "message": f"{ticker}が{change_pct:+.1f}%変動しました（現在価格: ¥{current_price:,.0f}）",
+                        "ticker": ticker,
+                        "value": change_pct,
+                    })
             except Exception as e:
+                logger.debug(f"Failed to check volatility for {ticker}: {e}")
                 continue
 
         return alerts
 
-    def check_vix_spike(self) -> List[Dict]:
-        """VIX急騰チェック"""
+    def check_vix_spike(self) -> List[Dict[str, Any]]:
+        """Spike detection in market fear index (VIX)."""
         alerts = []
         threshold = self.alert_config.get("vix_threshold", 30.0)
 
         try:
-            vix = yf.Ticker("^VIX")
-            vix_data = vix.history(period="2d")
-
+            vix_data = yf.Ticker("^VIX").history(period="2d")
             if len(vix_data) < 2:
                 return alerts
 
             current_vix = vix_data["Close"].iloc[-1]
             prev_vix = vix_data["Close"].iloc[-2]
 
-            # VIXが閾値超え
             if current_vix > threshold:
                 vix_change = current_vix - prev_vix
+                alerts.append({
+                    "type": "VIX_SPIKE",
+                    "severity": "HIGH" if current_vix > 40 else "MEDIUM",
+                    "title": "🚨 VIX急騰アラート",
+                    "message": f"VIXが{current_vix:.1f}に上昇（前日比{vix_change:+.1f}）- 市場が非常に不安定です",
+                    "value": current_vix,
+                })
 
-                alerts.append(
-                    {
-                        "type": "VIX_SPIKE",
-                        "severity": "HIGH" if current_vix > 40 else "MEDIUM",
-                        "title": "🚨 VIX急騰アラート",
-                        "message": f"VIXが{current_vix:.1f}に上昇（前日比{vix_change:+.1f}）- 市場が不安定です",
-                        "value": current_vix,
-                    }
-                )
-                
-                # Active Defense: VIX 45超えで緊急停止
                 if current_vix > 45.0:
                     self.trigger_emergency_stop(f"VIX危険水域 ({current_vix:.1f})")
-        except:
-            pass
+        except Exception as e:
+            logger.debug(f"VIX check failed: {e}")
 
         return alerts
 
-    def check_large_profit_opportunity(self) -> List[Dict]:
-        """大きな利益確定機会をチェック"""
-        alerts = []
-        threshold = self.alert_config.get("large_profit_threshold", 5.0)
-
-        positions = self.pt.get_positions()
-        if positions.empty:
-            return alerts
-
-        for idx, pos in positions.iterrows():
-            ticker = pos.get("ticker", idx)
-            entry_price = pos.get("entry_price") or pos.get("avg_price")
-
-            if entry_price is None:
-                continue
-
-            try:
-                data = fetch_stock_data([ticker], period="5d")
-                if not data or ticker not in data:
-                    continue
-
-                current_price = get_latest_price(data[ticker])
-                if current_price is None:
-                    continue
-
-                profit_pct = ((current_price - entry_price) / entry_price) * 100
-
-                # 大きな利益
-                if profit_pct > threshold:
-                    alerts.append(
-                        {
-                            "type": "PROFIT_OPPORTUNITY",
-                            "severity": "LOW",
-                            "title": f"💰 {ticker} 利益確定機会",
-                            "message": f"{ticker}が{profit_pct:+.1f}%上昇中（現在価格: ¥{current_price:,.0f}）- 利確を検討",
-                            "ticker": ticker,
-                            "value": profit_pct,
-                        }
-                    )
-            except:
-                continue
-
-        return alerts
-
-    def run_all_checks(self) -> List[Dict]:
-        """すべてのチェックを実行"""
+    def run_all_checks(self) -> List[Dict[str, Any]]:
+        """Aggregates all monitoring tasks."""
         if not self.alert_config.get("enabled", True):
             return []
 
         all_alerts = []
-
-        # 各チェック実行
         all_alerts.extend(self.check_daily_loss())
         all_alerts.extend(self.check_position_volatility())
         all_alerts.extend(self.check_vix_spike())
-        all_alerts.extend(self.check_large_profit_opportunity())
 
-        # 重要度でソート（HIGH > MEDIUM > LOW）
-        severity_order = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
-        all_alerts.sort(key=lambda x: severity_order.get(x["severity"], 3))
+        # Sort by severity (HIGH first)
+        severity_map = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
+        all_alerts.sort(key=lambda x: severity_map.get(x["severity"], 3))
 
         return all_alerts
 
-    def send_alerts(self, alerts: List[Dict]):
-        """アラートを送信"""
+    def send_notifications(self, alerts: List[Dict[str, Any]]) -> None:
+        """Constructs message and sends to configured channels."""
         if not alerts:
-            print("アラートなし")
             return
 
-        # メッセージ作成
-        msg = f"""
-🔔 AGStock アラート通知
-{datetime.now().strftime('%Y-%m-%d %H:%M')}
-
-{'='*40}
-"""
+        msg = f"🔔 AGStock アラート修正通知\n{datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n"
+        msg += "=" * 20 + "\n"
 
         for alert in alerts:
-            severity_emoji = {"HIGH": "🚨", "MEDIUM": "⚠️", "LOW": "💡"}
-            emoji = severity_emoji.get(alert["severity"], "ℹ️")
-
+            emoji = {"HIGH": "🚨", "MEDIUM": "⚠️", "LOW": "💡"}.get(alert["severity"], "ℹ️")
             msg += f"\n{emoji} {alert['title']}\n{alert['message']}\n"
 
-        msg += f"\n{'='*40}\n"
+        # Notification logic
+        line_cfg = self.config.get("notifications", {}).get("line", {})
+        if line_cfg.get("enabled"):
+            self.notifier.send_line_notify(msg, token=line_cfg.get("token"))
 
-        print(msg)
-
-        # 通知送信（HIGH severity のみ）
-        high_alerts = [a for a in alerts if a["severity"] == "HIGH"]
-
-        if high_alerts:
-            line_config = self.config.get("notifications", {}).get("line", {})
-            if line_config.get("enabled"):
-                self.notifier.send_line_notify(msg, token=line_config.get("token"))
-
-    def run(self):
-        """アラートシステム実行"""
-        print("スマートアラートシステム起動...")
+    def run(self) -> None:
+        """Main entry point for periodic check."""
+        logger.info("Starting Smart Alerts scan...")
         alerts = self.run_all_checks()
-
         if alerts:
-            print(f"\n{len(alerts)}件のアラートを検出")
-            self.send_alerts(alerts)
+            logger.info(f"Detected {len(alerts)} alerts.")
+            self.send_notifications(alerts)
         else:
-            print("\nアラートなし - すべて正常")
+            logger.info("No alerts detected.")
 
 
 def main():
-    """メイン実行"""
-    alert_system = SmartAlerts()
-    alert_system.run()
+    """Manual trigger script."""
+    logging.basicConfig(level=logging.INFO)
+    SmartAlerts().run()
 
 
 if __name__ == "__main__":

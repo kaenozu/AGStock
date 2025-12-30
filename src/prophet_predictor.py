@@ -5,13 +5,10 @@ Facebook開発の時系列予測モデル
 """
 
 import logging
-from datetime import timedelta
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 from prophet import Prophet
-from sklearn.metrics import mean_squared_error
 
 from src.base_predictor import BasePredictor
 
@@ -25,7 +22,6 @@ class ProphetPredictor(BasePredictor):
     def prepare_model(self, data):
         """モデルの準備"""
         # Prophetは学習時にデータが必要なため、ここでは何もしないか、初期化のみ
-        pass
 
     def fit(self, X, y):
         """モデルの学習"""
@@ -36,19 +32,22 @@ class ProphetPredictor(BasePredictor):
             if hasattr(X, "index"):
                 ds = X.index
             else:
-                 # fallback
-                 ds = pd.date_range(end=pd.Timestamp.now(), periods=len(y), freq="D")
+                # fallback
+                ds = pd.date_range(end=pd.Timestamp.now(), periods=len(y), freq="D")
             y_values = y
         else:
             ds = y.index
             y_values = y.values
 
         prophet_df = pd.DataFrame({"ds": ds, "y": y_values})
-        
-        self.model = Prophet(daily_seasonality=False, weekly_seasonality=False, yearly_seasonality=False)
-        
+
+        self.model = Prophet(
+            daily_seasonality=False, weekly_seasonality=False, yearly_seasonality=False
+        )
+
         import io
         import sys
+
         old_stdout = sys.stdout
         sys.stdout = io.StringIO()
         try:
@@ -62,7 +61,7 @@ class ProphetPredictor(BasePredictor):
         """予測実行"""
         if self.model is None:
             return np.zeros(len(X))
-        
+
         # Xの期間に対して予測
         if hasattr(X, "index"):
             dates = X.index
@@ -73,7 +72,7 @@ class ProphetPredictor(BasePredictor):
             # Standard predict(X, y) usage implies X contains inputs.
             # Prophet relies on 'ds'.
             return np.zeros(len(X))
-            
+
         future = pd.DataFrame({"ds": dates})
         forecast = self.model.predict(future)
         return forecast["yhat"].values
@@ -82,7 +81,7 @@ class ProphetPredictor(BasePredictor):
         """単一点予測"""
         # current_features is (1, n_features)
         # We need a date.
-        # Assuming current_features is a DataFrame/Series with name? 
+        # Assuming current_features is a DataFrame/Series with name?
         # Or numpy?
         # If numpy, we can't guess date.
         return 0.0
@@ -93,7 +92,9 @@ class ProphetPredictor(BasePredictor):
         """
         try:
             if df is None or df.empty or len(df) < 30:
-                return {"error": f"データ不足 (データ数: {len(df) if df is not None else 0})"}
+                return {
+                    "error": f"データ不足 (データ数: {len(df) if df is not None else 0})"
+                }
 
             # 1. Prophet用にデータを整形
             # Prophet requires 'ds' (datetime) and 'y' (value) columns
@@ -101,7 +102,11 @@ class ProphetPredictor(BasePredictor):
 
             # 2. モデルの学習
             # ログ出力を抑制
-            self.model = Prophet(daily_seasonality=False, weekly_seasonality=False, yearly_seasonality=False)
+            self.model = Prophet(
+                daily_seasonality=False,
+                weekly_seasonality=False,
+                yearly_seasonality=False,
+            )
 
             # Prophet内部のログを抑制
             import io

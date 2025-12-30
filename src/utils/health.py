@@ -19,15 +19,22 @@ def quick_health_check(
     Returns dict flags for disk/memory/API health.
     Falls back gracefully if psutil or requests is unavailable.
     """
-    status: Dict[str, bool | float] = {"disk_ok": True, "memory_ok": True, "api_ok": True, "api_latency_ms": 0.0}
+    status: Dict[str, bool | float] = {
+        "disk_ok": True,
+        "memory_ok": True,
+        "api_ok": True,
+        "api_latency_ms": 0.0,
+    }
 
     # Disk
     try:
         total, used, free = shutil.disk_usage(os.getcwd())
-        free_gb = free / (1024 ** 3)
+        free_gb = free / (1024**3)
         if free_gb < disk_threshold_gb:
             status["disk_ok"] = False
-            logger.warning("Low disk space: %.2f GB free (< %.2f GB)", free_gb, disk_threshold_gb)
+            logger.warning(
+                "Low disk space: %.2f GB free (< %.2f GB)", free_gb, disk_threshold_gb
+            )
     except Exception as exc:
         logger.debug("Disk check failed: %s", exc)
 
@@ -35,10 +42,12 @@ def quick_health_check(
     try:
         import psutil  # type: ignore
 
-        avail_gb = psutil.virtual_memory().available / (1024 ** 3)
+        avail_gb = psutil.virtual_memory().available / (1024**3)
         if avail_gb < mem_threshold_gb:
             status["memory_ok"] = False
-            logger.warning("Low memory: %.2f GB available (< %.2f GB)", avail_gb, mem_threshold_gb)
+            logger.warning(
+                "Low memory: %.2f GB available (< %.2f GB)", avail_gb, mem_threshold_gb
+            )
     except Exception as exc:
         # psutil not installed or failed; skip
         logger.debug("Memory check skipped: %s", exc)
@@ -49,12 +58,16 @@ def quick_health_check(
         status["api_ok"] = api_ok
         status["api_latency_ms"] = latency
         if not api_ok:
-            logger.warning("API latency degraded: %.0f ms (limit %.0f ms)", latency, max_latency_ms)
+            logger.warning(
+                "API latency degraded: %.0f ms (limit %.0f ms)", latency, max_latency_ms
+            )
 
     return status
 
 
-def _check_api_latency(endpoints: Iterable[str], max_latency_ms: float = 1500.0) -> Tuple[bool, float]:
+def _check_api_latency(
+    endpoints: Iterable[str], max_latency_ms: float = 1500.0
+) -> Tuple[bool, float]:
     """
     Best-effort latency/response check for HTTP APIs.
     Returns (ok, last_latency_ms). Does not raise.

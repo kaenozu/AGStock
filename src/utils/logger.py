@@ -1,4 +1,3 @@
-import datetime
 import logging
 import os
 
@@ -6,7 +5,10 @@ _loggers = {}
 
 
 def setup_logger(
-    name: str, log_dir: str = "logs", log_file_name: str = "app.log", level: str = "INFO"
+    name: str,
+    log_dir: str = "logs",
+    log_file_name: str = "app.log",
+    level: str = "INFO",
 ) -> logging.Logger:
     """
     指定された名前でロガーをセットアップし、ファイルハンドラとコンソールハンドラを追加します。
@@ -41,7 +43,9 @@ def setup_logger(
                 try:
                     super().emit(record)
                 except UnicodeEncodeError:
-                    record.msg = record.msg.encode("cp932", errors="ignore").decode("cp932")
+                    record.msg = record.msg.encode("cp932", errors="ignore").decode(
+                        "cp932"
+                    )
                     super().emit(record)
 
         stream_handler = SafeStreamHandler()
@@ -59,7 +63,9 @@ def get_logger(name: str) -> logging.Logger:
     セットアップされていない場合はエラーを発生させます。
     """
     if name not in _loggers:
-        raise ValueError(f"Logger '{name}' has not been set up. Call setup_logger first.")
+        raise ValueError(
+            f"Logger '{name}' has not been set up. Call setup_logger first."
+        )
     return _loggers[name]
 
 

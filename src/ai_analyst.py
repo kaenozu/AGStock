@@ -2,6 +2,7 @@
 AI analyst utility with safe fallbacks.
 
 優先順位:
+    pass
 1. OpenAI SDKが利用可能で、APIキーが設定済みなら実際に問い合わせ
 2. そうでなければプレースホルダー回答を返し、アプリを止めない
 """
@@ -27,17 +28,30 @@ class AIAnalyst:
             timeout: request timeout seconds (env ANALYST_TIMEOUT fallback)
             quiet_on_missing: if True, returns空文字 instead of警告文 when disabled
         """
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY") or os.getenv("AGSTOCK_OPENAI_API_KEY")
-        self.model = model or os.getenv("ANALYST_MODEL") or os.getenv("OPENAI_MODEL") or "gpt-4o-mini"
+        self.api_key = (
+            api_key
+            or os.getenv("OPENAI_API_KEY")
+            or os.getenv("AGSTOCK_OPENAI_API_KEY")
+        )
+        self.model = (
+            model
+            or os.getenv("ANALYST_MODEL")
+            or os.getenv("OPENAI_MODEL")
+            or "gpt-4o-mini"
+        )
         self.max_tokens = max_tokens or int(os.getenv("ANALYST_MAX_TOKENS", "400"))
         self.timeout = timeout or float(os.getenv("ANALYST_TIMEOUT", "10"))
-        self.quiet_on_missing = quiet_on_missing or os.getenv("ANALYST_QUIET", "").lower() in {"1", "true", "yes"}
+        self.quiet_on_missing = quiet_on_missing or os.getenv(
+            "ANALYST_QUIET", ""
+        ).lower() in {"1", "true", "yes"}
         try:
             import openai  # type: ignore
 
             self._openai = openai
             if self.api_key:
-                self._openai_client = openai.OpenAI(api_key=self.api_key, timeout=self.timeout)
+                self._openai_client = openai.OpenAI(
+                    api_key=self.api_key, timeout=self.timeout
+                )
                 self.enabled = True
             else:
                 self._openai_client = None
@@ -50,7 +64,9 @@ class AIAnalyst:
     def _fallback(self, msg: str) -> str:
         return "" if self.quiet_on_missing else msg
 
-    def generate_response(self, system_prompt: str, user_prompt: str, temperature: float = 0.5, **kwargs) -> str:
+    def generate_response(
+        self, system_prompt: str, user_prompt: str, temperature: float = 0.5, **kwargs
+    ) -> str:
         """
         OpenAIが使える場合は呼び出し、使えない場合はスタブを返す。
         """
@@ -68,7 +84,9 @@ class AIAnalyst:
                 max_tokens=self.max_tokens,
                 **kwargs,
             )
-            return resp.choices[0].message.content or self._fallback("Empty response from model")
+            return resp.choices[0].message.content or self._fallback(
+                "Empty response from model"
+            )
         except Exception:
             # 安全のため、API失敗時はスタブを返す
             return self._fallback("AI analysis unavailable (API call failed)")

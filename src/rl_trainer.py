@@ -64,7 +64,10 @@ class RLTrainer:
         # 環境とエージェントの初期化
         self.env = TradingEnvironment(df)
         self.agent = DQNAgent(
-            state_size=self.env.state_size, action_size=self.env.action_space_size, hidden_size=128, learning_rate=0.001
+            state_size=self.env.state_size,
+            action_size=self.env.action_space_size,
+            hidden_size=128,
+            learning_rate=0.001,
         )
 
         # 訓練ループ
@@ -143,7 +146,9 @@ class RLTrainer:
         df = self.prepare_data()
         self.env = TradingEnvironment(df)
 
-        self.agent = DQNAgent(state_size=self.env.state_size, action_size=self.env.action_space_size)
+        self.agent = DQNAgent(
+            state_size=self.env.state_size, action_size=self.env.action_space_size
+        )
         self.agent.load(MODEL_PATH)
         self.agent.epsilon = 0.0  # 推論時は探索しない
 

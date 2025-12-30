@@ -15,7 +15,12 @@ from src.formatters import format_currency
 from src.paper_trader import PaperTrader
 
 # ページ設定
-st.set_page_config(page_title="AGStock", page_icon="💰", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(
+    page_title="AGStock",
+    page_icon="💰",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
 
 # カスタムCSS - 超シンプル
 st.markdown(
@@ -27,22 +32,22 @@ st.markdown(
         max-width: 1200px;
         margin: 0 auto;
     }
-    
+
     /* 大きな数字 */
     .big-number {
         font-size: 3rem;
         font-weight: bold;
         margin: 1rem 0;
     }
-    
+
     .positive {
         color: #10b981;
     }
-    
+
     .negative {
         color: #ef4444;
     }
-    
+
     /* カード */
     .card {
         background: white;
@@ -52,7 +57,7 @@ st.markdown(
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         color: #1f2937;
     }
-    
+
     /* 保有銘柄 */
     .stock-item {
         padding: 1rem;
@@ -61,17 +66,17 @@ st.markdown(
         border-left: 4px solid;
         color: #1f2937;
     }
-    
+
     .stock-profit {
         border-left-color: #10b981;
         background: #f0fdf4;
     }
-    
+
     .stock-loss {
         border-left-color: #ef4444;
         background: #fef2f2;
     }
-    
+
     /* ボタン */
     .stButton > button {
         width: 100%;
@@ -79,13 +84,13 @@ st.markdown(
         font-size: 1.1rem;
         border-radius: 8px;
     }
-    
+
     /* ステータス */
     .status-ok {
         color: #10b981;
         font-size: 1.2rem;
     }
-    
+
     .status-warning {
         color: #f59e0b;
         font-size: 1.2rem;
@@ -139,7 +144,11 @@ def show_main_dashboard():
     for proc in psutil.process_iter(["pid", "name", "cmdline"]):
         try:
             cmdline = proc.info["cmdline"]
-            if cmdline and "python" in cmdline[0] and "fully_automated_trader.py" in " ".join(cmdline):
+            if (
+                cmdline
+                and "python" in cmdline[0]
+                and "fully_automated_trader.py" in " ".join(cmdline)
+            ):
                 is_trading_running = True
                 break
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
@@ -149,7 +158,9 @@ def show_main_dashboard():
 
     with col1:
         if is_trading_running:
-            st.warning("⚠️ 自動取引プログラムが実行中です。完了までそのままお待ちください。")
+            st.warning(
+                "⚠️ 自動取引プログラムが実行中です。完了までそのままお待ちください。"
+            )
             st.markdown(
                 """
             <div class="card" style="background: #e0f2fe; border: 2px solid #3b82f6; animation: pulse 2s infinite;">
@@ -169,18 +180,30 @@ def show_main_dashboard():
             time.sleep(3)
             st.rerun()  # 処理中は自動更新
         else:
-            st.markdown('<div class="status-ok">✅ システム正常稼働中</div>', unsafe_allow_html=True)
+            st.markdown(
+                '<div class="status-ok">✅ システム正常稼働中</div>',
+                unsafe_allow_html=True,
+            )
 
     with col2:
         now = datetime.now()
         if now.weekday() < 5:  # 平日
-            st.markdown('<div class="status-ok">⏰ 次回取引: 今日 15:30</div>', unsafe_allow_html=True)
+            st.markdown(
+                '<div class="status-ok">⏰ 次回取引: 今日 15:30</div>',
+                unsafe_allow_html=True,
+            )
         else:
-            st.markdown('<div class="status-warning">⏰ 次回取引: 月曜 15:30</div>', unsafe_allow_html=True)
+            st.markdown(
+                '<div class="status-warning">⏰ 次回取引: 月曜 15:30</div>',
+                unsafe_allow_html=True,
+            )
 
     with col3:
         num_positions = len(positions)
-        st.markdown(f'<div class="status-ok">📊 保有銘柄: {num_positions}件</div>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="status-ok">📊 保有銘柄: {num_positions}件</div>',
+            unsafe_allow_html=True,
+        )
 
     st.markdown("---")
 
@@ -272,7 +295,9 @@ def show_main_dashboard():
 
         if os.path.exists("logs/auto_trader.log"):
             try:
-                with open("logs/auto_trader.log", "r", encoding="utf-8", errors="ignore") as f:
+                with open(
+                    "logs/auto_trader.log", "r", encoding="utf-8", errors="ignore"
+                ) as f:
                     lines = f.readlines()
                     for line in reversed(lines[-100:]):  # 最後の100行を逆順で確認
                         if "検出シグナル数:" in line or "signal" in line.lower():
@@ -285,7 +310,9 @@ def show_main_dashboard():
                                 break
                         if "自動トレーダー" in line and "終了" in line:
                             # 実行時刻を抽出
-                            time_match = re.search(r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\]", line)
+                            time_match = re.search(
+                                r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\]", line
+                            )
                             if time_match:
                                 last_run_time = time_match.group(1)
             except Exception:
@@ -372,7 +399,9 @@ def show_main_dashboard():
             ]
         )
 
-        fig.update_layout(showlegend=False, height=250, margin=dict(l=20, r=20, t=20, b=20))
+        fig.update_layout(
+            showlegend=False, height=250, margin=dict(l=20, r=20, t=20, b=20)
+        )
 
         st.plotly_chart(fig, use_container_width=True)
 
@@ -454,18 +483,25 @@ def show_main_dashboard():
                 try:
                     # 強制実行フラグ付きで自動トレーダーを起動
                     result = subprocess.run(
-                        ["python", "fully_automated_trader.py", "--force"], capture_output=True, text=True, timeout=60
+                        ["python", "fully_automated_trader.py", "--force"],
+                        capture_output=True,
+                        text=True,
+                        timeout=60,
                     )
 
                     if result.returncode == 0:
-                        st.success("✅ 取引完了！ページを更新して結果を確認してください。")
+                        st.success(
+                            "✅ 取引完了！ページを更新して結果を確認してください。"
+                        )
                         st.balloons()
                         time.sleep(2)
                         st.experimental_rerun()
                     else:
                         st.error(f"❌ エラーが発生しました: {result.stderr}")
                 except subprocess.TimeoutExpired:
-                    st.warning("⏱️ 処理に時間がかかっています。バックグラウンドで実行中です。")
+                    st.warning(
+                        "⏱️ 処理に時間がかかっています。バックグラウンドで実行中です。"
+                    )
                 except Exception as e:
                     st.error(f"❌ エラー: {e}")
 
@@ -511,7 +547,12 @@ def show_detail_page():
         )
 
         # 初期資金ライン
-        fig.add_hline(y=pt.initial_capital, line_dash="dash", line_color="gray", annotation_text="初期資金")
+        fig.add_hline(
+            y=pt.initial_capital,
+            line_dash="dash",
+            line_color="gray",
+            annotation_text="初期資金",
+        )
 
         fig.update_layout(
             height=400,
@@ -588,7 +629,9 @@ def show_settings_page():
     # リスク設定
     st.subheader("🎯 リスク設定")
 
-    risk_level = st.radio("リスク許容度を選択", ["安全重視（推奨）", "バランス", "積極的"], index=0)
+    risk_level = st.radio(
+        "リスク許容度を選択", ["安全重視（推奨）", "バランス", "積極的"], index=0
+    )
 
     if risk_level == "安全重視（推奨）":
         st.success("✅ 損失を最小限に抑えます。初心者におすすめです。")

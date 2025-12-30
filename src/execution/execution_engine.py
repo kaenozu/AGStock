@@ -3,6 +3,8 @@ import logging
 import os
 import time
 from typing import Any, Dict, List, Optional, Tuple
+import numpy as np
+import pandas as pd
 
 from src.paper_trader import PaperTrader
 from src.data_loader import fetch_fundamental_data, fetch_external_data

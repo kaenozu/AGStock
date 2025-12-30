@@ -9,8 +9,10 @@ from typing import Dict, Optional, Tuple
 
 import pandas as pd
 
-from src.constants import (DEFAULT_PAPER_TRADER_REFRESH_INTERVAL,
-                           PAPER_TRADER_REALTIME_FALLBACK_DEFAULT)
+from src.constants import (
+    DEFAULT_PAPER_TRADER_REFRESH_INTERVAL,
+    PAPER_TRADER_REALTIME_FALLBACK_DEFAULT,
+)
 from src.data_loader import fetch_stock_data
 from src.helpers import retry_with_backoff
 
@@ -36,7 +38,9 @@ class PaperTrader:
                 if config_path.exists():
                     with open(config_path, "r", encoding="utf-8") as f:
                         config = json.load(f)
-                    initial_capital = config.get("paper_trading", {}).get("initial_capital", 1000000)
+                    initial_capital = config.get("paper_trading", {}).get(
+                        "initial_capital", 1000000
+                    )
                 else:
                     initial_capital = 1000000  # Default 1M JPY
             except Exception as e:
@@ -57,12 +61,19 @@ class PaperTrader:
         elif env_val in {"0", "false", "no", "off", ""}:
             return PAPER_TRADER_REALTIME_FALLBACK_DEFAULT
         else:
-            logger.warning(f"Invalid value for PAPER_TRADER_REALTIME_FALLBACK: {env_val}. Using default value.")
+            logger.warning(
+                f"Invalid value for PAPER_TRADER_REALTIME_FALLBACK: {env_val}. Using default value."
+            )
             return PAPER_TRADER_REALTIME_FALLBACK_DEFAULT
 
     def _min_refresh_interval(self) -> int:
         try:
-            val = int(os.getenv("PAPER_TRADER_REFRESH_INTERVAL", str(DEFAULT_PAPER_TRADER_REFRESH_INTERVAL)))
+            val = int(
+                os.getenv(
+                    "PAPER_TRADER_REFRESH_INTERVAL",
+                    str(DEFAULT_PAPER_TRADER_REFRESH_INTERVAL),
+                )
+            )
         except Exception:
             val = DEFAULT_PAPER_TRADER_REFRESH_INTERVAL
         return max(val, 10)
@@ -94,7 +105,9 @@ class PaperTrader:
 
         return market_value, invested_amount, unrealized_pnl
 
-    def _calculate_equity_snapshot(self, positions: pd.DataFrame, cash: float) -> Tuple[float, float, float]:
+    def _calculate_equity_snapshot(
+        self, positions: pd.DataFrame, cash: float
+    ) -> Tuple[float, float, float]:
         """現金と保有ポジションから総資産/投下資本/含み損益を計算"""
         invested_amount = 0.0
         market_value = 0.0
@@ -102,7 +115,11 @@ class PaperTrader:
 
         if not positions.empty:
             for _, pos in positions.iterrows():
-                pos_market_value, pos_invested_amount, pos_unrealized_pnl = self._calculate_position_value(pos)
+                (
+                    pos_market_value,
+                    pos_invested_amount,
+                    pos_unrealized_pnl,
+                ) = self._calculate_position_value(pos)
                 market_value += pos_market_value
                 invested_amount += pos_invested_amount
                 unrealized_pnl += pos_unrealized_pnl
@@ -113,11 +130,17 @@ class PaperTrader:
     def _get_latest_balance(self) -> Tuple[Optional[str], float, float]:
         """balanceテーブルの最新レコードを取得"""
         cursor = self.conn.cursor()
-        cursor.execute("SELECT date, cash, total_equity FROM balance ORDER BY date DESC LIMIT 1")
+        cursor.execute(
+            "SELECT date, cash, total_equity FROM balance ORDER BY date DESC LIMIT 1"
+        )
         row = cursor.fetchone()
         if row:
             date, cash, total_equity = row
-            return str(date), float(cash), float(total_equity) if total_equity is not None else float(cash)
+            return (
+                str(date),
+                float(cash),
+                float(total_equity) if total_equity is not None else float(cash),
+            )
         return None, self.initial_capital, self.initial_capital
 
     def _upsert_balance(self, date_str: str, cash: float, total_equity: float) -> None:
@@ -127,10 +150,13 @@ class PaperTrader:
         exists = cursor.fetchone()[0] > 0
         if exists:
             cursor.execute(
-                "UPDATE balance SET cash = ?, total_equity = ? WHERE date = ?", (cash, total_equity, date_str)
+                "UPDATE balance SET cash = ?, total_equity = ? WHERE date = ?",
+                (cash, total_equity, date_str),
             )
         else:
-            cursor.execute("INSERT INTO balance VALUES (?, ?, ?)", (date_str, cash, total_equity))
+            cursor.execute(
+                "INSERT INTO balance VALUES (?, ?, ?)", (date_str, cash, total_equity)
+            )
         self.conn.commit()
 
     def _initialize_database(self):
@@ -167,11 +193,19 @@ class PaperTrader:
 
             # Migration: Check columns
             try:
-                cursor.execute("SELECT stop_price, highest_price FROM positions LIMIT 1")
+                cursor.execute(
+                    "SELECT stop_price, highest_price FROM positions LIMIT 1"
+                )
             except sqlite3.OperationalError:
-                logger.warning("Migrating database: adding stop_price and highest_price columns")
-                cursor.execute("ALTER TABLE positions ADD COLUMN stop_price REAL DEFAULT 0")
-                cursor.execute("ALTER TABLE positions ADD COLUMN highest_price REAL DEFAULT 0")
+                logger.warning(
+                    "Migrating database: adding stop_price and highest_price columns"
+                )
+                cursor.execute(
+                    "ALTER TABLE positions ADD COLUMN stop_price REAL DEFAULT 0"
+                )
+                cursor.execute(
+                    "ALTER TABLE positions ADD COLUMN highest_price REAL DEFAULT 0"
+                )
 
             # Orders/Trades history
             cursor.execute(
@@ -197,18 +231,27 @@ class PaperTrader:
             if cursor.fetchone()[0] == 0:
                 today = datetime.date.today().isoformat()
                 cursor.execute(
-                    "INSERT INTO balance VALUES (?, ?, ?)", (today, self.initial_capital, self.initial_capital)
+                    "INSERT INTO balance VALUES (?, ?, ?)",
+                    (today, self.initial_capital, self.initial_capital),
                 )
                 self.conn.commit()
         except Exception as e:
             logger.error(f"Database initialization error: {e}")
 
-    def get_current_balance(self, use_realtime_fallback: Optional[bool] = None) -> Dict[str, float]:
+    def get_current_balance(
+        self, use_realtime_fallback: Optional[bool] = None
+    ) -> Dict[str, float]:
         """Get current cash and total equity"""
         last_date, cash, stored_total = self._get_latest_balance()
-        realtime_flag = self.use_realtime_fallback if use_realtime_fallback is None else bool(use_realtime_fallback)
+        realtime_flag = (
+            self.use_realtime_fallback
+            if use_realtime_fallback is None
+            else bool(use_realtime_fallback)
+        )
         positions = self.get_positions(use_realtime_fallback=realtime_flag)
-        total_equity, invested_amount, unrealized_pnl = self._calculate_equity_snapshot(positions, cash)
+        total_equity, invested_amount, unrealized_pnl = self._calculate_equity_snapshot(
+            positions, cash
+        )
 
         # DBに保存されている総資産が実計算とずれている場合は同期
         if last_date and abs(total_equity - stored_total) > 1e-6:
@@ -223,7 +266,10 @@ class PaperTrader:
             cursor = self.conn.cursor()
             today_str = datetime.date.today().isoformat()
             # Get the most recent balance record strictly before today
-            cursor.execute("SELECT total_equity FROM balance WHERE date < ? ORDER BY date DESC LIMIT 1", (today_str,))
+            cursor.execute(
+                "SELECT total_equity FROM balance WHERE date < ? ORDER BY date DESC LIMIT 1",
+                (today_str,),
+            )
             row = cursor.fetchone()
             if row:
                 prev_equity = float(row[0])
@@ -263,7 +309,11 @@ class PaperTrader:
                 ]
             )
             # Ensure index is set even for empty df if downstream expects it
-            return empty_df.set_index("ticker", drop=False) if not empty_df.empty else empty_df
+            return (
+                empty_df.set_index("ticker", drop=False)
+                if not empty_df.empty
+                else empty_df
+            )
 
         # Add calculated columns
         def _safe_price(row, fallback_prices: Dict[str, float]):
@@ -293,7 +343,9 @@ class PaperTrader:
                 except Exception as exc:
                     logger.debug(f"Realtime price fallback failed for {t}: {exc}")
 
-        df["current_price"] = df.apply(lambda r: _safe_price(r, fallback_prices), axis=1)
+        df["current_price"] = df.apply(
+            lambda r: _safe_price(r, fallback_prices), axis=1
+        )
 
         if use_realtime_fallback and fallback_prices:
             try:
@@ -311,17 +363,23 @@ class PaperTrader:
             except Exception as exc:
                 logger.debug(f"Persisting realtime prices failed: {exc}")
         df["market_value"] = df["quantity"] * df["current_price"]
-        df["unrealized_pnl"] = (df["current_price"] - df["entry_price"]) * df["quantity"]
+        df["unrealized_pnl"] = (df["current_price"] - df["entry_price"]) * df[
+            "quantity"
+        ]
         # Avoid division by zero
         df["unrealized_pnl_pct"] = df.apply(
             lambda x: (
-                ((x["current_price"] - x["entry_price"]) / x["entry_price"] * 100) if x["entry_price"] != 0 else 0
+                ((x["current_price"] - x["entry_price"]) / x["entry_price"] * 100)
+                if x["entry_price"] != 0
+                else 0
             ),
             axis=1,
         )
         return df.set_index("ticker", drop=False)
 
-    def get_trade_history(self, limit: int = 50, start_date: Optional[datetime.date] = None) -> pd.DataFrame:
+    def get_trade_history(
+        self, limit: int = 50, start_date: Optional[datetime.date] = None
+    ) -> pd.DataFrame:
         """Get trade history. If start_date is provided, it takes priority over limit."""
         try:
             if start_date:
@@ -332,7 +390,9 @@ class PaperTrader:
                 query = f"SELECT * FROM orders ORDER BY date DESC LIMIT {safe_limit}"
                 params = ()
 
-            return pd.read_sql_query(query, self.conn, params=params, parse_dates=["date", "timestamp"])
+            return pd.read_sql_query(
+                query, self.conn, params=params, parse_dates=["date", "timestamp"]
+            )
         except Exception:
             return pd.DataFrame()
 
@@ -341,14 +401,18 @@ class PaperTrader:
         try:
             query = "SELECT * FROM balance ORDER BY date ASC"
             params = ()
-            
+
             if days:
                 # Filter by last N days
-                target_date = (datetime.date.today() - datetime.timedelta(days=days)).isoformat()
+                target_date = (
+                    datetime.date.today() - datetime.timedelta(days=days)
+                ).isoformat()
                 query = "SELECT * FROM balance WHERE date >= ? ORDER BY date ASC"
                 params = (target_date,)
-                
-            return pd.read_sql_query(query, self.conn, params=params, parse_dates=["date"])
+
+            return pd.read_sql_query(
+                query, self.conn, params=params, parse_dates=["date"]
+            )
         except Exception:
             return pd.DataFrame()
 
@@ -358,7 +422,10 @@ class PaperTrader:
         # Rate-limit heavy refresh to avoid excessive API/DB load
         refresh_interval = self._min_refresh_interval()
         now_ts = time.time()
-        if self._last_price_update_ts and (now_ts - self._last_price_update_ts) < refresh_interval:
+        if (
+            self._last_price_update_ts
+            and (now_ts - self._last_price_update_ts) < refresh_interval
+        ):
             logger.debug(
                 "Positions price refresh skipped (rate limit). elapsed=%.2fs, interval=%ss",
                 now_ts - self._last_price_update_ts,
@@ -375,7 +442,9 @@ class PaperTrader:
             return
 
         try:
-            data_map = fetch_stock_data(tickers, period="5d")  # Short period is enough for current price
+            data_map = fetch_stock_data(
+                tickers, period="5d"
+            )  # Short period is enough for current price
 
             cursor = self.conn.cursor()
             updated = False
@@ -387,7 +456,9 @@ class PaperTrader:
                     if hasattr(current_price, "item"):
                         current_price = current_price.item()
 
-                    unrealized_pnl = (float(current_price) - float(pos["entry_price"])) * int(pos["quantity"])
+                    unrealized_pnl = (
+                        float(current_price) - float(pos["entry_price"])
+                    ) * int(pos["quantity"])
 
                     cursor.execute(
                         """
@@ -412,7 +483,15 @@ class PaperTrader:
             logger.error(f"Failed to update position prices: {e}")
             raise e  # Propagation for retry
 
-    def execute_trade(self, ticker: str, action: str, quantity: int, price: float, reason: str = "Signal", initial_stop_price: float = 0.0) -> bool:
+    def execute_trade(
+        self,
+        ticker: str,
+        action: str,
+        quantity: int,
+        price: float,
+        reason: str = "Signal",
+        initial_stop_price: float = 0.0,
+    ) -> bool:
         """Execute a buy or sell trade."""
         try:
             cursor = self.conn.cursor()
@@ -426,12 +505,17 @@ class PaperTrader:
             if action == "BUY":
                 cost = quantity * price
                 if cost > balance["cash"]:
-                    logger.warning(f"Insufficient cash to buy {quantity} shares of {ticker}")
+                    logger.warning(
+                        f"Insufficient cash to buy {quantity} shares of {ticker}"
+                    )
                     return False
 
                 new_cash = balance["cash"] - cost
 
-                cursor.execute("SELECT quantity, entry_price, stop_price FROM positions WHERE ticker = ?", (ticker,))
+                cursor.execute(
+                    "SELECT quantity, entry_price, stop_price FROM positions WHERE ticker = ?",
+                    (ticker,),
+                )
                 existing = cursor.fetchone()
 
                 if existing:
@@ -439,7 +523,9 @@ class PaperTrader:
                     old_qty, old_price = existing
                     new_qty = old_qty + quantity
                     # Weighted average price
-                    new_avg_price = ((old_qty * old_price) + (quantity * price)) / new_qty
+                    new_avg_price = (
+                        (old_qty * old_price) + (quantity * price)
+                    ) / new_qty
 
                     cursor.execute(
                         """
@@ -447,7 +533,16 @@ class PaperTrader:
                         SET quantity = ?, entry_price = ?, current_price = ?, stop_price = ?
                         WHERE ticker = ?
                     """,
-                        (new_qty, new_avg_price, price, max(initial_stop_price, existing[2] if len(existing) > 2 else 0.0), ticker),
+                        (
+                            new_qty,
+                            new_avg_price,
+                            price,
+                            max(
+                                initial_stop_price,
+                                existing[2] if len(existing) > 2 else 0.0,
+                            ),
+                            ticker,
+                        ),
                     )
                 else:
                     # New position
@@ -456,19 +551,36 @@ class PaperTrader:
                         INSERT INTO positions (ticker, quantity, entry_price, entry_date, current_price, unrealized_pnl, stop_price, highest_price)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """,
-                        (ticker, quantity, price, today, price, 0.0, initial_stop_price, price),
+                        (
+                            ticker,
+                            quantity,
+                            price,
+                            today,
+                            price,
+                            0.0,
+                            initial_stop_price,
+                            price,
+                        ),
                     )
 
                 # Update balance
-                cursor.execute("UPDATE balance SET cash = ? WHERE date = (SELECT MAX(date) FROM balance)", (new_cash,))
+                cursor.execute(
+                    "UPDATE balance SET cash = ? WHERE date = (SELECT MAX(date) FROM balance)",
+                    (new_cash,),
+                )
                 logger.info(f"[BUY] Executed: {ticker} x {quantity} @ {price}")
 
             elif action == "SELL":
-                cursor.execute("SELECT quantity, entry_price FROM positions WHERE ticker = ?", (ticker,))
+                cursor.execute(
+                    "SELECT quantity, entry_price FROM positions WHERE ticker = ?",
+                    (ticker,),
+                )
                 existing = cursor.fetchone()
 
                 if not existing or existing[0] < quantity:
-                    logger.warning(f"Insufficient shares to sell {quantity} of {ticker}")
+                    logger.warning(
+                        f"Insufficient shares to sell {quantity} of {ticker}"
+                    )
                     return False
 
                 old_qty, entry_price = existing
@@ -481,11 +593,19 @@ class PaperTrader:
                     cursor.execute("DELETE FROM positions WHERE ticker = ?", (ticker,))
                 else:
                     new_qty = old_qty - quantity
-                    cursor.execute("UPDATE positions SET quantity = ? WHERE ticker = ?", (new_qty, ticker))
+                    cursor.execute(
+                        "UPDATE positions SET quantity = ? WHERE ticker = ?",
+                        (new_qty, ticker),
+                    )
 
                 # Update balance
-                cursor.execute("UPDATE balance SET cash = ? WHERE date = (SELECT MAX(date) FROM balance)", (new_cash,))
-                logger.info(f"[SELL] Executed: {ticker} x {quantity} @ {price} (PnL: {realized_pnl})")
+                cursor.execute(
+                    "UPDATE balance SET cash = ? WHERE date = (SELECT MAX(date) FROM balance)",
+                    (new_cash,),
+                )
+                logger.info(
+                    f"[SELL] Executed: {ticker} x {quantity} @ {price} (PnL: {realized_pnl})"
+                )
 
             # Log trade
             realized_pnl_value = realized_pnl if action == "SELL" else 0
@@ -494,7 +614,16 @@ class PaperTrader:
                 INSERT INTO orders (date, timestamp, ticker, action, quantity, price, realized_pnl, reason)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
-                (today, now, ticker, action, quantity, price, realized_pnl_value, reason),
+                (
+                    today,
+                    now,
+                    ticker,
+                    action,
+                    quantity,
+                    price,
+                    realized_pnl_value,
+                    reason,
+                ),
             )
 
             self.conn.commit()
@@ -510,7 +639,9 @@ class PaperTrader:
             self.update_positions_prices()
 
             _, cash, _ = self._get_latest_balance()
-            positions = self.get_positions(use_realtime_fallback=self.use_realtime_fallback)
+            positions = self.get_positions(
+                use_realtime_fallback=self.use_realtime_fallback
+            )
             total_equity, _, _ = self._calculate_equity_snapshot(positions, cash)
 
             today = datetime.date.today().isoformat()
@@ -520,7 +651,9 @@ class PaperTrader:
             logger.error(f"Daily equity update failed: {e}")
             return 0.0
 
-    def update_position_stop(self, ticker: str, stop_price: float, highest_price: float):
+    def update_position_stop(
+        self, ticker: str, stop_price: float, highest_price: float
+    ):
         """Update stop price and highest price for a position."""
         try:
             cursor = self.conn.cursor()
@@ -542,41 +675,43 @@ class PaperTrader:
         try:
             # 1. Get Equity History to calc PnL
             df_equity = pd.read_sql_query(
-                f"SELECT date, total_equity FROM balance ORDER BY date DESC LIMIT {limit + 1}", 
-                self.conn
+                f"SELECT date, total_equity FROM balance ORDER BY date DESC LIMIT {limit + 1}",
+                self.conn,
             ).sort_values("date")
-            
+
             if df_equity.empty:
                 return []
-                
+
             df_equity["prev_equity"] = df_equity["total_equity"].shift(1)
-            df_equity["daily_pnl"] = df_equity["total_equity"] - df_equity["prev_equity"]
-            
+            df_equity["daily_pnl"] = (
+                df_equity["total_equity"] - df_equity["prev_equity"]
+            )
+
             # Fill NaN for first record (if no prev) with 0 or diff from initial capital
-            # For simpler view, we drop the first one if it's purely for diff, 
+            # For simpler view, we drop the first one if it's purely for diff,
             # but user wants 'limit' days.
-            
+
             # 2. Get Trade Counts
             df_trades = pd.read_sql_query(
-                f"SELECT date, COUNT(*) as trade_count FROM orders GROUP BY date", 
-                self.conn
+                f"SELECT date, COUNT(*) as trade_count FROM orders GROUP BY date",
+                self.conn,
             )
             trade_map = dict(zip(df_trades["date"], df_trades["trade_count"]))
-            
+
             # 3. Combine
             # We take the last 'limit' records
             target_df = df_equity.iloc[1:] if len(df_equity) > 1 else df_equity
             target_df = target_df.tail(limit)
-            
+
             for _, row in target_df.iterrows():
                 d = row["date"]
                 pnl = row["daily_pnl"] if pd.notna(row["daily_pnl"]) else 0.0
                 count = trade_map.get(d, 0)
                 summary.append((d, pnl, count))
-                
+
         except Exception as e:
             logger.error(f"Failed to get daily summary: {e}")
-            
+
         return summary
 
     def close(self):

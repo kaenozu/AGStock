@@ -71,8 +71,12 @@ class AuthManager:
             )
 
             # インデックス追加
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at)")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at)"
+            )
 
             conn.commit()
 
@@ -101,7 +105,9 @@ class AuthManager:
 
         return True, "OK"
 
-    def create_user(self, username: str, email: str, password: str, is_admin: bool = False) -> Optional[int]:
+    def create_user(
+        self, username: str, email: str, password: str, is_admin: bool = False
+    ) -> Optional[int]:
         """ユーザー作成"""
         # パスワード強度チェック
         is_strong, message = self.check_password_strength(password)
@@ -155,7 +161,7 @@ class AuthManager:
 
             cursor.execute(
                 """
-                SELECT locked_until FROM users 
+                SELECT locked_until FROM users
                 WHERE username = ? AND locked_until > datetime('now')
             """,
                 (username,),
@@ -170,7 +176,7 @@ class AuthManager:
 
             cursor.execute(
                 """
-                UPDATE users 
+                UPDATE users
                 SET failed_login_attempts = failed_login_attempts + 1
                 WHERE username = ?
             """,
@@ -190,7 +196,7 @@ class AuthManager:
                 locked_until = datetime.utcnow() + self.LOCKOUT_DURATION
                 cursor.execute(
                     """
-                    UPDATE users 
+                    UPDATE users
                     SET locked_until = ?
                     WHERE username = ?
                 """,
@@ -206,7 +212,7 @@ class AuthManager:
 
             cursor.execute(
                 """
-                UPDATE users 
+                UPDATE users
                 SET failed_login_attempts = 0, locked_until = NULL
                 WHERE username = ?
             """,
@@ -272,7 +278,9 @@ class AuthManager:
         """ログイン"""
         # アカウントロックチェック
         if self.is_account_locked(username):
-            raise ValueError("アカウントがロックされています。15分後に再試行してください。")
+            raise ValueError(
+                "アカウントがロックされています。15分後に再試行してください。"
+            )
 
         user = self.get_user(username)
 

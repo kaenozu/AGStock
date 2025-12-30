@@ -38,10 +38,14 @@ class TradingEnvironment:
         # State space size (calculated dynamically based on features)
         # Position(1) + PnL(1) + Features
         self.feature_cols = [
-            c for c in df.columns if c not in ["Date", "Open", "High", "Low", "Close", "Volume", "Target"]
+            c
+            for c in df.columns
+            if c not in ["Date", "Open", "High", "Low", "Close", "Volume", "Target"]
         ]
         # 数値カラムのみ
-        self.feature_cols = df[self.feature_cols].select_dtypes(include=[np.number]).columns.tolist()
+        self.feature_cols = (
+            df[self.feature_cols].select_dtypes(include=[np.number]).columns.tolist()
+        )
         self.state_size = 2 + len(self.feature_cols)
 
         self.reset()
@@ -90,7 +94,12 @@ class TradingEnvironment:
 
                 reward += realized_pnl
                 self.trades.append(
-                    {"step": self.current_step, "type": "SELL", "price": current_price, "pnl": realized_pnl}
+                    {
+                        "step": self.current_step,
+                        "type": "SELL",
+                        "price": current_price,
+                        "pnl": realized_pnl,
+                    }
                 )
 
         elif action == 0:  # HOLD
@@ -110,7 +119,11 @@ class TradingEnvironment:
         # 次状態
         next_state = self._get_state()
 
-        info = {"balance": self.balance, "total_profit": self.total_profit, "position": self.position}
+        info = {
+            "balance": self.balance,
+            "total_profit": self.total_profit,
+            "position": self.position,
+        }
 
         return next_state, reward, done, info
 

@@ -7,26 +7,21 @@
 """
 
 import asyncio
-import copy
-import json
 import logging
 import os
-import pickle
 import queue
 import threading
 import time
 from collections import defaultdict, deque
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
+from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-import websockets
 import yfinance as yf
 
-from src.base_predictor import BasePredictor
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +73,7 @@ class MarketDataStream:
     def __init__(self, tickers: List[str], update_interval: float = 1.0):
         self.tickers = tickers
         self.update_interval = update_interval
-        self.data_buffer = RealTimeDataBuffer()
+        self.data_buffer = None  # RealTimeDataBuffer not available
         self.is_streaming = False
         self.stream_thread = None
         self.callbacks = []
@@ -305,7 +300,7 @@ class EdgeInferenceEngine:
 
     def _apply_optimizations(self):
         """モデルの最適化を適用"""
-        if self.is_quantized and isinstance(self.model, keras.Model):
+        if self.is_quantized and hasattr(self.model, "predict"):
             # 量子化モデルに変換
             try:
                 converter = tf.lite.TFLiteConverter.from_keras_model(self.model)

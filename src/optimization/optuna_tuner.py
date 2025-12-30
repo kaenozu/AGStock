@@ -6,7 +6,6 @@ import logging
 
 import lightgbm as lgb
 import optuna
-from sklearn.metrics import accuracy_score
 from sklearn.model_selection import KFold, cross_val_score
 
 logger = logging.getLogger(__name__)
@@ -24,7 +23,9 @@ class OptunaTuner:
         logger.info("Starting Optuna optimization...")
 
         study = optuna.create_study(direction="maximize")
-        study.optimize(lambda trial: self._objective(trial, X, y), n_trials=self.n_trials)
+        study.optimize(
+            lambda trial: self._objective(trial, X, y), n_trials=self.n_trials
+        )
 
         self.best_params = study.best_params
         logger.info(f"Optimization finished. Best params: {self.best_params}")

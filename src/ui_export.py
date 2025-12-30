@@ -20,7 +20,10 @@ def render_export_tab():
     pt = PaperTrader()
 
     # エクスポート対象選択
-    export_type = st.selectbox("エクスポート対象", ["ポートフォリオレポート", "取引履歴", "保有ポジション", "残高情報"])
+    export_type = st.selectbox(
+        "エクスポート対象",
+        ["ポートフォリオレポート", "取引履歴", "保有ポジション", "残高情報"],
+    )
 
     # フォーマット選択
     format_type = st.selectbox("フォーマット", ["PDF", "Excel", "CSV", "JSON"])
@@ -34,9 +37,13 @@ def render_export_tab():
                     positions = pt.get_positions()
                     history = pt.get_trade_history()
 
-                    data = manager.export_portfolio_report(balance, positions, history, format=format_type)
+                    data = manager.export_portfolio_report(
+                        balance, positions, history, format=format_type
+                    )
 
-                    filename = f"portfolio_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                    filename = (
+                        f"portfolio_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                    )
 
                 elif export_type == "取引履歴":
                     # 取引履歴
@@ -46,10 +53,14 @@ def render_export_tab():
                         data = manager.export_to_csv(history, "trade_history.csv")
                         filename = "trade_history"
                     elif format_type == "Excel":
-                        data = manager.export_to_excel({"取引履歴": history}, "trade_history.xlsx")
+                        data = manager.export_to_excel(
+                            {"取引履歴": history}, "trade_history.xlsx"
+                        )
                         filename = "trade_history"
                     elif format_type == "PDF":
-                        data = manager.export_to_pdf(history, "取引履歴", "trade_history.pdf")
+                        data = manager.export_to_pdf(
+                            history, "取引履歴", "trade_history.pdf"
+                        )
                         filename = "trade_history"
                     else:  # JSON
                         data = manager.export_to_json(history, "trade_history.json")
@@ -63,10 +74,14 @@ def render_export_tab():
                         data = manager.export_to_csv(positions, "positions.csv")
                         filename = "positions"
                     elif format_type == "Excel":
-                        data = manager.export_to_excel({"ポジション": positions}, "positions.xlsx")
+                        data = manager.export_to_excel(
+                            {"ポジション": positions}, "positions.xlsx"
+                        )
                         filename = "positions"
                     elif format_type == "PDF":
-                        data = manager.export_to_pdf(positions, "保有ポジション", "positions.pdf")
+                        data = manager.export_to_pdf(
+                            positions, "保有ポジション", "positions.pdf"
+                        )
                         filename = "positions"
                     else:  # JSON
                         data = manager.export_to_json(positions, "positions.json")
@@ -81,10 +96,14 @@ def render_export_tab():
                         data = manager.export_to_csv(balance_df, "balance.csv")
                         filename = "balance"
                     elif format_type == "Excel":
-                        data = manager.export_to_excel({"残高": balance_df}, "balance.xlsx")
+                        data = manager.export_to_excel(
+                            {"残高": balance_df}, "balance.xlsx"
+                        )
                         filename = "balance"
                     elif format_type == "PDF":
-                        data = manager.export_to_pdf(balance_df, "残高情報", "balance.pdf")
+                        data = manager.export_to_pdf(
+                            balance_df, "残高情報", "balance.pdf"
+                        )
                         filename = "balance"
                     else:  # JSON
                         data = manager.export_to_json(balance_df, "balance.json")
@@ -127,7 +146,9 @@ def render_export_quick_actions():
         positions = pt.get_positions()
         history = pt.get_trade_history()
 
-        data = manager.export_portfolio_report(balance, positions, history, format="PDF")
+        data = manager.export_portfolio_report(
+            balance, positions, history, format="PDF"
+        )
 
         st.sidebar.download_button(
             label="ダウンロード",
