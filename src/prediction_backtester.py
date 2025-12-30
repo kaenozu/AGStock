@@ -70,7 +70,7 @@ class PredictionBacktester:
 
                     if len(historical_data) < 50:
                         logger.warning(f"Insufficient historical data for {test_date_naive}: {len(historical_data)} rows. Skipping.")
-                        continue 
+                        continue
 
                     # 予測実行
                     result = self.predictor.predict_trajectory(
@@ -89,7 +89,7 @@ class PredictionBacktester:
 
                     if len(future_data) < prediction_days:
                         logger.warning(f"Insufficient future data for validation at {test_date_naive}. Skipping.")
-                        continue 
+                        continue
 
                     # 予測値と実際の値を記録
                     predicted_price = result["predictions"][-1]
