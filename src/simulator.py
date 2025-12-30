@@ -174,6 +174,8 @@ class TradeSimulator:
                         highest_prices,
                         trailing_stop_levels,
                         exit_executed,
+        date=None,
+        index=None,
                     )
 
                 # 整数信号による新規ポジション
@@ -226,7 +228,7 @@ class TradeSimulator:
                 signals_map[ticker] = pd.Series(0, index=df.index)
         return signals_map
 
-    def _calculate_portfolio_value(self, cash, holdings, aligned_data, index, final_calc=False):
+    def _calculate_portfolio_value(self, cash, holdings, aligned_data, index, entry_prices=None, final_calc=False):
         """ポートフォリオ価値を計算"""
         current_portfolio_value = cash
         for t in aligned_data:
@@ -234,7 +236,7 @@ class TradeSimulator:
                 if holdings[t] > 0:  # ロンポジション
                     current_portfolio_value += holdings[t] * aligned_data[t]["Close"].iloc[index]
                 else:  # ショートポジション
-                    entry_price_val = entry_prices[t]
+                    entry_price_val = entry_prices[t] if entry_prices else 0
                     current_price_val = aligned_data[t]["Close"].iloc[index]
                     profit = (entry_price_val - current_price_val) * abs(holdings[t])
                     current_portfolio_value += profit
@@ -254,7 +256,7 @@ class TradeSimulator:
         }
 
     def _process_integer_signals(
-        self, today_sig, ticker, holdings, entry_prices, exec_price, trades, cash, exit_executed
+        self, today_sig, ticker, holdings, entry_prices, exec_price, trades, cash, exit_executed, date=None
     ):
         """整数信号の処理"""
         position = holdings[ticker]
@@ -265,7 +267,7 @@ class TradeSimulator:
                 {
                     "ticker": ticker,
                     "entry_date": None,
-                    "exit_date": full_index[i + 1],
+                    "exit_date": date,
                     "entry_price": entry,
                     "exit_price": exec_price,
                     "return": ret,
@@ -283,7 +285,7 @@ class TradeSimulator:
                 {
                     "ticker": ticker,
                     "entry_date": None,
-                    "exit_date": full_index[i + 1],
+                    "exit_date": date,
                     "entry_price": entry,
                     "exit_price": exec_price,
                     "return": ret,
@@ -311,6 +313,8 @@ class TradeSimulator:
         highest_prices,
         trailing_stop_levels,
         exit_executed,
+        date=None,
+        index=None,
     ):
         """Orderオブジェクト信号の処理"""
         if not today_sig.ticker:
@@ -323,20 +327,20 @@ class TradeSimulator:
             should_execute = True
         elif today_sig.type == OrderType.LIMIT:
             if today_sig.action.upper() == "BUY":
-                if df["Low"].iloc[i + 1] <= today_sig.price:
+                if df["Low"].iloc[-1] if index is None else df["Low"].iloc[min(index+1, len(df)-1)] <= today_sig.price:
                     should_execute = True
                     fill_price = min(today_sig.price, exec_price)
             else:  # SELL
-                if df["High"].iloc[i + 1] >= today_sig.price:
+                if df["High"].iloc[-1] if index is None else df["High"].iloc[min(index+1, len(df)-1)] >= today_sig.price:
                     should_execute = True
                     fill_price = max(today_sig.price, exec_price)
         elif today_sig.type == OrderType.STOP:
             if today_sig.action.upper() == "BUY":
-                if df["High"].iloc[i + 1] >= today_sig.price:
+                if df["High"].iloc[-1] if index is None else df["High"].iloc[min(index+1, len(df)-1)] >= today_sig.price:
                     should_execute = True
                     fill_price = max(today_sig.price, exec_price)
             else:  # SELL
-                if df["Low"].iloc[i + 1] <= today_sig.price:
+                if df["Low"].iloc[-1] if index is None else df["Low"].iloc[min(index+1, len(df)-1)] <= today_sig.price:
                     should_execute = True
                     fill_price = min(today_sig.price, exec_price)
 
@@ -366,7 +370,7 @@ class TradeSimulator:
                         {
                             "ticker": ticker,
                             "entry_date": None,
-                            "exit_date": full_index[i + 1],
+                            "exit_date": date,
                             "entry_price": entry,
                             "exit_price": fill_price,
                             "return": ret,

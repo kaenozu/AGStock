@@ -253,3 +253,23 @@ def take_system_snapshot(module: str, function: str) -> str:
     except Exception as e:
         logger.warning(f"Failed to take system snapshot: {e}")
         return "N/A"
+
+
+class SafeExecution:
+    """Context manager for safe execution of code blocks."""
+    
+    def __init__(self, context: str = "", default_return: Any = None, show_error: bool = True):
+        self.context = context
+        self.default_return = default_return
+        self.show_error = show_error
+        self.result = default_return
+        
+    def __enter__(self):
+        return self
+        
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type is not None:
+            if self.show_error:
+                handle_error(exc_val, context=self.context)
+            return True  # Suppress the exception
+        return False

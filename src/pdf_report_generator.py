@@ -3,6 +3,7 @@ PDF Report Generator Module
 Generates automated weekly/monthly performance reports with AI analysis.
 """
 
+from typing import Dict, List, Optional, Any
 import os
 import matplotlib
 import pandas as pd

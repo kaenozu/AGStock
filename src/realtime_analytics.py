@@ -78,7 +78,7 @@ class MarketDataStream:
     def __init__(self, tickers: List[str], update_interval: float = 1.0):
         self.tickers = tickers
         self.update_interval = update_interval
-        self.data_buffer = RealTimeDataBuffer()
+        self.data_buffer = None  # RealTimeDataBuffer not available
         self.is_streaming = False
         self.stream_thread = None
         self.callbacks = []
@@ -305,7 +305,7 @@ class EdgeInferenceEngine:
 
     def _apply_optimizations(self):
         """モデルの最適化を適用"""
-        if self.is_quantized and isinstance(self.model, keras.Model):
+        if self.is_quantized and hasattr(self.model, "predict"):
             # 量子化モデルに変換
             try:
                 converter = tf.lite.TFLiteConverter.from_keras_model(self.model)

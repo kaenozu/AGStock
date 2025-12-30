@@ -49,60 +49,56 @@ class TradeExplainer:
 
 ## Technical Indicators
 """
+        for indicator, value in technical_indicators.items():
+            context += f"- {indicator}: {value:.2f}\n"
 
+        if market_regime:
+            context += "\n## Market Regime\n"
+            context += f"- Trend: {market_regime.get('trend', 'N/A')}\n"
+            context += f"- Volatility: {market_regime.get('volatility', 'N/A')}\n"
+            context += f"- ADX: {market_regime.get('adx', 'N/A'):.1f}\n"
 
-for indicator, value in technical_indicators.items():
-    context += f"- {indicator}: {value:.2f}\n"
+        # Generate explanation
+        explanation = self.analyst.generate_response(
+            system_prompt=TRADE_REASONING_SYSTEM_PROMPT,
+            user_prompt=f"Please explain this trade decision:\n\n{context}",
+            temperature=0.5,
+        )
 
-    #         if market_regime:
-    context += "\n## Market Regime\n"
-    context += f"- Trend: {market_regime.get('trend', 'N/A')}\n"
-    context += f"- Volatility: {market_regime.get('volatility', 'N/A')}\n"
-    context += f"- ADX: {market_regime.get('adx', 'N/A'):.1f}\n"
+        return explanation
 
-    # Generate explanation
-    #         explanation = self.analyst.generate_response(
-    system_prompt = (TRADE_REASONING_SYSTEM_PROMPT,)
-    user_prompt = (f"Please explain this trade decision:\n\n{context}",)
-    temperature = (0.5,)
-#         )
+    def explain_no_trade(
+        self,
+        ticker: str,
+        reason: str,
+        technical_indicators: Dict[str, float],
+        market_regime: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        """
+        Explain why a trade was NOT made.
+        """
+        if not self.analyst.enabled:
+            return "AI Analyst is disabled."
 
-#         return explanation
-
-#     def explain_no_trade(
-#         self,
-#         ticker: str,
-#         reason: str,
-#         technical_indicators: Dict[str, float],
-#         market_regime: Optional[Dict[str, Any]] = None,
-#     ) -> str:
-#         """
-#         Explain why a trade was NOT made.
-#         """
-#         if not self.analyst.enabled:
-#             return "AI Analyst is disabled."
-
-#         context = f"""
+        context = f"""
 ## No Trade Decision
-# - Ticker: {ticker}
-# - Reason: {reason}
+- Ticker: {ticker}
+- Reason: {reason}
 
 ## Technical Indicators
-# """
-for indicator, value in technical_indicators.items():
-    context += f"- {indicator}: {value:.2f}\n"
+"""
+        for indicator, value in technical_indicators.items():
+            context += f"- {indicator}: {value:.2f}\n"
 
-    #         if market_regime:
-    context += "\n## Market Regime\n"
-    context += f"- Trend: {market_regime.get('trend', 'N/A')}\n"
-    context += f"- Volatility: {market_regime.get('volatility', 'N/A')}\n"
+        if market_regime:
+            context += "\n## Market Regime\n"
+            context += f"- Trend: {market_regime.get('trend', 'N/A')}\n"
+            context += f"- Volatility: {market_regime.get('volatility', 'N/A')}\n"
 
-    #         prompt = f"Please explain why we did NOT trade this stock:\n\n{context}"
+        prompt = f"Please explain why we did NOT trade this stock:\n\n{context}"
 
-    #         explanation = self.analyst.generate_response(
-    system_prompt = (
-        TRADE_REASONING_SYSTEM_PROMPT, user_prompt
-    ) = prompt, temperature = 0.5
-#         )
+        explanation = self.analyst.generate_response(
+            system_prompt=TRADE_REASONING_SYSTEM_PROMPT, user_prompt=prompt, temperature=0.5
+        )
 
-#         return explanation
+        return explanation

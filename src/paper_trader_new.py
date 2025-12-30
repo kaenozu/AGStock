@@ -9,7 +9,7 @@ import json
 import logging
 import sqlite3
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, Union, Any
 
 import pandas as pd
 
@@ -136,7 +136,7 @@ class PaperTrader:
             return {"quantity": result[0], "avg_price": result[1]}
         return {"quantity": 0, "avg_price": 0.0}
 
-    def execute_order(self, order: Order) -> bool:
+    def execute_order(self, order: Any) -> bool:
         """Execute a trade order.
 
         Args:

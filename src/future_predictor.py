@@ -58,7 +58,7 @@ class FuturePredictor:
             # y is shift(-1) of pct_change. So X[t] predicts y[t].
             # For LSTM, we usually use sequence.
             
-            # X_seq, y_seq = [], []
+            X_seq, y_seq = [], []
             if len(scaled_X) <= self.lookback:
                  logger.warning("Not enough data for LSTM fit")
                  return
