@@ -214,3 +214,28 @@ def style_dataframe_percentage(df: pd.DataFrame, columns: list, decimals: int = 
         if col in styled_df.columns:
             styled_df[col] = styled_df[col].apply(lambda x: format_percentage(x, decimals=decimals))
     return styled_df
+
+
+def format_currency_jp(value: Optional[float], decimals: int = 2) -> str:
+    """
+    日本円フォーマット（万・億表記対応）
+    
+    Args:
+        value: 金額
+        decimals: 小数点以下の桁数
+        
+    Returns:
+        フォーマット済み文字列（例: "¥1.5億", "¥50万"）
+    """
+    if value is None or pd.isna(value):
+        return "N/A"
+    
+    abs_value = abs(value)
+    sign = "-" if value < 0 else ""
+    
+    if abs_value >= 100_000_000:  # 1億以上
+        return f"{sign}¥{abs_value / 100_000_000:.{decimals}f}億"
+    elif abs_value >= 10_000:  # 1万以上
+        return f"{sign}¥{abs_value / 10_000:.1f}万"
+    else:
+        return f"{sign}¥{abs_value:,.0f}"

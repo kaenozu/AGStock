@@ -21,9 +21,13 @@ from src.notifier import Notifier
 class SmartNotifier(Notifier):
     """スマート通知機能を提供するクラス"""
     
-    def __init__(self, config_path: str = "config.json"):
+    def __init__(self, config_or_path="config.json"):
         super().__init__()
-        self.config = self.load_config(config_path)
+        # Accept either a config dict or a path string
+        if isinstance(config_or_path, dict):
+            self.config = config_or_path
+        else:
+            self.config = self.load_config(config_or_path)
         self.notification_settings = self.config.get("notifications", {})
         
         # 通知フィルタ設定
