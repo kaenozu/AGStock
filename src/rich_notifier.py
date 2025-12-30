@@ -43,7 +43,9 @@ class RichNotifier:
         except Exception as e:
             print(f"通知設定の読み込みエラー: {e}")
 
-    def create_mini_chart(self, ticker: str, price: float, data: Optional[pd.DataFrame] = None) -> BytesIO:
+    def create_mini_chart(
+        self, ticker: str, price: float, data: Optional[pd.DataFrame] = None
+    ) -> BytesIO:
         """
         ミニチャートを生成
 
@@ -71,7 +73,9 @@ class RichNotifier:
             ax.plot(x, y, color="#00d4ff", linewidth=2)
             ax.fill_between(x, y, alpha=0.3, color="#00d4ff")
 
-        ax.set_title(f"{ticker} - ¥{price:,.0f}", color="white", fontsize=14, fontweight="bold")
+        ax.set_title(
+            f"{ticker} - ¥{price:,.0f}", color="white", fontsize=14, fontweight="bold"
+        )
         ax.tick_params(colors="white")
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
@@ -88,7 +92,9 @@ class RichNotifier:
 
         return img_buffer
 
-    def send_line_notify(self, message: str, image_buffer: Optional[BytesIO] = None) -> bool:
+    def send_line_notify(
+        self, message: str, image_buffer: Optional[BytesIO] = None
+    ) -> bool:
         """
         LINE Notifyでメッセージ送信
 
@@ -118,7 +124,9 @@ class RichNotifier:
             print(f"LINE通知エラー: {e}")
             return False
 
-    def send_discord_webhook(self, message: str, embeds: Optional[List[Dict]] = None) -> bool:
+    def send_discord_webhook(
+        self, message: str, embeds: Optional[List[Dict]] = None
+    ) -> bool:
         """
         Discord Webhookでメッセージ送信
 
@@ -182,7 +190,7 @@ class RichNotifier:
 📝 理由: {reason}
 
 ⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-        """.strip()
+""".strip()
 
         success = False
 
@@ -204,7 +212,9 @@ class RichNotifier:
                         {"name": "戦略", "value": strategy, "inline": True},
                         {"name": "理由", "value": reason, "inline": False},
                     ],
-                    "footer": {"text": f"AGStock | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"},
+                    "footer": {
+                        "text": f"AGStock | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                    },
                 }
             ]
             success = self.send_discord_webhook(message, embeds) or success
@@ -212,7 +222,11 @@ class RichNotifier:
         return success
 
     def send_daily_summary(
-        self, total_signals: int, buy_signals: int, sell_signals: int, top_picks: List[Dict]
+        self,
+        total_signals: int,
+        buy_signals: int,
+        sell_signals: int,
+        top_picks: List[Dict],
     ) -> bool:
         """
         日次サマリーを送信
@@ -252,11 +266,25 @@ class RichNotifier:
                     "title": "📊 本日のスキャン結果",
                     "color": 0x00D4FF,
                     "fields": [
-                        {"name": "総シグナル数", "value": f"{total_signals}件", "inline": True},
-                        {"name": "買いシグナル", "value": f"{buy_signals}件", "inline": True},
-                        {"name": "売りシグナル", "value": f"{sell_signals}件", "inline": True},
+                        {
+                            "name": "総シグナル数",
+                            "value": f"{total_signals}件",
+                            "inline": True,
+                        },
+                        {
+                            "name": "買いシグナル",
+                            "value": f"{buy_signals}件",
+                            "inline": True,
+                        },
+                        {
+                            "name": "売りシグナル",
+                            "value": f"{sell_signals}件",
+                            "inline": True,
+                        },
                     ],
-                    "footer": {"text": f"AGStock | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"},
+                    "footer": {
+                        "text": f"AGStock | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                    },
                 }
             ]
 
@@ -268,7 +296,13 @@ class RichNotifier:
                         for i, pick in enumerate(top_picks[:3], 1)
                     ]
                 )
-                embeds[0]["fields"].append({"name": "🏆 トップ3ピック", "value": top_picks_text, "inline": False})
+                embeds[0]["fields"].append(
+                    {
+                        "name": "🏆 トップ3ピック",
+                        "value": top_picks_text,
+                        "inline": False,
+                    }
+                )
 
             success = self.send_discord_webhook("", embeds) or success
 

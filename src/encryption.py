@@ -41,7 +41,9 @@ class DataEncryption:
         padded_data = padder.update(data) + padder.finalize()
 
         # 暗号化
-        cipher = Cipher(algorithms.AES(self.key), modes.CBC(iv), backend=default_backend())
+        cipher = Cipher(
+            algorithms.AES(self.key), modes.CBC(iv), backend=default_backend()
+        )
         encryptor = cipher.encryptor()
         ciphertext = encryptor.update(padded_data) + encryptor.finalize()
 
@@ -63,7 +65,9 @@ class DataEncryption:
         ciphertext = encrypted_data[16:]
 
         # 復号化
-        cipher = Cipher(algorithms.AES(self.key), modes.CBC(iv), backend=default_backend())
+        cipher = Cipher(
+            algorithms.AES(self.key), modes.CBC(iv), backend=default_backend()
+        )
         decryptor = cipher.decryptor()
         padded_data = decryptor.update(ciphertext) + decryptor.finalize()
 
@@ -153,7 +157,9 @@ class APIKeyManager:
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
 
-        cursor.execute("SELECT encrypted_key FROM api_keys WHERE key_name = ?", (key_name,))
+        cursor.execute(
+            "SELECT encrypted_key FROM api_keys WHERE key_name = ?", (key_name,)
+        )
         result = cursor.fetchone()
         conn.close()
 

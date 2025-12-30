@@ -39,7 +39,9 @@ def render_tax_calculator():
                 st.markdown("### 税金内訳")
                 st.write(f"- 所得税: ¥{result.get('income_tax', 0):,.0f}")
                 st.write(f"- 住民税: ¥{result.get('local_tax', 0):,.0f}")
-                st.write(f"- 復興特別所得税: ¥{result.get('reconstruction_tax', 0):,.0f}")
+                st.write(
+                    f"- 復興特別所得税: ¥{result.get('reconstruction_tax', 0):,.0f}"
+                )
 
     with tab2:
         st.subheader("損益通算計算")
@@ -49,7 +51,9 @@ def render_tax_calculator():
 
         with col1:
             st.write("**利益**")
-            gains_input = st.text_area("利益（1行1件）", "50000\n30000\n20000", height=100)
+            gains_input = st.text_area(
+                "利益（1行1件）", "50000\n30000\n20000", height=100
+            )
             gains = [float(x) for x in gains_input.strip().split("\n") if x.strip()]
 
         with col2:
@@ -66,14 +70,18 @@ def render_tax_calculator():
             col3.metric("通算後利益", f"¥{result['net_profit']:,.0f}")
 
             if result["carryover_loss"] > 0:
-                st.warning(f"繰越損失: ¥{result['carryover_loss']:,.0f}（来年以降3年間繰越可能）")
+                st.warning(
+                    f"繰越損失: ¥{result['carryover_loss']:,.0f}（来年以降3年間繰越可能）"
+                )
 
     with tab3:
         st.subheader("年末税務戦略")
         st.write("現在のポジションを分析し、最適な節税戦略を提案します。")
 
         # 実現利益入力
-        realized_gains = st.number_input("今年の実現利益 (円)", min_value=0, value=0, step=10000)
+        realized_gains = st.number_input(
+            "今年の実現利益 (円)", min_value=0, value=0, step=10000
+        )
 
         # 未実現ポジション取得
         positions = pt.get_positions()
@@ -82,12 +90,22 @@ def render_tax_calculator():
             st.info("現在ポジションがありません。")
         else:
             st.dataframe(
-                positions[["ticker", "quantity", "entry_price", "current_price", "unrealized_pnl"]],
+                positions[
+                    [
+                        "ticker",
+                        "quantity",
+                        "entry_price",
+                        "current_price",
+                        "unrealized_pnl",
+                    ]
+                ],
                 use_container_width=True,
             )
 
             if st.button("年末戦略を分析", key="year_end"):
-                strategy = calc.calculate_year_end_tax_strategy(realized_gains, positions)
+                strategy = calc.calculate_year_end_tax_strategy(
+                    realized_gains, positions
+                )
 
                 st.markdown("### 📋 推奨アクション")
 

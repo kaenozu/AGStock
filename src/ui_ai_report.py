@@ -13,12 +13,16 @@ from src.regime_detector import MarketRegimeDetector
 
 def render_ai_report_tab():
     st.header("📰 AI投資委員会レポート")
-    st.write("AIアナリストが現在の市場環境とポートフォリオを分析し、日次レポートを生成します。")
+    st.write(
+        "AIアナリストが現在の市場環境とポートフォリオを分析し、日次レポートを生成します。"
+    )
 
     analyst = AIAnalyst()
 
     if not analyst.enabled:
-        st.warning("⚠️ OpenAI APIキーが設定されていません。`config.json` を確認してください。")
+        st.warning(
+            "⚠️ OpenAI APIキーが設定されていません。`config.json` を確認してください。"
+        )
         st.info('設定例: `"openai": { "api_key": "sk-..." }`')
         return
 
@@ -43,7 +47,9 @@ def render_ai_report_tab():
 
                         regime = regime_detector.detect_regime(df)
 
-                        market_context += f"- {ticker}: Close={latest['Close']:.2f} ({change:+.2%})\n"
+                        market_context += (
+                            f"- {ticker}: Close={latest['Close']:.2f} ({change:+.2%})\n"
+                        )
                         market_context += f"  - Trend: {regime['trend']}, Volatility: {regime['volatility']}, ADX: {regime['adx']:.1f}\n"
 
                 # Portfolio Data
@@ -52,15 +58,15 @@ def render_ai_report_tab():
                 positions = pt.get_positions()
 
                 portfolio_context = "\n## Portfolio Status\n"
-                portfolio_context += f"- Total Equity: ¥{balance['total_equity']:,.0f}\n"
+                portfolio_context += (
+                    f"- Total Equity: ¥{balance['total_equity']:,.0f}\n"
+                )
                 portfolio_context += f"- Cash: ¥{balance['cash']:,.0f}\n"
                 portfolio_context += f"- Positions: {len(positions)}\n"
 
                 if not positions.empty:
                     for _, row in positions.iterrows():
-                        portfolio_context += (
-                            f"  - {row['ticker']}: {row['quantity']} shares, PnL: {row['unrealized_pnl']:+.1%}\n"
-                        )
+                        portfolio_context += f"  - {row['ticker']}: {row['quantity']} shares, PnL: {row['unrealized_pnl']:+.1%}\n"
 
                 # Full Context
                 full_context = market_context + portfolio_context
@@ -75,7 +81,7 @@ def render_ai_report_tab():
                 st.markdown("---")
                 st.markdown(report)
 
-                # Save to session state to persist across reruns (optional, for now just display)
+            # Save to session state to persist across reruns (optional, for now just display)
 
             except Exception as e:
                 st.error(f"レポート生成中にエラーが発生しました: {e}")

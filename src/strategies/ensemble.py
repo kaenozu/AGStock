@@ -14,7 +14,10 @@ logger = logging.getLogger(__name__)
 
 class EnsembleStrategy(Strategy):
     def __init__(
-        self, strategies: List[Strategy] = None, trend_period: int = 200, enable_regime_detection: bool = True
+        self,
+        strategies: List[Strategy] = None,
+        trend_period: int = 200,
+        enable_regime_detection: bool = True,
     ) -> None:
         super().__init__("Ensemble Strategy", trend_period)  # Updated to match name
 
@@ -30,11 +33,15 @@ class EnsembleStrategy(Strategy):
         if strategies is None:
             # デフォルトの戦略セット
             self.strategies = [
-                # DL Strategy logic 
+                # DL Strategy logic
                 DeepLearningStrategy(),
                 # Split LightGBM into Short and Mid term
-                LightGBMStrategy(name="LightGBM Short (60d)", lookback_days=60, use_weekly=False),
-                LightGBMStrategy(name="LightGBM Mid (1y Weekly)", lookback_days=365, use_weekly=True),
+                LightGBMStrategy(
+                    name="LightGBM Short (60d)", lookback_days=60, use_weekly=False
+                ),
+                LightGBMStrategy(
+                    name="LightGBM Mid (1y Weekly)", lookback_days=365, use_weekly=True
+                ),
                 CombinedStrategy(),
             ]
         else:
@@ -43,9 +50,9 @@ class EnsembleStrategy(Strategy):
         # デフォルトウェイト
         self.base_weights = {
             "Deep Learning (LSTM)": 1.5,
-            "LightGBM Short (60d)": 1.0, 
+            "LightGBM Short (60d)": 1.0,
             "LightGBM Mid (1y Weekly)": 0.8,
-            "Combined (RSI + BB)": 1.0
+            "Combined (RSI + BB)": 1.0,
         }
 
         self.weights = self.base_weights.copy()
@@ -70,7 +77,9 @@ class EnsembleStrategy(Strategy):
                     self.regime_detector.fit(macro_data)
                     logger.info("RegimeDetector initialized and fitted.")
                 else:
-                    logger.warning("Failed to fetch macro data. Regime detection disabled.")
+                    logger.warning(
+                        "Failed to fetch macro data. Regime detection disabled."
+                    )
                     self.enable_regime_detection = False
             except Exception as e:
                 logger.error(f"Error initializing RegimeDetector: {e}")
@@ -92,18 +101,30 @@ class EnsembleStrategy(Strategy):
                 from src.regime import RegimeDetector
 
                 macro_data = fetch_macro_data(period="1y")
-                regime_id, regime_label, features = self.regime_detector.predict_current_regime(macro_data)
-                self.current_regime = {"id": regime_id, "label": regime_label, "features": features}
+                (
+                    regime_id,
+                    regime_label,
+                    features,
+                ) = self.regime_detector.predict_current_regime(macro_data)
+                self.current_regime = {
+                    "id": regime_id,
+                    "label": regime_label,
+                    "features": features,
+                }
 
                 # レジームに基づいてウェイトを調整
                 if regime_id == 2:  # 暴落警戒 (Risk-Off)
                     # 全体的にポジションサイズを縮小
                     self.weights = {k: v * 0.5 for k, v in self.base_weights.items()}
-                    logger.info(f"Regime: {regime_label} - Reducing position sizes to 50%")
+                    logger.info(
+                        f"Regime: {regime_label} - Reducing position sizes to 50%"
+                    )
                 elif regime_id == 1:  # 不安定 (Volatile)
                     # 中程度に縮小
                     self.weights = {k: v * 0.75 for k, v in self.base_weights.items()}
-                    logger.info(f"Regime: {regime_label} - Reducing position sizes to 75%")
+                    logger.info(
+                        f"Regime: {regime_label} - Reducing position sizes to 75%"
+                    )
                 else:  # 安定上昇 (Stable Bull)
                     # 通常通り
                     self.weights = self.base_weights.copy()
@@ -163,10 +184,18 @@ class EnsembleStrategy(Strategy):
     def get_signal_explanation(self, signal: int) -> str:
         """Get explanation for the ensemble signal."""
         if signal == 1:
-            regime_info = f" (市場環境: {self.current_regime['label']})" if self.current_regime else ""
+            regime_info = (
+                f" (市場環境: {self.current_regime['label']})"
+                if self.current_regime
+                else ""
+            )
             return f"複数のAI戦略が総合的に「買い」を推奨しています{regime_info}。"
         elif signal == -1:
-            regime_info = f" (市場環境: {self.current_regime['label']})" if self.current_regime else ""
+            regime_info = (
+                f" (市場環境: {self.current_regime['label']})"
+                if self.current_regime
+                else ""
+            )
             return f"複数のAI戦略が総合的に「売り」を推奨しています{regime_info}。"
         return "アンサンブル戦略では明確なコンセンサスが得られていません。"
 
@@ -180,4 +209,8 @@ class EnsembleStrategy(Strategy):
 
         last_signal = signals.iloc[-1]
 
-        return {"signal": int(last_signal), "confidence": 0.8, "details": {"weights": self.weights}}  # Placeholder
+        return {
+            "signal": int(last_signal),
+            "confidence": 0.8,
+            "details": {"weights": self.weights},
+        }  # Placeholder

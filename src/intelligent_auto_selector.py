@@ -18,6 +18,7 @@ class IntelligentAutoSelector:
     最善の予測を自動選択するインテリジェントシステム
 
     以下の要素を統合して最適な判断を下します:
+        pass
     1. アンサンブル予測（5モデル）
     2. 強化学習シグナル
     3. FinBERTセンチメント
@@ -34,11 +35,12 @@ class IntelligentAutoSelector:
     def _initialize(self):
         """各コンポーネントを初期化"""
         try:
-            from src.enhanced_ensemble_predictor import \
-                EnhancedEnsemblePredictor
+            from src.enhanced_ensemble_predictor import EnhancedEnsemblePredictor
 
             self.ensemble_predictor = EnhancedEnsemblePredictor()
-            logger.info("EnhancedEnsemblePredictor initialized with advanced models + RL + FinBERT")
+            logger.info(
+                "EnhancedEnsemblePredictor initialized with advanced models + RL + FinBERT"
+            )
         except Exception as e:
             logger.error(f"Failed to init EnsemblePredictor: {e}")
 
@@ -119,7 +121,9 @@ class IntelligentAutoSelector:
         except Exception as e:
             self.multi_task = None
 
-    def get_best_prediction(self, df: pd.DataFrame, ticker: str, days_ahead: int = 5) -> Dict:
+    def get_best_prediction(
+        self, df: pd.DataFrame, ticker: str, days_ahead: int = 5
+    ) -> Dict:
         """
         最善の予測を取得
 
@@ -153,7 +157,9 @@ class IntelligentAutoSelector:
             if not self.ensemble_predictor:
                 return {"error": "Ensemble predictor not available"}
 
-            result = self.ensemble_predictor.predict_trajectory(df=df, days_ahead=days_ahead, ticker=ticker)
+            result = self.ensemble_predictor.predict_trajectory(
+                df=df, days_ahead=days_ahead, ticker=ticker
+            )
 
             if "error" in result:
                 return result
@@ -208,7 +214,9 @@ class IntelligentAutoSelector:
             trend = result.get("trend", "FLAT")
 
             # トレンドとセンチメントが一致していれば加点
-            if (trend == "UP" and sent_score > 0) or (trend == "DOWN" and sent_score < 0):
+            if (trend == "UP" and sent_score > 0) or (
+                trend == "DOWN" and sent_score < 0
+            ):
                 score += 0.1
 
         # 4. 変化率の妥当性 (+0.1)
@@ -271,7 +279,9 @@ class IntelligentAutoSelector:
         rl_signal = details.get("rl_signal", {})
         if rl_signal and "action" in rl_signal:
             action = rl_signal.get("action", "HOLD")
-            models["RL (DQN)"] = "UP" if action == "BUY" else "DOWN" if action == "SELL" else "FLAT"
+            models["RL (DQN)"] = (
+                "UP" if action == "BUY" else "DOWN" if action == "SELL" else "FLAT"
+            )
 
         # 合意度計算
         trends = [t for t in models.values() if t != "N/A"]
@@ -285,9 +295,15 @@ class IntelligentAutoSelector:
             majority_trend = "UNKNOWN"
             agreement_rate = 0
 
-        return {"models": models, "majority_trend": majority_trend, "agreement_rate": agreement_rate}
+        return {
+            "models": models,
+            "majority_trend": majority_trend,
+            "agreement_rate": agreement_rate,
+        }
 
-    def get_trading_signal(self, df: pd.DataFrame, ticker: str, current_position: int = 0) -> Dict:
+    def get_trading_signal(
+        self, df: pd.DataFrame, ticker: str, current_position: int = 0
+    ) -> Dict:
         """
         取引シグナルを生成
 
@@ -324,7 +340,13 @@ class IntelligentAutoSelector:
         else:
             reason = f"信頼度が低いため取引見送り ({confidence:.0%})"
 
-        return {"action": action, "reason": reason, "confidence": confidence, "trend": trend, "prediction": prediction}
+        return {
+            "action": action,
+            "reason": reason,
+            "confidence": confidence,
+            "trend": trend,
+            "prediction": prediction,
+        }
 
 
 # シングルトンインスタンス

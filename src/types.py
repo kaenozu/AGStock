@@ -9,13 +9,14 @@ import pandas as pd
 
 
 # Action types
-Action = Literal['BUY', 'SELL', 'HOLD']
-SignalStrength = Literal['STRONG_BUY', 'BUY', 'HOLD', 'SELL', 'STRONG_SELL']
+Action = Literal["BUY", "SELL", "HOLD"]
+SignalStrength = Literal["STRONG_BUY", "BUY", "HOLD", "SELL", "STRONG_SELL"]
 
 
 # TypedDicts for structured data
 class TradeSignal(TypedDict):
     """Trade signal from a strategy."""
+
     ticker: str
     action: Action
     confidence: float
@@ -27,6 +28,7 @@ class TradeSignal(TypedDict):
 
 class PortfolioPosition(TypedDict):
     """Portfolio position information."""
+
     ticker: str
     quantity: int
     entry_price: float
@@ -37,6 +39,7 @@ class PortfolioPosition(TypedDict):
 
 class BalanceInfo(TypedDict):
     """Account balance information."""
+
     cash: float
     total_equity: float
     invested_amount: float
@@ -46,6 +49,7 @@ class BalanceInfo(TypedDict):
 
 class MarketRegime(TypedDict):
     """Market regime information."""
+
     regime: str
     confidence: float
     vix_level: float
@@ -55,6 +59,7 @@ class MarketRegime(TypedDict):
 
 class PerformanceMetrics(TypedDict):
     """Performance metrics for backtesting."""
+
     total_return: float
     sharpe_ratio: float
     max_drawdown: float
@@ -65,11 +70,11 @@ class PerformanceMetrics(TypedDict):
 # Protocols for duck typing
 class Predictor(Protocol):
     """Protocol for prediction models."""
-    
+
     def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
         """Train the model."""
         ...
-    
+
     def predict(self, X: pd.DataFrame) -> np.ndarray:
         """Make predictions."""
         ...
@@ -77,26 +82,22 @@ class Predictor(Protocol):
 
 class Strategy(Protocol):
     """Protocol for trading strategies."""
-    
+
     name: str
-    
-    def generate_signals(
-        self,
-        data: pd.DataFrame,
-        **kwargs
-    ) -> List[TradeSignal]:
+
+    def generate_signals(self, data: pd.DataFrame, **kwargs) -> List[TradeSignal]:
         """Generate trading signals."""
         ...
 
 
 class RiskManager(Protocol):
     """Protocol for risk management."""
-    
+
     def check_risk(
         self,
         signal: TradeSignal,
         portfolio: Dict[str, PortfolioPosition],
-        balance: BalanceInfo
+        balance: BalanceInfo,
     ) -> bool:
         """Check if trade passes risk checks."""
         ...

@@ -4,6 +4,7 @@ from src.schemas import TradingDecision
 
 logger = logging.getLogger(__name__)
 
+
 class EventTrader:
     """
     Executes immediate trades based on high-impact events (e.g., Surprise Earnings).
@@ -24,14 +25,18 @@ class EventTrader:
 
         # Threshold for purely autonomous event trading
         if score >= 90 and recommendation == "BUY":
-            logger.info(f"🔥 SURPRISE EARNINGS DETECTED for {ticker} (Score: {score}). Executing immediate trade!")
-            
+            logger.info(
+                f"🔥 SURPRISE EARNINGS DETECTED for {ticker} (Score: {score}). Executing immediate trade!"
+            )
+
             if self.dry_run:
-                logger.info(f"[DRY RUN] Would BUY {ticker} due to high-impact earnings surprise.")
+                logger.info(
+                    f"[DRY RUN] Would BUY {ticker} due to high-impact earnings surprise."
+                )
                 return {"status": "success", "action": "BUY", "dry_run": True}
             else:
                 # Here we would call the actual broker API or execution manager
                 logger.info(f"Executing BUY order for {ticker}...")
                 return {"status": "success", "action": "BUY", "dry_run": False}
-        
+
         return {"status": "no_action", "reason": "Score below threshold or not a BUY."}

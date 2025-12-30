@@ -27,9 +27,16 @@ class SignalIntegrator:
         self.technical_strategy = CombinedStrategy()
 
         # Weights for each component (Total 1.0)
-        self.weights = {"technical": 0.3, "ai_prediction": 0.4, "mtf_trend": 0.2, "sentiment": 0.1}
+        self.weights = {
+            "technical": 0.3,
+            "ai_prediction": 0.4,
+            "mtf_trend": 0.2,
+            "sentiment": 0.1,
+        }
 
-    def analyze(self, df: pd.DataFrame, ticker: str, ai_prediction: float = 0.0) -> Dict:
+    def analyze(
+        self, df: pd.DataFrame, ticker: str, ai_prediction: float = 0.0
+    ) -> Dict:
         """
         Analyze the latest data to generate a final signal.
 
@@ -40,6 +47,7 @@ class SignalIntegrator:
 
         Returns:
             Dictionary containing:
+                pass
             - action: "BUY", "SELL", "HOLD"
             - confidence: 0.0 to 1.0
             - score: -1.0 (Strong Sell) to 1.0 (Strong Buy)
@@ -68,9 +76,13 @@ class SignalIntegrator:
         ai_score = (ai_prediction - 0.5) * 2
 
         if ai_score > 0.4:
-            reasons.append(f"AIモデルが上昇を予測しています (確信度: {ai_prediction:.1%})")
+            reasons.append(
+                f"AIモデルが上昇を予測しています (確信度: {ai_prediction:.1%})"
+            )
         elif ai_score < -0.4:
-            reasons.append(f"AIモデルが下落を予測しています (確信度: {1-ai_prediction:.1%})")
+            reasons.append(
+                f"AIモデルが下落を予測しています (確信度: {1-ai_prediction:.1%})"
+            )
 
         # 3. Multi-Timeframe Analysis (Score: -1 to 1)
         mtf_res = self.mtf_analyzer.analyze(df)
@@ -123,14 +135,21 @@ class SignalIntegrator:
             action = "SELL"
 
         # Calculate Confidence (Absolute score normalized)
-        confidence = min(abs(final_score) / 0.8, 1.0)  # 0.8 as a "very strong" threshold
+        confidence = min(
+            abs(final_score) / 0.8, 1.0
+        )  # 0.8 as a "very strong" threshold
 
         return {
             "action": action,
             "confidence": confidence,
             "score": final_score,
             "reasons": reasons,
-            "details": {"technical": tech_score, "ai": ai_score, "mtf": mtf_score, "sentiment": sent_score},
+            "details": {
+                "technical": tech_score,
+                "ai": ai_score,
+                "mtf": mtf_score,
+                "sentiment": sent_score,
+            },
         }
 
     def _empty_result(self):

@@ -70,17 +70,31 @@ def create_prediction_analysis_dashboard():
 
         with col1:
             st.metric(
-                "方向性正解率", f"{metrics['direction_accuracy']:.1f}%", help="UP/DOWN/FLATの予測が実際と一致した割合"
+                "方向性正解率",
+                f"{metrics['direction_accuracy']:.1f}%",
+                help="UP/DOWN/FLATの予測が実際と一致した割合",
             )
 
         with col2:
-            st.metric("Win Rate", f"{metrics['win_rate']:.1f}%", help="予測に従って取引した場合の勝率")
+            st.metric(
+                "Win Rate",
+                f"{metrics['win_rate']:.1f}%",
+                help="予測に従って取引した場合の勝率",
+            )
 
         with col3:
-            st.metric("平均誤差 (MAE)", f"{metrics['mae']:.2f}%", help="予測変動率と実際の変動率の平均誤差")
+            st.metric(
+                "平均誤差 (MAE)",
+                f"{metrics['mae']:.2f}%",
+                help="予測変動率と実際の変動率の平均誤差",
+            )
 
         with col4:
-            st.metric("予測回数", f"{metrics['total_samples']}回", help="バックテストで実行した予測の総数")
+            st.metric(
+                "予測回数",
+                f"{metrics['total_samples']}回",
+                help="バックテストで実行した予測の総数",
+            )
 
         # 詳細グラフ
         st.markdown("---")
@@ -110,8 +124,12 @@ def create_prediction_analysis_dashboard():
             )
 
             # 予測ポイント（成功/失敗で色分け）
-            correct_preds = predictions_df[predictions_df["predicted_trend"] == predictions_df["actual_trend"]]
-            wrong_preds = predictions_df[predictions_df["predicted_trend"] != predictions_df["actual_trend"]]
+            correct_preds = predictions_df[
+                predictions_df["predicted_trend"] == predictions_df["actual_trend"]
+            ]
+            wrong_preds = predictions_df[
+                predictions_df["predicted_trend"] != predictions_df["actual_trend"]
+            ]
 
             # 予測価格のプロット（予測日の5日後などにプロットするのが正確だが、ここでは予測実行日にプロットし、矢印などで示すのが理想。
             # 簡易的に、予測実行日の価格に予測変動率を加味した点をプロットする）
@@ -155,18 +173,37 @@ def create_prediction_analysis_dashboard():
         st.markdown("### 📊 予測誤差の分布")
         fig2 = go.Figure()
 
-        errors = predictions_df["predicted_change_pct"] - predictions_df["actual_change_pct"]
+        errors = (
+            predictions_df["predicted_change_pct"] - predictions_df["actual_change_pct"]
+        )
 
-        fig2.add_trace(go.Histogram(x=errors, nbinsx=30, name="誤差分布", marker_color="lightblue", opacity=0.75))
+        fig2.add_trace(
+            go.Histogram(
+                x=errors,
+                nbinsx=30,
+                name="誤差分布",
+                marker_color="lightblue",
+                opacity=0.75,
+            )
+        )
 
-        fig2.update_layout(xaxis_title="誤差 (%)", yaxis_title="頻度", height=300, margin=dict(l=20, r=20, t=30, b=20))
+        fig2.update_layout(
+            xaxis_title="誤差 (%)",
+            yaxis_title="頻度",
+            height=300,
+            margin=dict(l=20, r=20, t=30, b=20),
+        )
 
         st.plotly_chart(fig2, use_container_width=True)
 
         # 3. トレンド予測の精度
         st.markdown("### 🎯 トレンド予測の詳細")
 
-        trend_comparison = predictions_df.groupby(["predicted_trend", "actual_trend"]).size().unstack(fill_value=0)
+        trend_comparison = (
+            predictions_df.groupby(["predicted_trend", "actual_trend"])
+            .size()
+            .unstack(fill_value=0)
+        )
 
         if not trend_comparison.empty:
             st.dataframe(trend_comparison, use_container_width=True)

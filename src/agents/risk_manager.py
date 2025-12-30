@@ -45,7 +45,9 @@ class RiskManager(BaseAgent):
             confidence = 0.7
             reasoning = "Low cash reserves, avoiding new positions."
         else:
-            decision = TradingDecision.HOLD  # Risk Manager default is to hold unless risk is high
+            decision = (
+                TradingDecision.HOLD
+            )  # Risk Manager default is to hold unless risk is high
             confidence = 0.5
             reasoning = "Risk levels acceptable."
 

@@ -31,7 +31,11 @@ class InvestmentCommittee:
         self.market_analyst = MarketAnalyst()
         self.risk_manager = RiskManager(config.risk if config else None)
         self.macro_strategist = MacroStrategist()
-        self.agents: List[BaseAgent] = [self.market_analyst, self.risk_manager, self.macro_strategist]
+        self.agents: List[BaseAgent] = [
+            self.market_analyst,
+            self.risk_manager,
+            self.macro_strategist,
+        ]
         self.last_meeting_result: Dict[str, Any] = None
         # Initialize the advanced predictor
         self.predictor = EnhancedEnsemblePredictor()
@@ -48,7 +52,9 @@ class InvestmentCommittee:
         self.earnings_history = EarningsHistory()
         self.feedback_store = FeedbackStore()
 
-    def review_candidate(self, ticker: str, signal_data: Dict[str, Any]) -> TradingDecision:
+    def review_candidate(
+        self, ticker: str, signal_data: Dict[str, Any]
+    ) -> TradingDecision:
         """
         Reviews a specific trade candidate derived from the automated trader.
         """
@@ -64,9 +70,15 @@ class InvestmentCommittee:
 
         # Construct data payload for agents
         macro_data = self.macro_loader.fetch_macro_data()
-        
+
         sentiment_score = signal_data.get("sentiment_score", 0.0)
-        sentiment_label = "POSITIVE" if sentiment_score > 0 else "NEGATIVE" if sentiment_score < 0 else "NEUTRAL"
+        sentiment_label = (
+            "POSITIVE"
+            if sentiment_score > 0
+            else "NEGATIVE"
+            if sentiment_score < 0
+            else "NEUTRAL"
+        )
 
         synthesized_news = (
             f"Ticker: {ticker}. "
@@ -78,8 +90,8 @@ class InvestmentCommittee:
         data = {
             "ticker": ticker,
             "news": synthesized_news,
-            "earnings_report": earnings_report, # New injection point
-            "macro_data": macro_data, # New injection point
+            "earnings_report": earnings_report,  # New injection point
+            "macro_data": macro_data,  # New injection point
             "market_stats": {
                 "price": signal_data.get("price"),
                 "vix": macro_data.get("vix", {}).get("value", 20.0),
@@ -96,54 +108,54 @@ class InvestmentCommittee:
                 try:
                     # self.predictor.predict_point returns a dict with 'final_prediction', 'confidence_score', etc.
                     raw_pred = self.predictor.predict_point(features)
-                    
+
                     # Convert raw_pred to the format MarketAnalyst expects
                     current_price = signal_data.get("price", 100.0)
                     pred_price = raw_pred.get("final_prediction", current_price)
-                    
+
                     # Determine Ensemble Decision
                     ensemble_decision = "HOLD"
-                    if pred_price > current_price * 1.005: # 0.5% threshold
+                    if pred_price > current_price * 1.005:  # 0.5% threshold
                         ensemble_decision = "UP"
                     elif pred_price < current_price * 0.995:
                         ensemble_decision = "DOWN"
-                        
+
                     pred_report = {
                         "ensemble_decision": ensemble_decision,
                         "confidence": raw_pred.get("confidence_score", 0.0),
                         "components": raw_pred.get("ensemble_signals", {}),
-                        "market_regime": raw_pred.get("market_regime", "UNKNOWN")
+                        "market_regime": raw_pred.get("market_regime", "UNKNOWN"),
                     }
                 except Exception as e:
                     logger.warning(f"Failed to run predictor in committee: {e}")
-        
+
         # Fallback if still None
         if not pred_report:
-             pred_report = {
+            pred_report = {
                 "ensemble_decision": "UNKNOWN",
                 "confidence": 0.0,
                 "components": {},
-                "market_regime": "UNKNOWN"
+                "market_regime": "UNKNOWN",
             }
 
         data["prediction_report"] = pred_report
         data["portfolio"] = {
-                "cash": 1000000,
-                "total_equity": 1000000,
-                "positions": [],
+            "cash": 1000000,
+            "total_equity": 1000000,
+            "positions": [],
         }
 
         result = self.hold_meeting(data)
-        
+
         # Save decision for follow-up evaluation
         self.feedback_store.save_decision(
             ticker=ticker,
             decision=result["final_decision"],
             rationale=result["rationale"],
             current_price=signal_data.get("price", 0.0),
-            raw_data=data
+            raw_data=data,
         )
-        
+
         return TradingDecision(result["final_decision"])
 
     def hold_meeting(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -159,31 +171,37 @@ class InvestmentCommittee:
         # 0. News Shock Defense (High-speed interrupt)
         news = data.get("news", [])
         # 'news' might be a string in this system's context, let's wrap it if needed or check type
-        news_list = [{"title": data["news"]}] if isinstance(data.get("news"), str) else news
+        news_list = (
+            [{"title": data["news"]}] if isinstance(data.get("news"), str) else news
+        )
         shock = self.defense.detect_shock_events(news_list)
         # 0.5. Oracle Forecast (Weekly/Daily prediction)
         if not self.last_forecast:
-            self.last_forecast = self.oracle.forecast_upcoming_events(pd.DataFrame(), str(news_list))
+            self.last_forecast = self.oracle.forecast_upcoming_events(
+                pd.DataFrame(), str(news_list)
+            )
         if shock:
             action = self.defense.get_emergency_action(shock)
             data["emergency_action"] = action
-            logger.warning(f"EMERGENCY INTERRUPT: {action['action']} due to {shock['category']}")
+            logger.warning(
+                f"EMERGENCY INTERRUPT: {action['action']} due to {shock['category']}"
+            )
 
         # 0. Inject Self-Learning Context (lessons learned)
         lessons = self.feedback_store.get_lessons_for_ticker(ticker)
         recent_failures = self.feedback_store.get_recent_failures()
-        
+
         kb_text = ""
         if lessons:
             kb_text += "\n【過去の銘柄別教訓】\n"
             for l in lessons:
                 kb_text += f"- {l['timestamp'][:10]}: {l['decision']} -> {l['outcome']} (収益率: {l['return_1w']*100:.1f}%)\n"
-        
+
         if recent_failures:
             kb_text += "\n【最近の全体的な失敗事例】\n"
             for f in recent_failures:
                 kb_text += f"- {f['ticker']} ({f['timestamp'][:10]}): {f['rationale'][:50]}... -> 結果: {f['outcome']}\n"
-        
+
         if kb_text:
             data["lessons_learned"] = kb_text
             logger.info("Injected self-learning context into meeting data.")
@@ -192,7 +210,7 @@ class InvestmentCommittee:
         current_score = data.get("macro_data", {}).get("macro_score", 50)
         spawned_agents = self.spawner.spawn_agents_for_regime(current_score)
         all_agents = self.agents + spawned_agents
-        
+
         for agent in all_agents:
             try:
                 logger.info(f"Asking {agent.name} for opinion...")
@@ -207,12 +225,13 @@ class InvestmentCommittee:
         council_result = self.shadow_council.hold_debate(
             ticker=ticker,
             proposed_action=final_decision.value,
-            data_context=f"Analyses: {analyses}\nForecast: {self.last_forecast}"
+            data_context=f"Analyses: {analyses}\nForecast: {self.last_forecast}",
         )
-        if council_result['consensus'] == 'REJECT':
+        if council_result["consensus"] == "REJECT":
             from src.schemas import TradingDecision
+
             final_decision = TradingDecision.HOLD
-            rationale = "Shadow Council rejected: " + council_result['debate_log']
+            rationale = "Shadow Council rejected: " + council_result["debate_log"]
 
         result = {
             "timestamp": datetime.now().isoformat(),
@@ -220,7 +239,7 @@ class InvestmentCommittee:
             "final_decision": final_decision.value,
             "rationale": rationale,
             "participants": [a.name for a in all_agents],
-            "spawned_agents": [a.name for a in spawned_agents]
+            "spawned_agents": [a.name for a in spawned_agents],
         }
 
         # 3. Shadow Simulation (Digital Twin)
@@ -229,7 +248,7 @@ class InvestmentCommittee:
 
         # 4. Position Sizing
         equity = data.get("portfolio", {}).get("total_equity", 1000000)
-        win_rate = 0.6 # Placeholder for realized win-rate
+        win_rate = 0.6  # Placeholder for realized win-rate
         sizing = self.sizer.calculate_size(ticker, equity, win_rate)
         result["sizing_recommendation"] = sizing
 
@@ -238,7 +257,10 @@ class InvestmentCommittee:
         return result
 
     def conduct_debate(
-        self, ticker: str, market_data: Dict[str, Any], position: Optional[Dict[str, Any]] = None
+        self,
+        ticker: str,
+        market_data: Dict[str, Any],
+        position: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, str]]:
         """
         Simulates a conversational debate among agents for UI display.
@@ -247,7 +269,9 @@ class InvestmentCommittee:
         debate_log = []
 
         # 1. Market Analyst Starts
-        ma_analysis = self.market_analyst.analyze({"ticker": ticker, "market_stats": market_data})
+        ma_analysis = self.market_analyst.analyze(
+            {"ticker": ticker, "market_stats": market_data}
+        )
         debate_log.append(
             {
                 "agent": "MarketAnalyst",
@@ -266,7 +290,9 @@ class InvestmentCommittee:
         }
         rm_analysis = self.risk_manager.analyze(risk_data)
 
-        response_tone = "agrees" if rm_analysis.decision == ma_analysis.decision else "disagrees"
+        response_tone = (
+            "agrees" if rm_analysis.decision == ma_analysis.decision else "disagrees"
+        )
         debate_log.append(
             {
                 "agent": "RiskManager",
@@ -278,7 +304,9 @@ class InvestmentCommittee:
 
         # 3. Macro Strategist Adds Context
         macro_data = self.macro_loader.fetch_macro_data()
-        ms_analysis = self.macro_strategist.analyze({"ticker": ticker, "macro_data": macro_data})
+        ms_analysis = self.macro_strategist.analyze(
+            {"ticker": ticker, "macro_data": macro_data}
+        )
         debate_log.append(
             {
                 "agent": "MacroStrategist",
@@ -289,7 +317,9 @@ class InvestmentCommittee:
         )
 
         # 4. Chair (Committee) Concludes
-        final_decision, rationale = self._form_consensus([ma_analysis, rm_analysis, ms_analysis])
+        final_decision, rationale = self._form_consensus(
+            [ma_analysis, rm_analysis, ms_analysis]
+        )
         debate_log.append(
             {
                 "agent": "Chairperson",
@@ -301,12 +331,18 @@ class InvestmentCommittee:
 
         return debate_log
 
-    def _form_consensus(self, analyses: List[AgentAnalysis]) -> tuple[TradingDecision, str]:
+    def _form_consensus(
+        self, analyses: List[AgentAnalysis]
+    ) -> tuple[TradingDecision, str]:
         """
         Vote counting logic.
         RiskManager has veto power on BUYs if it detects high risk.
         """
-        votes = {TradingDecision.BUY: 0, TradingDecision.SELL: 0, TradingDecision.HOLD: 0}
+        votes = {
+            TradingDecision.BUY: 0,
+            TradingDecision.SELL: 0,
+            TradingDecision.HOLD: 0,
+        }
 
         risk_veto = False
         veto_reason = ""
@@ -316,7 +352,7 @@ class InvestmentCommittee:
         for a in analyses:
             weight = weights.get(a.agent_name, 1.0)
             votes[a.decision] += weight
-            
+
             if a.agent_name == "RiskManager" and a.decision == TradingDecision.SELL:
                 risk_veto = True
                 veto_reason = f"Risk Veto based on: {a.reasoning}"

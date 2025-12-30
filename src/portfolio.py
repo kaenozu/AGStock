@@ -8,7 +8,12 @@ from src.strategies import Strategy
 
 
 class PortfolioManager:
-    def __init__(self, initial_capital: float = 10000000, commission: float = 0.001, slippage: float = 0.001):
+    def __init__(
+        self,
+        initial_capital: float = 10000000,
+        commission: float = 0.001,
+        slippage: float = 0.001,
+    ):
         self.initial_capital = initial_capital
         self.commission = commission
         self.slippage = slippage
@@ -32,7 +37,11 @@ class PortfolioManager:
         return returns_df.corr()
 
     def simulate_portfolio(
-        self, data_map: Dict[str, pd.DataFrame], strategies: Dict[str, Strategy], weights: Dict[str, float], **kwargs
+        self,
+        data_map: Dict[str, pd.DataFrame],
+        strategies: Dict[str, Strategy],
+        weights: Dict[str, float],
+        **kwargs,
     ) -> Dict[str, Any]:
         """
         Simulates a portfolio using the Unified Backtester Engine.
@@ -71,7 +80,9 @@ class PortfolioManager:
 
         return results
 
-    def optimize_portfolio(self, data_map: Dict[str, pd.DataFrame], risk_free_rate: float = 0.0) -> Dict[str, float]:
+    def optimize_portfolio(
+        self, data_map: Dict[str, pd.DataFrame], risk_free_rate: float = 0.0
+    ) -> Dict[str, float]:
         """
         Optimizes portfolio weights using Mean-Variance Optimization to maximize Sharpe Ratio.
         """
@@ -103,7 +114,9 @@ class PortfolioManager:
 
         def negative_sharpe(weights):
             portfolio_return = np.sum(mean_returns * weights)
-            portfolio_volatility = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))
+            portfolio_volatility = np.sqrt(
+                np.dot(weights.T, np.dot(cov_matrix, weights))
+            )
             if portfolio_volatility == 0:
                 return 0
             sharpe = (portfolio_return - risk_free_rate) / portfolio_volatility
@@ -115,7 +128,13 @@ class PortfolioManager:
             1.0 / num_assets,
         ]
 
-        result = minimize(negative_sharpe, initial_weights, method="SLSQP", bounds=bounds, constraints=constraints)
+        result = minimize(
+            negative_sharpe,
+            initial_weights,
+            method="SLSQP",
+            bounds=bounds,
+            constraints=constraints,
+        )
 
         optimized_weights = {}
         for i, ticker in enumerate(tickers):
@@ -124,7 +143,10 @@ class PortfolioManager:
         return optimized_weights
 
     def rebalance_portfolio(
-        self, current_holdings: Dict[str, float], target_weights: Dict[str, float], total_equity: float
+        self,
+        current_holdings: Dict[str, float],
+        target_weights: Dict[str, float],
+        total_equity: float,
     ) -> Dict[str, float]:
         """
         Calculates the amount to buy/sell for each asset to reach target weights.
@@ -156,7 +178,10 @@ class PortfolioManager:
         return trades
 
     def simulate_rebalancing(
-        self, data_map: Dict[str, pd.DataFrame], initial_weights: Dict[str, float], rebalance_freq_days: int = 20
+        self,
+        data_map: Dict[str, pd.DataFrame],
+        initial_weights: Dict[str, float],
+        rebalance_freq_days: int = 20,
     ) -> Dict[str, Any]:
         """
         Simulates portfolio performance with periodic rebalancing to initial weights.
@@ -175,7 +200,9 @@ class PortfolioManager:
             return None
 
         # Create unified index
-        all_dates = sorted(list(set().union(*[df.index for df in data_map.values() if df is not None])))
+        all_dates = sorted(
+            list(set().union(*[df.index for df in data_map.values() if df is not None]))
+        )
         full_index = pd.DatetimeIndex(all_dates)
 
         # Create price matrix (forward fill to handle missing days)
@@ -249,11 +276,17 @@ class PortfolioManager:
 
         # Results
         equity_series = pd.Series(equity_curve, index=prices.index)
-        total_return = (equity_series.iloc[-1] - self.initial_capital) / self.initial_capital
+        total_return = (
+            equity_series.iloc[-1] - self.initial_capital
+        ) / self.initial_capital
 
         # Max Drawdown
         running_max = equity_series.cummax()
         drawdown = (equity_series - running_max) / running_max
         max_drawdown = drawdown.min()
 
-        return {"equity_curve": equity_series, "total_return": total_return, "max_drawdown": max_drawdown}
+        return {
+            "equity_curve": equity_series,
+            "total_return": total_return,
+            "max_drawdown": max_drawdown,
+        }

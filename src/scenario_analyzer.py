@@ -68,7 +68,9 @@ class HistoricalScenarioAnalyzer:
             logger.error(f"Failed to download data for {ticker}: {e}")
             return pd.DataFrame()
 
-    def analyze_historical_event_impact(self, ticker: str, event_name: str) -> Dict[str, Any]:
+    def analyze_historical_event_impact(
+        self, ticker: str, event_name: str
+    ) -> Dict[str, Any]:
         """歴史的イベントの銘柄への影響分析"""
         if event_name not in self.historical_events:
             return {}
@@ -89,7 +91,11 @@ class HistoricalScenarioAnalyzer:
             return {}
 
         # 価格変動の分析
-        start_price = data[data.index < event_start]["Close"].iloc[-1] if len(data[data.index < event_start]) > 0 else 0
+        start_price = (
+            data[data.index < event_start]["Close"].iloc[-1]
+            if len(data[data.index < event_start]) > 0
+            else 0
+        )
         end_price = event_data["Close"].iloc[-1] if len(event_data) > 0 else 0
         peak_price = event_data["High"].max() if len(event_data) > 0 else start_price
         trough_price = event_data["Low"].min() if len(event_data) > 0 else start_price
@@ -115,10 +121,14 @@ class HistoricalScenarioAnalyzer:
             "event_return": event_return,
             "max_drawdown_during_event": max_drawdown,
             "peak_to_trough": peak_to_trough,
-            "volatility_during_event": event_data["Close"].pct_change().std() if len(event_data) > 1 else 0,
+            "volatility_during_event": event_data["Close"].pct_change().std()
+            if len(event_data) > 1
+            else 0,
         }
 
-    def compare_current_to_historical(self, ticker: str, current_data: pd.DataFrame) -> Dict[str, Any]:
+    def compare_current_to_historical(
+        self, ticker: str, current_data: pd.DataFrame
+    ) -> Dict[str, Any]:
         """現在の市場状況と歴史的イベントの比較"""
         # 直近のリターンを計算
         if len(current_data) < 30:
@@ -126,7 +136,9 @@ class HistoricalScenarioAnalyzer:
 
         recent_returns = current_data["Close"].pct_change().tail(30).dropna()
         current_volatility = recent_returns.std()
-        current_return_30d = (current_data["Close"].iloc[-1] / current_data["Close"].iloc[-30]) - 1
+        current_return_30d = (
+            current_data["Close"].iloc[-1] / current_data["Close"].iloc[-30]
+        ) - 1
 
         comparison_results = {}
 
@@ -143,7 +155,10 @@ class HistoricalScenarioAnalyzer:
 
                 comparison_results[event_name] = {
                     "similarity_score": similarity_score,
-                    "current_metrics": {"return_30d": current_return_30d, "volatility_30d": current_volatility},
+                    "current_metrics": {
+                        "return_30d": current_return_30d,
+                        "volatility_30d": current_volatility,
+                    },
                     "historical_metrics": {
                         "return": historical_event["event_return"],
                         "volatility": historical_event["volatility_during_event"],
@@ -152,7 +167,9 @@ class HistoricalScenarioAnalyzer:
 
         return comparison_results
 
-    def _calculate_similarity(self, curr_ret: float, curr_vol: float, hist_ret: float, hist_vol: float) -> float:
+    def _calculate_similarity(
+        self, curr_ret: float, curr_vol: float, hist_ret: float, hist_vol: float
+    ) -> float:
         """類似度の計算（単純化）"""
         # 簡単なユークリッド距離の逆数
         distance = np.sqrt((curr_ret - hist_ret) ** 2 + (curr_vol - hist_vol) ** 2)
@@ -168,7 +185,12 @@ class MonteCarloSimulator:
         self.confidence_level = confidence_level
 
     def simulate_single_asset(
-        self, initial_price: float, expected_return: float, volatility: float, time_horizon: int, time_steps: int = 252
+        self,
+        initial_price: float,
+        expected_return: float,
+        volatility: float,
+        time_horizon: int,
+        time_steps: int = 252,
     ) -> np.ndarray:
         """単一資産の価格シミュレーション（GBM）"""
         dt = time_horizon / time_steps
@@ -178,7 +200,10 @@ class MonteCarloSimulator:
         for t in range(1, time_steps + 1):
             # ラプロセス
             dW = np.random.normal(0, np.sqrt(dt), self.n_simulations)
-            dS = expected_return * price_paths[:, t - 1] * dt + volatility * price_paths[:, t - 1] * dW
+            dS = (
+                expected_return * price_paths[:, t - 1] * dt
+                + volatility * price_paths[:, t - 1] * dW
+            )
             price_paths[:, t] = price_paths[:, t - 1] + dS
 
         return price_paths
@@ -210,7 +235,11 @@ class MonteCarloSimulator:
             except:
                 # 正定値でない場合はレドイット=ウルフ推定器を使用
                 lw = LedoitWolf()
-                lw.fit(np.random.multivariate_normal(expected_returns, covariance_matrix, 1000))
+                lw.fit(
+                    np.random.multivariate_normal(
+                        expected_returns, covariance_matrix, 1000
+                    )
+                )
                 L = np.linalg.cholesky(lw.covariance_ * dt)
 
             # 標準正規乱数
@@ -304,11 +333,19 @@ class StressTestAnalyzer:
         return stressed_returns
 
     def portfolio_stress_test(
-        self, portfolio_weights: np.ndarray, asset_returns: np.ndarray, scenarios: List[str] = None
+        self,
+        portfolio_weights: np.ndarray,
+        asset_returns: np.ndarray,
+        scenarios: List[str] = None,
     ) -> Dict[str, Dict[str, float]]:
         """ポートフォリオに対するストレステスト"""
         if scenarios is None:
-            scenarios = ["base_case", "moderate_stress", "severe_stress", "extreme_stress"]
+            scenarios = [
+                "base_case",
+                "moderate_stress",
+                "severe_stress",
+                "extreme_stress",
+            ]
 
         results = {}
 
@@ -333,7 +370,9 @@ class StressTestAnalyzer:
                     "volatility": volatility,
                     "var_5p": var_5p,
                     "var_95p": var_95p,
-                    "sharpe_ratio": mean_return / (volatility + 1e-8) if volatility > 0 else 0.0,
+                    "sharpe_ratio": mean_return / (volatility + 1e-8)
+                    if volatility > 0
+                    else 0.0,
                     "max_drawdown": self._calculate_max_drawdown(portfolio_returns),
                 }
 
@@ -346,7 +385,9 @@ class StressTestAnalyzer:
         drawdown = (cumulative_returns - running_max) / (running_max + 1e-8)
         return np.min(drawdown) if len(drawdown) > 0 else 0.0
 
-    def generate_stress_test_report(self, stress_results: Dict[str, Dict[str, float]]) -> str:
+    def generate_stress_test_report(
+        self, stress_results: Dict[str, Dict[str, float]]
+    ) -> str:
         """ストレステストレポートの生成"""
         report = ["=== ストレステストレポート ===", ""]
 
@@ -388,13 +429,15 @@ class ScenarioBasedPredictor(BasePredictor):
         # ダミーの現在データを生成（実際にはより適切なデータが必要）
         # シナリオ分析には時系列データが必要なため、簡易的なデータフレームを作成
         ticker = "INDEX"
-        dummy_data = pd.DataFrame({
-            "Close": [100.0] * 252,
-            "High": [105.0] * 252,
-            "Low": [95.0] * 252,
-            "Open": [100.0] * 252,
-            "Volume": [1000000] * 252
-        })
+        dummy_data = pd.DataFrame(
+            {
+                "Close": [100.0] * 252,
+                "High": [105.0] * 252,
+                "Low": [95.0] * 252,
+                "Open": [100.0] * 252,
+                "Volume": [1000000] * 252,
+            }
+        )
 
         results = []
         for i in range(len(X)):
@@ -412,15 +455,21 @@ class ScenarioBasedPredictor(BasePredictor):
         if hasattr(self.base_predictor, "predict"):
             base_features = self._prepare_features(current_data)
             base_predictions = (
-                self.base_predictor.predict([base_features]) if len(base_features) > 0 else [0.0] * prediction_days
+                self.base_predictor.predict([base_features])
+                if len(base_features) > 0
+                else [0.0] * prediction_days
             )
         else:
             base_predictions = [0.01] * prediction_days  # ダミー
 
         # モテカルロシミュレーションでの予測範囲
         initial_price = current_data["Close"].iloc[-1]
-        expected_return = np.mean(current_data["Close"].pct_change().tail(252))  # 年間リターン
-        volatility = current_data["Close"].pct_change().std() * np.sqrt(252)  # 年間ボラティリティ
+        expected_return = np.mean(
+            current_data["Close"].pct_change().tail(252)
+        )  # 年間リターン
+        volatility = current_data["Close"].pct_change().std() * np.sqrt(
+            252
+        )  # 年間ボラティリティ
 
         mc_paths = self.monte_carlo_simulator.simulate_single_asset(
             initial_price=initial_price,
@@ -434,10 +483,14 @@ class ScenarioBasedPredictor(BasePredictor):
         mc_analysis = self.monte_carlo_simulator.analyze_simulation_results(mc_paths)
 
         # 歴史的イベントとの比較
-        historical_comparison = self.historical_analyzer.compare_current_to_historical(ticker, current_data)
+        historical_comparison = self.historical_analyzer.compare_current_to_historical(
+            ticker, current_data
+        )
 
         # シナリオベースのリスク評価
-        scenario_risk_assessment = self._assess_scenario_risks(current_data, mc_analysis)
+        scenario_risk_assessment = self._assess_scenario_risks(
+            current_data, mc_analysis
+        )
 
         return {
             "base_prediction": base_predictions,
@@ -461,12 +514,16 @@ class ScenarioBasedPredictor(BasePredictor):
 
         # 技術指標（移動平均）
         if len(data) >= 5:
-            features.append(data["Close"].rolling(5).mean().iloc[-1] / data["Close"].iloc[-1] - 1)
+            features.append(
+                data["Close"].rolling(5).mean().iloc[-1] / data["Close"].iloc[-1] - 1
+            )
         else:
             features.append(0.0)
 
         if len(data) >= 20:
-            features.append(data["Close"].rolling(20).mean().iloc[-1] / data["Close"].iloc[-1] - 1)
+            features.append(
+                data["Close"].rolling(20).mean().iloc[-1] / data["Close"].iloc[-1] - 1
+            )
         else:
             features.append(0.0)
 
@@ -482,13 +539,20 @@ class ScenarioBasedPredictor(BasePredictor):
 
         return features[:10]
 
-    def _assess_scenario_risks(self, current_data: pd.DataFrame, mc_analysis: Dict) -> Dict[str, float]:
+    def _assess_scenario_risks(
+        self, current_data: pd.DataFrame, mc_analysis: Dict
+    ) -> Dict[str, float]:
         """シナリオリスクの評価"""
         current_volatility = current_data["Close"].pct_change().std()
-        current_price_level = current_data["Close"].iloc[-1] / current_data["Close"].rolling(252).mean().iloc[-1]
+        current_price_level = (
+            current_data["Close"].iloc[-1]
+            / current_data["Close"].rolling(252).mean().iloc[-1]
+        )
 
         # 現在の市場状況が不安定かどうか
-        is_high_volatility = current_volatility > current_data["Close"].pct_change().rolling(252).std().quantile(0.8)
+        is_high_volatility = current_volatility > current_data[
+            "Close"
+        ].pct_change().rolling(252).std().quantile(0.8)
         is_overvalued = current_price_level > 1.2  # 長期平均の120%以上
 
         # シナリオリスクスコア
@@ -497,7 +561,9 @@ class ScenarioBasedPredictor(BasePredictor):
             scenario_risk_score += 0.3
         if is_overvalued:
             scenario_risk_score += 0.2
-        if mc_analysis["var_5p"] < mc_analysis["mean_final_price"] * 0.95:  # 5%VaRが平均の95%以下
+        if (
+            mc_analysis["var_5p"] < mc_analysis["mean_final_price"] * 0.95
+        ):  # 5%VaRが平均の95%以下
             scenario_risk_score += 0.5
 
         scenario_risk_score = min(1.0, scenario_risk_score)
@@ -509,17 +575,24 @@ class ScenarioBasedPredictor(BasePredictor):
             "is_possible_overvaluation": is_overvalued,
             "scenario_risk_score": scenario_risk_score,
             "var_warning_level": (
-                mc_analysis["var_5p"] / mc_analysis["mean_final_price"] if mc_analysis["mean_final_price"] > 0 else 0.0
+                mc_analysis["var_5p"] / mc_analysis["mean_final_price"]
+                if mc_analysis["mean_final_price"] > 0
+                else 0.0
             ),
         }
 
     def run_portfolio_scenario_analysis(
-        self, assets_returns: Dict[str, np.ndarray], portfolio_weights: Dict[str, float], n_simulations: int = 5000
+        self,
+        assets_returns: Dict[str, np.ndarray],
+        portfolio_weights: Dict[str, float],
+        n_simulations: int = 5000,
     ) -> Dict[str, Any]:
         """ポートフォリオシナリオ分析"""
         # 必要なデータを準備
         asset_list = list(assets_returns.keys())
-        weights_array = np.array([portfolio_weights.get(asset, 0.0) for asset in asset_list])
+        weights_array = np.array(
+            [portfolio_weights.get(asset, 0.0) for asset in asset_list]
+        )
 
         # 共分散行列の計算
         returns_df = pd.DataFrame(assets_returns)
@@ -586,11 +659,15 @@ if __name__ == "__main__":
     )
 
     # シナリオ予測の実行
-    result = scenario_predictor.predict_with_scenarios("TEST.T", sample_data, prediction_days=5)
+    result = scenario_predictor.predict_with_scenarios(
+        "TEST.T", sample_data, prediction_days=5
+    )
 
     print("Scenario-based Prediction Results:")
     print(f"Base prediction: {result['base_prediction']}")
-    print(f"Scenario risk score: {result['scenario_risk_assessment']['scenario_risk_score']}")
+    print(
+        f"Scenario risk score: {result['scenario_risk_assessment']['scenario_risk_score']}"
+    )
     print(f"Historical comparisons: {list(result['historical_comparisons'].keys())}")
 
     # モテカルロ分析の結果
@@ -612,7 +689,11 @@ if __name__ == "__main__":
     )
 
     print(f"\nPortfolio scenario analysis completed")
-    print(f"Portfolio VaR 5%: {portfolio_result['portfolio_monte_carlo_analysis']['var_5p']:.4f}")
-    print(f"Portfolio stress test results: {list(portfolio_result['portfolio_stress_test_results'].keys())}")
+    print(
+        f"Portfolio VaR 5%: {portfolio_result['portfolio_monte_carlo_analysis']['var_5p']:.4f}"
+    )
+    print(
+        f"Portfolio stress test results: {list(portfolio_result['portfolio_stress_test_results'].keys())}"
+    )
 
     print("Scenario analysis and stress test components test completed.")

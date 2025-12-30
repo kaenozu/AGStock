@@ -98,7 +98,9 @@ def add_sentiment_features(df: pd.DataFrame) -> pd.DataFrame:
         if df.index.tz is not None:
             daily_sent = daily_sent.tz_localize(df.index.tz)
 
-        df["Sentiment_Score"] = daily_sent.reindex(df.index).fillna(method="ffill").fillna(0.0)
+        df["Sentiment_Score"] = (
+            daily_sent.reindex(df.index).fillna(method="ffill").fillna(0.0)
+        )
 
     except Exception as e:
         # print(f"Error adding sentiment features: {e}")
@@ -117,6 +119,7 @@ def add_advanced_features(df: pd.DataFrame) -> pd.DataFrame:
     # Import the new advanced features module from current package
     try:
         from .advanced_features import generate_phase29_features
+
         df = generate_phase29_features(df)
     except (ImportError, ModuleNotFoundError):
         df = df.copy()
@@ -133,7 +136,9 @@ def add_advanced_features(df: pd.DataFrame) -> pd.DataFrame:
     if "BB_Width" not in df.columns:
         try:
             bb = ta.volatility.BollingerBands(df["Close"], window=20, window_dev=2)
-            df["BB_Width"] = (bb.bollinger_hband() - bb.bollinger_lband()) / bb.bollinger_mavg()
+            df["BB_Width"] = (
+                bb.bollinger_hband() - bb.bollinger_lband()
+            ) / bb.bollinger_mavg()
         except Exception:
             df["BB_Width"] = 0.0
 
@@ -157,7 +162,9 @@ def add_advanced_features(df: pd.DataFrame) -> pd.DataFrame:
 
     # 4. Volume
     if "OBV" not in df.columns:
-        df["OBV"] = ta.volume.OnBalanceVolumeIndicator(df["Close"], df["Volume"]).on_balance_volume()
+        df["OBV"] = ta.volume.OnBalanceVolumeIndicator(
+            df["Close"], df["Volume"]
+        ).on_balance_volume()
     if "Volume_Change" not in df.columns:
         df["Volume_Change"] = df["Volume"].pct_change()
 

@@ -46,7 +46,9 @@ class TimeSeriesCV:
         """
         return self.tscv.split(X, y)
 
-    def evaluate_model(self, model, X: pd.DataFrame, y: pd.Series, metric_func: callable) -> Dict[str, float]:
+    def evaluate_model(
+        self, model, X: pd.DataFrame, y: pd.Series, metric_func: callable
+    ) -> Dict[str, float]:
         """
         モデルをクロスバリデーションで評価
 
@@ -87,7 +89,13 @@ class TimeSeriesCV:
 
 
 def walk_forward_validation(
-    model, X: pd.DataFrame, y: pd.Series, train_window: int, test_window: int, step: int, metric_func: callable
+    model,
+    X: pd.DataFrame,
+    y: pd.Series,
+    train_window: int,
+    test_window: int,
+    step: int,
+    metric_func: callable,
 ) -> Dict[str, float]:
     """
     ウォークフォワードバリデーション（ローリングウィンドウ）
@@ -133,4 +141,8 @@ def walk_forward_validation(
     if not scores:
         return {"mean_score": 0.0}
 
-    return {"mean_score": np.mean(scores), "std_score": np.std(scores), "scores": scores}
+    return {
+        "mean_score": np.mean(scores),
+        "std_score": np.std(scores),
+        "scores": scores,
+    }

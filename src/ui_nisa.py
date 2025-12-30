@@ -16,9 +16,15 @@ def render_nisa_manager():
     user_id = 1  # シングルユーザー想定
 
     # NISA種類選択
-    nisa_type_display = st.selectbox("NISA口座タイプ", ["新NISA", "つみたてNISA", "一般NISA"])
+    nisa_type_display = st.selectbox(
+        "NISA口座タイプ", ["新NISA", "つみたてNISA", "一般NISA"]
+    )
 
-    nisa_type_map = {"新NISA": NISAType.NEW_NISA, "つみたてNISA": NISAType.TSUMITATE, "一般NISA": NISAType.GENERAL}
+    nisa_type_map = {
+        "新NISA": NISAType.NEW_NISA,
+        "つみたてNISA": NISAType.TSUMITATE,
+        "一般NISA": NISAType.GENERAL,
+    }
     nisa_type = nisa_type_map[nisa_type_display]
 
     # 残り枠表示
@@ -39,7 +45,11 @@ def render_nisa_manager():
                 f"¥{remaining.get('tsumitate_remaining', 0):,.0f}",
                 f"/ ¥{remaining.get('tsumitate_annual', 1200000):,.0f}",
             )
-            col3.metric("生涯非課税限度額", f"¥{remaining.get('lifetime_remaining', 0):,.0f}", f"/ ¥18,000,000")
+            col3.metric(
+                "生涯非課税限度額",
+                f"¥{remaining.get('lifetime_remaining', 0):,.0f}",
+                f"/ ¥18,000,000",
+            )
         else:
             col1, col2 = st.columns(2)
             col1.metric("年間残り枠", f"¥{remaining.get('annual_remaining', 0):,.0f}")
@@ -85,7 +95,12 @@ def render_nisa_manager():
 
         if st.button("📝 NISA枠で購入（シミュレーション）", type="primary"):
             success = manager.record_nisa_trade(
-                user_id=user_id, nisa_type=nisa_type, ticker=ticker, action="BUY", quantity=quantity, price=price
+                user_id=user_id,
+                nisa_type=nisa_type,
+                ticker=ticker,
+                action="BUY",
+                quantity=quantity,
+                price=price,
             )
             if success:
                 st.success("購入を記録しました！")

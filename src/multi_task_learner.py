@@ -19,7 +19,9 @@ class MultiTaskPredictor:
         self.model = None
         self.is_ready = False
 
-    def prepare_targets(self, df: pd.DataFrame, horizon: int = 5) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def prepare_targets(
+        self, df: pd.DataFrame, horizon: int = 5
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         3つのターゲットを準備
 
@@ -72,17 +74,25 @@ class MultiTaskPredictor:
                 return {"error": "Insufficient data for multi-task learning"}
 
             # ターゲット準備
-            price_change, direction, volatility = self.prepare_targets(df_features, days_ahead)
+            price_change, direction, volatility = self.prepare_targets(
+                df_features, days_ahead
+            )
 
             # 特徴量抽出
             exclude = ["Date", "Open", "High", "Low", "Close", "Volume"]
             feature_cols = [c for c in df_features.columns if c not in exclude]
-            feature_cols = df_features[feature_cols].select_dtypes(include=[np.number]).columns.tolist()
+            feature_cols = (
+                df_features[feature_cols]
+                .select_dtypes(include=[np.number])
+                .columns.tolist()
+            )
 
             X = df_features[feature_cols].values
 
             # 有効なデータのみ使用
-            valid_idx = ~np.isnan(direction) & ~np.isnan(price_change) & ~np.isnan(volatility)
+            valid_idx = (
+                ~np.isnan(direction) & ~np.isnan(price_change) & ~np.isnan(volatility)
+            )
             X_valid = X[valid_idx]
             dir_valid = direction[valid_idx]
             price_valid = price_change[valid_idx]
@@ -96,17 +106,23 @@ class MultiTaskPredictor:
             X_train, X_test = X_valid[:split], X_valid[split:]
 
             # 1. Direction予測
-            dir_model = LGBMClassifier(n_estimators=50, max_depth=3, random_state=42, verbose=-1)
+            dir_model = LGBMClassifier(
+                n_estimators=50, max_depth=3, random_state=42, verbose=-1
+            )
             dir_model.fit(X_train, dir_valid[:split])
             dir_pred = dir_model.predict_proba(X[-1:])[:, 1][0]
 
             # 2. Price change予測
-            price_model = LGBMRegressor(n_estimators=50, max_depth=3, random_state=42, verbose=-1)
+            price_model = LGBMRegressor(
+                n_estimators=50, max_depth=3, random_state=42, verbose=-1
+            )
             price_model.fit(X_train, price_valid[:split])
             price_pred = price_model.predict(X[-1:])[0]
 
             # 3. Volatility予測
-            vol_model = LGBMRegressor(n_estimators=50, max_depth=3, random_state=42, verbose=-1)
+            vol_model = LGBMRegressor(
+                n_estimators=50, max_depth=3, random_state=42, verbose=-1
+            )
             vol_model.fit(X_train, vol_valid[:split])
             vol_pred = vol_model.predict(X[-1:])[0]
 

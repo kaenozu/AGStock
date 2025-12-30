@@ -13,7 +13,11 @@ class HistoricalBacktester:
         self.backtester = Backtester(initial_capital=initial_capital)
 
     def run_test(
-        self, ticker: str, strategy_class: Type[Strategy], years: int = 10, **strategy_params
+        self,
+        ticker: str,
+        strategy_class: Type[Strategy],
+        years: int = 10,
+        **strategy_params,
     ) -> Dict[str, Any]:
         """
         Runs a historical backtest for a specific ticker and strategy.
@@ -47,7 +51,9 @@ class HistoricalBacktester:
         # Resample to yearly
         yearly_equity = equity_curve.resample("Y").last()
         # Add start value
-        start_series = pd.Series([1.0], index=[equity_curve.index[0] - pd.Timedelta(days=1)])
+        start_series = pd.Series(
+            [1.0], index=[equity_curve.index[0] - pd.Timedelta(days=1)]
+        )
         yearly_equity_combined = pd.concat([start_series, yearly_equity])
 
         annual_returns = yearly_equity_combined.pct_change().dropna()
@@ -71,7 +77,9 @@ class HistoricalBacktester:
 
         return results
 
-    def compare_strategies(self, ticker: str, strategies: list, years: int = 10) -> tuple[pd.DataFrame, pd.DataFrame]:
+    def compare_strategies(
+        self, ticker: str, strategies: list, years: int = 10
+    ) -> tuple[pd.DataFrame, pd.DataFrame]:
         """
         Runs multiple strategies and returns comparison metrics and equity curves.
 

@@ -28,7 +28,9 @@ class TradeSimulatorCore:
         self.slippage = slippage
         self.allow_short = allow_short
 
-    def _size_position(self, ticker: str, portfolio_value: float, exec_price: float) -> float:
+    def _size_position(
+        self, ticker: str, portfolio_value: float, exec_price: float
+    ) -> float:
         """ポジションサイズを計算"""
         if isinstance(self.position_size, dict):
             alloc = self.position_size.get(ticker, 0.0)
@@ -50,7 +52,9 @@ class TradeSimulatorCore:
         for t in aligned_data:
             if holdings[t] != 0 and not pd.isna(aligned_data[t]["Close"].iloc[index]):
                 if holdings[t] > 0:  # ロンポジション
-                    current_portfolio_value += holdings[t] * aligned_data[t]["Close"].iloc[index]
+                    current_portfolio_value += (
+                        holdings[t] * aligned_data[t]["Close"].iloc[index]
+                    )
                 else:  # ショートポジション
                     entry_price_val = self.entry_prices[
                         t
@@ -73,7 +77,13 @@ class TradeSimulatorCore:
         return position_state
 
     def _create_trade_record(
-        self, ticker: str, reason: str, entry: float, exec_price: float, trade_type: str, date
+        self,
+        ticker: str,
+        reason: str,
+        entry: float,
+        exec_price: float,
+        trade_type: str,
+        date,
     ) -> Dict[str, Any]:
         """取引記録を作成"""
         return {
@@ -82,7 +92,9 @@ class TradeSimulatorCore:
             "exit_date": date,
             "entry_price": entry,
             "exit_price": exec_price,
-            "return": (exec_price - entry) / entry if trade_type == "Long" else (entry - exec_price) / entry,
+            "return": (exec_price - entry) / entry
+            if trade_type == "Long"
+            else (entry - exec_price) / entry,
             "type": trade_type,
             "reason": reason,
         }

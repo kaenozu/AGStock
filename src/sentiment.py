@@ -39,7 +39,9 @@ class SentimentAnalyzer:
                         {
                             "title": title,
                             "link": entry.link,
-                            "published": entry.get("published", str(datetime.datetime.now())),
+                            "published": entry.get(
+                                "published", str(datetime.datetime.now())
+                            ),
                             "summary": entry.get("summary", ""),
                         }
                     )
@@ -84,7 +86,12 @@ class SentimentAnalyzer:
         else:
             label = "Neutral"
 
-        return {"score": avg_score, "label": label, "news_count": count, "top_news": news[:5]}
+        return {
+            "score": avg_score,
+            "label": label,
+            "news_count": count,
+            "top_news": news[:5],
+        }
 
     def _init_database(self):
         """
@@ -134,7 +141,12 @@ class SentimentAnalyzer:
                 INSERT INTO sentiment_history (timestamp, score, label, news_count)
                 VALUES (?, ?, ?, ?)
             """,
-                (timestamp, sentiment_data["score"], sentiment_data["label"], sentiment_data["news_count"]),
+                (
+                    timestamp,
+                    sentiment_data["score"],
+                    sentiment_data["label"],
+                    sentiment_data["news_count"],
+                ),
             )
 
     def get_sentiment_history(self, days: int = 7) -> List[Dict]:
@@ -147,7 +159,9 @@ class SentimentAnalyzer:
         Returns:
             List of dictionaries containing timestamp, score, label, news_count
         """
-        cutoff_date = (datetime.datetime.now() - datetime.timedelta(days=days)).isoformat()
+        cutoff_date = (
+            datetime.datetime.now() - datetime.timedelta(days=days)
+        ).isoformat()
 
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
@@ -163,7 +177,15 @@ class SentimentAnalyzer:
 
             rows = cursor.fetchall()
 
-        return [{"timestamp": row[0], "score": row[1], "label": row[2], "news_count": row[3]} for row in rows]
+        return [
+            {
+                "timestamp": row[0],
+                "score": row[1],
+                "label": row[2],
+                "news_count": row[3],
+            }
+            for row in rows
+        ]
 
 
 if __name__ == "__main__":

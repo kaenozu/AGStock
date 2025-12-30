@@ -37,7 +37,9 @@ class MultiTimeframeStrategy(Strategy):
             weekly_df = self.mtf_analyzer.resample_data(df, "W-FRI")
 
             if len(weekly_df) < 50:
-                logger.warning(f"週足データ不足 ({len(weekly_df)} weeks)。MTFフィルタをスキップします。")
+                logger.warning(
+                    f"週足データ不足 ({len(weekly_df)} weeks)。MTFフィルタをスキップします。"
+                )
                 return base_signals
 
             # 週足トレンド判定: SMA20 > SMA50 => 上昇トレンド
@@ -46,12 +48,18 @@ class MultiTimeframeStrategy(Strategy):
 
             weekly_df["Weekly_Trend"] = 0
             # 上昇トレンド定義: 短期 > 長期 かつ 価格 > 短期 (強い上昇)
-            weekly_df.loc[(weekly_df["SMA_20"] > weekly_df["SMA_50"]), "Weekly_Trend"] = 1
-            weekly_df.loc[(weekly_df["SMA_20"] < weekly_df["SMA_50"]), "Weekly_Trend"] = -1
+            weekly_df.loc[
+                (weekly_df["SMA_20"] > weekly_df["SMA_50"]), "Weekly_Trend"
+            ] = 1
+            weekly_df.loc[
+                (weekly_df["SMA_20"] < weekly_df["SMA_50"]), "Weekly_Trend"
+            ] = -1
 
             # 3. 週足トレンドを日足にマッピング (ffill)
             # reindex で日足の日付に合わせ、直前の週足の状態を維持(ffill)
-            weekly_trend_map = weekly_df["Weekly_Trend"].reindex(df.index, method="ffill").fillna(0)
+            weekly_trend_map = (
+                weekly_df["Weekly_Trend"].reindex(df.index, method="ffill").fillna(0)
+            )
 
             # 4. シグナルフィルタリング
             final_signals = base_signals.copy()

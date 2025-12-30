@@ -71,8 +71,12 @@ class AuthManager:
             )
 
             # インデックス追加
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at)")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at)"
+            )
 
             conn.commit()
 
@@ -101,7 +105,9 @@ class AuthManager:
 
         return True, "OK"
 
-    def create_user(self, username: str, email: str, password: str, is_admin: bool = False) -> Optional[int]:
+    def create_user(
+        self, username: str, email: str, password: str, is_admin: bool = False
+    ) -> Optional[int]:
         """ユーザー作成"""
         # パスワード強度チェック
         is_strong, message = self.check_password_strength(password)
@@ -272,7 +278,9 @@ class AuthManager:
         """ログイン"""
         # アカウントロックチェック
         if self.is_account_locked(username):
-            raise ValueError("アカウントがロックされています。15分後に再試行してください。")
+            raise ValueError(
+                "アカウントがロックされています。15分後に再試行してください。"
+            )
 
         user = self.get_user(username)
 

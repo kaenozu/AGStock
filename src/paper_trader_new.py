@@ -31,7 +31,9 @@ class PaperTrader:
         conn (sqlite3.Connection): データベース接続オブジェクト。
     """
 
-    def __init__(self, db_path: str = "paper_trading.db", initial_capital: float = None):
+    def __init__(
+        self, db_path: str = "paper_trading.db", initial_capital: float = None
+    ):
         self.db_path = db_path
 
         # Load initial capital from config.json if not specified
@@ -43,7 +45,9 @@ class PaperTrader:
                 if config_path.exists():
                     with open(config_path, "r", encoding="utf-8") as f:
                         config = json.load(f)
-                    initial_capital = config.get("paper_trading", {}).get("initial_capital", 1000000)
+                    initial_capital = config.get("paper_trading", {}).get(
+                        "initial_capital", 1000000
+                    )
                 else:
                     initial_capital = 1000000  # Default 1M JPY
             except Exception as e:
@@ -130,7 +134,9 @@ class PaperTrader:
                                           Returns {'quantity': 0, 'avg_price': 0.0} if no position.
         """
         cursor = self.conn.cursor()
-        cursor.execute("SELECT quantity, avg_price FROM positions WHERE ticker = ?", (ticker,))
+        cursor.execute(
+            "SELECT quantity, avg_price FROM positions WHERE ticker = ?", (ticker,)
+        )
         result = cursor.fetchone()
         if result:
             return {"quantity": result[0], "avg_price": result[1]}
@@ -158,13 +164,17 @@ class PaperTrader:
                 # Update balance
                 new_balance = balance - cost
                 cursor = self.conn.cursor()
-                cursor.execute("UPDATE accounts SET current_balance = ? WHERE id = 1", (new_balance,))
+                cursor.execute(
+                    "UPDATE accounts SET current_balance = ? WHERE id = 1",
+                    (new_balance,),
+                )
 
                 # Update position (average down/cost)
                 new_quantity = position["quantity"] + order.quantity
                 if position["quantity"] > 0:
                     new_avg_price = (
-                        (position["quantity"] * position["avg_price"]) + (order.quantity * order.price)
+                        (position["quantity"] * position["avg_price"])
+                        + (order.quantity * order.price)
                     ) / new_quantity
                 else:
                     new_avg_price = order.price
@@ -186,12 +196,17 @@ class PaperTrader:
                 proceeds = order.quantity * order.price
                 new_balance = balance + proceeds
                 cursor = self.conn.cursor()
-                cursor.execute("UPDATE accounts SET current_balance = ? WHERE id = 1", (new_balance,))
+                cursor.execute(
+                    "UPDATE accounts SET current_balance = ? WHERE id = 1",
+                    (new_balance,),
+                )
 
                 # Update position
                 new_quantity = position["quantity"] - order.quantity
                 if new_quantity == 0:
-                    cursor.execute("DELETE FROM positions WHERE ticker = ?", (order.ticker,))
+                    cursor.execute(
+                        "DELETE FROM positions WHERE ticker = ?", (order.ticker,)
+                    )
                 else:
                     cursor.execute(
                         """

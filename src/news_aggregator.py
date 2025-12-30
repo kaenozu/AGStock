@@ -47,7 +47,9 @@ class NewsAggregator:
                 feed = feedparser.parse(url)
 
                 for entry in feed.entries[:5]:  # 各ソースから最新5件
-                    published = entry.get("published", entry.get("updated", str(datetime.now())))
+                    published = entry.get(
+                        "published", entry.get("updated", str(datetime.now()))
+                    )
 
                     news_item = {
                         "title": entry.title,

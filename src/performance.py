@@ -9,6 +9,7 @@ import sqlite3
 
 # --- Cached Computation Functions ---
 
+
 @st.cache_data(ttl=60)
 def _cached_calculate_cumulative_pnl(db_path: str) -> pd.DataFrame:
     try:
@@ -56,6 +57,7 @@ def _cached_calculate_cumulative_pnl(db_path: str) -> pd.DataFrame:
         print(f"Error in cached PnL: {e}")
         return pd.DataFrame()
 
+
 @st.cache_data(ttl=60)
 def _cached_strategy_performance(db_path: str) -> pd.DataFrame:
     try:
@@ -85,19 +87,23 @@ def _cached_strategy_performance(db_path: str) -> pd.DataFrame:
                 price = row["price"]
 
                 if action == "BUY":
-                    if ticker not in positions: positions[ticker] = []
+                    if ticker not in positions:
+                        positions[ticker] = []
                     positions[ticker].append({"quantity": quantity, "price": price})
                 elif action == "SELL" and ticker in positions:
                     remaining = quantity
                     while remaining > 0 and positions[ticker]:
                         buy_pos = positions[ticker][0]
                         sell_qty = min(buy_pos["quantity"], remaining)
-                        profit_pct = ((price - buy_pos["price"]) / buy_pos["price"]) * 100
+                        profit_pct = (
+                            (price - buy_pos["price"]) / buy_pos["price"]
+                        ) * 100
                         trades.append({"profit_pct": profit_pct, "win": profit_pct > 0})
                         buy_pos["quantity"] -= sell_qty
                         remaining -= sell_qty
-                        if buy_pos["quantity"] == 0: positions[ticker].pop(0)
-            
+                        if buy_pos["quantity"] == 0:
+                            positions[ticker].pop(0)
+
             if trades:
                 df_trades = pd.DataFrame(trades)
                 strategies[strategy] = {
@@ -106,21 +112,29 @@ def _cached_strategy_performance(db_path: str) -> pd.DataFrame:
                     "avg_profit": df_trades["profit_pct"].mean(),
                     "total_pnl": df_trades["profit_pct"].sum(),
                 }
-        
-        return pd.DataFrame.from_dict(strategies, orient="index").reset_index().rename(columns={"index": "strategy"})
+
+        return (
+            pd.DataFrame.from_dict(strategies, orient="index")
+            .reset_index()
+            .rename(columns={"index": "strategy"})
+        )
     except Exception as e:
         print(f"Error in cached strategy perf: {e}")
         return pd.DataFrame()
+
 
 @st.cache_data(ttl=60)
 def _cached_ticker_performance(db_path: str) -> pd.DataFrame:
     try:
         conn = sqlite3.connect(db_path)
-        orders = pd.read_sql_query("SELECT ticker, action, quantity, price FROM orders ORDER BY date", conn)
+        orders = pd.read_sql_query(
+            "SELECT ticker, action, quantity, price FROM orders ORDER BY date", conn
+        )
         conn.close()
-        
-        if orders.empty: return pd.DataFrame()
-        
+
+        if orders.empty:
+            return pd.DataFrame()
+
         tickers_performance = {}
         for ticker in orders["ticker"].unique():
             ticker_orders = orders[orders["ticker"] == ticker]
@@ -141,19 +155,23 @@ def _cached_ticker_performance(db_path: str) -> pd.DataFrame:
                         trades.append(profit_pct)
                         buy["quantity"] -= sold
                         rem -= sold
-                        if buy["quantity"] == 0: positions.pop(0)
-            
+                        if buy["quantity"] == 0:
+                            positions.pop(0)
+
             if trades:
                 tickers_performance[ticker] = {
                     "trades": len(trades),
-                    "avg_profit": sum(trades)/len(trades),
-                    "total_pnl": sum(trades)
+                    "avg_profit": sum(trades) / len(trades),
+                    "total_pnl": sum(trades),
                 }
-        return pd.DataFrame.from_dict(tickers_performance, orient="index").reset_index().rename(columns={"index": "ticker"})
+        return (
+            pd.DataFrame.from_dict(tickers_performance, orient="index")
+            .reset_index()
+            .rename(columns={"index": "ticker"})
+        )
     except Exception as e:
         print(f"Error in cached ticker perf: {e}")
         return pd.DataFrame()
-
 
 
 class PerformanceAnalyzer:
@@ -230,7 +248,9 @@ class PerformanceAnalyzer:
             print(f"Error calculating monthly returns: {e}")
             return pd.DataFrame()
 
-    def compare_with_benchmark(self, benchmark_ticker: str = "^N225", days: int = 365) -> Dict:
+    def compare_with_benchmark(
+        self, benchmark_ticker: str = "^N225", days: int = 365
+    ) -> Dict:
         """
         Compare portfolio performance with a benchmark.
 
@@ -259,7 +279,9 @@ class PerformanceAnalyzer:
                 return {}
 
             # Calculate benchmark returns (normalized to start at 0)
-            bench_hist["benchmark_return"] = ((bench_hist["Close"] / bench_hist["Close"].iloc[0]) - 1) * 100
+            bench_hist["benchmark_return"] = (
+                (bench_hist["Close"] / bench_hist["Close"].iloc[0]) - 1
+            ) * 100
             bench_hist = bench_hist.reset_index()
             bench_hist["Date"] = pd.to_datetime(bench_hist["Date"])
 
@@ -269,10 +291,14 @@ class PerformanceAnalyzer:
             # Normalize portfolio P&L to percentage
             if len(portfolio_pnl) > 0:
                 initial_capital = 1000000  # Assume 1M yen initial capital
-                portfolio_pnl["portfolio_return"] = (portfolio_pnl["cumulative_pnl"] / initial_capital) * 100
+                portfolio_pnl["portfolio_return"] = (
+                    portfolio_pnl["cumulative_pnl"] / initial_capital
+                ) * 100
 
             return {
-                "portfolio": portfolio_pnl[["date", "portfolio_return"]].to_dict("records"),
+                "portfolio": portfolio_pnl[["date", "portfolio_return"]].to_dict(
+                    "records"
+                ),
                 "benchmark": bench_hist[["Date", "benchmark_return"]]
                 .rename(columns={"Date": "date"})
                 .to_dict("records"),
@@ -326,7 +352,9 @@ class PerformanceAnalyzer:
                 return pd.DataFrame()
 
             # Convert to percentage
-            monthly["monthly_return_pct"] = monthly["monthly_return"] / 10000  # Assuming returns are in basis points
+            monthly["monthly_return_pct"] = (
+                monthly["monthly_return"] / 10000
+            )  # Assuming returns are in basis points
 
             # Add month names for display
             month_names = {
@@ -440,7 +468,9 @@ class PerformanceAnalyzer:
 
             # Total return
             cumulative = self.get_cumulative_pnl()
-            total_return = cumulative["cumulative_pnl"].iloc[-1] if not cumulative.empty else 0.0
+            total_return = (
+                cumulative["cumulative_pnl"].iloc[-1] if not cumulative.empty else 0.0
+            )
 
             return {
                 "total_trades": int(total_trades),
@@ -452,4 +482,10 @@ class PerformanceAnalyzer:
 
         except Exception as e:
             print(f"Error calculating performance summary: {e}")
-            return {"total_trades": 0, "win_rate": 0.0, "best_month": None, "worst_month": None, "total_return": 0.0}
+            return {
+                "total_trades": 0,
+                "win_rate": 0.0,
+                "best_month": None,
+                "worst_month": None,
+                "total_return": 0.0,
+            }

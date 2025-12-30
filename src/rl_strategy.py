@@ -44,7 +44,9 @@ class RLStrategy:
             state_size = 50  # 概算値
             action_size = 3  # HOLD, BUY, SELL
 
-            self.agent = DQNAgent(state_size=state_size, action_size=action_size, hidden_size=128)
+            self.agent = DQNAgent(
+                state_size=state_size, action_size=action_size, hidden_size=128
+            )
             self.agent.load(MODEL_PATH)
             self.agent.epsilon = 0.0  # 推論時は探索しない
             self.is_ready = True
@@ -96,8 +98,16 @@ class RLStrategy:
             return {
                 "action": action,
                 "confidence": float(confidence),
-                "q_values": {"HOLD": float(q_values[0]), "BUY": float(q_values[1]), "SELL": float(q_values[2])},
-                "probabilities": {"HOLD": float(probs[0]), "BUY": float(probs[1]), "SELL": float(probs[2])},
+                "q_values": {
+                    "HOLD": float(q_values[0]),
+                    "BUY": float(q_values[1]),
+                    "SELL": float(q_values[2]),
+                },
+                "probabilities": {
+                    "HOLD": float(probs[0]),
+                    "BUY": float(probs[1]),
+                    "SELL": float(probs[2]),
+                },
             }
 
         except Exception as e:
@@ -118,7 +128,9 @@ class RLStrategy:
         # 特徴量カラムを抽出
         exclude_cols = ["Date", "Open", "High", "Low", "Close", "Volume", "Target"]
         feature_cols = [c for c in df.columns if c not in exclude_cols]
-        feature_cols = df[feature_cols].select_dtypes(include=[np.number]).columns.tolist()
+        feature_cols = (
+            df[feature_cols].select_dtypes(include=[np.number]).columns.tolist()
+        )
 
         # 特徴量値
         features = latest[feature_cols].values
@@ -161,7 +173,12 @@ class RLStrategy:
         else:
             trend = "FLAT"
 
-        return {"trend": trend, "confidence": confidence, "action": action, "details": result}
+        return {
+            "trend": trend,
+            "confidence": confidence,
+            "action": action,
+            "details": result,
+        }
 
 
 if __name__ == "__main__":

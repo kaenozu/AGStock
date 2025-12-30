@@ -6,16 +6,19 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
+
 class EventForecaster:
     """
-    Oracle Mode: Predicts upcoming market events based on 
+    Oracle Mode: Predicts upcoming market events based on
     historical patterns and recent news synthesis.
     """
 
     def __init__(self):
         self.model_name = "gemini-1.5-pro"
-        
-    def forecast_upcoming_events(self, market_data: pd.DataFrame, news_summary: str) -> Dict[str, Any]:
+
+    def forecast_upcoming_events(
+        self, market_data: pd.DataFrame, news_summary: str
+    ) -> Dict[str, Any]:
         """
         Generates a 3-5 day probabilistic forecast.
         """
@@ -28,14 +31,17 @@ class EventForecaster:
 
         # Truncate data for token limits
         recent_price = market_data.tail(10).to_string()
-        
+
         prompt = f"""
         Analyze the following market data and news context:
+            pass
         ---
         RECENT PRICE DATA (Tail):
+            pass
         {recent_price}
         
         NEWS SUMMARY:
+            pass
         {news_summary}
         ---
         Based on this, act as a 'Market Oracle'. Predict the most likely major event 
@@ -43,6 +49,7 @@ class EventForecaster:
         'Breakout in energy stocks').
         
         Return JSON format:
+            pass
         {{
             "event_prediction": "Description",
             "probability_pct": 0-100,
@@ -56,7 +63,12 @@ class EventForecaster:
             # Simple cleanup for JSON extraction if needed
             text = response.text.replace("```json", "").replace("```", "").strip()
             import json
+
             return json.loads(text)
         except Exception as e:
             logger.error(f"Oracle forecast failed: {e}")
-            return {"event_prediction": "Unclear", "probability_pct": 0, "impact_level": "N/A"}
+            return {
+                "event_prediction": "Unclear",
+                "probability_pct": 0,
+                "impact_level": "N/A",
+            }

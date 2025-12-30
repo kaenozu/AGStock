@@ -26,7 +26,9 @@ class DividendStrategy(Strategy):
         signals[df["Dividend_Yield"] >= self.min_yield] = 1
 
         # 売却条件は特に設定せず（長期保有前提）、利回りが低下したら売るなどのロジックも追加可能
-        signals[df["Dividend_Yield"] < (self.min_yield * 0.8)] = 0  # 利回りが大きく下がったら手仕舞い（例）
+        signals[
+            df["Dividend_Yield"] < (self.min_yield * 0.8)
+        ] = 0  # 利回りが大きく下がったら手仕舞い（例）
 
         return self.apply_trend_filter(df, signals)
 

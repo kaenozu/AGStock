@@ -4,12 +4,15 @@ from typing import Dict, List
 import pandas as pd
 
 from src.constants import NIKKEI_225_TICKERS, SP500_TICKERS  # 地域判定のため
-from src.data_loader import (fetch_fundamental_data, fetch_stock_data,
-                             get_latest_price)
+from src.data_loader import fetch_fundamental_data, fetch_stock_data, get_latest_price
 from src.ensemble_predictor import EnsemblePredictor  # 中期予測フィルター
 from src.sentiment import SentimentAnalyzer
-from src.strategies import (CombinedStrategy, DividendStrategy,
-                            LightGBMStrategy, MLStrategy)
+from src.strategies import (
+    CombinedStrategy,
+    DividendStrategy,
+    LightGBMStrategy,
+    MLStrategy,
+)
 
 
 class MarketScanner:
@@ -38,7 +41,14 @@ class MarketScanner:
         self.risk_manager = risk_manager  # regime_multiplier の取得のため
 
         self.asset_config = self.config.get(
-            "assets", {"japan_stocks": True, "us_stocks": True, "europe_stocks": True, "crypto": False, "fx": False}
+            "assets",
+            {
+                "japan_stocks": True,
+                "us_stocks": True,
+                "europe_stocks": True,
+                "crypto": False,
+                "fx": False,
+            },
         )
         self.allow_small_mid_cap = True  # AssetSelectorから引き継ぎ
 
@@ -47,7 +57,9 @@ class MarketScanner:
         self.logger.info("市場スキャン開始...")
 
         # 🚨 市場急落チェック
-        allow_buy_market, market_reason = self.advanced_risk.check_market_crash(self.logger)
+        allow_buy_market, market_reason = self.advanced_risk.check_market_crash(
+            self.logger
+        )
         if not allow_buy_market:
             self.logger.warning(f"⚠️ 市場急落のため新規BUY停止: {market_reason}")
 
@@ -55,7 +67,9 @@ class MarketScanner:
         try:
             sa = SentimentAnalyzer()
             sentiment = sa.get_market_sentiment()
-            self.logger.info(f"市場センチメント: {sentiment['label']} ({sentiment['score']:.2f})")
+            self.logger.info(
+                f"市場センチメント: {sentiment['label']} ({sentiment['score']:.2f})"
+            )
 
             # ネガティブセンチメント時はBUYを抑制
             allow_buy = sentiment["score"] >= -0.2
@@ -81,7 +95,9 @@ class MarketScanner:
                     else str(sample_df.index[-1])
                 )
                 self.logger.info(f"📅 データ基準日時: {data_date} (最新の市場データ)")
-                self.logger.info(f"⏰ 判断実行日時: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+                self.logger.info(
+                    f"⏰ 判断実行日時: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                )
 
         # 戦略初期化
         strategies = [
@@ -115,7 +131,6 @@ class MarketScanner:
 
                     # BUYシグナル
                     if last_signal == 1 and not is_held and allow_buy:
-
                         # 📊 銘柄相関チェック
                         existing_tickers = list(held_tickers)
                         allow_corr, corr_reason = self.advanced_risk.check_correlation(
@@ -128,8 +143,12 @@ class MarketScanner:
                         fundamentals = fetch_fundamental_data(ticker)
 
                         # 時価総額チェック
-                        if not self.asset_selector.filter_by_market_cap(ticker, fundamentals):
-                            self.logger.info(f"  {ticker}: 時価総額が小さすぎるためスキップ")
+                        if not self.asset_selector.filter_by_market_cap(
+                            ticker, fundamentals
+                        ):
+                            self.logger.info(
+                                f"  {ticker}: 時価総額が小さすぎるためスキップ"
+                            )
                             continue
 
                         pe = fundamentals.get("trailingPE") if fundamentals else None
@@ -144,7 +163,9 @@ class MarketScanner:
                         # 短期だけでなく、5日後も上昇が見込める銘柄のみBUY
                         try:
                             predictor = EnhancedEnsemblePredictor()
-                            future_result = predictor.predict_trajectory(df, days_ahead=5)
+                            future_result = predictor.predict_trajectory(
+                                df, days_ahead=5
+                            )
 
                             if "error" not in future_result:
                                 predicted_change_pct = future_result["change_pct"]
@@ -156,12 +177,18 @@ class MarketScanner:
                                     )
                                     continue
                                 else:
-                                    self.logger.info(f"  {ticker}: 中期予測OK({predicted_change_pct:+.1f}%) ✅")
+                                    self.logger.info(
+                                        f"  {ticker}: 中期予測OK({predicted_change_pct:+.1f}%) ✅"
+                                    )
                             else:
                                 # 予測エラー時は従来通りBUY（保守的に通す）
-                                self.logger.warning(f"  {ticker}: 中期予測エラー、従来ロジックで判断")
+                                self.logger.warning(
+                                    f"  {ticker}: 中期予測エラー、従来ロジックで判断"
+                                )
                         except Exception as e:
-                            self.logger.warning(f"  {ticker}: 中期予測失敗 ({e})、従来ロジックで判断")
+                            self.logger.warning(
+                                f"  {ticker}: 中期予測失敗 ({e})、従来ロジックで判断"
+                            )
 
                         # 地域を判定
                         if ticker in NIKKEI_225_TICKERS:
@@ -184,16 +211,24 @@ class MarketScanner:
                                 # Filter out trades with zero PnL (still open or just closed at breakeven)
                                 closed_trades = history[history["realized_pnl"] != 0]
 
-                                if len(closed_trades) >= 10:  # Need at least 10 trades for meaningful stats
-                                    wins = closed_trades[closed_trades["realized_pnl"] > 0]
-                                    losses = closed_trades[closed_trades["realized_pnl"] < 0]
+                                if (
+                                    len(closed_trades) >= 10
+                                ):  # Need at least 10 trades for meaningful stats
+                                    wins = closed_trades[
+                                        closed_trades["realized_pnl"] > 0
+                                    ]
+                                    losses = closed_trades[
+                                        closed_trades["realized_pnl"] < 0
+                                    ]
 
                                     win_rate = len(wins) / len(closed_trades)
 
                                     if len(wins) > 0 and len(losses) > 0:
                                         avg_win = wins["realized_pnl"].mean()
                                         avg_loss = abs(losses["realized_pnl"].mean())
-                                        win_loss_ratio = avg_win / avg_loss if avg_loss > 0 else 1.5
+                                        win_loss_ratio = (
+                                            avg_win / avg_loss if avg_loss > 0 else 1.5
+                                        )
                                     else:
                                         win_loss_ratio = 1.5  # Default if no losses yet
 
@@ -223,7 +258,9 @@ class MarketScanner:
                         )
 
                         # Adjust by Regime (DynamicRiskManager)
-                        regime_multiplier = self.risk_manager.current_params.get("position_size", 1.0)
+                        regime_multiplier = self.risk_manager.current_params.get(
+                            "position_size", 1.0
+                        )
                         final_size_pct = kelly_pct * regime_multiplier
 
                         # Calculate quantity
@@ -253,7 +290,9 @@ class MarketScanner:
                                 if cash >= latest_price * 100:
                                     quantity = 100
                                 else:
-                                    self.logger.info(f"  {ticker}: 算出数量が少なすぎるためスキップ ({quantity})")
+                                    self.logger.info(
+                                        f"  {ticker}: 算出数量が少なすぎるためスキップ ({quantity})"
+                                    )
                                     continue
 
                         signals.append(
@@ -286,7 +325,9 @@ class MarketScanner:
                         break
 
                 except Exception as e:
-                    self.logger.warning(f"シグナル生成エラー ({ticker}, {strategy_name}): {e}")
+                    self.logger.warning(
+                        f"シグナル生成エラー ({ticker}, {strategy_name}): {e}"
+                    )
 
         self.logger.info(f"検出シグナル数: {len(signals)}")
         return signals

@@ -19,7 +19,9 @@ class PortfolioRebalancer:
         # リバランス設定
         rebalance_config = config.get("rebalance", {})
         self.max_single_position_pct = rebalance_config.get("max_single_position", 30.0)
-        self.max_region_pct = rebalance_config.get("max_region", {"japan": 60.0, "us": 60.0, "europe": 30.0})
+        self.max_region_pct = rebalance_config.get(
+            "max_region", {"japan": 60.0, "us": 60.0, "europe": 30.0}
+        )
         self.rebalance_day = rebalance_config.get("rebalance_day", 6)  # 0=月曜, 6=日曜
 
     def should_rebalance_today(self) -> bool:
@@ -68,7 +70,9 @@ class PortfolioRebalancer:
         for ticker, ratio in position_ratios.items():
             if ratio > self.max_single_position_pct:
                 needs_rebalance = True
-                reasons.append(f"{ticker}: {ratio:.1f}% (上限: {self.max_single_position_pct}%)")
+                reasons.append(
+                    f"{ticker}: {ratio:.1f}% (上限: {self.max_single_position_pct}%)"
+                )
 
         # 2. 地域別比率チェック
         for region, ratio in region_ratios.items():
@@ -113,7 +117,12 @@ class PortfolioRebalancer:
                 pos = positions.loc[ticker]
                 current_quantity = pos.get("quantity", 0)
                 current_price = pos.get("current_price", 0)
-                if current_quantity is None or current_quantity <= 0 or current_price is None or current_price <= 0:
+                if (
+                    current_quantity is None
+                    or current_quantity <= 0
+                    or current_price is None
+                    or current_price <= 0
+                ):
                     continue
 
                 # 目標比率まで減らす
@@ -136,14 +145,17 @@ class PortfolioRebalancer:
                         }
                     )
 
-                    logger(f"  {ticker}: {sell_quantity}株売却（{ratio:.1f}% → {target_ratio:.1f}%）")
+                    logger(
+                        f"  {ticker}: {sell_quantity}株売却（{ratio:.1f}% → {target_ratio:.1f}%）"
+                    )
 
         return signals
 
-    def _calculate_region_ratios(self, positions: pd.DataFrame, total_equity: float) -> Dict[str, float]:
+    def _calculate_region_ratios(
+        self, positions: pd.DataFrame, total_equity: float
+    ) -> Dict[str, float]:
         """地域別の比率を計算"""
-        from src.constants import (NIKKEI_225_TICKERS, SP500_TICKERS,
-                                   STOXX50_TICKERS)
+        from src.constants import NIKKEI_225_TICKERS, SP500_TICKERS, STOXX50_TICKERS
 
         japan_value = 0
         us_value = 0

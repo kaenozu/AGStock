@@ -96,7 +96,10 @@ class Strategy:
         # Get the latest signal (for the last available date)
         last_signal = signals.iloc[-1]
 
-        return {"signal": int(last_signal), "confidence": 1.0 if last_signal != 0 else 0.0}
+        return {
+            "signal": int(last_signal),
+            "confidence": 1.0 if last_signal != 0 else 0.0,
+        }
 
     def get_signal_explanation(self, signal: int) -> str:
         if signal == 1:
@@ -107,7 +110,9 @@ class Strategy:
 
 
 class SMACrossoverStrategy(Strategy):
-    def __init__(self, short_window: int = 5, long_window: int = 25, trend_period: int = 200) -> None:
+    def __init__(
+        self, short_window: int = 5, long_window: int = 25, trend_period: int = 200
+    ) -> None:
         super().__init__(f"SMA Crossover ({short_window}/{long_window})", trend_period)
         self.short_window = short_window
         self.long_window = long_window
@@ -122,9 +127,13 @@ class SMACrossoverStrategy(Strategy):
         long_sma = df["Close"].rolling(window=self.long_window).mean()
 
         # Golden Cross
-        signals.loc[(short_sma > long_sma) & (short_sma.shift(1) <= long_sma.shift(1))] = 1
+        signals.loc[
+            (short_sma > long_sma) & (short_sma.shift(1) <= long_sma.shift(1))
+        ] = 1
         # Dead Cross
-        signals.loc[(short_sma < long_sma) & (short_sma.shift(1) >= long_sma.shift(1))] = -1
+        signals.loc[
+            (short_sma < long_sma) & (short_sma.shift(1) >= long_sma.shift(1))
+        ] = -1
 
         return self.apply_trend_filter(df, signals)
 
@@ -132,14 +141,18 @@ class SMACrossoverStrategy(Strategy):
         if signal == 1:
             return "短期移動平均線が長期移動平均線を上抜けました（ゴールデンクロス）。上昇トレンドの始まりを示唆しています。"
         elif signal == -1:
-            return (
-                "短期移動平均線が長期移動平均線を下抜けました（デッドクロス）。下落トレンドの始まりを示唆しています。"
-            )
+            return "短期移動平均線が長期移動平均線を下抜けました（デッドクロス）。下落トレンドの始まりを示唆しています。"
         return "明確なトレンド転換シグナルは出ていません。"
 
 
 class RSIStrategy(Strategy):
-    def __init__(self, period: int = 14, lower: float = 30, upper: float = 70, trend_period: int = 200) -> None:
+    def __init__(
+        self,
+        period: int = 14,
+        lower: float = 30,
+        upper: float = 70,
+        trend_period: int = 200,
+    ) -> None:
         super().__init__(f"RSI ({period}) Reversal", trend_period)
         self.period = period
         self.lower = lower
@@ -174,7 +187,9 @@ class RSIStrategy(Strategy):
 
 
 class BollingerBandsStrategy(Strategy):
-    def __init__(self, length: int = 20, std: float = 2, trend_period: int = 200) -> None:
+    def __init__(
+        self, length: int = 20, std: float = 2, trend_period: int = 200
+    ) -> None:
         super().__init__(f"Bollinger Bands ({length}, {std})", trend_period)
         self.length = length
         self.std = std
@@ -183,7 +198,9 @@ class BollingerBandsStrategy(Strategy):
         if df is None or df.empty or "Close" not in df.columns:
             return pd.Series(dtype=int)
 
-        bollinger = ta.volatility.BollingerBands(close=df["Close"], window=self.length, window_dev=self.std)
+        bollinger = ta.volatility.BollingerBands(
+            close=df["Close"], window=self.length, window_dev=self.std
+        )
         lower_band = bollinger.bollinger_lband()
         upper_band = bollinger.bollinger_hband()
 
@@ -205,7 +222,13 @@ class BollingerBandsStrategy(Strategy):
 
 
 class CombinedStrategy(Strategy):
-    def __init__(self, rsi_period: int = 14, bb_length: int = 20, bb_std: float = 2, trend_period: int = 200) -> None:
+    def __init__(
+        self,
+        rsi_period: int = 14,
+        bb_length: int = 20,
+        bb_std: float = 2,
+        trend_period: int = 200,
+    ) -> None:
         super().__init__("Combined (RSI + BB)", trend_period)
         self.rsi_period = rsi_period
         self.bb_length = bb_length
@@ -219,7 +242,9 @@ class CombinedStrategy(Strategy):
         rsi = ta.momentum.RSIIndicator(close=df["Close"], window=self.rsi_period).rsi()
 
         # BB
-        bb = ta.volatility.BollingerBands(close=df["Close"], window=self.bb_length, window_dev=self.bb_std)
+        bb = ta.volatility.BollingerBands(
+            close=df["Close"], window=self.bb_length, window_dev=self.bb_std
+        )
         lower_band = bb.bollinger_lband()
         upper_band = bb.bollinger_hband()
 
@@ -307,9 +332,13 @@ class MLStrategy(Strategy):
 
     def get_signal_explanation(self, signal: int) -> str:
         if signal == 1:
-            return "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
+            return (
+                "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
+            )
         elif signal == -1:
-            return "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+            return (
+                "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+            )
         return "AIによる明確な予測は出ていません。"
 
 
@@ -376,7 +405,12 @@ class LightGBMStrategy(Strategy):
             X_train = train_df[self.feature_cols]
             y_train = (train_df["Return_1d"] > 0).astype(int)
 
-            params = {"objective": "binary", "metric": "binary_logloss", "verbosity": -1, "seed": 42}
+            params = {
+                "objective": "binary",
+                "metric": "binary_logloss",
+                "verbosity": -1,
+                "seed": 42,
+            }
             train_data = lgb.Dataset(X_train, label=y_train)
             self.model = lgb.train(params, train_data, num_boost_round=100)
 
@@ -403,7 +437,13 @@ class LightGBMStrategy(Strategy):
 
 class DeepLearningStrategy(Strategy):
     def __init__(
-        self, lookback=60, epochs=5, batch_size=32, trend_period=200, train_window_days=365, predict_window_days=20
+        self,
+        lookback=60,
+        epochs=5,
+        batch_size=32,
+        trend_period=200,
+        train_window_days=365,
+        predict_window_days=20,
     ):
         super().__init__("Deep Learning (LSTM)", trend_period)
         from sklearn.preprocessing import MinMaxScaler
@@ -451,7 +491,9 @@ class DeepLearningStrategy(Strategy):
         end_index = len(dataset)
         step = self.predict_window_days
 
-        print(f"Starting Walk-Forward Validation for DL Strategy... (Total steps: {(end_index - start_index) // step})")
+        print(
+            f"Starting Walk-Forward Validation for DL Strategy... (Total steps: {(end_index - start_index) // step})"
+        )
 
         for current_idx in range(start_index, end_index, step):
             train_start = max(0, current_idx - self.train_window_days)
@@ -471,7 +513,13 @@ class DeepLearningStrategy(Strategy):
                 continue
 
             model = self.build_model((X_train.shape[1], X_train.shape[2]))
-            model.fit(X_train, y_train, batch_size=self.batch_size, epochs=self.epochs, verbose=0)
+            model.fit(
+                X_train,
+                y_train,
+                batch_size=self.batch_size,
+                epochs=self.epochs,
+                verbose=0,
+            )
 
             pred_data_start = current_idx - self.lookback
             pred_data_raw = dataset[pred_data_start:predict_end]
@@ -515,7 +563,12 @@ class DeepLearningStrategy(Strategy):
 
 
 class DividendStrategy(Strategy):
-    def __init__(self, min_yield: float = 0.035, max_payout: float = 0.80, trend_period: int = 200) -> None:
+    def __init__(
+        self,
+        min_yield: float = 0.035,
+        max_payout: float = 0.80,
+        trend_period: int = 200,
+    ) -> None:
         super().__init__("High Dividend Accumulation", trend_period)
         self.min_yield = min_yield
         self.max_payout = max_payout
@@ -528,7 +581,9 @@ class DividendStrategy(Strategy):
 
     def get_signal_explanation(self, signal: int) -> str:
         if signal == 1:
-            return "高配当かつ財務健全性が確認されました。長期保有・積立に適しています。"
+            return (
+                "高配当かつ財務健全性が確認されました。長期保有・積立に適しています。"
+            )
         return "条件を満たしていません。"
 
 
@@ -539,10 +594,18 @@ class EnsembleStrategy(Strategy):
         from src.ensemble import EnsembleVoter
         from src.regime import RegimeDetector
 
-        self.strategies = [DeepLearningStrategy(), LightGBMStrategy(), CombinedStrategy()]
+        self.strategies = [
+            DeepLearningStrategy(),
+            LightGBMStrategy(),
+            CombinedStrategy(),
+        ]
 
         # デフォルトウェイト
-        self.base_weights = {"Deep Learning (LSTM)": 1.5, "LightGBM Alpha": 1.2, "Combined (RSI + BB)": 1.0}
+        self.base_weights = {
+            "Deep Learning (LSTM)": 1.5,
+            "LightGBM Alpha": 1.2,
+            "Combined (RSI + BB)": 1.0,
+        }
 
         self.weights = self.base_weights.copy()
 
@@ -562,7 +625,9 @@ class EnsembleStrategy(Strategy):
                     self.regime_detector.fit(macro_data)
                     logger.info("RegimeDetector initialized and fitted.")
                 else:
-                    logger.warning("Failed to fetch macro data. Regime detection disabled.")
+                    logger.warning(
+                        "Failed to fetch macro data. Regime detection disabled."
+                    )
                     self.enable_regime_detection = False
             except Exception as e:
                 logger.error(f"Error initializing RegimeDetector: {e}")
@@ -583,18 +648,30 @@ class EnsembleStrategy(Strategy):
                 from src.data_loader import fetch_macro_data
 
                 macro_data = fetch_macro_data(period="1y")
-                regime_id, regime_label, features = self.regime_detector.predict_current_regime(macro_data)
-                self.current_regime = {"id": regime_id, "label": regime_label, "features": features}
+                (
+                    regime_id,
+                    regime_label,
+                    features,
+                ) = self.regime_detector.predict_current_regime(macro_data)
+                self.current_regime = {
+                    "id": regime_id,
+                    "label": regime_label,
+                    "features": features,
+                }
 
                 # レジームに基づいてウェイトを調整
                 if regime_id == 2:  # 暴落警戒 (Risk-Off)
                     # 全体的にポジションサイズを縮小
                     self.weights = {k: v * 0.5 for k, v in self.base_weights.items()}
-                    logger.info(f"Regime: {regime_label} - Reducing position sizes to 50%")
+                    logger.info(
+                        f"Regime: {regime_label} - Reducing position sizes to 50%"
+                    )
                 elif regime_id == 1:  # 不安定 (Volatile)
                     # 中程度に縮小
                     self.weights = {k: v * 0.75 for k, v in self.base_weights.items()}
-                    logger.info(f"Regime: {regime_label} - Reducing position sizes to 75%")
+                    logger.info(
+                        f"Regime: {regime_label} - Reducing position sizes to 75%"
+                    )
                 else:  # 安定上昇 (Stable Bull)
                     # 通常通り
                     self.weights = self.base_weights.copy()
@@ -651,10 +728,18 @@ class EnsembleStrategy(Strategy):
     def get_signal_explanation(self, signal: int) -> str:
         """Get explanation for the ensemble signal."""
         if signal == 1:
-            regime_info = f" (市場環境: {self.current_regime['label']})" if self.current_regime else ""
+            regime_info = (
+                f" (市場環境: {self.current_regime['label']})"
+                if self.current_regime
+                else ""
+            )
             return f"複数のAI戦略が総合的に「買い」を推奨しています{regime_info}。"
         elif signal == -1:
-            regime_info = f" (市場環境: {self.current_regime['label']})" if self.current_regime else ""
+            regime_info = (
+                f" (市場環境: {self.current_regime['label']})"
+                if self.current_regime
+                else ""
+            )
             return f"複数のAI戦略が総合的に「売り」を推奨しています{regime_info}。"
         return "アンサンブル戦略では明確なコンセンサスが得られていません。"
 
@@ -679,11 +764,17 @@ def load_custom_strategies() -> list:
                     spec.loader.exec_module(module)
 
                     for name, obj in inspect.getmembers(module):
-                        if inspect.isclass(obj) and issubclass(obj, Strategy) and obj is not Strategy:
+                        if (
+                            inspect.isclass(obj)
+                            and issubclass(obj, Strategy)
+                            and obj is not Strategy
+                        ):
                             try:
                                 strategy_instance = obj()
                                 custom_strategies.append(strategy_instance)
-                                print(f"Loaded custom strategy: {strategy_instance.name}")
+                                print(
+                                    f"Loaded custom strategy: {strategy_instance.name}"
+                                )
                             except Exception as e:
                                 print(f"Failed to instantiate {name}: {e}")
             except Exception as e:
@@ -718,14 +809,18 @@ class TransformerStrategy(Strategy):
             X, y = [], []
             for i in range(len(data) - self.sequence_length - 1):
                 X.append(data[i : (i + self.sequence_length)])
-                y.append(data[i + self.sequence_length + 1, 0])  # Close price as target (simplified)
+                y.append(
+                    data[i + self.sequence_length + 1, 0]
+                )  # Close price as target (simplified)
 
             X, y = np.array(X), np.array(y)
 
             if len(X) == 0:
                 return
 
-            self.model = AdvancedModels.build_gru_model(input_shape=(X.shape[1], X.shape[2]))
+            self.model = AdvancedModels.build_gru_model(
+                input_shape=(X.shape[1], X.shape[2])
+            )
             self.model.fit(X, y, epochs=10, batch_size=32, verbose=0)
             self.is_trained = True
             logger.info("GRU model trained")
@@ -813,7 +908,9 @@ class RLStrategy(Strategy):
 
             while not done:
                 step = env.current_step
-                action = self.agent.act(state)  # Epsilon-Greedy (学習後はepsilon小さくなる)
+                action = self.agent.act(
+                    state
+                )  # Epsilon-Greedy (学習後はepsilon小さくなる)
 
                 # シグナル変換
                 # 0: HOLD -> 0
@@ -882,14 +979,18 @@ class GRUStrategy(Strategy):
             X, y = [], []
             for i in range(len(data) - self.sequence_length - 1):
                 X.append(data[i : (i + self.sequence_length)])
-                y.append(data[i + self.sequence_length + 1, 0])  # Close price as target (simplified)
+                y.append(
+                    data[i + self.sequence_length + 1, 0]
+                )  # Close price as target (simplified)
 
             X, y = np.array(X), np.array(y)
 
             if len(X) == 0:
                 return
 
-            self.model = AdvancedModels.build_gru_model(input_shape=(X.shape[1], X.shape[2]))
+            self.model = AdvancedModels.build_gru_model(
+                input_shape=(X.shape[1], X.shape[2])
+            )
             self.model.fit(X, y, epochs=10, batch_size=32, verbose=0)
             self.is_trained = True
             logger.info("GRU model trained")
@@ -954,7 +1055,9 @@ class AttentionLSTMStrategy(Strategy):
             if len(X) == 0:
                 return
 
-            self.model = AdvancedModels.build_attention_lstm_model(input_shape=(X.shape[1], X.shape[2]))
+            self.model = AdvancedModels.build_attention_lstm_model(
+                input_shape=(X.shape[1], X.shape[2])
+            )
             self.model.fit(X, y, epochs=10, batch_size=32, verbose=0)
             self.is_trained = True
             logger.info("Attention-LSTM model trained")
@@ -998,7 +1101,9 @@ from src.dynamic_ensemble import DynamicEnsemble
 
 
 class EnsembleStrategy(Strategy):
-    def __init__(self, strategies: List[Strategy] = None, trend_period: int = 200) -> None:
+    def __init__(
+        self, strategies: List[Strategy] = None, trend_period: int = 200
+    ) -> None:
         super().__init__("Dynamic Ensemble", trend_period)
 
         if strategies is None:
@@ -1099,6 +1204,7 @@ class MultiTimeframeStrategy(Strategy):
         # （全期間のバックテストを厳密に行うには、TimeframeResamplerで全期間の週足を作成し、マージする必要がある）
 
         # 厳密なバックテスト用の実装:
+        #             pass
         # 1. 日足データ全体をリサンプリングして週足データを作成
         # 2. 週足トレンドを計算
         # 3. 日足にマージ（ffill）
@@ -1118,15 +1224,21 @@ class MultiTimeframeStrategy(Strategy):
 
             weekly_df["Weekly_Trend"] = 0
             weekly_df.loc[
-                (weekly_df["Close"] > weekly_df["SMA_20"]) & (weekly_df["SMA_20"] > weekly_df["SMA_50"]), "Weekly_Trend"
+                (weekly_df["Close"] > weekly_df["SMA_20"])
+                & (weekly_df["SMA_20"] > weekly_df["SMA_50"]),
+                "Weekly_Trend",
             ] = 1  # Uptrend
             weekly_df.loc[
-                (weekly_df["Close"] < weekly_df["SMA_20"]) & (weekly_df["SMA_20"] < weekly_df["SMA_50"]), "Weekly_Trend"
+                (weekly_df["Close"] < weekly_df["SMA_20"])
+                & (weekly_df["SMA_20"] < weekly_df["SMA_50"]),
+                "Weekly_Trend",
             ] = -1  # Downtrend
 
             # 日足にマージ
             # reindex + ffill で直近の週足トレンドを適用
-            weekly_trend_series = weekly_df["Weekly_Trend"].reindex(df.index, method="ffill").fillna(0)
+            weekly_trend_series = (
+                weekly_df["Weekly_Trend"].reindex(df.index, method="ffill").fillna(0)
+            )
 
             # フィルター適用
             final_signals = base_signals.copy()

@@ -1,4 +1,3 @@
-
 import logging
 import json
 import re
@@ -9,11 +8,13 @@ from src.news_collector import get_news_collector
 
 logger = logging.getLogger(__name__)
 
+
 class SocialAnalyst(BaseAgent):
     """
     Social Sentiment & Heat Analyst (Phase 73)
     Analyzes 'crowd heat' and potential social-driven risks.
     """
+
     def __init__(self, config: Dict[str, Any] = None):
         super().__init__(name="SocialAnalyst", role="Social Sentiment Analysis")
         self.reasoner = get_llm_reasoner()
@@ -27,15 +28,17 @@ class SocialAnalyst(BaseAgent):
         # Fetch news as a proxy for social heat in this implementation
         news = self.news_collector.fetch_news_for_ticker(ticker, limit=10)
         news_text = "\n".join([f"- {n['title']}: {n['summary']}" for n in news])
-        
+
         prompt = f"""
         Analyze the 'Social Heat' for {ticker} based on recent news and headlines.
         Identify if there is extreme hype, panic, or a 'meme stock' behavior.
         
         News Headlines:
+            pass
         {news_text}
         
         Respond in JSON format:
+            pass
         {{
             "heat_level": 0.0 to 10.0,
             "sentiment": "EXTREME_HYPE", "POSITIVE", "NEUTRAL", "NEGATIVE", "PANIC",
@@ -58,5 +61,5 @@ class SocialAnalyst(BaseAgent):
             "sentiment": "NEUTRAL",
             "is_crowded": False,
             "social_risk": "LOW",
-            "reasoning": "データ不足により分析不可"
+            "reasoning": "データ不足により分析不可",
         }

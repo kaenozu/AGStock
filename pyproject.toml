@@ -1,9 +1,9 @@
 [tool.black]
-# Blackの設定
+# Black Configuration
 line-length = 120
 target-version = ['py38', 'py39', 'py310', 'py311']
 include = '\.pyi?$'
-# 除外するディレクトリ
+# Exclude directories
 exclude = '''
 /(
     \.eggs
@@ -24,7 +24,7 @@ exclude = '''
 '''
 
 [tool.pytest]
-# Pytestの設定
+# Pytest Configuration
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
@@ -43,7 +43,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-# Coverageの設定
+# Coverage Configuration
 source = ["src"]
 omit = [
     "*/tests/*",
@@ -61,7 +61,7 @@ omit = [
 ]
 
 [tool.coverage.report]
-# Coverageレポートの設定
+# Coverage Report Configuration
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",

@@ -38,7 +38,9 @@ class DynamicRebalancer:
         self.transaction_cost_pct = transaction_cost_pct
         self.last_rebalance_date = None
 
-        logger.info(f"DynamicRebalancer initialized: threshold={rebalance_threshold}, frequency={rebalance_frequency}")
+        logger.info(
+            f"DynamicRebalancer initialized: threshold={rebalance_threshold}, frequency={rebalance_frequency}"
+        )
 
     def calculate_current_weights(self, portfolio: Dict[str, Dict]) -> Dict[str, float]:
         """
@@ -50,7 +52,10 @@ class DynamicRebalancer:
         Returns:
             現在のウェイト辞書
         """
-        total_value = sum(holdings["quantity"] * holdings["current_price"] for holdings in portfolio.values())
+        total_value = sum(
+            holdings["quantity"] * holdings["current_price"]
+            for holdings in portfolio.values()
+        )
 
         if total_value == 0:
             return {ticker: 0.0 for ticker in portfolio.keys()}
@@ -62,7 +67,9 @@ class DynamicRebalancer:
 
         return current_weights
 
-    def needs_rebalancing(self, portfolio: Dict[str, Dict], target_weights: Dict[str, float]) -> bool:
+    def needs_rebalancing(
+        self, portfolio: Dict[str, Dict], target_weights: Dict[str, float]
+    ) -> bool:
         """
         リバランスが必要かどうかを判定
 
@@ -86,7 +93,10 @@ class DynamicRebalancer:
         return max_deviation > self.rebalance_threshold
 
     def generate_rebalance_orders(
-        self, portfolio: Dict[str, Dict], target_weights: Dict[str, float], total_value: Optional[float] = None
+        self,
+        portfolio: Dict[str, Dict],
+        target_weights: Dict[str, float],
+        total_value: Optional[float] = None,
     ) -> List[Dict]:
         """
         リバランス注文を生成
@@ -101,7 +111,10 @@ class DynamicRebalancer:
         """
         # ポートフォリオ総額を計算
         if total_value is None:
-            total_value = sum(holdings["quantity"] * holdings["current_price"] for holdings in portfolio.values())
+            total_value = sum(
+                holdings["quantity"] * holdings["current_price"]
+                for holdings in portfolio.values()
+            )
 
         orders = []
 
@@ -129,12 +142,22 @@ class DynamicRebalancer:
             if quantity_diff > 0:
                 # 買い注文
                 orders.append(
-                    {"ticker": ticker, "action": "BUY", "quantity": abs(quantity_diff), "price": current_price}
+                    {
+                        "ticker": ticker,
+                        "action": "BUY",
+                        "quantity": abs(quantity_diff),
+                        "price": current_price,
+                    }
                 )
             else:
                 # 売り注文
                 orders.append(
-                    {"ticker": ticker, "action": "SELL", "quantity": abs(quantity_diff), "price": current_price}
+                    {
+                        "ticker": ticker,
+                        "action": "SELL",
+                        "quantity": abs(quantity_diff),
+                        "price": current_price,
+                    }
                 )
 
         logger.info(f"Generated {len(orders)} rebalance orders")
@@ -216,7 +239,9 @@ if __name__ == "__main__":
         orders = rebalancer.generate_rebalance_orders(portfolio, target_weights)
         print("\nRebalance Orders:")
         for order in orders:
-            print(f"  {order['action']} {order['quantity']:.2f} shares of {order['ticker']}")
+            print(
+                f"  {order['action']} {order['quantity']:.2f} shares of {order['ticker']}"
+            )
 
         # 取引コスト
         cost = rebalancer.calculate_transaction_costs(orders)

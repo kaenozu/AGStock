@@ -76,7 +76,9 @@ class MarketSchedule:
         dt_tz = dt.astimezone(tz)
 
         open_time = datetime.strptime(market_info["open"], "%H:%M").time()
-        next_open = dt_tz.replace(hour=open_time.hour, minute=open_time.minute, second=0, microsecond=0)
+        next_open = dt_tz.replace(
+            hour=open_time.hour, minute=open_time.minute, second=0, microsecond=0
+        )
 
         if next_open <= dt_tz:  # 既に本日の営業時間を過ぎている場合
             next_open += timedelta(days=1)
@@ -94,27 +96,39 @@ class MultiAssetDataLoader:
         self.cache = {}
         self.cache_expiry = timedelta(hours=1)
 
-    def load_stock_data(self, tickers: List[str], period: str = "1y") -> Dict[str, pd.DataFrame]:
+    def load_stock_data(
+        self, tickers: List[str], period: str = "1y"
+    ) -> Dict[str, pd.DataFrame]:
         """株式データの取得"""
         return self._load_yfinance_data(tickers, period)
 
-    def load_crypto_data(self, tickers: List[str], period: str = "1y") -> Dict[str, pd.DataFrame]:
+    def load_crypto_data(
+        self, tickers: List[str], period: str = "1y"
+    ) -> Dict[str, pd.DataFrame]:
         """暗号資産データの取得"""
         # yfinanceを使用して暗号資産データを取得
-        crypto_tickers = [f"{ticker}-USD" for ticker in tickers if not ticker.endswith("-USD")]
+        crypto_tickers = [
+            f"{ticker}-USD" for ticker in tickers if not ticker.endswith("-USD")
+        ]
         return self._load_yfinance_data(crypto_tickers, period)
 
-    def load_forex_data(self, pairs: List[str], period: str = "1y") -> Dict[str, pd.DataFrame]:
+    def load_forex_data(
+        self, pairs: List[str], period: str = "1y"
+    ) -> Dict[str, pd.DataFrame]:
         """為替データの取得"""
         # yfinanceを使用して為替データを取得
         forex_tickers = [f"{pair}=X" for pair in pairs if not pair.endswith("=X")]
         return self._load_yfinance_data(forex_tickers, period)
 
-    def load_bond_data(self, tickers: List[str], period: str = "1y") -> Dict[str, pd.DataFrame]:
+    def load_bond_data(
+        self, tickers: List[str], period: str = "1y"
+    ) -> Dict[str, pd.DataFrame]:
         """債券データの取得"""
         return self._load_yfinance_data(tickers, period)
 
-    def _load_yfinance_data(self, tickers: List[str], period: str) -> Dict[str, pd.DataFrame]:
+    def _load_yfinance_data(
+        self, tickers: List[str], period: str
+    ) -> Dict[str, pd.DataFrame]:
         """yfinanceからデータを一括取得"""
         if not tickers:
             return {}
@@ -128,7 +142,14 @@ class MultiAssetDataLoader:
 
         try:
             # 一括ダウンロード
-            data = yf.download(tickers, period=period, interval="1d", group_by="ticker", auto_adjust=True, threads=True)
+            data = yf.download(
+                tickers,
+                period=period,
+                interval="1d",
+                group_by="ticker",
+                auto_adjust=True,
+                threads=True,
+            )
 
             result = {}
             if len(tickers) == 1:
@@ -147,7 +168,11 @@ class MultiAssetDataLoader:
                         result[ticker] = df
                     elif isinstance(data.columns, pd.MultiIndex):
                         # MultiIndexの場合はticker別に抽出
-                        ticker_data = data.xs(ticker, axis=1, level=1) if ticker in data.columns.levels[1] else data
+                        ticker_data = (
+                            data.xs(ticker, axis=1, level=1)
+                            if ticker in data.columns.levels[1]
+                            else data
+                        )
                         result[ticker] = ticker_data.dropna()
 
             # キャッシュに保存
@@ -158,7 +183,9 @@ class MultiAssetDataLoader:
             logger.error(f"Error loading data from yfinance: {e}")
             return {}
 
-    def get_market_correlation_matrix(self, assets_data: Dict[str, pd.DataFrame]) -> pd.DataFrame:
+    def get_market_correlation_matrix(
+        self, assets_data: Dict[str, pd.DataFrame]
+    ) -> pd.DataFrame:
         """市場間の相関行列を計算"""
         returns_data = {}
         for asset, df in assets_data.items():
@@ -190,7 +217,9 @@ class CrossMarketFeatureEngineer:
     def __init__(self):
         self.market_schedule = MarketSchedule()
 
-    def add_cross_market_features(self, target_df: pd.DataFrame, market_data: Dict[str, pd.DataFrame]) -> pd.DataFrame:
+    def add_cross_market_features(
+        self, target_df: pd.DataFrame, market_data: Dict[str, pd.DataFrame]
+    ) -> pd.DataFrame:
         """クロスマーケット特徴量を追加"""
         df_out = target_df.copy()
 
@@ -204,35 +233,51 @@ class CrossMarketFeatureEngineer:
 
             # 市場リターン
             market_returns = market_df["Close"].pct_change()
-            df_out[f"{market_name}_Return"] = market_returns.reindex(df_out.index, method="ffill")
+            df_out[f"{market_name}_Return"] = market_returns.reindex(
+                df_out.index, method="ffill"
+            )
 
             # 市場ボラティリティ
-            df_out[f"{market_name}_Volatility"] = market_returns.rolling(20).std().reindex(df_out.index, method="ffill")
+            df_out[f"{market_name}_Volatility"] = (
+                market_returns.rolling(20).std().reindex(df_out.index, method="ffill")
+            )
 
             # クロスマーケット相関（過去30日間）
             target_returns = df_out["Close"].pct_change()
             rolling_corr = target_returns.rolling(30).corr(market_returns)
-            df_out[f"{market_name}_Correlation"] = rolling_corr.reindex(df_out.index, method="ffill")
+            df_out[f"{market_name}_Correlation"] = rolling_corr.reindex(
+                df_out.index, method="ffill"
+            )
 
         # 海外市場の前日終値からの変化（日本市場におけるアメリカ市場の影響）
-        us_markets = [m for m in market_data.keys() if any(c in m for c in ["US", "SPY", "DIA", "QQQ"])]
+        us_markets = [
+            m
+            for m in market_data.keys()
+            if any(c in m for c in ["US", "SPY", "DIA", "QQQ"])
+        ]
         if us_markets and not df_out.empty:
             latest_us_data = market_data.get(us_markets[0])
             if latest_us_data is not None and not latest_us_data.empty:
                 # 前日比リターンを計算
                 us_return_prev = latest_us_data["Close"].pct_change().shift(1)
-                df_out["US_Market_Effect"] = us_return_prev.reindex(df_out.index, method="ffill")
+                df_out["US_Market_Effect"] = us_return_prev.reindex(
+                    df_out.index, method="ffill"
+                )
 
         return df_out
 
-    def add_global_sentiment_features(self, df: pd.DataFrame, vix_data: Optional[pd.DataFrame] = None) -> pd.DataFrame:
+    def add_global_sentiment_features(
+        self, df: pd.DataFrame, vix_data: Optional[pd.DataFrame] = None
+    ) -> pd.DataFrame:
         """グローバルセンチメント特徴量を追加"""
         df_out = df.copy()
 
         # VIX（恐怖指数）があれば統合
         if vix_data is not None and "Close" in vix_data.columns:
             vix_returns = vix_data["Close"].pct_change()
-            df_out["VIX_Level"] = vix_data["Close"].reindex(df_out.index, method="ffill")
+            df_out["VIX_Level"] = vix_data["Close"].reindex(
+                df_out.index, method="ffill"
+            )
             df_out["VIX_Change"] = vix_returns.reindex(df_out.index, method="ffill")
 
         # 金利特徴量（米国10年物国債利回りなど）
@@ -240,10 +285,16 @@ class CrossMarketFeatureEngineer:
 
         # リスクオン/リスクオフ指標
         # 例: 株価指数のリターンと債券価格のリターンの差分
-        if "Close" in df_out.columns and vix_data is not None and "Close" in vix_data.columns:
+        if (
+            "Close" in df_out.columns
+            and vix_data is not None
+            and "Close" in vix_data.columns
+        ):
             stock_return = df_out["Close"].pct_change()
             vix_change = vix_data["Close"].pct_change()
-            df_out["Risk_Appetite"] = stock_return - vix_change.reindex(stock_return.index, method="ffill")
+            df_out["Risk_Appetite"] = stock_return - vix_change.reindex(
+                stock_return.index, method="ffill"
+            )
 
         return df_out
 
@@ -296,17 +347,23 @@ class MultiAssetPredictor(BasePredictor):
                 related_data[ticker] = data[ticker]
 
         # クロスマーケット特徴量を追加
-        enhanced_df = self.feature_engineer.add_cross_market_features(target_data, related_data)
+        enhanced_df = self.feature_engineer.add_cross_market_features(
+            target_data, related_data
+        )
 
         # グローバルセンチメント特徴量を追加
         # VIXデータを取得
         vix_data = self.data_loader.load_stock_data(["^VIX"])
         if "^VIX" in vix_data:
-            enhanced_df = self.feature_engineer.add_global_sentiment_features(enhanced_df, vix_data["^VIX"])
+            enhanced_df = self.feature_engineer.add_global_sentiment_features(
+                enhanced_df, vix_data["^VIX"]
+            )
 
         return enhanced_df
 
-    def get_cross_market_signals(self, target_ticker: str, lookback_days: int = 30) -> Dict[str, float]:
+    def get_cross_market_signals(
+        self, target_ticker: str, lookback_days: int = 30
+    ) -> Dict[str, float]:
         """クロスマーケットシグナルを取得"""
         # 一般的な関連銘柄
         related_tickers = {
@@ -324,7 +381,11 @@ class MultiAssetPredictor(BasePredictor):
             for ticker, df in data.items():
                 if not df.empty and "Close" in df.columns:
                     # 直近のリターンを計算
-                    recent_return = df["Close"].pct_change(lookback_days).iloc[-1] if len(df) > lookback_days else 0
+                    recent_return = (
+                        df["Close"].pct_change(lookback_days).iloc[-1]
+                        if len(df) > lookback_days
+                        else 0
+                    )
                     signals[f"{ticker}_return_{lookback_days}d"] = recent_return
 
         return signals
@@ -339,7 +400,9 @@ class MultiAssetPredictor(BasePredictor):
         """多資産対応予測"""
         try:
             # 多資産特徴量の準備
-            enhanced_data = self.prepare_multi_asset_features(target_ticker, target_data, related_assets)
+            enhanced_data = self.prepare_multi_asset_features(
+                target_ticker, target_data, related_assets
+            )
 
             # 価格変動率の計算
             returns = enhanced_data["Close"].pct_change()
@@ -369,7 +432,9 @@ class MultiAssetPredictor(BasePredictor):
                         if len(enhanced_data) >= 20
                         else 1.0
                     )
-                    predicted_return = avg_return * (0.8**i) * volatility_factor  # 時間とともに影響を弱める
+                    predicted_return = (
+                        avg_return * (0.8**i) * volatility_factor
+                    )  # 時間とともに影響を弱める
                     current = current * (1 + predicted_return)
                     predicted_changes.append(current)
             else:
@@ -387,10 +452,14 @@ class MultiAssetPredictor(BasePredictor):
                 "current_price": current_price,
                 "predictions": predicted_changes,
                 "trend": trend,
-                "change_pct": (predicted_changes[-1] - current_price) / current_price * 100,
+                "change_pct": (predicted_changes[-1] - current_price)
+                / current_price
+                * 100,
                 "cross_market_signals": self.get_cross_market_signals(target_ticker),
                 "features_used": [
-                    col for col in enhanced_data.columns if col.startswith(("SPY_", "US_", "VIX_", "Risk_"))
+                    col
+                    for col in enhanced_data.columns
+                    if col.startswith(("SPY_", "US_", "VIX_", "Risk_"))
                 ],
             }
 
@@ -419,12 +488,16 @@ class GlobalMarketAnalyzer:
                 "is_open": self.schedule.is_market_open(market_code, now),
                 "local_time": local_time.strftime("%H:%M"),
                 "timezone": info["timezone"],
-                "next_open": self.schedule.get_next_open_time(market_code, now).strftime("%Y-%m-%d %H:%M:%S"),
+                "next_open": self.schedule.get_next_open_time(
+                    market_code, now
+                ).strftime("%Y-%m-%d %H:%M:%S"),
             }
 
         return market_status
 
-    def analyze_global_interconnection(self, target_ticker: str, lookback_days: int = 60) -> Dict[str, any]:
+    def analyze_global_interconnection(
+        self, target_ticker: str, lookback_days: int = 60
+    ) -> Dict[str, any]:
         """世界市場の相互接続性を分析"""
         # 主要市場の代表銘柄
         major_indices = {
@@ -442,13 +515,17 @@ class GlobalMarketAnalyzer:
         correlations = {}
 
         for name, ticker in major_indices.items():
-            data = self.data_loader.load_stock_data([ticker], period=f"{lookback_days}d")
+            data = self.data_loader.load_stock_data(
+                [ticker], period=f"{lookback_days}d"
+            )
             if ticker in data and not data[ticker].empty:
                 all_data[name] = data[ticker]
                 correlations[name] = data[ticker]["Close"].pct_change()
 
         # ターゲット銘柄のデータも取得
-        target_data = self.data_loader.load_stock_data([target_ticker], period=f"{lookback_days}d")
+        target_data = self.data_loader.load_stock_data(
+            [target_ticker], period=f"{lookback_days}d"
+        )
         if target_ticker in target_data and not target_data[target_ticker].empty:
             target_returns = target_data[target_ticker]["Close"].pct_change()
 
@@ -500,7 +577,9 @@ if __name__ == "__main__":
             "GLD": "stock",  # 金（実際には商品だが、ここでは株として扱う）
         }
 
-        result = predictor.predict_multi_asset("7203.T", stock_data["7203.T"], related_assets=related_assets)
+        result = predictor.predict_multi_asset(
+            "7203.T", stock_data["7203.T"], related_assets=related_assets
+        )
 
         print(f"Multi-asset prediction result: {result}")
 

@@ -4,6 +4,7 @@ from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 
+
 class MorningStrategyMemo:
     """
     Synthesizes Nightwatch data into a concrete plan for the Japanese market.
@@ -32,10 +33,7 @@ class MorningStrategyMemo:
 
 日本語で簡潔に、箇条書きで出力してください。
 """
-        try:
-            model = genai.GenerativeModel("gemini-1.5-flash") # Use flash for speed
-            response = model.generate_content(prompt)
-            return response.text
-        except Exception as e:
-            logger.error(f"Failed to generate morning memo: {e}")
-            return "メモの生成に失敗しました。マクロ指標を確認してください。"
+
+
+# try:
+#             model = genai.GenerativeModel("gemini-1.5-flash") # Use flash for speed

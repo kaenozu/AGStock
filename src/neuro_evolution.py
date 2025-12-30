@@ -82,7 +82,9 @@ class NeuroEvolutionEngine:
             }
             self.population.append(gene)
         self.generation = 0
-        logger.info(f"Initialized population of {self.pop_size} agents (includes Seed).")
+        logger.info(
+            f"Initialized population of {self.pop_size} agents (includes Seed)."
+        )
 
     def fitness_function(self, gene: Dict, data: pd.DataFrame) -> float:
         """適応度関数: Sharpe Ratio重視"""
@@ -165,7 +167,11 @@ class NeuroEvolutionEngine:
         if best_score > 0:
             self.save_best_gene(best_gene, best_score)
 
-        return {"generation": self.generation, "best_score": best_score, "best_gene": best_gene}
+        return {
+            "generation": self.generation,
+            "best_score": best_score,
+            "best_gene": best_gene,
+        }
 
     def run_evolution(self, data: pd.DataFrame, generations: int = 10):
         """指定世代数ループ実行"""

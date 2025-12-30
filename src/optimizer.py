@@ -1,8 +1,12 @@
 import optuna
 
 from src.backtester import Backtester
-from src.strategies import (BollingerBandsStrategy, CombinedStrategy,
-                            RSIStrategy, SMACrossoverStrategy)
+from src.strategies import (
+    BollingerBandsStrategy,
+    CombinedStrategy,
+    RSIStrategy,
+    SMACrossoverStrategy,
+)
 
 
 class Optimizer:
@@ -58,7 +62,9 @@ class Optimizer:
         train_size = int(len(self.df) * 0.8)
         train_df = self.df.iloc[:train_size]
 
-        res = self.backtester.run(train_df, strategy, stop_loss=stop_loss, take_profit=take_profit)
+        res = self.backtester.run(
+            train_df, strategy, stop_loss=stop_loss, take_profit=take_profit
+        )
 
         if not res or res["total_trades"] < 3:  # Penalize inactivity
             return -1.0

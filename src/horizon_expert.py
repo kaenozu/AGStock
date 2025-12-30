@@ -16,14 +16,22 @@ logger = logging.getLogger(__name__)
 class HorizonExpertEnsemble:
     def __init__(self, horizons: Optional[List[int]] = None) -> None:
         self.horizons = horizons or [1, 5, 20]
-        self.models: Dict[int, WalkForwardBlender] = {h: WalkForwardBlender(horizon=h) for h in self.horizons}
-        self.weights: Dict[int, float] = {h: 1.0 / len(self.horizons) for h in self.horizons}
+        self.models: Dict[int, WalkForwardBlender] = {
+            h: WalkForwardBlender(horizon=h) for h in self.horizons
+        }
+        self.weights: Dict[int, float] = {
+            h: 1.0 / len(self.horizons) for h in self.horizons
+        }
 
-    def fit(self, df: pd.DataFrame, external_features: Optional[Dict] = None) -> Dict[int, Dict[str, float]]:
+    def fit(
+        self, df: pd.DataFrame, external_features: Optional[Dict] = None
+    ) -> Dict[int, Dict[str, float]]:
         metrics: Dict[int, Dict[str, float]] = {}
         for h, model in self.models.items():
             try:
-                metrics[h] = model.fit(df, target_col="Close", external_features=external_features)
+                metrics[h] = model.fit(
+                    df, target_col="Close", external_features=external_features
+                )
                 # 重みはRMSEの逆数で初期化
                 rmse = metrics[h].get("rmse", 1.0)
                 self.weights[h] = 1.0 / (rmse + 1e-6)
@@ -37,7 +45,9 @@ class HorizonExpertEnsemble:
         self.weights = {k: v / total for k, v in self.weights.items()}
         return metrics
 
-    def predict(self, df: pd.DataFrame, external_features: Optional[Dict] = None) -> np.ndarray:
+    def predict(
+        self, df: pd.DataFrame, external_features: Optional[Dict] = None
+    ) -> np.ndarray:
         preds = []
         weights = []
         for h, model in self.models.items():
@@ -62,16 +72,22 @@ class HorizonExpertEnsemble:
             if not model.base_models:
                 continue
             try:
-                intervals[h] = model.predict_interval(df, external_features=external_features)
+                intervals[h] = model.predict_interval(
+                    df, external_features=external_features
+                )
             except Exception as exc:
                 logger.debug("Interval prediction failed for horizon %s: %s", h, exc)
         return intervals
 
-    def needs_retrain(self, df: pd.DataFrame, external_features: Optional[Dict] = None) -> Dict[int, Dict]:
+    def needs_retrain(
+        self, df: pd.DataFrame, external_features: Optional[Dict] = None
+    ) -> Dict[int, Dict]:
         decisions: Dict[int, Dict] = {}
         for h, model in self.models.items():
             try:
-                drift, details = model.needs_retrain(df, external_features=external_features)
+                drift, details = model.needs_retrain(
+                    df, external_features=external_features
+                )
                 decisions[h] = {"retrain": drift, "details": details}
             except Exception as exc:
                 decisions[h] = {"retrain": True, "details": {"error": str(exc)}}

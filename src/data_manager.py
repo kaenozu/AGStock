@@ -35,7 +35,9 @@ class DataManager:
         )
 
         # Create index for faster queries
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_ticker_date ON stock_data (ticker, date)")
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_ticker_date ON stock_data (ticker, date)"
+        )
 
         conn.commit()
         conn.close()
@@ -79,7 +81,9 @@ class DataManager:
 
         # Convert date to string for SQLite compatibility
         if "date" in data_to_save.columns:
-            data_to_save["date"] = pd.to_datetime(data_to_save["date"]).dt.strftime("%Y-%m-%d %H:%M:%S")
+            data_to_save["date"] = pd.to_datetime(data_to_save["date"]).dt.strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
 
         # Keep only relevant columns
         cols = ["ticker", "date", "open", "high", "low", "close", "volume"]
@@ -113,7 +117,9 @@ class DataManager:
             )
 
             conn.commit()
-            logger.info(f"Saved {len(data_to_save)} records for {ticker} to {self.db_path}")
+            logger.info(
+                f"Saved {len(data_to_save)} records for {ticker} to {self.db_path}"
+            )
 
         except Exception as e:
             logger.error(f"Error saving data for {ticker}: {e}")
@@ -121,7 +127,10 @@ class DataManager:
             conn.close()
 
     def load_data(
-        self, ticker: str, start_date: Optional[datetime] = None, end_date: Optional[datetime] = None
+        self,
+        ticker: str,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
     ) -> pd.DataFrame:
         """
         Load data from SQLite.

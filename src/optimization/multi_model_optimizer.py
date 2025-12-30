@@ -13,6 +13,7 @@ from src.hyperparameter_tuning import HyperparameterTuner
 
 logger = logging.getLogger(__name__)
 
+
 class MultiModelOptimizer:
     """Class to optimize multiple model types using HyperparameterTuner."""
 
@@ -32,20 +33,23 @@ class MultiModelOptimizer:
 
         # Convert to DataFrame if necessary for HyperparameterTuner
         import pandas as pd
+
         if not isinstance(X, pd.DataFrame):
             X = pd.DataFrame(X)
         if not isinstance(y, pd.Series):
-            y = pd.Series(y.flatten() if hasattr(y, 'flatten') else y)
+            y = pd.Series(y.flatten() if hasattr(y, "flatten") else y)
 
         for model_type in model_types:
             logger.info(f"Optimizing {model_type} model...")
             try:
                 # Map 'lgbm' to 'lightgbm' if needed by the tuner
                 internal_type = "lightgbm" if model_type == "lgbm" else model_type
-                
+
                 tuner = HyperparameterTuner(internal_type, n_splits=self.cv_folds)
-                self.best_params[model_type] = tuner.optimize(X, y, n_trials=n_trials_per_model)
-                
+                self.best_params[model_type] = tuner.optimize(
+                    X, y, n_trials=n_trials_per_model
+                )
+
                 logger.info(f"✅ Completed optimization for {model_type}")
             except Exception as e:
                 logger.error(f"❌ Optimization failed for {model_type}: {e}")

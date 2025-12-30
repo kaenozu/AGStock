@@ -26,7 +26,11 @@ class RegimeDetector:
     """
 
     def __init__(
-        self, window_short: int = 50, window_long: int = 200, adx_threshold: int = 20, vix_threshold: float = 25.0
+        self,
+        window_short: int = 50,
+        window_long: int = 200,
+        adx_threshold: int = 20,
+        vix_threshold: float = 25.0,
     ):
         self.window_short = window_short
         self.window_long = window_long
@@ -73,7 +77,9 @@ class RegimeDetector:
             return "down"
         return "ranging"
 
-    def _detect_volatility_fallback(self, df: pd.DataFrame, window: int, vix_value: Optional[float] = None) -> str:
+    def _detect_volatility_fallback(
+        self, df: pd.DataFrame, window: int, vix_value: Optional[float] = None
+    ) -> str:
         if vix_value is not None:
             if vix_value > self.vix_threshold:
                 return "high"
@@ -107,11 +113,36 @@ class RegimeDetector:
     def get_regime_strategy(self, regime: Optional[str] = None) -> Dict:
         regime = regime or self.current_regime or "ranging"
         strategy_map = {
-            "trending_up": {"strategy": "trend_following", "stop_loss": 0.03, "take_profit": 0.15, "position_size": 1.0},
-            "trending_down": {"strategy": "counter_trend", "stop_loss": 0.02, "take_profit": 0.08, "position_size": 0.5},
-            "ranging": {"strategy": "mean_reversion", "stop_loss": 0.02, "take_profit": 0.05, "position_size": 0.7},
-            "high_volatility": {"strategy": "volatility_breakout", "stop_loss": 0.05, "take_profit": 0.20, "position_size": 0.3},
-            "low_volatility": {"strategy": "range_trading", "stop_loss": 0.02, "take_profit": 0.06, "position_size": 0.5},
+            "trending_up": {
+                "strategy": "trend_following",
+                "stop_loss": 0.03,
+                "take_profit": 0.15,
+                "position_size": 1.0,
+            },
+            "trending_down": {
+                "strategy": "counter_trend",
+                "stop_loss": 0.02,
+                "take_profit": 0.08,
+                "position_size": 0.5,
+            },
+            "ranging": {
+                "strategy": "mean_reversion",
+                "stop_loss": 0.02,
+                "take_profit": 0.05,
+                "position_size": 0.7,
+            },
+            "high_volatility": {
+                "strategy": "volatility_breakout",
+                "stop_loss": 0.05,
+                "take_profit": 0.20,
+                "position_size": 0.3,
+            },
+            "low_volatility": {
+                "strategy": "range_trading",
+                "stop_loss": 0.02,
+                "take_profit": 0.06,
+                "position_size": 0.5,
+            },
         }
         return strategy_map.get(regime, strategy_map["ranging"])
 

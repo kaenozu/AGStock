@@ -5,9 +5,10 @@ import google.generativeai as genai
 
 logger = logging.getLogger(__name__)
 
+
 class StrategyBreeder:
     """
-    Bio-Inspired Autonomy: 'Breeds' two trading strategies to create 
+    Bio-Inspired Autonomy: 'Breeds' two trading strategies to create
     a more powerful hybrid strategy code.
     """
 
@@ -30,16 +31,19 @@ class StrategyBreeder:
         Your task is to 'Breed' them into a single Hybrid Strategy.
         
         PARENT A CODE:
+            pass
         ```python
         {parent_a_code}
         ```
         
         PARENT B CODE:
+            pass
         ```python
         {parent_b_code}
         ```
         
         INSTRUCTION:
+            pass
         Create a new Python class `HybridStrategy` that inherits from a generic `BaseStrategy`.
         It should intelligently combine the entry/exit logic of both parents into a more 
         robust signal generation method. Ensure the code is production-ready.

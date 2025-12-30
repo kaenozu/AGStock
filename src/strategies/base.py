@@ -62,7 +62,10 @@ class Strategy:
         # Get the latest signal (for the last available date)
         last_signal = signals.iloc[-1]
 
-        return {"signal": int(last_signal), "confidence": 1.0 if last_signal != 0 else 0.0}
+        return {
+            "signal": int(last_signal),
+            "confidence": 1.0 if last_signal != 0 else 0.0,
+        }
 
     def get_signal_explanation(self, signal: int) -> str:
         if signal == 1:

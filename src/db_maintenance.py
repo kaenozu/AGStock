@@ -77,7 +77,9 @@ class DatabaseMaintenance:
     def _cleanup_old_backups(self, keep: int = 30):
         """Remove old backup files, keeping only the most recent ones."""
         try:
-            backups = sorted(self.backup_dir.glob("*.db"), key=os.path.getmtime, reverse=True)
+            backups = sorted(
+                self.backup_dir.glob("*.db"), key=os.path.getmtime, reverse=True
+            )
 
             for old_backup in backups[keep:]:
                 old_backup.unlink()

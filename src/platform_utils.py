@@ -58,7 +58,9 @@ class PlatformAdapter:
             cache_dir = home_dir / "Library" / "Caches" / "AGStock"
         else:  # Linux および他のUnix系OS
             xdg_config_home = os.environ.get("XDG_CONFIG_HOME", home_dir / ".config")
-            xdg_data_home = os.environ.get("XDG_DATA_HOME", home_dir / ".local" / "share")
+            xdg_data_home = os.environ.get(
+                "XDG_DATA_HOME", home_dir / ".local" / "share"
+            )
             xdg_cache_home = os.environ.get("XDG_CACHE_HOME", home_dir / ".cache")
 
             config_dir = Path(xdg_config_home) / "AGStock"
@@ -105,25 +107,37 @@ class PlatformAdapter:
         config_dir = self.ensure_directory_exists(self.platform_info.config_dir)
         return config_dir / filename
 
-    def get_data_file_path(self, filename: str, subdirectory: Optional[str] = None) -> Path:
+    def get_data_file_path(
+        self, filename: str, subdirectory: Optional[str] = None
+    ) -> Path:
         """データファイルのパスを取得"""
         if subdirectory:
-            data_dir = self.ensure_directory_exists(self.platform_info.data_dir / subdirectory)
+            data_dir = self.ensure_directory_exists(
+                self.platform_info.data_dir / subdirectory
+            )
         else:
             data_dir = self.ensure_directory_exists(self.platform_info.data_dir)
         return data_dir / filename
 
-    def get_cache_file_path(self, filename: str, subdirectory: Optional[str] = None) -> Path:
+    def get_cache_file_path(
+        self, filename: str, subdirectory: Optional[str] = None
+    ) -> Path:
         """キャッシュファイルのパスを取得"""
         if subdirectory:
-            cache_dir = self.ensure_directory_exists(self.platform_info.cache_dir / subdirectory)
+            cache_dir = self.ensure_directory_exists(
+                self.platform_info.cache_dir / subdirectory
+            )
         else:
             cache_dir = self.ensure_directory_exists(self.platform_info.cache_dir)
         return cache_dir / filename
 
     def get_temp_file_path(self, prefix: str = "agstock", suffix: str = ".tmp") -> Path:
         """一時ファイルのパスを取得"""
-        return Path(tempfile.mktemp(prefix=prefix, suffix=suffix, dir=self.platform_info.temp_dir))
+        return Path(
+            tempfile.mktemp(
+                prefix=prefix, suffix=suffix, dir=self.platform_info.temp_dir
+            )
+        )
 
     def is_executable(self, path: Union[str, Path]) -> bool:
         """ファイルが実行可能か確認"""

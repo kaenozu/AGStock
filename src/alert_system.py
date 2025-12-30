@@ -2,6 +2,7 @@
 Advanced Alert System - 価格アラート、指標アラートシステム
 
 機能:
+    pass
 - 指定価格に到達したらアラート
 - テクニカル指標（RSI、MACD等）でアラート
 - カスタム条件でアラート
@@ -54,7 +55,9 @@ class AlertSystem:
         conn.commit()
         conn.close()
 
-    def add_price_alert(self, ticker: str, target_price: float, direction: str = "above") -> int:
+    def add_price_alert(
+        self, ticker: str, target_price: float, direction: str = "above"
+    ) -> int:
         """
         価格アラートを追加
 
@@ -89,7 +92,9 @@ class AlertSystem:
             self.logger.error(f"Failed to add price alert: {e}")
             return -1
 
-    def add_indicator_alert(self, ticker: str, indicator: str, threshold: float, direction: str = "above") -> int:
+    def add_indicator_alert(
+        self, ticker: str, indicator: str, threshold: float, direction: str = "above"
+    ) -> int:
         """
         指標アラートを追加
 
@@ -115,21 +120,32 @@ class AlertSystem:
                 INSERT INTO alerts (alert_type, ticker, condition_type, condition_value, condition_params, created_at)
                 VALUES (?, ?, ?, ?, ?, ?)
             """,
-                ("indicator", ticker, indicator, threshold, params, datetime.now().isoformat()),
+                (
+                    "indicator",
+                    ticker,
+                    indicator,
+                    threshold,
+                    params,
+                    datetime.now().isoformat(),
+                ),
             )
 
             alert_id = cursor.lastrowid
             conn.commit()
             conn.close()
 
-            self.logger.info(f"Indicator alert added: {ticker} {indicator} {direction} {threshold}")
+            self.logger.info(
+                f"Indicator alert added: {ticker} {indicator} {direction} {threshold}"
+            )
             return alert_id
 
         except Exception as e:
             self.logger.error(f"Failed to add indicator alert: {e}")
             return -1
 
-    def add_custom_alert(self, ticker: str, condition_func: Callable, description: str) -> int:
+    def add_custom_alert(
+        self, ticker: str, condition_func: Callable, description: str
+    ) -> int:
         """
         カスタムアラートを追加
 
@@ -210,7 +226,9 @@ class AlertSystem:
             self.logger.error(f"Failed to check price alerts: {e}")
             return []
 
-    def check_indicator_alerts(self, ticker: str, indicators: Dict[str, float]) -> List[Dict]:
+    def check_indicator_alerts(
+        self, ticker: str, indicators: Dict[str, float]
+    ) -> List[Dict]:
         """
         指標アラートをチェック
 

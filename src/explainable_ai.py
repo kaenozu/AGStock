@@ -54,7 +54,9 @@ class ModelExplainer:
 
             # 期待値（ベースライン）
             expected_value = explainer.expected_value
-            if isinstance(expected_value, list) or isinstance(expected_value, np.ndarray):
+            if isinstance(expected_value, list) or isinstance(
+                expected_value, np.ndarray
+            ):
                 if hasattr(expected_value, "__iter__") and len(expected_value) > 0:
                     expected_value = expected_value[0]
                 else:

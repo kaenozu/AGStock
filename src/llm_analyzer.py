@@ -13,7 +13,9 @@ try:
 except ImportError:
     HAS_GEMINI = False
     genai = None
-    logger.warning("google.generativeai not installed. LLM features will use mock data.")
+    logger.warning(
+        "google.generativeai not installed. LLM features will use mock data."
+    )
 
 
 class LLMAnalyzer:
@@ -37,7 +39,9 @@ class LLMAnalyzer:
         else:
             logger.info("LLMAnalyzer running in MOCK mode (No API Key or Library).")
 
-    def analyze_news(self, ticker: str, news_list: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def analyze_news(
+        self, ticker: str, news_list: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """
         Analyzes a list of news items for a specific ticker.
         Returns a structured dictionary with sentiment, reasoning, and risks.
@@ -56,20 +60,29 @@ class LLMAnalyzer:
         else:
             return self._analyze_mock(ticker, news_list)
 
-    def _analyze_with_gemini(self, ticker: str, news_list: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _analyze_with_gemini(
+        self, ticker: str, news_list: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """
         Real analysis using Gemini API.
         """
         # Prepare prompt
-        news_text = "\n".join([f"- {item.get('title', '')} ({item.get('publisher', '')})" for item in news_list[:10]])
+        news_text = "\n".join(
+            [
+                f"- {item.get('title', '')} ({item.get('publisher', '')})"
+                for item in news_list[:10]
+            ]
+        )
 
         prompt = f"""
         You are a senior financial analyst. Analyze the following recent news headlines for {ticker}.
         
         News:
+            pass
         {news_text}
         
         Provide a structured analysis in JSON format with the following keys:
+            pass
         - sentiment: "Bullish", "Bearish", or "Neutral"
         - score: A float between 0.0 (Bearish) and 1.0 (Bullish)
         - reasoning: A concise summary of why (max 3 sentences).
@@ -93,13 +106,33 @@ class LLMAnalyzer:
             logger.error(f"Gemini analysis failed: {e}")
             return self._analyze_mock(ticker, news_list)
 
-    def _analyze_mock(self, ticker: str, news_list: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _analyze_mock(
+        self, ticker: str, news_list: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """
         Mock analysis for demonstration or fallback.
         """
         # Simple keyword based mock
-        bullish_keywords = ["up", "rise", "gain", "profit", "growth", "high", "buy", "outperform"]
-        bearish_keywords = ["down", "fall", "loss", "drop", "low", "sell", "underperform", "risk"]
+        bullish_keywords = [
+            "up",
+            "rise",
+            "gain",
+            "profit",
+            "growth",
+            "high",
+            "buy",
+            "outperform",
+        ]
+        bearish_keywords = [
+            "down",
+            "fall",
+            "loss",
+            "drop",
+            "low",
+            "sell",
+            "underperform",
+            "risk",
+        ]
 
         score = 0.5
         found_bullish = []

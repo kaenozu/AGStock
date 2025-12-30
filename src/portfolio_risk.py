@@ -35,16 +35,28 @@ class PortfolioRiskAnalyzer:
             }
         """
         if positions.empty:
-            return {"herfindahl_index": 0.0, "top_position_pct": 0.0, "top_ticker": None, "is_concentrated": False}
+            return {
+                "herfindahl_index": 0.0,
+                "top_position_pct": 0.0,
+                "top_ticker": None,
+                "is_concentrated": False,
+            }
 
         # 時価評価額で計算
         if "market_value" not in positions.columns:
-            positions["market_value"] = positions["current_price"] * positions["quantity"]
+            positions["market_value"] = (
+                positions["current_price"] * positions["quantity"]
+            )
 
         total_value = positions["market_value"].sum()
 
         if total_value == 0:
-            return {"herfindahl_index": 0.0, "top_position_pct": 0.0, "top_ticker": None, "is_concentrated": False}
+            return {
+                "herfindahl_index": 0.0,
+                "top_position_pct": 0.0,
+                "top_ticker": None,
+                "is_concentrated": False,
+            }
 
         # 各ポジションの割合
         positions["weight"] = positions["market_value"] / total_value
@@ -109,7 +121,9 @@ class PortfolioRiskAnalyzer:
 
         # 時価評価額で計算
         if "market_value" not in positions.columns:
-            positions["market_value"] = positions["current_price"] * positions["quantity"]
+            positions["market_value"] = (
+                positions["current_price"] * positions["quantity"]
+            )
 
         total_value = positions["market_value"].sum()
 
@@ -179,9 +193,19 @@ class PortfolioRiskAnalyzer:
         # ポジション数チェック
         num_positions = len(positions)
         if num_positions == 1:
-            alerts.append({"level": "warning", "message": "⚠️ ポジションが銘柄のみです。分散投資を推奨します"})
+            alerts.append(
+                {
+                    "level": "warning",
+                    "message": "⚠️ ポジションが銘柄のみです。分散投資を推奨します",
+                }
+            )
         elif num_positions >= 2 and num_positions <= 3:
-            alerts.append({"level": "info", "message": f"ℹ️ ポジション数: {num_positions}銘柄（推奨: 5-10銘柄）"})
+            alerts.append(
+                {
+                    "level": "info",
+                    "message": f"ℹ️ ポジション数: {num_positions}銘柄（推奨: 5-10銘柄）",
+                }
+            )
 
         return alerts
 

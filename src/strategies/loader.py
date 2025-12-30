@@ -36,11 +36,17 @@ def load_custom_strategies() -> list:
                     spec.loader.exec_module(module)
 
                     for name, obj in inspect.getmembers(module):
-                        if inspect.isclass(obj) and issubclass(obj, Strategy) and obj is not Strategy:
+                        if (
+                            inspect.isclass(obj)
+                            and issubclass(obj, Strategy)
+                            and obj is not Strategy
+                        ):
                             try:
                                 strategy_instance = obj()
                                 custom_strategies.append(strategy_instance)
-                                print(f"Loaded custom strategy: {strategy_instance.name}")
+                                print(
+                                    f"Loaded custom strategy: {strategy_instance.name}"
+                                )
                             except Exception as e:
                                 print(f"Failed to instantiate {name}: {e}")
             except Exception as e:

@@ -29,18 +29,21 @@ class BERTSentimentAnalyzer:
     def _load_model(self):
         """Load tokenizer and model from Hugging Face"""
         try:
-            from transformers import (AutoModelForSequenceClassification,
-                                      AutoTokenizer)
+            from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
             logger.info(f"Loading BERT model: {self.model_name} on {self.device}...")
             self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-            self.model = AutoModelForSequenceClassification.from_pretrained(self.model_name).to(self.device)
+            self.model = AutoModelForSequenceClassification.from_pretrained(
+                self.model_name
+            ).to(self.device)
             self.model.eval()
             self.is_ready = True
             logger.info("BERT model loaded successfully.")
 
         except ImportError:
-            logger.error("transformers library not found. Please install it with `pip install transformers`.")
+            logger.error(
+                "transformers library not found. Please install it with `pip install transformers`."
+            )
         except Exception as e:
             logger.error(f"Failed to load BERT model: {e}")
 
@@ -58,9 +61,9 @@ class BERTSentimentAnalyzer:
             return self._fallback_analyze(text)
 
         try:
-            inputs = self.tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512).to(
-                self.device
-            )
+            inputs = self.tokenizer(
+                text, return_tensors="pt", truncation=True, padding=True, max_length=512
+            ).to(self.device)
 
             with torch.no_grad():
                 outputs = self.model(**inputs)
@@ -110,8 +113,30 @@ class BERTSentimentAnalyzer:
             return {"score": 0.0, "label": "neutral"}
 
         text_lower = text.lower()
-        positive_words = ["up", "rise", "gain", "bull", "high", "profit", "growth", "good", "success", "beat"]
-        negative_words = ["down", "fall", "loss", "bear", "low", "drop", "miss", "bad", "fail", "crash"]
+        positive_words = [
+            "up",
+            "rise",
+            "gain",
+            "bull",
+            "high",
+            "profit",
+            "growth",
+            "good",
+            "success",
+            "beat",
+        ]
+        negative_words = [
+            "down",
+            "fall",
+            "loss",
+            "bear",
+            "low",
+            "drop",
+            "miss",
+            "bad",
+            "fail",
+            "crash",
+        ]
 
         score = 0
         for word in positive_words:

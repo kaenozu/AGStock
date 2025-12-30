@@ -1,4 +1,3 @@
-
 def format_currency_jp(amount: float) -> str:
     """日本円を万円形式で表示"""
     if amount is None:

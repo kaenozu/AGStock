@@ -49,12 +49,16 @@ def setup_logging(log_level: str = "INFO", log_dir: str = "logs"):
     # コンソールハンドラ（人間が読みやすい形式）
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
-    console_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    console_formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
     console_handler.setFormatter(console_formatter)
 
     # ファイルハンドラ（JSON形式）
     file_handler = logging.handlers.RotatingFileHandler(
-        f"{log_dir}/agstock.log", maxBytes=10 * 1024 * 1024, backupCount=5  # 10MB
+        f"{log_dir}/agstock.log",
+        maxBytes=10 * 1024 * 1024,
+        backupCount=5,  # 10MB
     )
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(JSONFormatter())

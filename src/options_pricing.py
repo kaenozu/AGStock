@@ -27,7 +27,9 @@ class OptionsCalculator:
     """オプション計算クラス"""
 
     @staticmethod
-    def black_scholes(S: float, K: float, T: float, r: float, sigma: float, option_type: str = "call") -> float:
+    def black_scholes(
+        S: float, K: float, T: float, r: float, sigma: float, option_type: str = "call"
+    ) -> float:
         """
         Black-Scholesモデル
 
@@ -86,9 +88,13 @@ class OptionsCalculator:
 
         # Theta
         if option_type == "call":
-            theta = -(S * norm.pdf(d1) * sigma) / (2 * np.sqrt(T)) - r * K * np.exp(-r * T) * norm.cdf(d2)
+            theta = -(S * norm.pdf(d1) * sigma) / (2 * np.sqrt(T)) - r * K * np.exp(
+                -r * T
+            ) * norm.cdf(d2)
         else:
-            theta = -(S * norm.pdf(d1) * sigma) / (2 * np.sqrt(T)) + r * K * np.exp(-r * T) * norm.cdf(-d2)
+            theta = -(S * norm.pdf(d1) * sigma) / (2 * np.sqrt(T)) + r * K * np.exp(
+                -r * T
+            ) * norm.cdf(-d2)
 
         # Vega
         vega = S * norm.pdf(d1) * np.sqrt(T)
@@ -136,7 +142,12 @@ class OptionsCalculator:
 
         for i in range(max_iterations):
             price = OptionsCalculator.black_scholes(S, K, T, r, sigma, option_type)
-            vega = OptionsCalculator.calculate_greeks(S, K, T, r, sigma, option_type)["vega"] * 100
+            vega = (
+                OptionsCalculator.calculate_greeks(S, K, T, r, sigma, option_type)[
+                    "vega"
+                ]
+                * 100
+            )
 
             diff = option_price - price
 
@@ -158,7 +169,9 @@ class OptionStrategy:
     """オプション戦略"""
 
     @staticmethod
-    def covered_call(stock_price: float, stock_quantity: int, call_strike: float, call_premium: float) -> Dict:
+    def covered_call(
+        stock_price: float, stock_quantity: int, call_strike: float, call_premium: float
+    ) -> Dict:
         """
         カバードコール戦略
 
@@ -171,7 +184,9 @@ class OptionStrategy:
         Returns:
             戦略詳細
         """
-        max_profit = (call_strike - stock_price) * stock_quantity + call_premium * stock_quantity
+        max_profit = (
+            call_strike - stock_price
+        ) * stock_quantity + call_premium * stock_quantity
         max_loss = stock_price * stock_quantity - call_premium * stock_quantity
         breakeven = stock_price - call_premium
 
@@ -184,7 +199,9 @@ class OptionStrategy:
         }
 
     @staticmethod
-    def protective_put(stock_price: float, stock_quantity: int, put_strike: float, put_premium: float) -> Dict:
+    def protective_put(
+        stock_price: float, stock_quantity: int, put_strike: float, put_premium: float
+    ) -> Dict:
         """
         プロテクティブプット戦略
 
@@ -197,7 +214,9 @@ class OptionStrategy:
         Returns:
             戦略詳細
         """
-        max_loss = (stock_price - put_strike) * stock_quantity + put_premium * stock_quantity
+        max_loss = (
+            stock_price - put_strike
+        ) * stock_quantity + put_premium * stock_quantity
         breakeven = stock_price + put_premium
 
         return {
@@ -241,7 +260,12 @@ if __name__ == "__main__":
 
     # Black-Scholes
     price = calc.black_scholes(
-        S=1500, K=1550, T=30 / 365, r=0.01, sigma=0.25, option_type="call"  # 現在価格  # 行使価格  # 30日  # 1%  # 25%
+        S=1500,
+        K=1550,
+        T=30 / 365,
+        r=0.01,
+        sigma=0.25,
+        option_type="call",  # 現在価格  # 行使価格  # 30日  # 1%  # 25%
     )
     print(f"コールオプション価格: ¥{price:.2f}")
 

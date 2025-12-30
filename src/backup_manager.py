@@ -2,6 +2,7 @@
 Backup Manager - 自動バックアップシステム
 
 機能:
+    pass
 - 日次自動バックアップ
 - 古いバックアップの自動削除
 - バックアップからの復元
@@ -18,7 +19,12 @@ from typing import List, Optional
 class BackupManager:
     """データベースバックアップ管理クラス"""
 
-    def __init__(self, source_db: str = "paper_trading.db", backup_dir: str = "backups", max_backups: int = 30):
+    def __init__(
+        self,
+        source_db: str = "paper_trading.db",
+        backup_dir: str = "backups",
+        max_backups: int = 30,
+    ):
         """
         Args:
             source_db: バックアップ対象のDBファイル
@@ -163,7 +169,12 @@ class BackupManager:
                 file_size = os.path.getsize(filepath)
 
                 backups.append(
-                    {"filename": filename, "path": filepath, "created": file_time, "size_mb": file_size / (1024 * 1024)}
+                    {
+                        "filename": filename,
+                        "path": filepath,
+                        "created": file_time,
+                        "size_mb": file_size / (1024 * 1024),
+                    }
                 )
 
             # 日付順にソート（新しい順）
@@ -249,4 +260,6 @@ if __name__ == "__main__":
     # バックアップリスト表示
     print("\nAvailable backups:")
     for backup in bm.list_backups():
-        print(f"  - {backup['filename']} ({backup['size_mb']:.2f} MB) - {backup['created']}")
+        print(
+            f"  - {backup['filename']} ({backup['size_mb']:.2f} MB) - {backup['created']}"
+        )

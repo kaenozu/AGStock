@@ -17,7 +17,9 @@ class PerformanceCalculator:
     def __init__(self):
         pass
 
-    def calculate_total_return(self, initial_capital: float, final_capital: float) -> float:
+    def calculate_total_return(
+        self, initial_capital: float, final_capital: float
+    ) -> float:
         """総収益率を計算
 
         Args:
@@ -31,7 +33,9 @@ class PerformanceCalculator:
             return 0.0
         return (final_capital - initial_capital) / initial_capital
 
-    def calculate_sharpe_ratio(self, returns: pd.Series, risk_free_rate: float = 0.0) -> float:
+    def calculate_sharpe_ratio(
+        self, returns: pd.Series, risk_free_rate: float = 0.0
+    ) -> float:
         """シャープ比を計算
 
         Args:
@@ -114,7 +118,9 @@ class PerformanceCalculator:
         daily_vol = returns.std()
         return daily_vol * np.sqrt(252)  # 年率換算
 
-    def calculate_sortino_ratio(self, returns: pd.Series, target_return: float = 0.0) -> float:
+    def calculate_sortino_ratio(
+        self, returns: pd.Series, target_return: float = 0.0
+    ) -> float:
         """ソルティノ比を計算
 
         Args:
@@ -139,7 +145,9 @@ class PerformanceCalculator:
         excess_return = returns.mean() - target_return
         return (excess_return / downside_deviation) * np.sqrt(252)
 
-    def calculate_var(self, returns: pd.Series, confidence_level: float = 0.05) -> float:
+    def calculate_var(
+        self, returns: pd.Series, confidence_level: float = 0.05
+    ) -> float:
         """VaR(Value at Risk)を計算
 
         Args:

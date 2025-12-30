@@ -18,7 +18,9 @@ class VectorizedBacktester:
     def __init__(self):
         pass
 
-    def run_strategy(self, df: pd.DataFrame, params: Dict[str, float]) -> Dict[str, float]:
+    def run_strategy(
+        self, df: pd.DataFrame, params: Dict[str, float]
+    ) -> Dict[str, float]:
         """
         戦略パラメータに基づき高速バックテストを実行
 
@@ -60,10 +62,14 @@ class VectorizedBacktester:
 
             # 2. シグナル生成 (ベクトル化)
             # Buy condition: SMA_S > SMA_L AND RSI < threshold
-            buy_cond = (data["SMA_S"] > data["SMA_L"]) & (data["RSI"] < params.get("rsi_buy_threshold", 30))
+            buy_cond = (data["SMA_S"] > data["SMA_L"]) & (
+                data["RSI"] < params.get("rsi_buy_threshold", 30)
+            )
 
             # Sell condition: SMA_S < SMA_L OR RSI > threshold
-            sell_cond = (data["SMA_S"] < data["SMA_L"]) | (data["RSI"] > params.get("rsi_sell_threshold", 70))
+            sell_cond = (data["SMA_S"] < data["SMA_L"]) | (
+                data["RSI"] > params.get("rsi_sell_threshold", 70)
+            )
 
             data["Signal"] = 0
             data.loc[buy_cond, "Signal"] = 1
@@ -75,7 +81,9 @@ class VectorizedBacktester:
             # ここでは「翌日のリターン」にシグナルを掛ける簡易バックテストとする
 
             # ポジション: 直近の非ゼロシグナルを採用 (ffill) - 最初のシグナルが現れる前は0
-            data["Position"] = data["Signal"].replace(0, np.nan).fillna(method="ffill").fillna(0)
+            data["Position"] = (
+                data["Signal"].replace(0, np.nan).fillna(method="ffill").fillna(0)
+            )
 
             # 3. リターン計算
             data["Market_Ret"] = data["Close"].pct_change()
@@ -103,7 +111,11 @@ class VectorizedBacktester:
             else:
                 sharpe = (daily_ret / daily_vol) * np.sqrt(252)  # 年率換算
 
-            return {"total_return": total_return, "sharpe_ratio": sharpe, "trades": trades.sum()}
+            return {
+                "total_return": total_return,
+                "sharpe_ratio": sharpe,
+                "trades": trades.sum(),
+            }
 
         except Exception:
             # logger.error(f"Backtest error: {e}")

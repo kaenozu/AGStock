@@ -116,7 +116,9 @@ class RealtimeDataLoader:
             try:
                 # 直近1日の1分足データを取得
                 # interval='1m' は過去7日分までしか取得できない
-                df = yf.download(ticker, period="1d", interval="1m", progress=False, auto_adjust=True)
+                df = yf.download(
+                    ticker, period="1d", interval="1m", progress=False, auto_adjust=True
+                )
 
                 if df.empty:
                     continue

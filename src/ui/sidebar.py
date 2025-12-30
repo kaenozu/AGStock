@@ -12,6 +12,7 @@ from src.schemas import load_config as load_config_schema
 
 from src import demo_data  # noqa: F401  # imported for side-effects if needed
 
+
 def load_config():
     """Load config utilizing schema validation (fallback to defaults if error)."""
     config_obj = load_config_schema("config.json")
@@ -36,58 +37,58 @@ def render_sidebar():
     - 💹 単位: 単元株
     """
     )
-    
+
     st.sidebar.divider()
 
     # --- System Status Widget ---
     import os
     from datetime import datetime
-    
+
     st.sidebar.subheader("📡 システム稼働状況")
-    
+
     status_file = "data/system_status.json"
     scheduler_alive = False
-    
+
     if os.path.exists(status_file):
         try:
             with open(status_file, "r", encoding="utf-8") as f:
                 sys_status = json.load(f)
-                
+
             heartbeat = sys_status.get("heartbeat")
             if heartbeat:
                 last_beat = datetime.fromisoformat(heartbeat)
                 delta = datetime.now() - last_beat
-                if delta.total_seconds() < 120: # 2 minutes tolerance
+                if delta.total_seconds() < 120:  # 2 minutes tolerance
                     scheduler_alive = True
-            
+
             if scheduler_alive:
                 st.sidebar.success(f"🟢 スケジューラー稼働中")
             else:
                 st.sidebar.error(f"🔴 スケジューラー停止/無反応")
                 if heartbeat:
                     st.sidebar.caption(f"最終ビート: {last_beat.strftime('%H:%M:%S')}")
-                
+
             # Show individual job status
             jobs = sys_status.get("jobs", {})
-            
+
             # Map for human readable
             job_map = {
                 "auto_invest": "自動投資",
                 "smart_alerts": "スマート監視",
-                "morning_brief": "朝刊配送"
+                "morning_brief": "朝刊配送",
             }
-            
+
             for key, label in job_map.items():
                 info = jobs.get(key, {})
                 status = info.get("status", "unknown")
                 last_run = info.get("last_run", "")
-                
+
                 if last_run:
                     dt = datetime.fromisoformat(last_run)
                     timestr = dt.strftime("%H:%M")
                 else:
                     timestr = "--:--"
-                
+
                 if status == "success":
                     icon = "🟢"
                 elif status == "running":
@@ -96,11 +97,11 @@ def render_sidebar():
                     icon = "🔴"
                 else:
                     icon = "⚪"
-                
+
                 st.sidebar.markdown(f"{icon} **{label}**: {timestr}")
                 if status == "error":
                     st.sidebar.caption(f"Err: {info.get('message', '')[:20]}...")
-                
+
         except Exception as e:
             st.sidebar.warning(f"ステータス読込エラー")
     else:
@@ -111,21 +112,23 @@ def render_sidebar():
 
     # --- New Risk Monitor Section ---
     st.sidebar.subheader("🛡️ リスク監視モニター")
-    
+
     # Check Market Crash (if Risk Manager is initialized)
     if "risk_manager" in st.session_state and st.session_state["risk_manager"]:
         rm = st.session_state["risk_manager"]
         # Simplified check (logging mocked or passed appropriately)
         # Note: In a UI loop, we might want to cache this or run it less frequently.
         # For now, we run it every re-render to ensure safety status.
-        crash_ok, crash_reason = rm.check_market_crash(logger=None) # Logger optional/none for UI check
-        
+        crash_ok, crash_reason = rm.check_market_crash(
+            logger=None
+        )  # Logger optional/none for UI check
+
         if crash_ok:
             st.sidebar.success("✅ 市場状況: 正常")
         else:
             st.sidebar.error("🚨 市場急落警戒中")
             st.sidebar.caption(f"{crash_reason}")
-            
+
         # Display VaR (Mock or stored value if available)
         st.sidebar.metric(label="予想最大損失率 (VaR)", value="2.8%", delta="-0.1%")
     else:
@@ -139,7 +142,10 @@ def render_sidebar():
     st.sidebar.divider()
 
     # Demo mode toggle
-    use_demo = st.sidebar.checkbox("🧪 デモモード (オフライン向け)", value=st.session_state.get("use_demo_data", False))
+    use_demo = st.sidebar.checkbox(
+        "🧪 デモモード (オフライン向け)",
+        value=st.session_state.get("use_demo_data", False),
+    )
     st.session_state["use_demo_data"] = use_demo
 
     # Dark Mode Toggle

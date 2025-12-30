@@ -5,6 +5,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class BasePredictor(ABC):
     """
     全ての予測モデルの基底クラス。
@@ -15,7 +16,7 @@ class BasePredictor(ABC):
     def prepare_model(self, X: pd.DataFrame, y: pd.Series) -> None:
         """
         モデル学習のためのデータ準備（スケーリング、シーケンス作成など）を行う。
-        
+
         Args:
             X (pd.DataFrame): 特徴量データ
             y (pd.Series): ターゲット変数
@@ -26,7 +27,7 @@ class BasePredictor(ABC):
     def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
         """
         モデルを学習させる。
-        
+
         Args:
             X (pd.DataFrame): 特徴量データ（prepare_modelで加工済みであることを想定する場合もあるが、基本はここでも受け取る）
             y (pd.Series): ターゲット変数
@@ -37,7 +38,7 @@ class BasePredictor(ABC):
     def predict(self, X: pd.DataFrame) -> np.ndarray:
         """
         予測を実行する。
-        
+
         Args:
             X (pd.DataFrame): 予測用特徴量データ
 
@@ -45,7 +46,7 @@ class BasePredictor(ABC):
             np.ndarray: 予測結果の配列
         """
         pass
-    
+
     def predict_point(self, features: np.ndarray) -> float:
         """
         単一時点の特徴量から予測を行う（オプション）。
@@ -53,10 +54,10 @@ class BasePredictor(ABC):
         """
         # デフォルト実装: バッチ予測として処理して最初の要素を返す
         try:
-             # 2次元配列に変形 (1, n_features)
+            # 2次元配列に変形 (1, n_features)
             if features.ndim == 1:
                 features = features.reshape(1, -1)
-            
+
             # DataFrameに変換（多くのモデルがDataFrameを期待するため）
             # カラム名は不明なため、ダミーまたは予測器側で処理が必要
             # ここではnumpy配列のまま渡すことを想定（多くのpredictメソッドはnumpyも受け付けるようにすべき）

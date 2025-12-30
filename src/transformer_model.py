@@ -31,7 +31,13 @@ class ScaledDotProductAttention(layers.Layer):
 
         self.fc = layers.Dense(d_model)
 
-    def call(self, query: tf.Tensor, key: tf.Tensor, value: tf.Tensor, mask: Optional[tf.Tensor] = None):
+    def call(
+        self,
+        query: tf.Tensor,
+        key: tf.Tensor,
+        value: tf.Tensor,
+        mask: Optional[tf.Tensor] = None,
+    ):
         batch_size = tf.shape(query)[0]
 
         Q = self.W_q(query)
@@ -48,7 +54,9 @@ class ScaledDotProductAttention(layers.Layer):
         V = tf.transpose(V, [0, 2, 1, 3])
 
         # Attention scores
-        scores = tf.matmul(Q, K, transpose_b=True) / tf.math.sqrt(tf.cast(self.d_k, tf.float32))
+        scores = tf.matmul(Q, K, transpose_b=True) / tf.math.sqrt(
+            tf.cast(self.d_k, tf.float32)
+        )
 
         if mask is not None:
             scores += mask * -1e9
@@ -275,7 +283,11 @@ class TemporalFusionTransformer(keras.Model):
         """
         # 価格変動率をターゲットとする
         df_target = df.copy()
-        df_target["Target"] = df_target["Close"].pct_change(periods=forecast_horizon).shift(-forecast_horizon)
+        df_target["Target"] = (
+            df_target["Close"]
+            .pct_change(periods=forecast_horizon)
+            .shift(-forecast_horizon)
+        )
         df_target.dropna(inplace=True)
 
         # 特徴量の選択
@@ -293,7 +305,11 @@ class TemporalFusionTransformer(keras.Model):
     def fit(self, X: np.ndarray, y: np.ndarray, **kwargs):
         """モデルの学習"""
         # 損失関数とオプティマイザの設定
-        self.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001), loss="mse", metrics=["mae"])
+        self.compile(
+            optimizer=keras.optimizers.Adam(learning_rate=0.001),
+            loss="mse",
+            metrics=["mae"],
+        )
 
         # 学習
         history = super().fit(
@@ -303,7 +319,9 @@ class TemporalFusionTransformer(keras.Model):
             batch_size=kwargs.get("batch_size", 32),
             validation_split=kwargs.get("validation_split", 0.2),
             verbose=kwargs.get("verbose", 1),
-            callbacks=[keras.callbacks.EarlyStopping(patience=10, restore_best_weights=True)],
+            callbacks=[
+                keras.callbacks.EarlyStopping(patience=10, restore_best_weights=True)
+            ],
         )
 
         return history
@@ -341,7 +359,11 @@ if __name__ == "__main__":
 
     # モデルの作成と学習
     model = TemporalFusionTransformer(
-        input_size=n_features, hidden_size=64, num_attention_heads=4, dropout=0.1, forecast_horizon=5
+        input_size=n_features,
+        hidden_size=64,
+        num_attention_heads=4,
+        dropout=0.1,
+        forecast_horizon=5,
     )
 
     # モデルのビルド

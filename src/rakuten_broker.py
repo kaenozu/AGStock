@@ -74,7 +74,9 @@ class RakutenBroker:
             self.wait = WebDriverWait(self.driver, 20)
 
             # 隠蔽工作
-            self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+            self.driver.execute_script(
+                "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
+            )
 
             print("🌐 ブラウザを起動しました")
         except Exception as e:
@@ -93,7 +95,9 @@ class RakutenBroker:
             # ログインボタンをクリック（トップページのデザインによるが、通常は右上にログインボタンがある）
             # ※セレクタは変更される可能性があります
             try:
-                login_btn = self.wait.until(EC.element_to_be_clickable((By.ID, self.SELECTORS["login_btn_top"])))
+                login_btn = self.wait.until(
+                    EC.element_to_be_clickable((By.ID, self.SELECTORS["login_btn_top"]))
+                )
                 login_btn.click()
             except:
                 # 直接ログインページへ
@@ -101,22 +105,32 @@ class RakutenBroker:
 
             # ログインID入力
             login_id_input = self.wait.until(
-                EC.presence_of_element_located((By.NAME, self.SELECTORS["login_id_input"]))
+                EC.presence_of_element_located(
+                    (By.NAME, self.SELECTORS["login_id_input"])
+                )
             )
             login_id_input.clear()
             login_id_input.send_keys(self.config["login_id"])
 
             # パスワード入力
-            passwd_input = self.driver.find_element(By.NAME, self.SELECTORS["passwd_input"])
+            passwd_input = self.driver.find_element(
+                By.NAME, self.SELECTORS["passwd_input"]
+            )
             passwd_input.clear()
             passwd_input.send_keys(self.config["password"])
 
             # ログイン実行
-            submit_btn = self.driver.find_element(By.XPATH, "//input[@type='submit' or @alt='ログイン']")
+            submit_btn = self.driver.find_element(
+                By.XPATH, "//input[@type='submit' or @alt='ログイン']"
+            )
             submit_btn.click()
 
             # ログイン成功確認（ホーム画面の要素で確認）
-            self.wait.until(EC.presence_of_element_located((By.ID, self.SELECTORS["home_indicator"])))
+            self.wait.until(
+                EC.presence_of_element_located(
+                    (By.ID, self.SELECTORS["home_indicator"])
+                )
+            )
             print("✅ ログイン成功")
             return True
 
@@ -132,11 +146,15 @@ class RakutenBroker:
         try:
             print("🚪 ログアウト処理開始...")
             # ログアウトボタンを探してクリック（セレクタは仮定）
-            logout_btn = self.driver.find_element(By.XPATH, "//a[contains(text(), 'ログアウト')]")
+            logout_btn = self.driver.find_element(
+                By.XPATH, "//a[contains(text(), 'ログアウト')]"
+            )
             logout_btn.click()
             print("✅ ログアウト完了")
         except Exception as e:
-            print(f"⚠️ ログアウト失敗（すでにログアウト済みか、要素が見つかりません）: {e}")
+            print(
+                f"⚠️ ログアウト失敗（すでにログアウト済みか、要素が見つかりません）: {e}"
+            )
 
     def get_balance(self) -> Dict[str, float]:
         """資産状況を取得"""
@@ -146,18 +164,26 @@ class RakutenBroker:
 
         try:
             # ホーム画面または資産状況画面へ
-            self.driver.get("https://member.rakuten-sec.co.jp/app/info_page.do")  # マイページ的なURL（要確認）
+            self.driver.get(
+                "https://member.rakuten-sec.co.jp/app/info_page.do"
+            )  # マイページ的なURL（要確認）
 
             # ※以下のセレクタは仮定です。実際のDOM構造に合わせて調整が必要です。
             # 資産合計
-            total_equity_elem = self.wait.until(EC.presence_of_element_located((By.ID, self.SELECTORS["total_assets"])))
+            total_equity_elem = self.wait.until(
+                EC.presence_of_element_located((By.ID, self.SELECTORS["total_assets"]))
+            )
             total_equity = self._parse_currency(total_equity_elem.text)
 
             # 現金余力（買付可能額）
             cash_elem = self.driver.find_element(By.ID, self.SELECTORS["buying_power"])
             cash = self._parse_currency(cash_elem.text)
 
-            return {"total_equity": total_equity, "cash": cash, "invested_amount": total_equity - cash}
+            return {
+                "total_equity": total_equity,
+                "cash": cash,
+                "invested_amount": total_equity - cash,
+            }
         except Exception as e:
             print(f"⚠️ 資産取得エラー: {e}")
             # ダミーデータを返す（開発用）
@@ -169,7 +195,13 @@ class RakutenBroker:
         print("⚠️ get_positions は未実装です")
         return pd.DataFrame()
 
-    def buy_order(self, ticker: str, quantity: int, price: Optional[float] = None, order_type: str = "指値") -> bool:
+    def buy_order(
+        self,
+        ticker: str,
+        quantity: int,
+        price: Optional[float] = None,
+        order_type: str = "指値",
+    ) -> bool:
         """
         買い注文を実行
 
@@ -184,21 +216,31 @@ class RakutenBroker:
                 return False
 
         try:
-            print(f"🛒 注文開始: {ticker} {quantity}株 {order_type} @ {price if price else 'Market'}")
+            print(
+                f"🛒 注文開始: {ticker} {quantity}株 {order_type} @ {price if price else 'Market'}"
+            )
 
             # 1. 銘柄検索または注文画面へ遷移
-            search_box = self.wait.until(EC.presence_of_element_located((By.ID, self.SELECTORS["stock_search"])))
+            search_box = self.wait.until(
+                EC.presence_of_element_located((By.ID, self.SELECTORS["stock_search"]))
+            )
             search_box.clear()
             search_box.send_keys(ticker)
             search_box.submit()
 
             # 2. 「現物買い」ボタンクリック
-            buy_btn = self.wait.until(EC.element_to_be_clickable((By.XPATH, self.SELECTORS["buy_link_xpath"])))
+            buy_btn = self.wait.until(
+                EC.element_to_be_clickable((By.XPATH, self.SELECTORS["buy_link_xpath"]))
+            )
             buy_btn.click()
 
             # 3. 注文入力
             # 数量
-            qty_input = self.wait.until(EC.presence_of_element_located((By.NAME, self.SELECTORS["quantity_input"])))
+            qty_input = self.wait.until(
+                EC.presence_of_element_located(
+                    (By.NAME, self.SELECTORS["quantity_input"])
+                )
+            )
             qty_input.send_keys(str(quantity))
 
             # 価格/執行条件
@@ -208,7 +250,9 @@ class RakutenBroker:
             else:
                 limit_radio = self.driver.find_element(By.ID, "order-type-limit")
                 limit_radio.click()
-                price_input = self.driver.find_element(By.NAME, self.SELECTORS["price_input"])
+                price_input = self.driver.find_element(
+                    By.NAME, self.SELECTORS["price_input"]
+                )
                 price_input.send_keys(str(price))
 
             # 4. 確認画面へ
@@ -216,7 +260,9 @@ class RakutenBroker:
             confirm_btn.click()
 
             # 5. 暗証番号入力
-            pin_input = self.wait.until(EC.presence_of_element_located((By.NAME, self.SELECTORS["pin_input"])))
+            pin_input = self.wait.until(
+                EC.presence_of_element_located((By.NAME, self.SELECTORS["pin_input"]))
+            )
             pin_input.send_keys(self.config["pin_code"])
 
             # 6. 注文確定
@@ -243,7 +289,9 @@ class RakutenBroker:
     def _parse_currency(self, text: str) -> float:
         """文字列（¥1,234）を数値に変換"""
         try:
-            clean_text = text.replace("¥", "").replace(",", "").replace("円", "").strip()
+            clean_text = (
+                text.replace("¥", "").replace(",", "").replace("円", "").strip()
+            )
             return float(clean_text)
         except:
             return 0.0

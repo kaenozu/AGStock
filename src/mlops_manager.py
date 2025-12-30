@@ -156,7 +156,9 @@ class ModelRegistry:
         self.registry_path.mkdir(parents=True, exist_ok=True)
         init_mlops_db()
 
-    def save_model(self, model: Any, model_name: str, version: str, metadata: Dict[str, Any] = None) -> ModelMetadata:
+    def save_model(
+        self, model: Any, model_name: str, version: str, metadata: Dict[str, Any] = None
+    ) -> ModelMetadata:
         """モデルの保存とメタデータ登録"""
         # モデルパスの準備
         model_dir = self.registry_path / model_name / version
@@ -204,7 +206,9 @@ class ModelRegistry:
         logger.info(f"Model {model_name} v{version} registered with hash {model_hash}")
         return model_metadata
 
-    def load_model(self, model_name: str, version: str = None) -> Tuple[Any, ModelMetadata]:
+    def load_model(
+        self, model_name: str, version: str = None
+    ) -> Tuple[Any, ModelMetadata]:
         """モデルの読み込み"""
         if version is None:
             version = self._get_latest_version(model_name)
@@ -323,12 +327,24 @@ class ABTestFramework:
         X_test, y_test = test_data
 
         # モデルAの読み込みと予測
-        model_a, metadata_a = self.model_registry.load_model("ensemble_model", model_a_version)  # 仮のモデル名
-        pred_a = model_a.predict(X_test) if hasattr(model_a, "predict") else np.zeros(len(X_test))
+        model_a, metadata_a = self.model_registry.load_model(
+            "ensemble_model", model_a_version
+        )  # 仮のモデル名
+        pred_a = (
+            model_a.predict(X_test)
+            if hasattr(model_a, "predict")
+            else np.zeros(len(X_test))
+        )
 
         # モデルBの読み込みと予測
-        model_b, metadata_b = self.model_registry.load_model("ensemble_model", model_b_version)
-        pred_b = model_b.predict(X_test) if hasattr(model_b, "predict") else np.zeros(len(X_test))
+        model_b, metadata_b = self.model_registry.load_model(
+            "ensemble_model", model_b_version
+        )
+        pred_b = (
+            model_b.predict(X_test)
+            if hasattr(model_b, "predict")
+            else np.zeros(len(X_test))
+        )
 
         # 指標の計算
         results = {}
@@ -357,7 +373,9 @@ class ABTestFramework:
             winner = "A"
 
         # 結果をデータベースに保存
-        self._save_ab_test_result(test_name, model_a_version, model_b_version, results, len(y_test), winner)
+        self._save_ab_test_result(
+            test_name, model_a_version, model_b_version, results, len(y_test), winner
+        )
 
         return {
             "test_name": test_name,
@@ -429,11 +447,18 @@ class MonitoringSystem:
         self.data_drift_monitors = {}
         self.alert_callbacks = []
 
-    def set_performance_threshold(self, metric_name: str, threshold: float, direction: str = "lower"):
+    def set_performance_threshold(
+        self, metric_name: str, threshold: float, direction: str = "lower"
+    ):
         """パフォーマンス閾値の設定（lower: 小さい方が良い、upper: 大きい方が良い）"""
-        self.performance_thresholds[metric_name] = {"threshold": threshold, "direction": direction}
+        self.performance_thresholds[metric_name] = {
+            "threshold": threshold,
+            "direction": direction,
+        }
 
-    def check_performance_degradation(self, model_name: str, current_metrics: Dict[str, float]) -> List[Dict[str, Any]]:
+    def check_performance_degradation(
+        self, model_name: str, current_metrics: Dict[str, float]
+    ) -> List[Dict[str, Any]]:
         """性能低下の検出"""
         alerts = []
 
@@ -475,7 +500,10 @@ class MonitoringSystem:
         return alerts
 
     def detect_model_drift(
-        self, model_predictions: np.ndarray, historical_predictions: np.ndarray, threshold: float = 0.05
+        self,
+        model_predictions: np.ndarray,
+        historical_predictions: np.ndarray,
+        threshold: float = 0.05,
     ) -> bool:
         """モデルドリフトの検出"""
         # 簡単な分布比較（KLダイバージェンスまたはJSダイバージェンス）
@@ -483,7 +511,9 @@ class MonitoringSystem:
             return False
 
         # 正規化
-        pred_current = (model_predictions - np.mean(model_predictions)) / (np.std(model_predictions) + 1e-8)
+        pred_current = (model_predictions - np.mean(model_predictions)) / (
+            np.std(model_predictions) + 1e-8
+        )
         pred_historical = (historical_predictions - np.mean(historical_predictions)) / (
             np.std(historical_predictions) + 1e-8
         )
@@ -495,12 +525,17 @@ class MonitoringSystem:
 
         drift_detected = p_value < threshold
         if drift_detected:
-            logger.warning(f"Model drift detected. KS statistic: {statistic:.4f}, p-value: {p_value:.4f}")
+            logger.warning(
+                f"Model drift detected. KS statistic: {statistic:.4f}, p-value: {p_value:.4f}"
+            )
 
         return drift_detected
 
     def detect_data_drift(
-        self, current_data: np.ndarray, reference_data: np.ndarray, threshold: float = 0.05
+        self,
+        current_data: np.ndarray,
+        reference_data: np.ndarray,
+        threshold: float = 0.05,
     ) -> Dict[str, Any]:
         """データドリフトの検出"""
         detection_results = {}
@@ -510,7 +545,9 @@ class MonitoringSystem:
             # コルモゴロフ-スミルノフ検定
             from scipy import stats
 
-            statistic, p_value = stats.ks_2samp(current_data.flatten(), reference_data.flatten())
+            statistic, p_value = stats.ks_2samp(
+                current_data.flatten(), reference_data.flatten()
+            )
 
             detection_results = {
                 "ks_statistic": float(statistic),
@@ -538,7 +575,9 @@ class MonitoringSystem:
         conn.commit()
         conn.close()
 
-    def get_recent_alerts(self, hours: int = 24, resolved: bool = False) -> pd.DataFrame:
+    def get_recent_alerts(
+        self, hours: int = 24, resolved: bool = False
+    ) -> pd.DataFrame:
         """最近のアラートを取得"""
         conn = sqlite3.connect(self.alerts_db_path)
 
@@ -616,10 +655,15 @@ class MLopsManager:
 
             return mlflow.active_run().info.run_id
 
-    def log_model_with_mlflow(self, model: Any, model_name: str, X_sample: np.ndarray, conda_env: str = None):
+    def log_model_with_mlflow(
+        self, model: Any, model_name: str, X_sample: np.ndarray, conda_env: str = None
+    ):
         """MLflowを用いたモデルの記録"""
         signature = infer_signature(
-            X_sample, model.predict(X_sample) if hasattr(model, "predict") else np.zeros(len(X_sample))
+            X_sample,
+            model.predict(X_sample)
+            if hasattr(model, "predict")
+            else np.zeros(len(X_sample)),
         )
 
         # conda環境ファイルの作成
@@ -628,7 +672,10 @@ class MLopsManager:
 
         with mlflow.start_run():
             mlflow.keras.log_model(
-                keras_model=model, artifact_path=model_name, signature=signature, conda_env=conda_env
+                keras_model=model,
+                artifact_path=model_name,
+                signature=signature,
+                conda_env=conda_env,
             )
 
     def _create_conda_env_file(self) -> str:
@@ -658,7 +705,9 @@ class MLopsManager:
 
         return env_path
 
-    def monitor_model_performance(self, model: Any, X_test: np.ndarray, y_test: np.ndarray, model_name: str):
+    def monitor_model_performance(
+        self, model: Any, X_test: np.ndarray, y_test: np.ndarray, model_name: str
+    ):
         """モデルパフォーマンスのモニタリング"""
         # 予測の実行
         if hasattr(model, "predict"):
@@ -681,9 +730,15 @@ class MLopsManager:
         # MLOpsモニタリングシステムでアラートをチェック
         alerts = self.monitoring.check_performance_degradation(model_name, metrics)
 
-        return {"metrics": metrics, "alerts": alerts, "timestamp": datetime.now().isoformat()}
+        return {
+            "metrics": metrics,
+            "alerts": alerts,
+            "timestamp": datetime.now().isoformat(),
+        }
 
-    def run_model_comparison(self, models: Dict[str, Any], X_test: np.ndarray, y_test: np.ndarray) -> Dict[str, Any]:
+    def run_model_comparison(
+        self, models: Dict[str, Any], X_test: np.ndarray, y_test: np.ndarray
+    ) -> Dict[str, Any]:
         """複数モデルの比較"""
         results = {}
 
@@ -714,7 +769,12 @@ if __name__ == "__main__":
     import tensorflow as tf
     from tensorflow import keras
 
-    model = keras.Sequential([keras.layers.Dense(10, activation="relu", input_shape=(10,)), keras.layers.Dense(1)])
+    model = keras.Sequential(
+        [
+            keras.layers.Dense(10, activation="relu", input_shape=(10,)),
+            keras.layers.Dense(1),
+        ]
+    )
     model.compile(optimizer="adam", loss="mse")
 
     # ダミーデータ
@@ -733,27 +793,42 @@ if __name__ == "__main__":
         "dependencies": ["tensorflow", "keras"],
         "tags": ["test", "initial"],
     }
-    model_meta = mlops.model_registry.save_model(model, "test_model", "v1.0.0", metadata)
+    model_meta = mlops.model_registry.save_model(
+        model, "test_model", "v1.0.0", metadata
+    )
     print(f"Model registered: {model_meta.model_name} v{model_meta.version}")
 
     # A/Bテストの実行
-    model2 = keras.Sequential([keras.layers.Dense(5, activation="relu", input_shape=(10,)), keras.layers.Dense(1)])
+    model2 = keras.Sequential(
+        [
+            keras.layers.Dense(5, activation="relu", input_shape=(10,)),
+            keras.layers.Dense(1),
+        ]
+    )
     model2.compile(optimizer="adam", loss="mse")
     model2.fit(X, y, epochs=1, verbose=0)
 
-    model_meta2 = mlops.model_registry.save_model(model2, "test_model", "v1.0.1", metadata)
+    model_meta2 = mlops.model_registry.save_model(
+        model2, "test_model", "v1.0.1", metadata
+    )
 
     # モデルの読み込みとA/Bテストの実行
     try:
         test_result = mlops.ab_testing.run_ab_test(
-            "model_comparison_test", "v1.0.0", "v1.0.1", (X_test, y_test), ["mse", "mae", "rmse"]
+            "model_comparison_test",
+            "v1.0.0",
+            "v1.0.1",
+            (X_test, y_test),
+            ["mse", "mae", "rmse"],
         )
         print(f"A/B test result: {test_result}")
     except Exception as e:
         print(f"A/B test failed: {e}")  # モデル名が一致しないため失敗する可能性あり
 
     # パフォーマンスモニタリング
-    performance_result = mlops.monitor_model_performance(model, X_test, y_test, "test_model")
+    performance_result = mlops.monitor_model_performance(
+        model, X_test, y_test, "test_model"
+    )
     print(f"Performance monitoring: {performance_result}")
 
     # モデル比較

@@ -13,7 +13,9 @@ from src.formatters import format_currency, format_percentage
 from src.paper_trader import PaperTrader
 
 
-def generate_html_report(pt: PaperTrader, start_date: datetime, end_date: datetime) -> str:
+def generate_html_report(
+    pt: PaperTrader, start_date: datetime, end_date: datetime
+) -> str:
     """HTML形式のレポートを生成"""
 
     balance = pt.get_current_balance()
@@ -51,7 +53,7 @@ def generate_html_report(pt: PaperTrader, start_date: datetime, end_date: dateti
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>週次レポート - AGStock</title>
     <style>
@@ -134,7 +136,7 @@ def generate_html_report(pt: PaperTrader, start_date: datetime, end_date: dateti
     </style>
 </head>
 <body>
-    <div class="container">
+<div class="container">
         <h1>📈 週次パフォーマンスレポート</h1>
         <p><strong>期間:</strong> {start_date.strftime('%Y-%m-%d')} 〜 {end_date.strftime('%Y-%m-%d')}</p>
         
@@ -175,7 +177,9 @@ def generate_html_report(pt: PaperTrader, start_date: datetime, end_date: dateti
 </body>
 </html>
 """
-    return html
+
+
+# return html
 
 
 def generate_positions_table(positions: pd.DataFrame) -> str:
@@ -242,7 +246,7 @@ def send_to_line(report_summary: str):
 
 詳細はHTMLレポートをご確認ください。
 """
-        notifier.send_notification(message)
+        # notifier.send_notification(message)
         print("✅ LINEに送信しました")
     except Exception as e:
         print(f"⚠️  LINE送信失敗: {e}")

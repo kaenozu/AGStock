@@ -6,6 +6,7 @@ from typing import List, Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
+
 class FeedbackStore:
     """
     Stores investment committee decisions and correlates them with future market performance
@@ -21,7 +22,8 @@ class FeedbackStore:
         try:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
+                cursor.execute(
+                    """
                     CREATE TABLE IF NOT EXISTS decision_feedback (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         timestamp TEXT NOT NULL,
@@ -35,21 +37,39 @@ class FeedbackStore:
                         lesson_learned TEXT,
                         raw_data TEXT
                     )
-                """)
+                """
+                )
                 conn.commit()
         except Exception as e:
             logger.error(f"Failed to initialize feedback DB: {e}")
 
-    def save_decision(self, ticker: str, decision: str, rationale: str, current_price: float, raw_data: Dict[str, Any]):
+    def save_decision(
+        self,
+        ticker: str,
+        decision: str,
+        rationale: str,
+        current_price: float,
+        raw_data: Dict[str, Any],
+    ):
         """Records a new decision to be evaluated later."""
         try:
             timestamp = datetime.datetime.now().isoformat()
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT INTO decision_feedback (timestamp, ticker, decision, rationale, initial_price, raw_data)
                     VALUES (?, ?, ?, ?, ?, ?)
-                """, (timestamp, ticker, decision, rationale, current_price, json.dumps(raw_data, ensure_ascii=False)))
+                """,
+                    (
+                        timestamp,
+                        ticker,
+                        decision,
+                        rationale,
+                        current_price,
+                        json.dumps(raw_data, ensure_ascii=False),
+                    ),
+                )
                 conn.commit()
         except Exception as e:
             logger.error(f"Failed to save decision feedback: {e}")
@@ -65,49 +85,72 @@ class FeedbackStore:
                 conn.row_factory = sqlite3.Row
                 cursor = conn.cursor()
                 # Find decisions that are older than 5 days and don't have price_1w yet
-                cursor.execute("""
+                cursor.execute(
+                    """
                     SELECT * FROM decision_feedback 
                     WHERE ticker = ? AND price_1w IS NULL
-                """, (ticker,))
+                """,
+                    (ticker,),
+                )
                 rows = cursor.fetchall()
 
                 for row in rows:
-                    decision_time = datetime.datetime.fromisoformat(row['timestamp'])
+                    decision_time = datetime.datetime.fromisoformat(row["timestamp"])
                     days_elapsed = (now - decision_time).days
-                    
-                    if days_elapsed >= 5: # Evaluation window (approx 1 week)
-                        initial_price = row['initial_price']
+
+                    if days_elapsed >= 5:  # Evaluation window (approx 1 week)
+                        initial_price = row["initial_price"]
                         price_1w = current_price
                         return_1w = (price_1w - initial_price) / initial_price
-                        decision = row['decision']
+                        decision = row["decision"]
 
                         # Determine Outcome
                         outcome = "NEUTRAL"
                         if decision == "BUY":
-                            outcome = "SUCCESS" if return_1w > 0.02 else "FAILURE" if return_1w < -0.01 else "NEUTRAL"
+                            outcome = (
+                                "SUCCESS"
+                                if return_1w > 0.02
+                                else "FAILURE"
+                                if return_1w < -0.01
+                                else "NEUTRAL"
+                            )
                         elif decision == "SELL":
-                            outcome = "SUCCESS" if return_1w < -0.02 else "FAILURE" if return_1w > 0.01 else "NEUTRAL"
+                            outcome = (
+                                "SUCCESS"
+                                if return_1w < -0.02
+                                else "FAILURE"
+                                if return_1w > 0.01
+                                else "NEUTRAL"
+                            )
 
-                        cursor.execute("""
+                        cursor.execute(
+                            """
                             UPDATE decision_feedback 
                             SET price_1w = ?, return_1w = ?, outcome = ?
                             WHERE id = ?
-                        """, (price_1w, return_1w, outcome, row['id']))
+                        """,
+                            (price_1w, return_1w, outcome, row["id"]),
+                        )
                 conn.commit()
         except Exception as e:
             logger.error(f"Failed to update outcomes: {e}")
 
-    def get_lessons_for_ticker(self, ticker: str, limit: int = 5) -> List[Dict[str, Any]]:
+    def get_lessons_for_ticker(
+        self, ticker: str, limit: int = 5
+    ) -> List[Dict[str, Any]]:
         """Retrieves past lessons learned for a specific ticker or similar setups."""
         try:
             with sqlite3.connect(self.db_path) as conn:
                 conn.row_factory = sqlite3.Row
                 cursor = conn.cursor()
-                cursor.execute("""
+                cursor.execute(
+                    """
                     SELECT * FROM decision_feedback 
                     WHERE ticker = ? AND outcome IS NOT NULL
                     ORDER BY timestamp DESC LIMIT ?
-                """, (ticker, limit))
+                """,
+                    (ticker, limit),
+                )
                 return [dict(row) for row in cursor.fetchall()]
         except Exception as e:
             logger.error(f"Failed to get lessons: {e}")
@@ -119,11 +162,14 @@ class FeedbackStore:
             with sqlite3.connect(self.db_path) as conn:
                 conn.row_factory = sqlite3.Row
                 cursor = conn.cursor()
-                cursor.execute("""
+                cursor.execute(
+                    """
                     SELECT * FROM decision_feedback 
                     WHERE outcome = 'FAILURE'
                     ORDER BY timestamp DESC LIMIT ?
-                """, (limit,))
+                """,
+                    (limit,),
+                )
                 return [dict(row) for row in cursor.fetchall()]
         except Exception as e:
             logger.error(f"Failed to get failures: {e}")

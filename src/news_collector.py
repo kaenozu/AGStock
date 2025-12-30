@@ -58,8 +58,13 @@ class NewsCollector:
                         "source": "Yahoo Finance",
                         "title": entry.title,
                         "link": entry.link,
-                        "published": entry.get("published", datetime.datetime.now().strftime("%Y-%m-%d %H:%M")),
-                        "summary": entry.get("summary", ""),  # specific to ticker if scraping, but RSS usually generic
+                        "published": entry.get(
+                            "published",
+                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+                        ),
+                        "summary": entry.get(
+                            "summary", ""
+                        ),  # specific to ticker if scraping, but RSS usually generic
                     }
                 )
         except Exception as e:
@@ -72,7 +77,9 @@ class NewsCollector:
         # Sort by date if possible (though RSS format varies)
         return all_news[:limit]
 
-    def fetch_news_for_ticker(self, ticker: str, limit: int = 5) -> List[Dict[str, str]]:
+    def fetch_news_for_ticker(
+        self, ticker: str, limit: int = 5
+    ) -> List[Dict[str, str]]:
         """
         Fetches news specific to a ticker using yfinance.
         """
@@ -83,20 +90,27 @@ class NewsCollector:
                 return cached_data
 
         import yfinance as yf
+
         all_news = []
         try:
             yf_ticker = yf.Ticker(ticker)
             yf_news = yf_ticker.news
-            
+
             for item in yf_news[:limit]:
-                all_news.append({
-                    "source": item.get("publisher", "Unknown"),
-                    "title": item.get("title", "No Title"),
-                    "link": item.get("link", ""),
-                    "published": datetime.datetime.fromtimestamp(item.get("providerPublishTime", 0)).strftime("%Y-%m-%d %H:%M") if item.get("providerPublishTime") else "Unknown",
-                    "summary": item.get("summary", ""),
-                    "type": item.get("type", "STORY")
-                })
+                all_news.append(
+                    {
+                        "source": item.get("publisher", "Unknown"),
+                        "title": item.get("title", "No Title"),
+                        "link": item.get("link", ""),
+                        "published": datetime.datetime.fromtimestamp(
+                            item.get("providerPublishTime", 0)
+                        ).strftime("%Y-%m-%d %H:%M")
+                        if item.get("providerPublishTime")
+                        else "Unknown",
+                        "summary": item.get("summary", ""),
+                        "type": item.get("type", "STORY"),
+                    }
+                )
         except Exception as e:
             logger.error(f"Error fetching yfinance news for {ticker}: {e}")
 

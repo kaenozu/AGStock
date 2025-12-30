@@ -71,7 +71,12 @@ class MixtureOfExperts:
             signals = expert.generate_signals(df)
 
             if signals.empty:
-                return {"action": "HOLD", "confidence": 0.0, "reason": f"{expert_name}: データ不足", "regime": regime}
+                return {
+                    "action": "HOLD",
+                    "confidence": 0.0,
+                    "reason": f"{expert_name}: データ不足",
+                    "regime": regime,
+                }
 
             last_signal = signals.iloc[-1]
             latest_price = df["Close"].iloc[-1]
@@ -97,7 +102,12 @@ class MixtureOfExperts:
 
         except Exception as e:
             logger.error(f"MoE Error ({ticker}): {e}")
-            return {"action": "HOLD", "confidence": 0.0, "reason": f"MoE エラー: {e}", "regime": "error"}
+            return {
+                "action": "HOLD",
+                "confidence": 0.0,
+                "reason": f"MoE エラー: {e}",
+                "regime": "error",
+            }
 
 
 # --- 個別専門家クラス定義 ---

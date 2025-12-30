@@ -55,7 +55,9 @@ class CostOptimizer:
             broker: 証券会社（"sbi", "rakuten", "matsui"）
         """
         if broker not in self.BROKER_FEES:
-            raise ValueError(f"Unknown broker: {broker}. Choose from {list(self.BROKER_FEES.keys())}")
+            raise ValueError(
+                f"Unknown broker: {broker}. Choose from {list(self.BROKER_FEES.keys())}"
+            )
 
         self.broker = broker
         self.broker_config = self.BROKER_FEES[broker]
@@ -123,7 +125,9 @@ class CostOptimizer:
             "total_cost": total_cost,
         }
 
-    def should_take_profit(self, position: Dict, current_price: float) -> Tuple[bool, str]:
+    def should_take_profit(
+        self, position: Dict, current_price: float
+    ) -> Tuple[bool, str]:
         """
         利確すべきか判断（手数料考慮）
 
@@ -158,7 +162,10 @@ class CostOptimizer:
         elif net_return > 0.03:  # 純利益3%以上
             return True, f"利確可（純利益: {net_return:.2%}）"
         elif gross_profit > 0 and net_profit < 0:  # 含み益あるが手数料負け
-            return False, f"手数料負けのため保留（含み益: {gross_profit:,.0f}円, 手数料: {sell_fee:,.0f}円）"
+            return (
+                False,
+                f"手数料負けのため保留（含み益: {gross_profit:,.0f}円, 手数料: {sell_fee:,.0f}円）",
+            )
         else:
             return False, f"継続保有（純利益: {net_return:.2%}）"
 

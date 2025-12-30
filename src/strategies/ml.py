@@ -83,7 +83,11 @@ class MLStrategy(Strategy):
 
     def get_signal_explanation(self, signal: int) -> str:
         if signal == 1:
-            return "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
+            return (
+                "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
+            )
         elif signal == -1:
-            return "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+            return (
+                "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"
+            )
         return "AIによる明確な予測は出ていません。"

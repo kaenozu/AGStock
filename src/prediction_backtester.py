@@ -20,7 +20,9 @@ class PredictionBacktester:
     def __init__(self):
         self.predictor = EnhancedEnsemblePredictor()
 
-    def run_backtest(self, ticker: str, start_date: str, end_date: str, prediction_days: int = 5) -> Dict:
+    def run_backtest(
+        self, ticker: str, start_date: str, end_date: str, prediction_days: int = 5
+    ) -> Dict:
         """
         指定期間で予測のバックテストを実行
 
@@ -53,7 +55,7 @@ class PredictionBacktester:
             # インデックスを確実にナイーブにする
             if df.index.tz is not None:
                 df.index = df.index.tz_localize(None)
-            
+
             # バックテスト期間内の各日で予測を実行
             predictions = []
 
@@ -62,42 +64,63 @@ class PredictionBacktester:
 
             for test_date in test_dates:
                 try:
-                    test_date_naive = test_date.tz_localize(None) if test_date.tz else test_date
-                    logger.info(f"Processing backtest loop for test_date: {test_date_naive}")
-                    
+                    test_date_naive = (
+                        test_date.tz_localize(None) if test_date.tz else test_date
+                    )
+                    logger.info(
+                        f"Processing backtest loop for test_date: {test_date_naive}"
+                    )
+
                     historical_data = df[df.index < test_date_naive]
                     logger.info(f"Historical data size: {len(historical_data)}")
 
                     if len(historical_data) < 50:
-                        logger.warning(f"Insufficient historical data for {test_date_naive}: {len(historical_data)} rows. Skipping.")
-                        continue 
+                        logger.warning(
+                            f"Insufficient historical data for {test_date_naive}: {len(historical_data)} rows. Skipping."
+                        )
+                        continue
 
                     # 予測実行
                     result = self.predictor.predict_trajectory(
-                        historical_data, days_ahead=prediction_days, ticker=ticker, fundamentals=fundamentals
+                        historical_data,
+                        days_ahead=prediction_days,
+                        ticker=ticker,
+                        fundamentals=fundamentals,
                     )
 
                     if "error" in result:
-                        logger.warning(f"Prediction failed for {test_date_naive}: {result['error']}")
+                        logger.warning(
+                            f"Prediction failed for {test_date_naive}: {result['error']}"
+                        )
                         continue
 
                     # 実際の結果を取得
                     future_date = test_date_naive + timedelta(days=prediction_days)
-                    future_data = df[(df.index >= test_date_naive) & (df.index <= future_date)]
-                    
-                    logger.info(f"Future data size (for validation): {len(future_data)} (Goal: {prediction_days})")
+                    future_data = df[
+                        (df.index >= test_date_naive) & (df.index <= future_date)
+                    ]
+
+                    logger.info(
+                        f"Future data size (for validation): {len(future_data)} (Goal: {prediction_days})"
+                    )
 
                     if len(future_data) < prediction_days:
-                        logger.warning(f"Insufficient future data for validation at {test_date_naive}. Skipping.")
-                        continue 
+                        logger.warning(
+                            f"Insufficient future data for validation at {test_date_naive}. Skipping."
+                        )
+                        continue
 
                     # 予測値と実際の値を記録
                     predicted_price = result["predictions"][-1]
                     actual_price = future_data["Close"].iloc[-1]
                     current_price = historical_data["Close"].iloc[-1]
 
-                    predicted_change_pct = (predicted_price - current_price) / current_price * 100
-                    actual_change_pct = (actual_price - current_price) / current_price * 100
+                    predicted_change_pct = (
+                        (predicted_price - current_price) / current_price * 100
+                    )
+                    actual_change_pct = (
+                        (actual_price - current_price) / current_price * 100
+                    )
 
                     predictions.append(
                         {
@@ -108,11 +131,17 @@ class PredictionBacktester:
                             "predicted_change_pct": predicted_change_pct,
                             "actual_change_pct": actual_change_pct,
                             "predicted_trend": result["trend"],
-                            "actual_trend": "UP" if actual_change_pct > 1 else "DOWN" if actual_change_pct < -1 else "FLAT",
+                            "actual_trend": "UP"
+                            if actual_change_pct > 1
+                            else "DOWN"
+                            if actual_change_pct < -1
+                            else "FLAT",
                             "models_used": result["details"].get("models_used", []),
                             "trend_votes": result["details"].get("trend_votes", {}),
                             "fundamental_score": (
-                                result["details"].get("fundamental", {}).get("score", None)
+                                result["details"]
+                                .get("fundamental", {})
+                                .get("score", None)
                                 if result["details"].get("fundamental")
                                 else None
                             ),
@@ -131,7 +160,9 @@ class PredictionBacktester:
             # 株価データを辞書リストに変換
             historical_prices = df[["Open", "High", "Low", "Close"]].reset_index()
             historical_prices.columns = ["date", "open", "high", "low", "close"]
-            historical_prices["date"] = historical_prices["date"].dt.strftime("%Y-%m-%d")
+            historical_prices["date"] = historical_prices["date"].dt.strftime(
+                "%Y-%m-%d"
+            )
             historical_data = historical_prices.to_dict("records")
 
             return {
@@ -148,6 +179,7 @@ class PredictionBacktester:
         except Exception as e:
             logger.error(f"Backtest error: {e}")
             import traceback
+
             traceback.print_exc()
             return {"error": str(e)}
 
@@ -156,14 +188,28 @@ class PredictionBacktester:
         予測精度の指標を計算
         """
         # 方向性の正解率（UP/DOWN/FLATが一致したか）
-        direction_correct = sum(1 for p in predictions if p["predicted_trend"] == p["actual_trend"])
+        direction_correct = sum(
+            1 for p in predictions if p["predicted_trend"] == p["actual_trend"]
+        )
         direction_accuracy = direction_correct / len(predictions) * 100
 
         # 平均絶対誤差（MAE）
-        mae = np.mean([abs(p["predicted_change_pct"] - p["actual_change_pct"]) for p in predictions])
+        mae = np.mean(
+            [
+                abs(p["predicted_change_pct"] - p["actual_change_pct"])
+                for p in predictions
+            ]
+        )
 
         # 平均二乗誤差の平方根（RMSE）
-        rmse = np.sqrt(np.mean([(p["predicted_change_pct"] - p["actual_change_pct"]) ** 2 for p in predictions]))
+        rmse = np.sqrt(
+            np.mean(
+                [
+                    (p["predicted_change_pct"] - p["actual_change_pct"]) ** 2
+                    for p in predictions
+                ]
+            )
+        )
 
         # 予測に従って取引した場合のWin Rate
         # UP予測で実際UP、またはDOWN予測で実際DOWN
@@ -175,11 +221,19 @@ class PredictionBacktester:
         )
 
         # FLAT予測は除外
-        tradable_predictions = [p for p in predictions if p["predicted_trend"] != "FLAT"]
-        win_rate = (profitable_trades / len(tradable_predictions) * 100) if tradable_predictions else 0
+        tradable_predictions = [
+            p for p in predictions if p["predicted_trend"] != "FLAT"
+        ]
+        win_rate = (
+            (profitable_trades / len(tradable_predictions) * 100)
+            if tradable_predictions
+            else 0
+        )
 
         # 信頼区間（95%）
-        errors = [p["predicted_change_pct"] - p["actual_change_pct"] for p in predictions]
+        errors = [
+            p["predicted_change_pct"] - p["actual_change_pct"] for p in predictions
+        ]
         confidence_interval = 1.96 * np.std(errors)
 
         return {

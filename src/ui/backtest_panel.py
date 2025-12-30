@@ -7,8 +7,12 @@ import streamlit as st
 
 from src.backtest_engine import HistoricalBacktester
 from src.constants import MARKETS, TICKER_NAMES
-from src.strategies import (BollingerBandsStrategy, CombinedStrategy,
-                            DividendStrategy, RSIStrategy)
+from src.strategies import (
+    BollingerBandsStrategy,
+    CombinedStrategy,
+    DividendStrategy,
+    RSIStrategy,
+)
 
 
 def render_backtest_panel(sidebar_config):
@@ -25,19 +29,29 @@ def render_backtest_panel(sidebar_config):
     col1, col2, col3 = st.columns(3)
     with col1:
         hist_ticker = st.selectbox(
-            "検証銘柄", ticker_list, format_func=lambda x: f"{x} - {TICKER_NAMES.get(x, '')}", key="hist_ticker"
+            "検証銘柄",
+            ticker_list,
+            format_func=lambda x: f"{x} - {TICKER_NAMES.get(x, '')}",
+            key="hist_ticker",
         )
     with col2:
         hist_strategy = st.selectbox(
             "戦略",
-            ["RSIStrategy", "BollingerBandsStrategy", "CombinedStrategy", "DividendStrategy"],
+            [
+                "RSIStrategy",
+                "BollingerBandsStrategy",
+                "CombinedStrategy",
+                "DividendStrategy",
+            ],
             key="hist_strategy",
         )
     with col3:
         hist_years = st.slider("検証期間 (年)", 1, 10, 10, key="hist_years")
 
     if st.button("検証開始", type="primary", key="run_hist_btn"):
-        with st.spinner(f"{hist_ticker} の過去{hist_years}年間のデータを取得・検証中..."):
+        with st.spinner(
+            f"{hist_ticker} の過去{hist_years}年間のデータを取得・検証中..."
+        ):
             try:
                 strategy_map = {
                     "RSIStrategy": RSIStrategy,
@@ -51,7 +65,9 @@ def render_backtest_panel(sidebar_config):
                 # Assuming run_test instantiates it.
 
                 hb = HistoricalBacktester()
-                results = hb.run_test(hist_ticker, strategy_map[hist_strategy], years=hist_years)
+                results = hb.run_test(
+                    hist_ticker, strategy_map[hist_strategy], years=hist_years
+                )
 
                 if "error" in results:
                     st.error(f"エラー: {results['error']}")
@@ -59,9 +75,17 @@ def render_backtest_panel(sidebar_config):
                     # Metrics
                     st.markdown("### 📊 検証結果")
                     m1, m2, m3, m4 = st.columns(4)
-                    m1.metric("CAGR (年平均成長率)", f"{results['cagr']:.2%}", help="複利計算による年平均リターン")
+                    m1.metric(
+                        "CAGR (年平均成長率)",
+                        f"{results['cagr']:.2%}",
+                        help="複利計算による年平均リターン",
+                    )
                     m2.metric("総リターン", f"{results['total_return']:.2%}")
-                    m3.metric("最大ドローダウン", f"{results['max_drawdown']:.2%}", help="資産の最大下落率")
+                    m3.metric(
+                        "最大ドローダウン",
+                        f"{results['max_drawdown']:.2%}",
+                        help="資産の最大下落率",
+                    )
                     m4.metric("勝率", f"{results['win_rate']:.1%}")
 
                     # Benchmark Comparison

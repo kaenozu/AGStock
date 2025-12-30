@@ -28,25 +28,50 @@ try:
     import tensorflow as tf
     from tensorflow import keras
     from tensorflow.keras import layers
+
     TF_AVAILABLE = True
 except ImportError:
     logger.warning("TensorFlow not available. Advanced models will not be usable.")
     TF_AVAILABLE = False
+
     # Define mocks to allow class definition without errors
     class MockKeras:
-        class Model: pass
+        class Model:
+            pass
+
     keras = MockKeras
+
     class MockLayers:
-        class Layer: pass
-        class LSTM: pass
-        class Dense: pass
-        class Dropout: pass
-        class Conv1D: pass
-        class MaxPooling1D: pass
-        class GlobalMaxPooling1D: pass
-        class GlobalAveragePooling1D: pass
-        class BatchNormalization: pass
-        def __getattr__(self, name): return object
+        class Layer:
+            pass
+
+        class LSTM:
+            pass
+
+        class Dense:
+            pass
+
+        class Dropout:
+            pass
+
+        class Conv1D:
+            pass
+
+        class MaxPooling1D:
+            pass
+
+        class GlobalMaxPooling1D:
+            pass
+
+        class GlobalAveragePooling1D:
+            pass
+
+        class BatchNormalization:
+            pass
+
+        def __getattr__(self, name):
+            return object
+
     layers = MockLayers()
 
 warnings.filterwarnings("ignore")
@@ -65,7 +90,12 @@ class AttentionLayer(layers.Layer):
             initializer="random_normal",
             trainable=True,
         )
-        self.b = self.add_weight(name="attention_bias", shape=(input_shape[-1],), initializer="zeros", trainable=True)
+        self.b = self.add_weight(
+            name="attention_bias",
+            shape=(input_shape[-1],),
+            initializer="zeros",
+            trainable=True,
+        )
         super(AttentionLayer, self).build(input_shape)
 
     def call(self, x):
@@ -81,7 +111,12 @@ class AttentionLSTM(keras.Model):
     """Attention付きLSTMモデル"""
 
     def __init__(
-        self, input_dim: int = 10, hidden_dim: int = 50, num_layers: int = 2, dropout: float = 0.2, forecast_horizon: int = 5
+        self,
+        input_dim: int = 10,
+        hidden_dim: int = 50,
+        num_layers: int = 2,
+        dropout: float = 0.2,
+        forecast_horizon: int = 5,
     ):
         super(AttentionLSTM, self).__init__()
 
@@ -94,7 +129,12 @@ class AttentionLSTM(keras.Model):
         for i in range(num_layers):
             return_sequences = True if i < num_layers - 1 else False
             self.lstm_layers.append(
-                layers.LSTM(hidden_dim, return_sequences=return_sequences, dropout=dropout, recurrent_dropout=dropout)
+                layers.LSTM(
+                    hidden_dim,
+                    return_sequences=return_sequences,
+                    dropout=dropout,
+                    recurrent_dropout=dropout,
+                )
             )
 
         # Attentionレイヤー
@@ -142,8 +182,18 @@ class CNNLSTMHybrid(keras.Model):
         self.forecast_horizon = forecast_horizon
 
         # CNN部分
-        self.cnn1 = layers.Conv1D(filters=cnn_filters, kernel_size=cnn_kernel_size, activation="relu", padding="same")
-        self.cnn2 = layers.Conv1D(filters=cnn_filters, kernel_size=cnn_kernel_size, activation="relu", padding="same")
+        self.cnn1 = layers.Conv1D(
+            filters=cnn_filters,
+            kernel_size=cnn_kernel_size,
+            activation="relu",
+            padding="same",
+        )
+        self.cnn2 = layers.Conv1D(
+            filters=cnn_filters,
+            kernel_size=cnn_kernel_size,
+            activation="relu",
+            padding="same",
+        )
         self.pool = layers.MaxPooling1D(pool_size=2)
         self.dropout_cnn = layers.Dropout(dropout)
 
@@ -180,7 +230,12 @@ class MultiStepPredictor(keras.Model):
     """多段階予測モデル"""
 
     def __init__(
-        self, input_dim: int = 10, hidden_dim: int = 50, num_layers: int = 2, dropout: float = 0.2, forecast_horizon: int = 5
+        self,
+        input_dim: int = 10,
+        hidden_dim: int = 50,
+        num_layers: int = 2,
+        dropout: float = 0.2,
+        forecast_horizon: int = 5,
     ):
         super(MultiStepPredictor, self).__init__()
 
@@ -193,7 +248,9 @@ class MultiStepPredictor(keras.Model):
         # 各ステップのデコーダー
         self.decoders = []
         for _ in range(forecast_horizon):
-            decoder_lstm = layers.LSTM(hidden_dim, return_sequences=False, dropout=dropout)
+            decoder_lstm = layers.LSTM(
+                hidden_dim, return_sequences=False, dropout=dropout
+            )
             decoder_dense = layers.Dense(1)
             self.decoders.append((decoder_lstm, decoder_dense))
 
@@ -284,8 +341,12 @@ class NBEATS(keras.Model):
         for stack_type in stack_types:
             stack_blocks = []
             for _ in range(num_blocks):
-                thetas_dim = forecast_size if stack_type == "seasonal" else forecast_size
-                block = NBEATSBlock(units=units, thetas_dim=thetas_dim, num_layers=num_layers)
+                thetas_dim = (
+                    forecast_size if stack_type == "seasonal" else forecast_size
+                )
+                block = NBEATSBlock(
+                    units=units, thetas_dim=thetas_dim, num_layers=num_layers
+                )
                 stack_blocks.append(block)
             self.blocks.append(stack_blocks)
 
@@ -316,7 +377,12 @@ class EnhancedLSTM(keras.Model):
     """高度なLSTMアーキテクチャ"""
 
     def __init__(
-        self, input_dim: int = 10, hidden_dim: int = 64, num_layers: int = 3, dropout: float = 0.2, forecast_horizon: int = 5
+        self,
+        input_dim: int = 10,
+        hidden_dim: int = 64,
+        num_layers: int = 3,
+        dropout: float = 0.2,
+        forecast_horizon: int = 5,
     ):
         super(EnhancedLSTM, self).__init__()
 
@@ -383,7 +449,7 @@ class AdvancedModels:
 
     def __init__(self):
         self.model = None
-        self.lookback = 30 # Default lookback
+        self.lookback = 30  # Default lookback
         self.input_shape = None
 
     def prepare_models(self, X, y):
@@ -392,59 +458,67 @@ class AdvancedModels:
         # X is (samples, features)
         n_features = X.shape[1] if hasattr(X, "shape") else 10
         self.input_shape = (self.lookback, n_features)
-        
+
         # Build one representative model
-        self.model = self.build_enhanced_lstm(input_shape=self.input_shape, forecast_horizon=1) # Predicting 1 step ahead (next return)
+        self.model = self.build_enhanced_lstm(
+            input_shape=self.input_shape, forecast_horizon=1
+        )  # Predicting 1 step ahead (next return)
 
     def fit(self, X, y):
         """モデル学習"""
         if self.model is None:
             self.prepare_models(X, y)
-        
+
         # Create sequences
         X_seq, y_seq = [], []
-        
+
         X_np = X.values if hasattr(X, "values") else X
         y_np = y.values if hasattr(y, "values") else y
-        
+
         if len(X_np) <= self.lookback:
             logger.warning("Not enough data for AdvancedModels fit")
             return
 
         for i in range(self.lookback, len(X_np)):
-            X_seq.append(X_np[i-self.lookback:i])
+            X_seq.append(X_np[i - self.lookback : i])
             y_seq.append(y_np[i])
-            
+
         X_seq = np.array(X_seq)
         y_seq = np.array(y_seq)
-        
+
         # Train
         try:
-             self.model.fit(X_seq, y_seq, epochs=10, batch_size=32, verbose=0)
+            self.model.fit(X_seq, y_seq, epochs=10, batch_size=32, verbose=0)
         except Exception as e:
-             logger.warning(f"AdvancedModels fit failed: {e}")
+            logger.warning(f"AdvancedModels fit failed: {e}")
 
     def predict(self, X):
         """予測実行"""
         if self.model is None:
-             return np.zeros(len(X))
-             
+            return np.zeros(len(X))
+
         X_np = X.values if hasattr(X, "values") else X
-        
+
         X_seq = []
         # Need to pad start
         for i in range(len(X_np)):
             if i < self.lookback:
                 # Pad with zeros or repeat start? Zeros for simplicity
                 pad = np.zeros((self.lookback - i, X_np.shape[1]))
-                seq = np.vstack([pad, X_np[:i+1]]) if i > 0 else np.zeros((self.lookback, X_np.shape[1]))
-                 # Wait, if i=0, we need X[-lookback:0]? No, X is history.
-                 # If we are predicting at time i, we use X[i-lookback:i]
-                seq = np.concatenate([np.zeros((self.lookback-(i), X_np.shape[1])), X_np[:i]]) # Using past data only
+                seq = (
+                    np.vstack([pad, X_np[: i + 1]])
+                    if i > 0
+                    else np.zeros((self.lookback, X_np.shape[1]))
+                )
+                # Wait, if i=0, we need X[-lookback:0]? No, X is history.
+                # If we are predicting at time i, we use X[i-lookback:i]
+                seq = np.concatenate(
+                    [np.zeros((self.lookback - (i), X_np.shape[1])), X_np[:i]]
+                )  # Using past data only
                 X_seq.append(seq)
             else:
-                X_seq.append(X_np[i-self.lookback:i])
-        
+                X_seq.append(X_np[i - self.lookback : i])
+
         X_seq = np.array(X_seq)
         # Handle empty
         if len(X_seq) == 0:
@@ -466,20 +540,32 @@ class AdvancedModels:
         return 0.0
 
     @staticmethod
-    def build_attention_lstm(input_shape: Tuple[int, int], forecast_horizon: int = 5) -> keras.Model:
+    def build_attention_lstm(
+        input_shape: Tuple[int, int], forecast_horizon: int = 5
+    ) -> keras.Model:
         """Attention付きLSTMモデルを構築"""
         model = AttentionLSTM(
-            input_dim=input_shape[-1], hidden_dim=64, num_layers=2, dropout=0.2, forecast_horizon=forecast_horizon
+            input_dim=input_shape[-1],
+            hidden_dim=64,
+            num_layers=2,
+            dropout=0.2,
+            forecast_horizon=forecast_horizon,
         )
 
         model.build(input_shape)
 
-        model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001), loss="mse", metrics=["mae"])
+        model.compile(
+            optimizer=keras.optimizers.Adam(learning_rate=0.001),
+            loss="mse",
+            metrics=["mae"],
+        )
 
         return model
 
     @staticmethod
-    def build_cnn_lstm(input_shape: Tuple[int, int], forecast_horizon: int = 5) -> keras.Model:
+    def build_cnn_lstm(
+        input_shape: Tuple[int, int], forecast_horizon: int = 5
+    ) -> keras.Model:
         """CNN-LSTMハイブリッドモデルを構築"""
         model = CNNLSTMHybrid(
             input_dim=input_shape[-1],
@@ -492,25 +578,41 @@ class AdvancedModels:
 
         model.build(input_shape)
 
-        model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001), loss="mse", metrics=["mae"])
+        model.compile(
+            optimizer=keras.optimizers.Adam(learning_rate=0.001),
+            loss="mse",
+            metrics=["mae"],
+        )
 
         return model
 
     @staticmethod
-    def build_multistep_predictor(input_shape: Tuple[int, int], forecast_horizon: int = 5) -> keras.Model:
+    def build_multistep_predictor(
+        input_shape: Tuple[int, int], forecast_horizon: int = 5
+    ) -> keras.Model:
         """多段階予測モデルを構築"""
         model = MultiStepPredictor(
-            input_dim=input_shape[-1], hidden_dim=64, num_layers=2, dropout=0.2, forecast_horizon=forecast_horizon
+            input_dim=input_shape[-1],
+            hidden_dim=64,
+            num_layers=2,
+            dropout=0.2,
+            forecast_horizon=forecast_horizon,
         )
 
         model.build(input_shape)
 
-        model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001), loss="mse", metrics=["mae"])
+        model.compile(
+            optimizer=keras.optimizers.Adam(learning_rate=0.001),
+            loss="mse",
+            metrics=["mae"],
+        )
 
         return model
 
     @staticmethod
-    def build_nbeats(input_shape: Tuple[int, int], forecast_horizon: int = 5) -> keras.Model:
+    def build_nbeats(
+        input_shape: Tuple[int, int], forecast_horizon: int = 5
+    ) -> keras.Model:
         """N-BEATS風モデルを構築"""
         model = NBEATS(
             input_size=input_shape[-1],
@@ -523,7 +625,11 @@ class AdvancedModels:
 
         model.build(input_shape)
 
-        model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001), loss="mse", metrics=["mae"])
+        model.compile(
+            optimizer=keras.optimizers.Adam(learning_rate=0.001),
+            loss="mse",
+            metrics=["mae"],
+        )
 
         return model
 
@@ -555,15 +661,25 @@ class AdvancedModels:
         return model
 
     @staticmethod
-    def build_enhanced_lstm(input_shape: Tuple[int, int], forecast_horizon: int = 5) -> keras.Model:
+    def build_enhanced_lstm(
+        input_shape: Tuple[int, int], forecast_horizon: int = 5
+    ) -> keras.Model:
         """高度なLSTMモデルを構築"""
         model = EnhancedLSTM(
-            input_dim=input_shape[-1], hidden_dim=64, num_layers=3, dropout=0.2, forecast_horizon=forecast_horizon
+            input_dim=input_shape[-1],
+            hidden_dim=64,
+            num_layers=3,
+            dropout=0.2,
+            forecast_horizon=forecast_horizon,
         )
 
         model.build(input_shape)
 
-        model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001), loss="mse", metrics=["mae"])
+        model.compile(
+            optimizer=keras.optimizers.Adam(learning_rate=0.001),
+            loss="mse",
+            metrics=["mae"],
+        )
 
         return model
 

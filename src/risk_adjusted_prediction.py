@@ -54,7 +54,9 @@ class BayesianUncertaintyEstimator:
         if self.is_monte_carlo_dropout and isinstance(self.model, keras.Model):
             # モックドロップアウトによる不確実性推定
             for _ in range(self.n_samples):
-                pred = self.model(X, training=True)  # training=Trueでドロップアウトを有効化
+                pred = self.model(
+                    X, training=True
+                )  # training=Trueでドロップアウトを有効化
                 predictions.append(pred.numpy())
         else:
             # モックサンプリングによる不確実性推定（RandomForest等）
@@ -63,7 +65,12 @@ class BayesianUncertaintyEstimator:
                     # モックサンプルの予測（各推定器から）
                     if hasattr(self.model, "estimators_"):
                         # RandomForestの場合
-                        pred = np.array([estimator.predict(X) for estimator in self.model.estimators_])
+                        pred = np.array(
+                            [
+                                estimator.predict(X)
+                                for estimator in self.model.estimators_
+                            ]
+                        )
                         pred = np.mean(pred, axis=0)
                     else:
                         # その他のモデル
@@ -132,7 +139,9 @@ class ValueAtRiskCalculator:
             return 0.0
 
         # 履歴リターンからサンプリング
-        simulated_returns = np.random.choice(self.historical_returns, size=n_simulations)
+        simulated_returns = np.random.choice(
+            self.historical_returns, size=n_simulations
+        )
         var = np.percentile(simulated_returns, (1 - self.confidence_level) * 100)
         return var
 
@@ -216,7 +225,11 @@ class RiskAdjustedPredictor:
             base_prediction = np.array([0.01] * investment_horizon)  # ダミー
 
         # 不確実性推定
-        mean_pred, lower_bound, upper_bound = self.uncertainty_estimator.get_prediction_interval(X)
+        (
+            mean_pred,
+            lower_bound,
+            upper_bound,
+        ) = self.uncertainty_estimator.get_prediction_interval(X)
 
         # VaRとCVaRの計算（履歴リターンに基づく）
         self.var_calculator.fit(returns_data)
@@ -224,23 +237,33 @@ class RiskAdjustedPredictor:
         historical_cvar = self.cvar_calculator.calculate_cvar_historical(returns_data)
 
         # シャープ比の計算（リスク調整リターン）
-        expected_return = float(np.mean(base_prediction)) if len(base_prediction) > 0 else 0.0
-        portfolio_volatility = float(np.std(returns_data)) if len(returns_data) > 1 else 0.01  # 0割防止
+        expected_return = (
+            float(np.mean(base_prediction)) if len(base_prediction) > 0 else 0.0
+        )
+        portfolio_volatility = (
+            float(np.std(returns_data)) if len(returns_data) > 1 else 0.01
+        )  # 0割防止
 
         if portfolio_volatility > 0:
-            sharpe_ratio = (expected_return - self.risk_free_rate) / portfolio_volatility
+            sharpe_ratio = (
+                expected_return - self.risk_free_rate
+            ) / portfolio_volatility
         else:
             sharpe_ratio = 0.0
 
         # トレイナー比（Sharpe比の変種）
         excess_return = expected_return - self.risk_free_rate
         if portfolio_volatility > 0:
-            treynor_ratio = excess_return / portfolio_volatility  # 簡略化（ベータ値を使用する方が正確）
+            treynor_ratio = (
+                excess_return / portfolio_volatility
+            )  # 簡略化（ベータ値を使用する方が正確）
         else:
             treynor_ratio = 0.0
 
         # ジュリアノ指標（Sharp比の改良版、下振れリスク重視）
-        downside_returns = returns_data[returns_data < self.risk_free_rate / 252]  # 年率リスクフリーレートを日次に変換
+        downside_returns = returns_data[
+            returns_data < self.risk_free_rate / 252
+        ]  # 年率リスクフリーレートを日次に変換
         if len(downside_returns) > 0:
             downside_deviation = np.std(downside_returns)
             if downside_deviation > 0:
@@ -265,12 +288,22 @@ class RiskAdjustedPredictor:
         adjusted_prediction = [r * risk_factor for r in base_prediction]
 
         return {
-            "base_prediction": base_prediction.tolist() if hasattr(base_prediction, "tolist") else base_prediction,
-            "mean_prediction": float(np.mean(base_prediction)) if len(base_prediction) > 0 else 0.0,
-            "prediction_uncertainty": float(np.std(base_prediction)) if len(base_prediction) > 0 else 0.0,
+            "base_prediction": base_prediction.tolist()
+            if hasattr(base_prediction, "tolist")
+            else base_prediction,
+            "mean_prediction": float(np.mean(base_prediction))
+            if len(base_prediction) > 0
+            else 0.0,
+            "prediction_uncertainty": float(np.std(base_prediction))
+            if len(base_prediction) > 0
+            else 0.0,
             "confidence_interval": {
-                "lower": lower_bound.tolist() if hasattr(lower_bound, "tolist") else lower_bound,
-                "upper": upper_bound.tolist() if hasattr(upper_bound, "tolist") else upper_bound,
+                "lower": lower_bound.tolist()
+                if hasattr(lower_bound, "tolist")
+                else lower_bound,
+                "upper": upper_bound.tolist()
+                if hasattr(upper_bound, "tolist")
+                else upper_bound,
             },
             "var": historical_var,
             "cvar": historical_cvar,
@@ -292,7 +325,9 @@ class RiskAdjustedPredictor:
         # VaRとCVaR
         var_calc = ValueAtRiskCalculator(0.95).fit(returns)
         var_95 = var_calc.calculate_var_historical()
-        cvar_95 = ConditionalValueAtRiskCalculator(0.95).calculate_cvar_historical(returns)
+        cvar_95 = ConditionalValueAtRiskCalculator(0.95).calculate_cvar_historical(
+            returns
+        )
 
         # 総合リスクスコア（独自指標）
         risk_score = (
@@ -309,7 +344,8 @@ class RiskAdjustedPredictor:
             "max_drawdown": self._calculate_max_drawdown(returns),
             "volatility_252d": volatility * np.sqrt(252),  # 年間化ボラティリティ
             "risk_score": risk_score,
-            "return_volatility_ratio": mean_return / (volatility + 1e-8),  # シャープ比の簡易版
+            "return_volatility_ratio": mean_return
+            / (volatility + 1e-8),  # シャープ比の簡易版
         }
 
     def _calculate_max_drawdown(self, returns: np.ndarray) -> float:
@@ -338,7 +374,9 @@ class PortfolioRiskOptimizer:
             asset_volatilities[asset] = vol
 
         # リスク逆数を基にウェイトを計算
-        total_inverse_risk = sum(1 / vol for vol in asset_volatilities.values() if vol > 0)
+        total_inverse_risk = sum(
+            1 / vol for vol in asset_volatilities.values() if vol > 0
+        )
         weights = {}
         for asset, vol in asset_volatilities.items():
             if vol > 0:
@@ -348,7 +386,9 @@ class PortfolioRiskOptimizer:
 
         return weights
 
-    def calculate_portfolio_var(self, weights: Dict[str, float], assets_returns: Dict[str, np.ndarray]) -> float:
+    def calculate_portfolio_var(
+        self, weights: Dict[str, float], assets_returns: Dict[str, np.ndarray]
+    ) -> float:
         """ポートフォリオVaRの計算"""
         # 線形結合したリターンを計算
         combined_returns = np.zeros(len(list(assets_returns.values())[0]))
@@ -373,27 +413,39 @@ class RiskBasedPredictionAdjuster:
         self.risk_predictor = RiskAdjustedPredictor(base_predictor)
 
     def adjust_prediction_by_risk(
-        self, X: np.ndarray, returns_data: np.ndarray, confidence_threshold: float = 0.7, risk_tolerance: float = 0.05
+        self,
+        X: np.ndarray,
+        returns_data: np.ndarray,
+        confidence_threshold: float = 0.7,
+        risk_tolerance: float = 0.05,
     ) -> Dict[str, Any]:
         """リスクに応じた予測調整"""
         # リスク調整予測の実行
-        risk_adjusted_result = self.risk_predictor.predict_with_risk_adjustment(X, returns_data)
+        risk_adjusted_result = self.risk_predictor.predict_with_risk_adjustment(
+            X, returns_data
+        )
 
         # 予測の信頼度に基づく調整
-        confidence = risk_adjusted_result["sharpe_ratio"] / (abs(risk_adjusted_result["sharpe_ratio"]) + 1.0)
+        confidence = risk_adjusted_result["sharpe_ratio"] / (
+            abs(risk_adjusted_result["sharpe_ratio"]) + 1.0
+        )
         if abs(confidence) < confidence_threshold:
             # 信頼度が低い場合は予測を控えめに調整
             adjustment_factor = (abs(confidence) / confidence_threshold) * 0.7
             risk_adjusted_result["risk_adjusted_prediction"] = [
-                p * adjustment_factor for p in risk_adjusted_result["risk_adjusted_prediction"]
+                p * adjustment_factor
+                for p in risk_adjusted_result["risk_adjusted_prediction"]
             ]
 
         # リスク許容度に基づく調整
         if risk_adjusted_result["portfolio_volatility"] > risk_tolerance:
             # リスクが高い場合はリターン予測を控えめに
-            volatility_adjustment = risk_tolerance / risk_adjusted_result["portfolio_volatility"]
+            volatility_adjustment = (
+                risk_tolerance / risk_adjusted_result["portfolio_volatility"]
+            )
             risk_adjusted_result["risk_adjusted_prediction"] = [
-                p * volatility_adjustment for p in risk_adjusted_result["risk_adjusted_prediction"]
+                p * volatility_adjustment
+                for p in risk_adjusted_result["risk_adjusted_prediction"]
             ]
 
         return risk_adjusted_result
@@ -419,7 +471,9 @@ if __name__ == "__main__":
 
     # リスク調整予測器のテスト
     risk_predictor = RiskAdjustedPredictor(mock_predictor)
-    result = risk_predictor.predict_with_risk_adjustment(dummy_features, sample_returns, investment_horizon=5)
+    result = risk_predictor.predict_with_risk_adjustment(
+        dummy_features, sample_returns, investment_horizon=5
+    )
 
     print("Risk-Adjusted Prediction Results:")
     print(f"Base prediction: {result['base_prediction']}")
@@ -437,7 +491,9 @@ if __name__ == "__main__":
 
     # リスクベース予測調整器のテスト
     risk_adjuster = RiskBasedPredictionAdjuster(mock_predictor)
-    adjusted_result = risk_adjuster.adjust_prediction_by_risk(dummy_features, sample_returns)
+    adjusted_result = risk_adjuster.adjust_prediction_by_risk(
+        dummy_features, sample_returns
+    )
     print(f"\nRisk-Adjusted Prediction: {adjusted_result['risk_adjusted_prediction']}")
 
     print("Risk-adjusted prediction components test completed.")

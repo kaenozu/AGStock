@@ -69,14 +69,17 @@ def render_create_alert(manager: AlertManager):
     st.subheader("新規アラート作成")
 
     alert_type = st.selectbox(
-        "アラートタイプ", [AlertType.PRICE.value, AlertType.PORTFOLIO.value, AlertType.CUSTOM.value]
+        "アラートタイプ",
+        [AlertType.PRICE.value, AlertType.PORTFOLIO.value, AlertType.CUSTOM.value],
     )
 
     if alert_type == AlertType.PRICE.value:
         # 価格アラート
         ticker = st.text_input("銘柄コード", value="7203.T")
 
-        condition = st.selectbox("条件", [AlertCondition.ABOVE.value, AlertCondition.BELOW.value])
+        condition = st.selectbox(
+            "条件", [AlertCondition.ABOVE.value, AlertCondition.BELOW.value]
+        )
 
         threshold = st.number_input("閾値（円）", value=1000.0, step=10.0)
 
@@ -86,14 +89,22 @@ def render_create_alert(manager: AlertManager):
         )
 
         if st.button("作成", type="primary"):
-            alert = Alert(type=alert_type, ticker=ticker, condition=condition, threshold=threshold, message=message)
+            alert = Alert(
+                type=alert_type,
+                ticker=ticker,
+                condition=condition,
+                threshold=threshold,
+                message=message,
+            )
             alert_id = manager.create_alert(alert)
             st.success(f"アラートを作成しました (ID: {alert_id})")
             st.rerun()
 
     elif alert_type == AlertType.PORTFOLIO.value:
         # ポートフォリオアラート
-        condition = st.selectbox("条件", [AlertCondition.ABOVE.value, AlertCondition.BELOW.value])
+        condition = st.selectbox(
+            "条件", [AlertCondition.ABOVE.value, AlertCondition.BELOW.value]
+        )
 
         threshold = st.number_input("閾値（%）", value=5.0, step=0.5)
 
@@ -103,7 +114,12 @@ def render_create_alert(manager: AlertManager):
         )
 
         if st.button("作成", type="primary"):
-            alert = Alert(type=alert_type, condition=condition, threshold=threshold, message=message)
+            alert = Alert(
+                type=alert_type,
+                condition=condition,
+                threshold=threshold,
+                message=message,
+            )
             alert_id = manager.create_alert(alert)
             st.success(f"アラートを作成しました (ID: {alert_id})")
             st.rerun()

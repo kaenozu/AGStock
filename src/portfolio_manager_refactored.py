@@ -31,6 +31,7 @@ class PortfolioManager(BaseManager):
     ポートフォリオ管理クラス（リファクタリング版）
 
     責務:
+        pass
     - 相関リスク管理
     - セクター分散管理
     - ポジションサイズ管理
@@ -55,7 +56,10 @@ class PortfolioManager(BaseManager):
         self.logger.info(f"Sector map updated: {len(sector_map)} tickers")
 
     def check_new_position(
-        self, ticker: str, current_portfolio: List[str], correlation_matrix: Optional[pd.DataFrame] = None
+        self,
+        ticker: str,
+        current_portfolio: List[str],
+        correlation_matrix: Optional[pd.DataFrame] = None,
     ) -> tuple[bool, str]:
         """
         新規ポジション追加の可否をチェック
@@ -77,7 +81,9 @@ class PortfolioManager(BaseManager):
             if ticker in correlation_matrix.index:
                 try:
                     correlations = correlation_matrix.loc[ticker, current_portfolio]
-                    high_corr = correlations[correlations > self.constraints.max_correlation]
+                    high_corr = correlations[
+                        correlations > self.constraints.max_correlation
+                    ]
 
                     if not high_corr.empty:
                         reason = f"High correlation with {high_corr.index.tolist()}"
@@ -108,7 +114,9 @@ class PortfolioManager(BaseManager):
 
         return sector_count / len(portfolio)
 
-    def calculate_portfolio_volatility(self, weights: Dict[str, float], cov_matrix: pd.DataFrame) -> float:
+    def calculate_portfolio_volatility(
+        self, weights: Dict[str, float], cov_matrix: pd.DataFrame
+    ) -> float:
         """
         ポートフォリオボラティリティを計算
 
@@ -167,7 +175,9 @@ class PortfolioManager(BaseManager):
 
         # セクター分散
         if self.sector_map:
-            sectors = [self.sector_map.get(t) for t in portfolio if t in self.sector_map]
+            sectors = [
+                self.sector_map.get(t) for t in portfolio if t in self.sector_map
+            ]
             unique_sectors = len(set(sectors))
             sector_score = min(unique_sectors / 10, 1.0)
         else:
@@ -221,7 +231,12 @@ if __name__ == "__main__":
     manager = PortfolioManager(constraints)
 
     # セクターマップ設定
-    sector_map = {"7203.T": "Auto", "6758.T": "Electronics", "9984.T": "Telecom", "8306.T": "Finance"}
+    sector_map = {
+        "7203.T": "Auto",
+        "6758.T": "Electronics",
+        "9984.T": "Telecom",
+        "8306.T": "Finance",
+    }
     manager.set_sector_map(sector_map)
 
     # 分散度スコア

@@ -20,7 +20,9 @@ class BatchInferenceEngine:
         self.max_workers = max_workers
         self.stats = {"total_batches": 0, "total_tickers": 0, "avg_time_per_ticker": 0}
 
-    def predict_batch(self, predictor, data_map: Dict[str, pd.DataFrame], days_ahead: int = 5) -> Dict[str, Dict]:
+    def predict_batch(
+        self, predictor, data_map: Dict[str, pd.DataFrame], days_ahead: int = 5
+    ) -> Dict[str, Dict]:
         """
         複数銘柄を並列で予測
 
@@ -40,7 +42,9 @@ class BatchInferenceEngine:
 
         def predict_one(ticker: str, df: pd.DataFrame) -> tuple:
             try:
-                result = predictor.predict_trajectory(df=df, days_ahead=days_ahead, ticker=ticker)
+                result = predictor.predict_trajectory(
+                    df=df, days_ahead=days_ahead, ticker=ticker
+                )
                 return (ticker, result)
             except Exception as e:
                 logger.error(f"Prediction error for {ticker}: {e}")
@@ -71,12 +75,17 @@ class BatchInferenceEngine:
         if len(data_map) > 0:
             self.stats["avg_time_per_ticker"] = elapsed / len(data_map)
 
-        logger.info(f"Batch prediction completed: {len(results)} tickers in {elapsed:.2f}s")
+        logger.info(
+            f"Batch prediction completed: {len(results)} tickers in {elapsed:.2f}s"
+        )
 
         return results
 
     def rank_predictions(
-        self, predictions: Dict[str, Dict], sort_by: str = "change_pct", ascending: bool = False
+        self,
+        predictions: Dict[str, Dict],
+        sort_by: str = "change_pct",
+        ascending: bool = False,
     ) -> List[tuple]:
         """
         予測結果をランキング
@@ -90,10 +99,14 @@ class BatchInferenceEngine:
             [(ticker, prediction), ...] のリスト（ソート済み）
         """
         valid_predictions = [
-            (ticker, pred) for ticker, pred in predictions.items() if "error" not in pred and sort_by in pred
+            (ticker, pred)
+            for ticker, pred in predictions.items()
+            if "error" not in pred and sort_by in pred
         ]
 
-        sorted_preds = sorted(valid_predictions, key=lambda x: x[1].get(sort_by, 0), reverse=not ascending)
+        sorted_preds = sorted(
+            valid_predictions, key=lambda x: x[1].get(sort_by, 0), reverse=not ascending
+        )
 
         return sorted_preds
 

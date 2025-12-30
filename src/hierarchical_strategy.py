@@ -2,6 +2,7 @@
 Hierarchical Strategy (Multi-Timeframe)
 
 This strategy uses a hierarchical approach:
+    pass
 1. Check long-term trend (Weekly/Monthly)
 2. If long-term is bullish, look for short-term (Daily) buy signals.
 3. If long-term is bearish, avoid buying or look for short opportunities.
@@ -70,14 +71,16 @@ class HierarchicalStrategy(Strategy):
 
             df_mtf["RSI"] = ta.momentum.RSIIndicator(df_mtf["Close"], window=14).rsi()
 
-        # 3. Combine
+            # 3. Combine
 
-        # Buy Signal:
+            # Buy Signal:
+            pass
         # Weekly is Bullish AND (MACD Cross Up OR RSI < 45)
         # Relaxed entry to catch trends
         signals.loc[weekly_bullish & (macd_cross_up | (df_mtf["RSI"] < 45))] = 1
 
         # Sell Signal (Exit Long):
+        #             pass
         # Weekly turns Bearish OR MACD Cross Down (if RSI is high)
         signals.loc[weekly_bearish | (macd_cross_down & (df_mtf["RSI"] > 60))] = -1
 

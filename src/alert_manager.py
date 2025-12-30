@@ -99,7 +99,14 @@ class AlertManager:
             INSERT INTO alerts (type, ticker, condition, threshold, message, enabled)
             VALUES (?, ?, ?, ?, ?, ?)
         """,
-            (alert.type, alert.ticker, alert.condition, alert.threshold, alert.message, alert.enabled),
+            (
+                alert.type,
+                alert.ticker,
+                alert.condition,
+                alert.threshold,
+                alert.message,
+                alert.enabled,
+            ),
         )
 
         alert_id = cursor.lastrowid
@@ -150,11 +157,20 @@ class AlertManager:
 
             should_trigger = False
 
-            if alert.condition == AlertCondition.ABOVE.value and current_price > alert.threshold:
+            if (
+                alert.condition == AlertCondition.ABOVE.value
+                and current_price > alert.threshold
+            ):
                 should_trigger = True
-            elif alert.condition == AlertCondition.BELOW.value and current_price < alert.threshold:
+            elif (
+                alert.condition == AlertCondition.BELOW.value
+                and current_price < alert.threshold
+            ):
                 should_trigger = True
-            elif alert.condition == AlertCondition.EQUALS.value and abs(current_price - alert.threshold) < 0.01:
+            elif (
+                alert.condition == AlertCondition.EQUALS.value
+                and abs(current_price - alert.threshold) < 0.01
+            ):
                 should_trigger = True
 
             if should_trigger:
@@ -163,7 +179,9 @@ class AlertManager:
 
         return triggered_alerts
 
-    def check_portfolio_alert(self, total_equity: float, initial_capital: float) -> List[Alert]:
+    def check_portfolio_alert(
+        self, total_equity: float, initial_capital: float
+    ) -> List[Alert]:
         """ポートフォリオアラートチェック"""
         alerts = self.get_alerts()
         triggered_alerts = []
@@ -176,9 +194,15 @@ class AlertManager:
 
             should_trigger = False
 
-            if alert.condition == AlertCondition.ABOVE.value and pnl_percent > alert.threshold:
+            if (
+                alert.condition == AlertCondition.ABOVE.value
+                and pnl_percent > alert.threshold
+            ):
                 should_trigger = True
-            elif alert.condition == AlertCondition.BELOW.value and pnl_percent < alert.threshold:
+            elif (
+                alert.condition == AlertCondition.BELOW.value
+                and pnl_percent < alert.threshold
+            ):
                 should_trigger = True
 
             if should_trigger:

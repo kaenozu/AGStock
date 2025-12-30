@@ -5,10 +5,11 @@ Phase 29-2: Stacking Ensemble Implementation
 メタモデル（Level 2）で最終予測を行うスタッキングアンサンブルを実装します。
 
 アーキテクチャ:
+    pass
 Level 1: LightGBM, LSTM, Transformer, GRU
-         ↓ (各モデルの予測確率)
+↓ (各モデルの予測確率)
 Level 2: XGBoost Meta-Learner
-         ↓
+↓
 Final Prediction
 """
 
@@ -41,7 +42,9 @@ class StackingEnsemble:
         self.meta_model = None
         self.is_trained = False
 
-        logger.info(f"StackingEnsemble initialized with {len(self.base_models)} base models")
+        logger.info(
+            f"StackingEnsemble initialized with {len(self.base_models)} base models"
+        )
 
     def add_base_model(self, model, name: str):
         """
@@ -54,7 +57,9 @@ class StackingEnsemble:
         self.base_models.append({"model": model, "name": name})
         logger.info(f"Added base model: {name}")
 
-    def _get_base_predictions(self, X: pd.DataFrame, train: bool = False) -> pd.DataFrame:
+    def _get_base_predictions(
+        self, X: pd.DataFrame, train: bool = False
+    ) -> pd.DataFrame:
         """
         Level 1モデルの予測を取得
 
@@ -215,14 +220,16 @@ class StackingEnsemble:
         importance = self.meta_model.feature_importance(importance_type="gain")
         feature_names = self.meta_model.feature_name()
 
-        df = pd.DataFrame({"feature": feature_names, "importance": importance}).sort_values(
-            "importance", ascending=False
-        )
+        df = pd.DataFrame(
+            {"feature": feature_names, "importance": importance}
+        ).sort_values("importance", ascending=False)
 
         return df
 
 
-def create_stacking_ensemble_from_strategies(df: pd.DataFrame, strategies: List) -> StackingEnsemble:
+def create_stacking_ensemble_from_strategies(
+    df: pd.DataFrame, strategies: List
+) -> StackingEnsemble:
     """
     戦略クラスからスタッキングアンサンブルを作成
 
@@ -256,7 +263,9 @@ def create_stacking_ensemble_from_strategies(df: pd.DataFrame, strategies: List)
                 def predict_proba(self, X):
                     # シグナルを確率に変換
                     # 1 (BUY) -> 0.7, -1 (SELL) -> 0.3, 0 (HOLD) -> 0.5
-                    proba = np.where(self.signals == 1, 0.7, np.where(self.signals == -1, 0.3, 0.5))
+                    proba = np.where(
+                        self.signals == 1, 0.7, np.where(self.signals == -1, 0.3, 0.5)
+                    )
                     return proba
 
             wrapper = StrategyWrapper(signals)

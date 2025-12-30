@@ -44,7 +44,11 @@ class MetricsCollector:
         self._business_metrics: Dict[str, Any] = {}
 
     def increment_counter(
-        self, name: str, labels: Optional[Dict[str, str]] = None, value: Union[int, float] = 1, description: str = ""
+        self,
+        name: str,
+        labels: Optional[Dict[str, str]] = None,
+        value: Union[int, float] = 1,
+        description: str = "",
     ):
         """カウンターを増加
 
@@ -61,13 +65,21 @@ class MetricsCollector:
             self._metrics[key].value += value
         else:
             self._metrics[key] = Metric(
-                name=name, type=MetricType.COUNTER, description=description, labels=labels, value=value
+                name=name,
+                type=MetricType.COUNTER,
+                description=description,
+                labels=labels,
+                value=value,
             )
 
         logger.debug(f"Counter {name} incremented by {value}")
 
     def set_gauge(
-        self, name: str, value: Union[int, float], labels: Optional[Dict[str, str]] = None, description: str = ""
+        self,
+        name: str,
+        value: Union[int, float],
+        labels: Optional[Dict[str, str]] = None,
+        description: str = "",
     ):
         """ゲージを設定
 
@@ -81,13 +93,21 @@ class MetricsCollector:
         key = f"{name}_{str(sorted(labels.items()))}"
 
         self._metrics[key] = Metric(
-            name=name, type=MetricType.GAUGE, description=description, labels=labels, value=value
+            name=name,
+            type=MetricType.GAUGE,
+            description=description,
+            labels=labels,
+            value=value,
         )
 
         logger.debug(f"Gauge {name} set to {value}")
 
     def observe_histogram(
-        self, name: str, value: Union[int, float], labels: Optional[Dict[str, str]] = None, description: str = ""
+        self,
+        name: str,
+        value: Union[int, float],
+        labels: Optional[Dict[str, str]] = None,
+        description: str = "",
     ):
         """ヒストグラムに値を追加
 
@@ -108,13 +128,21 @@ class MetricsCollector:
                 self._metrics[key].value = [self._metrics[key].value, value]
         else:
             self._metrics[key] = Metric(
-                name=name, type=MetricType.HISTOGRAM, description=description, labels=labels, value=[value]
+                name=name,
+                type=MetricType.HISTOGRAM,
+                description=description,
+                labels=labels,
+                value=[value],
             )
 
         logger.debug(f"Histogram {name} observed value {value}")
 
     def record_business_metric(
-        self, name: str, value: Any, labels: Optional[Dict[str, str]] = None, description: str = ""
+        self,
+        name: str,
+        value: Any,
+        labels: Optional[Dict[str, str]] = None,
+        description: str = "",
     ):
         """ビジネス指標を記録
 
@@ -134,7 +162,9 @@ class MetricsCollector:
 
         logger.debug(f"Business metric {name} recorded with value {value}")
 
-    def get_metric(self, name: str, labels: Optional[Dict[str, str]] = None) -> Optional[Metric]:
+    def get_metric(
+        self, name: str, labels: Optional[Dict[str, str]] = None
+    ) -> Optional[Metric]:
         """メトリクスを取得
 
         Args:
@@ -198,7 +228,10 @@ def get_global_metrics_collector() -> MetricsCollector:
 
 
 def increment_counter(
-    name: str, labels: Optional[Dict[str, str]] = None, value: Union[int, float] = 1, description: str = ""
+    name: str,
+    labels: Optional[Dict[str, str]] = None,
+    value: Union[int, float] = 1,
+    description: str = "",
 ) -> None:
     """グローバルメトリクスコレクターでカウンターを増加
 
@@ -213,7 +246,10 @@ def increment_counter(
 
 
 def set_gauge(
-    name: str, value: Union[int, float], labels: Optional[Dict[str, str]] = None, description: str = ""
+    name: str,
+    value: Union[int, float],
+    labels: Optional[Dict[str, str]] = None,
+    description: str = "",
 ) -> None:
     """グローバルメトリクスコレクターでゲージを設定
 
@@ -228,7 +264,10 @@ def set_gauge(
 
 
 def observe_histogram(
-    name: str, value: Union[int, float], labels: Optional[Dict[str, str]] = None, description: str = ""
+    name: str,
+    value: Union[int, float],
+    labels: Optional[Dict[str, str]] = None,
+    description: str = "",
 ) -> None:
     """グローバルメトリクスコレクターでヒストグラムに値を追加
 
@@ -243,7 +282,10 @@ def observe_histogram(
 
 
 def record_business_metric(
-    name: str, value: Any, labels: Optional[Dict[str, str]] = None, description: str = ""
+    name: str,
+    value: Any,
+    labels: Optional[Dict[str, str]] = None,
+    description: str = "",
 ) -> None:
     """グローバルメトリクスコレクターでビジネス指標を記録
 
@@ -257,7 +299,9 @@ def record_business_metric(
     collector.record_business_metric(name, value, labels, description)
 
 
-def get_metric_value(name: str, labels: Optional[Dict[str, str]] = None) -> Optional[Union[int, float, list]]:
+def get_metric_value(
+    name: str, labels: Optional[Dict[str, str]] = None
+) -> Optional[Union[int, float, list]]:
     """グローバルメトリクスコレクターからメトリクスの値を取得
 
     Args:
@@ -272,7 +316,9 @@ def get_metric_value(name: str, labels: Optional[Dict[str, str]] = None) -> Opti
     return metric.value if metric else None
 
 
-def time_execution(metric_name: str, labels: Optional[Dict[str, str]] = None, description: str = ""):
+def time_execution(
+    metric_name: str, labels: Optional[Dict[str, str]] = None, description: str = ""
+):
     """実行時間を計測するデコレーター
 
     Args:
@@ -287,7 +333,12 @@ def time_execution(metric_name: str, labels: Optional[Dict[str, str]] = None, de
             try:
                 result = func(*args, **kwargs)
                 execution_time = time.time() - start_time
-                observe_histogram(metric_name, execution_time, labels, f"{description} (Execution Time in seconds)")
+                observe_histogram(
+                    metric_name,
+                    execution_time,
+                    labels,
+                    f"{description} (Execution Time in seconds)",
+                )
                 return result
             except Exception as e:
                 execution_time = time.time() - start_time

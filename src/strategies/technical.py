@@ -15,13 +15,17 @@ class TechnicalStrategy(Strategy):
         """シグナル用のSeriesを作成"""
         return pd.Series(0, index=df.index)
 
-    def _apply_standard_trend_filter(self, df: pd.DataFrame, signals: pd.Series) -> pd.Series:
+    def _apply_standard_trend_filter(
+        self, df: pd.DataFrame, signals: pd.Series
+    ) -> pd.Series:
         """標準的なトレンドフィルターを適用"""
         return self.apply_trend_filter(df, signals)
 
 
 class SMACrossoverStrategy(TechnicalStrategy):
-    def __init__(self, short_window: int = 5, long_window: int = 25, trend_period: int = 200) -> None:
+    def __init__(
+        self, short_window: int = 5, long_window: int = 25, trend_period: int = 200
+    ) -> None:
         super().__init__(f"SMA Crossover ({short_window}/{long_window})", trend_period)
         self.short_window = short_window
         self.long_window = long_window
@@ -36,9 +40,13 @@ class SMACrossoverStrategy(TechnicalStrategy):
         long_sma = df["Close"].rolling(window=self.long_window).mean()
 
         # Golden Cross
-        signals.loc[(short_sma > long_sma) & (short_sma.shift(1) <= long_sma.shift(1))] = 1
+        signals.loc[
+            (short_sma > long_sma) & (short_sma.shift(1) <= long_sma.shift(1))
+        ] = 1
         # Dead Cross
-        signals.loc[(short_sma < long_sma) & (short_sma.shift(1) >= long_sma.shift(1))] = -1
+        signals.loc[
+            (short_sma < long_sma) & (short_sma.shift(1) >= long_sma.shift(1))
+        ] = -1
 
         return self._apply_standard_trend_filter(df, signals)
 
@@ -46,14 +54,18 @@ class SMACrossoverStrategy(TechnicalStrategy):
         if signal == 1:
             return "短期移動平均線が長期移動平均線を上抜けました（ゴールデンクロス）。上昇トレンドの始まりを示唆しています。"
         elif signal == -1:
-            return (
-                "短期移動平均線が長期移動平均線を下抜けました（デッドクロス）。下落トレンドの始まりを示唆しています。"
-            )
+            return "短期移動平均線が長期移動平均線を下抜けました（デッドクロス）。下落トレンドの始まりを示唆しています。"
         return "明確なトレンド転換シグナルは出ていません。"
 
 
 class RSIStrategy(TechnicalStrategy):
-    def __init__(self, period: int = 14, lower: float = 30, upper: float = 70, trend_period: int = 200) -> None:
+    def __init__(
+        self,
+        period: int = 14,
+        lower: float = 30,
+        upper: float = 70,
+        trend_period: int = 200,
+    ) -> None:
         super().__init__(f"RSI ({period}) Reversal", trend_period)
         self.period = period
         self.lower = lower
@@ -88,7 +100,9 @@ class RSIStrategy(TechnicalStrategy):
 
 
 class BollingerBandsStrategy(TechnicalStrategy):
-    def __init__(self, length: int = 20, std: float = 2, trend_period: int = 200) -> None:
+    def __init__(
+        self, length: int = 20, std: float = 2, trend_period: int = 200
+    ) -> None:
         super().__init__(f"Bollinger Bands ({length}, {std})", trend_period)
         self.length = length
         self.std = std
@@ -97,7 +111,9 @@ class BollingerBandsStrategy(TechnicalStrategy):
         if not self._validate_dataframe(df):
             return pd.Series(dtype=int)
 
-        bollinger = ta.volatility.BollingerBands(close=df["Close"], window=self.length, window_dev=self.std)
+        bollinger = ta.volatility.BollingerBands(
+            close=df["Close"], window=self.length, window_dev=self.std
+        )
         lower_band = bollinger.bollinger_lband()
         upper_band = bollinger.bollinger_hband()
 
@@ -119,7 +135,13 @@ class BollingerBandsStrategy(TechnicalStrategy):
 
 
 class CombinedStrategy(TechnicalStrategy):
-    def __init__(self, rsi_period: int = 14, bb_length: int = 20, bb_std: float = 2, trend_period: int = 200) -> None:
+    def __init__(
+        self,
+        rsi_period: int = 14,
+        bb_length: int = 20,
+        bb_std: float = 2,
+        trend_period: int = 200,
+    ) -> None:
         super().__init__("Combined (RSI + BB)", trend_period)
         self.rsi_period = rsi_period
         self.bb_length = bb_length
@@ -133,7 +155,9 @@ class CombinedStrategy(TechnicalStrategy):
         rsi = ta.momentum.RSIIndicator(close=df["Close"], window=self.rsi_period).rsi()
 
         # BB
-        bb = ta.volatility.BollingerBands(close=df["Close"], window=self.bb_length, window_dev=self.bb_std)
+        bb = ta.volatility.BollingerBands(
+            close=df["Close"], window=self.bb_length, window_dev=self.bb_std
+        )
         lower_band = bb.bollinger_lband()
         upper_band = bb.bollinger_hband()
 

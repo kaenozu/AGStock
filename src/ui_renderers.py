@@ -18,21 +18,25 @@ def render_market_ticker_selector(key: str = "main"):
     """
     col1, col2 = st.columns(2)
     with col1:
-        market = st.selectbox("市場を選択", list(MARKETS.keys()), key=f"market_sel_{key}")
-    
+        market = st.selectbox(
+            "市場を選択", list(MARKETS.keys()), key=f"market_sel_{key}"
+        )
+
     tickers_list = get_cached_tickers(market)
     with col2:
         tickers = st.multiselect(
-            "銘柄を選択 (空欄で全銘柄)", 
-            tickers_list, 
+            "銘柄を選択 (空欄で全銘柄)",
+            tickers_list,
             format_func=lambda x: f"{x} {TICKER_NAMES.get(x, '')}",
-            key=f"ticker_sel_{key}"
+            key=f"ticker_sel_{key}",
         )
-    
+
     return market, tickers if tickers else tickers_list
 
 
-def render_performance_tab(ticker_group, selected_market, custom_tickers, currency="JPY"):
+def render_performance_tab(
+    ticker_group, selected_market, custom_tickers, currency="JPY"
+):
     """
     パフォーマンス分析タブのレンダリングロジック
 
@@ -58,7 +62,9 @@ def render_performance_tab(ticker_group, selected_market, custom_tickers, curren
 
         if not cumulative_pnl.empty:
             # Benchmark comparison
-            benchmark_data = analyzer.compare_with_benchmark(benchmark_ticker="^N225", days=365)
+            benchmark_data = analyzer.compare_with_benchmark(
+                benchmark_ticker="^N225", days=365
+            )
 
             if benchmark_data:
                 fig_comparison = go.Figure()
@@ -94,7 +100,9 @@ def render_performance_tab(ticker_group, selected_market, custom_tickers, curren
                     xaxis_title="日付",
                     yaxis_title="リターン (%)",
                     hovermode="x unified",
-                    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+                    legend=dict(
+                        orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
+                    ),
                 )
                 st.plotly_chart(fig_comparison, use_container_width=True)
             else:
@@ -118,9 +126,15 @@ def render_performance_tab(ticker_group, selected_market, custom_tickers, curren
         if not strategy_perf.empty:
             # Format for display
             display_strat = strategy_perf.copy()
-            display_strat["win_rate"] = display_strat["win_rate"].apply(lambda x: f"{x:.1%}")
-            display_strat["avg_profit"] = display_strat["avg_profit"].apply(lambda x: f"{x:+.2f}%")
-            display_strat["total_pnl"] = display_strat["total_pnl"].apply(lambda x: f"{x:+.2f}%")
+            display_strat["win_rate"] = display_strat["win_rate"].apply(
+                lambda x: f"{x:.1%}"
+            )
+            display_strat["avg_profit"] = display_strat["avg_profit"].apply(
+                lambda x: f"{x:+.2f}%"
+            )
+            display_strat["total_pnl"] = display_strat["total_pnl"].apply(
+                lambda x: f"{x:+.2f}%"
+            )
             display_strat.columns = ["戦略", "取引回数", "勝率", "平均利益率", "総損益"]
 
             st.dataframe(display_strat, use_container_width=True)
@@ -136,19 +150,31 @@ def render_performance_tab(ticker_group, selected_market, custom_tickers, curren
 
             with col1:
                 st.markdown("**🚀 トップ5銘柄**")
-                top5 = ticker_perf.nlargest(5, "total_pnl")[["ticker", "trades", "avg_profit", "total_pnl"]]
+                top5 = ticker_perf.nlargest(5, "total_pnl")[
+                    ["ticker", "trades", "avg_profit", "total_pnl"]
+                ]
                 top5_display = top5.copy()
-                top5_display["avg_profit"] = top5_display["avg_profit"].apply(lambda x: f"{x:+.2f}%")
-                top5_display["total_pnl"] = top5_display["total_pnl"].apply(lambda x: f"{x:+.2f}%")
+                top5_display["avg_profit"] = top5_display["avg_profit"].apply(
+                    lambda x: f"{x:+.2f}%"
+                )
+                top5_display["total_pnl"] = top5_display["total_pnl"].apply(
+                    lambda x: f"{x:+.2f}%"
+                )
                 top5_display.columns = ["銘柄", "取引回数", "平均利益", "総損益"]
                 st.dataframe(top5_display, use_container_width=True)
 
             with col2:
                 st.markdown("**📉 ワースト5銘柄**")
-                bottom5 = ticker_perf.nsmallest(5, "total_pnl")[["ticker", "trades", "avg_profit", "total_pnl"]]
+                bottom5 = ticker_perf.nsmallest(5, "total_pnl")[
+                    ["ticker", "trades", "avg_profit", "total_pnl"]
+                ]
                 bottom5_display = bottom5.copy()
-                bottom5_display["avg_profit"] = bottom5_display["avg_profit"].apply(lambda x: f"{x:+.2f}%")
-                bottom5_display["total_pnl"] = bottom5_display["total_pnl"].apply(lambda x: f"{x:+.2f}%")
+                bottom5_display["avg_profit"] = bottom5_display["avg_profit"].apply(
+                    lambda x: f"{x:+.2f}%"
+                )
+                bottom5_display["total_pnl"] = bottom5_display["total_pnl"].apply(
+                    lambda x: f"{x:+.2f}%"
+                )
                 bottom5_display.columns = ["銘柄", "取引回数", "平均利益", "総損益"]
                 st.dataframe(bottom5_display, use_container_width=True)
 
@@ -199,9 +225,15 @@ def render_performance_tab(ticker_group, selected_market, custom_tickers, curren
             for ticker in heatmap_tickers:
                 df = data_map_hm.get(ticker)
                 if df is not None and not df.empty and len(df) > 1:
-                    daily_return = (df["Close"].iloc[-1] - df["Close"].iloc[0]) / df["Close"].iloc[0]
+                    daily_return = (df["Close"].iloc[-1] - df["Close"].iloc[0]) / df[
+                        "Close"
+                    ].iloc[0]
                     returns_data.append(
-                        {"Ticker": ticker, "Name": TICKER_NAMES.get(ticker, ticker), "Return": daily_return}
+                        {
+                            "Ticker": ticker,
+                            "Name": TICKER_NAMES.get(ticker, ticker),
+                            "Return": daily_return,
+                        }
                     )
 
             if returns_data:
@@ -224,14 +256,20 @@ def render_performance_tab(ticker_group, selected_market, custom_tickers, curren
                 col1, col2 = st.columns(2)
                 with col1:
                     st.subheader("🚀 トップ5")
-                    top5 = returns_df.nlargest(5, "Return")[["Ticker", "Name", "Return"]]
+                    top5 = returns_df.nlargest(5, "Return")[
+                        ["Ticker", "Name", "Return"]
+                    ]
                     top5["Return"] = top5["Return"].apply(lambda x: f"{x*100:+.2f}%")
                     st.dataframe(top5, use_container_width=True)
 
                 with col2:
                     st.subheader("📉 ワースト5")
-                    bottom5 = returns_df.nsmallest(5, "Return")[["Ticker", "Name", "Return"]]
-                    bottom5["Return"] = bottom5["Return"].apply(lambda x: f"{x*100:+.2f}%")
+                    bottom5 = returns_df.nsmallest(5, "Return")[
+                        ["Ticker", "Name", "Return"]
+                    ]
+                    bottom5["Return"] = bottom5["Return"].apply(
+                        lambda x: f"{x*100:+.2f}%"
+                    )
                     st.dataframe(bottom5, use_container_width=True)
 
 
@@ -308,8 +346,16 @@ def render_paper_trading_tab():
                 if ticker_input in price_data and not price_data[ticker_input].empty:
                     current_price = price_data[ticker_input]["Close"].iloc[-1]
 
-                    if pt.execute_trade(ticker_input, action_input, qty_input, current_price, reason="Manual"):
-                        st.success(f"{action_input}注文が完了しました: {ticker_input} @ {current_price}")
+                    if pt.execute_trade(
+                        ticker_input,
+                        action_input,
+                        qty_input,
+                        current_price,
+                        reason="Manual",
+                    ):
+                        st.success(
+                            f"{action_input}注文が完了しました: {ticker_input} @ {current_price}"
+                        )
                         st.rerun()
                     else:
                         st.error("注文に失敗しました（資金不足または保有株不足）。")
@@ -324,9 +370,13 @@ def render_paper_trading_tab():
         hist_display = history.copy()
         # timestampカラムがない場合のフォールバック
         if "timestamp" in hist_display.columns:
-            hist_display["timestamp"] = pd.to_datetime(hist_display["timestamp"]).dt.strftime("%Y-%m-%d %H:%M")
+            hist_display["timestamp"] = pd.to_datetime(
+                hist_display["timestamp"]
+            ).dt.strftime("%Y-%m-%d %H:%M")
         elif "date" in hist_display.columns:
-            hist_display["date"] = pd.to_datetime(hist_display["date"]).dt.strftime("%Y-%m-%d %H:%M")
+            hist_display["date"] = pd.to_datetime(hist_display["date"]).dt.strftime(
+                "%Y-%m-%d %H:%M"
+            )
 
         st.subheader("取引履歴")
     history = pt.get_trade_history()
@@ -335,9 +385,13 @@ def render_paper_trading_tab():
         hist_display = history.copy()
         # timestampカラムがない場合のフォールバック
         if "timestamp" in hist_display.columns:
-            hist_display["timestamp"] = pd.to_datetime(hist_display["timestamp"]).dt.strftime("%Y-%m-%d %H:%M")
+            hist_display["timestamp"] = pd.to_datetime(
+                hist_display["timestamp"]
+            ).dt.strftime("%Y-%m-%d %H:%M")
         elif "date" in hist_display.columns:
-            hist_display["date"] = pd.to_datetime(hist_display["date"]).dt.strftime("%Y-%m-%d %H:%M")
+            hist_display["date"] = pd.to_datetime(hist_display["date"]).dt.strftime(
+                "%Y-%m-%d %H:%M"
+            )
 
         st.dataframe(hist_display, use_container_width=True)
     else:
@@ -366,17 +420,24 @@ def render_market_scan_tab(
     import os
 
     from src.backtester import Backtester
-    from src.data_loader import (fetch_fundamental_data, fetch_stock_data,
-                                 get_latest_price)
+    from src.data_loader import (
+        fetch_fundamental_data,
+        fetch_stock_data,
+        get_latest_price,
+    )
     from src.formatters import get_risk_level
     from src.paper_trader import PaperTrader
     from src.sentiment import SentimentAnalyzer
-    from src.ui_components import (display_best_pick_card,
-                                   display_error_message,
-                                   display_sentiment_gauge)
+    from src.ui_components import (
+        display_best_pick_card,
+        display_error_message,
+        display_sentiment_gauge,
+    )
 
     st.header("市場全体スキャン")
-    st.write("指定した銘柄群に対して全戦略をバックテストし、有望なシグナルを検出します。")
+    st.write(
+        "指定した銘柄群に対して全戦略をバックテストし、有望なシグナルを検出します。"
+    )
 
     # --- Automation Logic ---
     cached_results = None
@@ -385,20 +446,28 @@ def render_market_scan_tab(
             with open("scan_results.json", "r", encoding="utf-8") as f:
                 data = json.load(f)
                 # Check if data is fresh (e.g., from today)
-                scan_date = datetime.datetime.strptime(data["scan_date"], "%Y-%m-%d %H:%M:%S")
+                scan_date = datetime.datetime.strptime(
+                    data["scan_date"], "%Y-%m-%d %H:%M:%S"
+                )
                 if scan_date.date() == datetime.date.today():
                     cached_results = data
-                    st.success(f"✅ 最新のスキャン結果を読み込みました ({data['scan_date']})")
+                    st.success(
+                        f"✅ 最新のスキャン結果を読み込みました ({data['scan_date']})"
+                    )
         except Exception as e:
             display_error_message(
-                "data", "スキャン結果の読み込みに失敗しました。ファイルが破損している可能性があります。", str(e)
+                "data",
+                "スキャン結果の読み込みに失敗しました。ファイルが破損している可能性があります。",
+                str(e),
             )
 
     run_fresh = False
     # Button logic: If cache exists, button says "Re-scan". If not, "Scan".
     # If button clicked, run_fresh becomes True.
     if st.button(
-        "市場をスキャンして推奨銘柄を探す (再スキャン)" if cached_results else "市場をスキャンして推奨銘柄を探す",
+        "市場をスキャンして推奨銘柄を探す (再スキャン)"
+        if cached_results
+        else "市場をスキャンして推奨銘柄を探す",
         type="primary",
     ):
         run_fresh = True
@@ -453,16 +522,23 @@ def render_market_scan_tab(
 
                 # PER
                 if "PER" in actionable_df.columns:
-                    actionable_df = actionable_df[(actionable_df["PER"].notna()) & (actionable_df["PER"] <= max_per)]
+                    actionable_df = actionable_df[
+                        (actionable_df["PER"].notna())
+                        & (actionable_df["PER"] <= max_per)
+                    ]
 
                 # PBR
                 if "PBR" in actionable_df.columns:
-                    actionable_df = actionable_df[(actionable_df["PBR"].notna()) & (actionable_df["PBR"] <= max_pbr)]
+                    actionable_df = actionable_df[
+                        (actionable_df["PBR"].notna())
+                        & (actionable_df["PBR"] <= max_pbr)
+                    ]
 
                 # ROE
                 if "ROE" in actionable_df.columns:
                     actionable_df = actionable_df[
-                        (actionable_df["ROE"].notna()) & (actionable_df["ROE"] >= min_roe / 100.0)
+                        (actionable_df["ROE"].notna())
+                        & (actionable_df["ROE"] >= min_roe / 100.0)
                     ]
 
                 filtered_count = len(actionable_df)
@@ -476,32 +552,43 @@ def render_market_scan_tab(
             # In production, this should come from the model's probability output.
             def calc_confidence(row):
                 base_conf = 0.5
-                ret_contr = min(0.4, abs(row["Return"]) * 5) # Up to 0.4 from return
+                ret_contr = min(0.4, abs(row["Return"]) * 5)  # Up to 0.4 from return
                 strat_bonus = 0.1 if "LightGBM" in row["Strategy"] else 0.0
-                
+
                 return max(0.0, min(0.99, base_conf + ret_contr + strat_bonus))
 
             if not results_df.empty:
                 results_df["Confidence"] = results_df.apply(calc_confidence, axis=1)
-                
+
                 actionable_df = results_df[results_df["Action"] != "HOLD"].copy()
 
                 # Filters UI
                 col_f1, col_f2 = st.columns(2)
                 with col_f1:
-                    confidence_threshold = st.slider("信頼度スコア (Confidence)", 0.0, 1.0, 0.6, 0.05, key="conf_slider")
+                    confidence_threshold = st.slider(
+                        "信頼度スコア (Confidence)",
+                        0.0,
+                        1.0,
+                        0.6,
+                        0.05,
+                        key="conf_slider",
+                    )
                 with col_f2:
-                    min_return_filter = st.slider("最小予想リターン", 0.0, 0.2, 0.01, 0.005, key="min_ret_slider")
+                    min_return_filter = st.slider(
+                        "最小予想リターン", 0.0, 0.2, 0.01, 0.005, key="min_ret_slider"
+                    )
 
                 # Apply Filters
                 actionable_df = actionable_df[
-                    (actionable_df["Return"] >= min_return_filter) &
-                    (actionable_df["Confidence"] >= confidence_threshold)
+                    (actionable_df["Return"] >= min_return_filter)
+                    & (actionable_df["Confidence"] >= confidence_threshold)
                 ]
-                
+
                 if actionable_df.empty:
-                    st.warning(f"フィルタリングの結果、表示できる銘柄がありません。(Confidence >= {confidence_threshold}, Return >= {min_return_filter})")
-                
+                    st.warning(
+                        f"フィルタリングの結果、表示できる銘柄がありません。(Confidence >= {confidence_threshold}, Return >= {min_return_filter})"
+                    )
+
                 actionable_df = actionable_df.sort_values(by="Return", ascending=False)
 
             # 1. Today's Best Pick
@@ -513,18 +600,17 @@ def render_market_scan_tab(
                 upside = best_pick["Return"]
                 downside = abs(best_pick["Max Drawdown"])
                 risk_reward = upside / downside if downside > 0 else 1.0
-                win_prob = 0.55 # Conservative default
-                kelly = win_prob - (1 - win_prob) / risk_reward if risk_reward > 0 else 0
-                kelly = max(0, kelly) # No negative Kelly
+                win_prob = 0.55  # Conservative default
+                kelly = (
+                    win_prob - (1 - win_prob) / risk_reward if risk_reward > 0 else 0
+                )
+                kelly = max(0, kelly)  # No negative Kelly
 
                 # リスクレベル判定（統一版）
                 risk_level = get_risk_level(best_pick.get("Max Drawdown", -0.15))
 
                 # 追加情報の準備
-                additional_info = {
-                    "Kelly": kelly,
-                    "RiskRatio": risk_reward
-                }
+                additional_info = {"Kelly": kelly, "RiskRatio": risk_reward}
                 if "PER" in best_pick and pd.notna(best_pick["PER"]):
                     additional_info["PER"] = best_pick["PER"]
                 if "PBR" in best_pick and pd.notna(best_pick["PBR"]):
@@ -537,10 +623,16 @@ def render_market_scan_tab(
                     pt = PaperTrader()
                     trade_action = "BUY" if "BUY" in action else "SELL"
                     if pt.execute_trade(
-                        ticker, trade_action, trading_unit, price, reason=f"Best Pick: {best_pick['Strategy']}"
+                        ticker,
+                        trade_action,
+                        trading_unit,
+                        price,
+                        reason=f"Best Pick: {best_pick['Strategy']}",
                     ):
                         st.balloons()
-                        st.success(f"{best_pick['Name']} を {trading_unit}株 {trade_action} しました！")
+                        st.success(
+                            f"{best_pick['Name']} を {trading_unit}株 {trade_action} しました！"
+                        )
                     else:
                         display_error_message(
                             "permission",
@@ -565,7 +657,9 @@ def render_market_scan_tab(
             if "portfolio" in cached_results and cached_results["portfolio"]:
                 st.markdown("---")
                 st.subheader("🤖 AIロボアドバイザー推奨ポートフォリオ")
-                st.info("AIがリスク・リターンを考慮して構築した推奨ポートフォリオです。")
+                st.info(
+                    "AIがリスク・リターンを考慮して構築した推奨ポートフォリオです。"
+                )
 
                 pf_df = pd.DataFrame(cached_results["portfolio"])
                 st.dataframe(pf_df)
@@ -598,11 +692,17 @@ def render_market_scan_tab(
                         st.markdown(f"戦略: {strat_name}")
                     with c4:
                         st.markdown(f"リスク: {r_color} {r_level}")
-                        if st.button("注文", key=f"btn_{row['Ticker']}_{row['Strategy']}"):
+                        if st.button(
+                            "注文", key=f"btn_{row['Ticker']}_{row['Strategy']}"
+                        ):
                             pt = PaperTrader()
                             t_act = "BUY" if row["Action"] == "BUY" else "SELL"
                             if pt.execute_trade(
-                                row["Ticker"], t_act, trading_unit, row["Last Price"], reason=f"Card: {row['Strategy']}"
+                                row["Ticker"],
+                                t_act,
+                                trading_unit,
+                                row["Last Price"],
+                                reason=f"Card: {row['Strategy']}",
                             ):
                                 st.toast(f"{row['Name']} 注文完了！")
 
@@ -617,7 +717,6 @@ def render_market_scan_tab(
     elif run_fresh:
         # === Sentiment Analysis Section ===
         with st.expander("📰 市場センチメント分析", expanded=True):
-
             # Cache SentimentAnalyzer in session state
             if "sentiment_analyzer" not in st.session_state:
                 st.session_state.sentiment_analyzer = SentimentAnalyzer()
@@ -630,16 +729,25 @@ def render_market_scan_tab(
                     sa.save_sentiment_history(sentiment)
                 except Exception as e:
                     display_error_message(
-                        "network", "センチメント分析に失敗しました。ネットワーク接続を確認してください。", str(e)
+                        "network",
+                        "センチメント分析に失敗しました。ネットワーク接続を確認してください。",
+                        str(e),
                     )
-                    sentiment = {"score": 0, "label": "Neutral", "news_count": 0, "top_news": []}
+                    sentiment = {
+                        "score": 0,
+                        "label": "Neutral",
+                        "news_count": 0,
+                        "top_news": [],
+                    }
 
             # Sentiment Display
             display_sentiment_gauge(sentiment["score"], sentiment.get("news_count", 0))
 
             # Sentiment Timeline
             st.subheader("📈 センチメント推移")
-            history_days = st.radio("表示期間", [7, 30], horizontal=True, key="sentiment_history_days")
+            history_days = st.radio(
+                "表示期間", [7, 30], horizontal=True, key="sentiment_history_days"
+            )
             history = sa.get_sentiment_history(days=history_days)
 
             if history:
@@ -657,11 +765,21 @@ def render_market_scan_tab(
                         marker=dict(size=8),
                     )
                 )
-                fig_timeline.add_hline(y=0, line_dash="dash", line_color="gray", annotation_text="Neutral")
                 fig_timeline.add_hline(
-                    y=0.15, line_dash="dot", line_color="green", annotation_text="Positive Threshold"
+                    y=0, line_dash="dash", line_color="gray", annotation_text="Neutral"
                 )
-                fig_timeline.add_hline(y=-0.15, line_dash="dot", line_color="red", annotation_text="Negative Threshold")
+                fig_timeline.add_hline(
+                    y=0.15,
+                    line_dash="dot",
+                    line_color="green",
+                    annotation_text="Positive Threshold",
+                )
+                fig_timeline.add_hline(
+                    y=-0.15,
+                    line_dash="dot",
+                    line_color="red",
+                    annotation_text="Negative Threshold",
+                )
                 fig_timeline.update_layout(
                     title=f"過去{history_days}日間のセンチメント推移",
                     xaxis_title="日付",
@@ -672,7 +790,9 @@ def render_market_scan_tab(
                 )
                 st.plotly_chart(fig_timeline, use_container_width=True)
             else:
-                st.info("まだ履歴データがありません。スキャンを繰り返すことで履歴が蓄積されます。")
+                st.info(
+                    "まだ履歴データがありません。スキャンを繰り返すことで履歴が蓄積されます。"
+                )
 
             # Top News Headlines
             st.subheader("📰 最新ニュース見出し")
@@ -680,14 +800,24 @@ def render_market_scan_tab(
                 for i, news in enumerate(sentiment["top_news"][:5], 1):
                     news_text = f"{news['title']} {news.get('summary', '')}"
                     news_sentiment = sa.analyze_sentiment(news_text)
-                    sentiment_emoji = "🟢" if news_sentiment > 0.1 else "🔴" if news_sentiment < -0.1 else "🟡"
-                    st.markdown(f"{i}. {sentiment_emoji} [{news['title']}]({news['link']})")
+                    sentiment_emoji = (
+                        "🟢"
+                        if news_sentiment > 0.1
+                        else "🔴"
+                        if news_sentiment < -0.1
+                        else "🟡"
+                    )
+                    st.markdown(
+                        f"{i}. {sentiment_emoji} [{news['title']}]({news['link']})"
+                    )
             else:
                 st.info("ニュースが取得できませんでした。")
 
             # Warning if sentiment is bad
             if sentiment["score"] < -0.2:
-                st.error("⚠️ 市場センチメントが悪化しています。買いシグナルは抑制されます。")
+                st.error(
+                    "⚠️ 市場センチメントが悪化しています。買いシグナルは抑制されます。"
+                )
 
         # === Macro Indicators ===
         with st.expander("🌍 マクロ経済指標", expanded=True):
@@ -710,7 +840,9 @@ def render_market_scan_tab(
                                     label=name,
                                     value=f"{current:,.2f}",
                                     delta=f"{diff:+.2f} ({pct:+.2f}%)",
-                                    delta_color="inverse" if name == "VIX" else "normal",
+                                    delta_color="inverse"
+                                    if name == "VIX"
+                                    else "normal",
                                 )
                 else:
                     st.info("マクロデータが取得できませんでした。")
@@ -729,7 +861,11 @@ def render_market_scan_tab(
                 tickers = MARKETS[selected_market]
 
             if not tickers:
-                display_error_message("data", "銘柄が指定されていません。サイドバーで銘柄を選択してください。", None)
+                display_error_message(
+                    "data",
+                    "銘柄が指定されていません。サイドバーで銘柄を選択してください。",
+                    None,
+                )
                 st.stop()
 
             try:
@@ -749,7 +885,9 @@ def render_market_scan_tab(
 
             except Exception as e:
                 display_error_message(
-                    "network", "株価データの取得に失敗しました。インターネット接続を確認してください。", str(e)
+                    "network",
+                    "株価データの取得に失敗しました。インターネット接続を確認してください。",
+                    str(e),
                 )
                 st.stop()
 
@@ -757,7 +895,9 @@ def render_market_scan_tab(
             progress_bar = st.progress(0)
 
             # 2. Run Analysis
-            backtester = Backtester(allow_short=allow_short, position_size=position_size)
+            backtester = Backtester(
+                allow_short=allow_short, position_size=position_size
+            )
 
             for i, ticker in enumerate(tickers):
                 df = data_map.get(ticker)
@@ -796,7 +936,9 @@ def render_market_scan_tab(
                                     "Action": action,
                                     "Signal Date": date_str,
                                     "Last Price": get_latest_price(df),
-                                    "Explanation": strategy.get_signal_explanation(1 if action == "BUY" else -1),
+                                    "Explanation": strategy.get_signal_explanation(
+                                        1 if action == "BUY" else -1
+                                    ),
                                 }
                             )
 
@@ -830,10 +972,16 @@ def render_market_scan_tab(
                     pt = PaperTrader()
                     trade_action = "BUY" if "BUY" in action else "SELL"
                     if pt.execute_trade(
-                        ticker, trade_action, trading_unit, price, reason=f"Best Pick: {best_strat_name}"
+                        ticker,
+                        trade_action,
+                        trading_unit,
+                        price,
+                        reason=f"Best Pick: {best_strat_name}",
                     ):
                         st.balloons()
-                        st.success(f"{best_pick['Name']} を {trading_unit}株 {trade_action} しました！")
+                        st.success(
+                            f"{best_pick['Name']} を {trading_unit}株 {trade_action} しました！"
+                        )
                     else:
                         display_error_message(
                             "permission",
@@ -864,8 +1012,12 @@ def render_market_scan_tab(
 
                         strat_name = row["Strategy"]
                         mdd_val = abs(row["Max Drawdown"])
-                        r_level = "低" if mdd_val < 0.1 else "中" if mdd_val < 0.2 else "高"
-                        r_color = "🟢" if mdd_val < 0.1 else "🟡" if mdd_val < 0.2 else "🔴"
+                        r_level = (
+                            "低" if mdd_val < 0.1 else "中" if mdd_val < 0.2 else "高"
+                        )
+                        r_color = (
+                            "🟢" if mdd_val < 0.1 else "🟡" if mdd_val < 0.2 else "🔴"
+                        )
 
                         with c1:
                             st.markdown(f"**{row['Name']}**")
@@ -877,7 +1029,10 @@ def render_market_scan_tab(
                             st.markdown(f"戦略: {strat_name}")
                         with c4:
                             st.markdown(f"リスク: {r_color} {r_level}")
-                            if st.button("注文", key=f"btn_fresh_{row['Ticker']}_{row['Strategy']}"):
+                            if st.button(
+                                "注文",
+                                key=f"btn_fresh_{row['Ticker']}_{row['Strategy']}",
+                            ):
                                 pt = PaperTrader()
                                 t_act = "BUY" if row["Action"] == "BUY" else "SELL"
                                 if pt.execute_trade(
@@ -907,7 +1062,9 @@ def render_market_scan_tab(
                             pe = fund.get("trailingPE")
                             roe = fund.get("returnOnEquity")
                             actionable_df.at[idx, "PER"] = f"{pe:.1f}x" if pe else "N/A"
-                            actionable_df.at[idx, "ROE"] = f"{roe*100:.1f}%" if roe else "N/A"
+                            actionable_df.at[idx, "ROE"] = (
+                                f"{roe*100:.1f}%" if roe else "N/A"
+                            )
 
                     display_df = actionable_df[
                         [
@@ -923,9 +1080,15 @@ def render_market_scan_tab(
                             "ROE",
                         ]
                     ].copy()
-                    display_df["Return"] = display_df["Return"].apply(lambda x: f"{x*100:.1f}%")
-                    display_df["Max Drawdown"] = display_df["Max Drawdown"].apply(lambda x: f"{x*100:.1f}%")
-                    display_df["Last Price"] = display_df["Last Price"].apply(lambda x: f"¥{x:,.0f}")
+                    display_df["Return"] = display_df["Return"].apply(
+                        lambda x: f"{x*100:.1f}%"
+                    )
+                    display_df["Max Drawdown"] = display_df["Max Drawdown"].apply(
+                        lambda x: f"{x*100:.1f}%"
+                    )
+                    display_df["Last Price"] = display_df["Last Price"].apply(
+                        lambda x: f"¥{x:,.0f}"
+                    )
 
                     st.dataframe(display_df, use_container_width=True)
             else:
@@ -950,9 +1113,13 @@ def render_realtime_monitoring_tab(ticker_group, selected_market, custom_tickers
     if ticker_group == "カスタム入力":
         target_tickers = custom_tickers
     else:
-        target_tickers = MARKETS[selected_market][:10]  # パフォーマンスのため上位10銘柄に制限
+        target_tickers = MARKETS[selected_market][
+            :10
+        ]  # パフォーマンスのため上位10銘柄に制限
 
-    st.info(f"監視対象: {len(target_tickers)} 銘柄 ({', '.join(target_tickers[:5])}...)")
+    st.info(
+        f"監視対象: {len(target_tickers)} 銘柄 ({', '.join(target_tickers[:5])}...)"
+    )
 
     # コントロール
     col1, col2 = st.columns(2)
@@ -1097,16 +1264,24 @@ def render_xai_section(model, X_test, ticker_name):
 
             with col2:
                 # 直近の予測理由
-                fig_reason = xai.plot_prediction_reason(shap_values, X_sample, row_index=-1)
+                fig_reason = xai.plot_prediction_reason(
+                    shap_values, X_sample, row_index=-1
+                )
                 st.plotly_chart(fig_reason, use_container_width=True)
-                st.caption("最新の予測において、どの指標がプラス/マイナスに働いたかを示します。")
+                st.caption(
+                    "最新の予測において、どの指標がプラス/マイナスに働いたかを示します。"
+                )
 
             # 自然言語による説明
-            explanation = xai.generate_explanation_text(shap_values, X_sample, row_index=-1)
+            explanation = xai.generate_explanation_text(
+                shap_values, X_sample, row_index=-1
+            )
             st.info(explanation)
 
         else:
-            st.error("SHAP値の計算に失敗しました。このモデルタイプはサポートされていない可能性があります。")
+            st.error(
+                "SHAP値の計算に失敗しました。このモデルタイプはサポートされていない可能性があります。"
+            )
 
 
 def render_integrated_signal(df, ticker, ai_prediction=0.0):
@@ -1130,7 +1305,9 @@ def render_integrated_signal(df, ticker, ai_prediction=0.0):
 
         color = "green" if action == "BUY" else "red" if action == "SELL" else "gray"
         icon = "🚀" if action == "BUY" else "🔻" if action == "SELL" else "⏸️"
-        action_jp = "買い" if action == "BUY" else "売り" if action == "SELL" else "様子見"
+        action_jp = (
+            "買い" if action == "BUY" else "売り" if action == "SELL" else "様子見"
+        )
 
         st.markdown(
             f"""
@@ -1159,16 +1336,30 @@ def render_integrated_signal(df, ticker, ai_prediction=0.0):
         fig = go.Figure()
 
         categories = ["テクニカル", "AI予測", "長期トレンド", "ニュース感情"]
-        values = [details.get("technical", 0), details.get("ai", 0), details.get("mtf", 0), details.get("sentiment", 0)]
+        values = [
+            details.get("technical", 0),
+            details.get("ai", 0),
+            details.get("mtf", 0),
+            details.get("sentiment", 0),
+        ]
 
         colors = ["green" if v > 0 else "red" for v in values]
 
         fig.add_trace(
-            go.Bar(x=categories, y=values, marker_color=colors, text=[f"{v:.2f}" for v in values], textposition="auto")
+            go.Bar(
+                x=categories,
+                y=values,
+                marker_color=colors,
+                text=[f"{v:.2f}" for v in values],
+                textposition="auto",
+            )
         )
 
         fig.update_layout(
-            title="要素別貢献度 (-1.0 to 1.0)", yaxis_range=[-1.1, 1.1], height=300, margin=dict(l=20, r=20, t=40, b=20)
+            title="要素別貢献度 (-1.0 to 1.0)",
+            yaxis_range=[-1.1, 1.1],
+            height=300,
+            margin=dict(l=20, r=20, t=40, b=20),
         )
 
         st.plotly_chart(fig, use_container_width=True)

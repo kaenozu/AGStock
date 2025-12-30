@@ -179,19 +179,30 @@ class DataProcessorOptimizer:
                 if str(col_type)[:3] == "int":
                     if c_min > np.iinfo(np.int8).min and c_max < np.iinfo(np.int8).max:
                         df_optimized[col] = df_optimized[col].astype(np.int8)
-                    elif c_min > np.iinfo(np.int16).min and c_max < np.iinfo(np.int16).max:
+                    elif (
+                        c_min > np.iinfo(np.int16).min
+                        and c_max < np.iinfo(np.int16).max
+                    ):
                         df_optimized[col] = df_optimized[col].astype(np.int16)
-                    elif c_min > np.iinfo(np.int32).min and c_max < np.iinfo(np.int32).max:
+                    elif (
+                        c_min > np.iinfo(np.int32).min
+                        and c_max < np.iinfo(np.int32).max
+                    ):
                         df_optimized[col] = df_optimized[col].astype(np.int32)
 
                 elif str(col_type)[:5] == "float":
-                    if c_min > np.finfo(np.float32).min and c_max < np.finfo(np.float32).max:
+                    if (
+                        c_min > np.finfo(np.float32).min
+                        and c_max < np.finfo(np.float32).max
+                    ):
                         df_optimized[col] = df_optimized[col].astype(np.float32)
 
         return df_optimized
 
     @staticmethod
-    def chunked_operation(df: pd.DataFrame, func: Callable, chunk_size: int = 10000) -> pd.DataFrame:
+    def chunked_operation(
+        df: pd.DataFrame, func: Callable, chunk_size: int = 10000
+    ) -> pd.DataFrame:
         """チャンク単位で操作を行うことでメモリ効率を改善
 
         Args:

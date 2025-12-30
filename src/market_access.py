@@ -41,7 +41,9 @@ class GlobalMarketAccess:
     def __init__(self):
         pass
 
-    def fetch_global_data(self, period: str = "1y", interval: str = "1d") -> Dict[str, pd.DataFrame]:
+    def fetch_global_data(
+        self, period: str = "1y", interval: str = "1d"
+    ) -> Dict[str, pd.DataFrame]:
         """
         全グローバルアセットのデータを取得
         """
@@ -49,7 +51,12 @@ class GlobalMarketAccess:
         try:
             # 一括ダウンロード
             data = yf.download(
-                tickers, period=period, interval=interval, group_by="ticker", auto_adjust=True, threads=True
+                tickers,
+                period=period,
+                interval=interval,
+                group_by="ticker",
+                auto_adjust=True,
+                threads=True,
             )
 
             result = {}

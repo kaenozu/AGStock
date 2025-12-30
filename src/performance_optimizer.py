@@ -3,6 +3,7 @@
 Performance Optimization for AGStock
 
 機能:
+    pass
 - データ取得の高速化
 - キャッシュ最適化
 - 並列処理の改善
@@ -92,7 +93,9 @@ class PerformanceOptimizer:
     def get_stats(self) -> dict:
         """統計情報取得"""
         total_requests = self.stats["cache_hits"] + self.stats["cache_misses"]
-        hit_rate = self.stats["cache_hits"] / total_requests if total_requests > 0 else 0
+        hit_rate = (
+            self.stats["cache_hits"] / total_requests if total_requests > 0 else 0
+        )
 
         return {
             "cache_hits": self.stats["cache_hits"],

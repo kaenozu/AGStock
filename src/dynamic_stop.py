@@ -2,6 +2,7 @@
 Dynamic Trailing Stop (Phase 30-3)
 
 This module implements advanced trailing stop logic:
+    pass
 1. ATR Trailing Stop: Adjust stop level based on volatility.
 2. Profit Locking: Move stop to breakeven or profit zone after certain gain.
 """
@@ -23,7 +24,9 @@ class DynamicStopManager:
         self.entry_prices = {}  # {ticker: entry_price}
         self.highest_prices = {}  # {ticker: highest_price_since_entry}
 
-    def register_entry(self, ticker: str, entry_price: float, initial_stop: Optional[float] = None):
+    def register_entry(
+        self, ticker: str, entry_price: float, initial_stop: Optional[float] = None
+    ):
         """Register a new position entry."""
         self.entry_prices[ticker] = entry_price
         self.highest_prices[ticker] = entry_price
@@ -64,7 +67,9 @@ class DynamicStopManager:
                     high = df["High"]
                     low = df["Low"]
                     close = df["Close"]
-                    atr_indicator = ta.volatility.AverageTrueRange(high, low, close, window=self.atr_period)
+                    atr_indicator = ta.volatility.AverageTrueRange(
+                        high, low, close, window=self.atr_period
+                    )
                     atr = atr_indicator.average_true_range().iloc[-1]
         except Exception as e:
             logger.warning(f"Error calculating ATR for {ticker}: {e}")
@@ -99,5 +104,8 @@ class DynamicStopManager:
         """Check if stop loss is hit."""
         stop_price = self.stops.get(ticker)
         if stop_price and current_price <= stop_price:
-            return True, f"Stop Loss Hit (Price: {current_price} <= Stop: {stop_price:.2f})"
+            return (
+                True,
+                f"Stop Loss Hit (Price: {current_price} <= Stop: {stop_price:.2f})",
+            )
         return False, ""

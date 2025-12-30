@@ -10,10 +10,14 @@ from src.schemas import TradingDecision
 
 def render_ai_insights():
     st.title("🤖 AI投資委員会 (AI Investment Committee)")
-    st.markdown("複数の専門AIエージェントが市場データを多角的に分析し、合議制で投資判断を下します。")
+    st.markdown(
+        "複数の専門AIエージェントが市場データを多角的に分析し、合議制で投資判断を下します。"
+    )
 
     # Initialize Committee
-    committee = InvestmentCommittee()  # Config is handled internally or passed if needed
+    committee = (
+        InvestmentCommittee()
+    )  # Config is handled internally or passed if needed
 
     # Context Data Gathering (Mocking for UI skeleton, real integration later)
     # In a real scenario, we'd fetch this from data_loader
@@ -88,8 +92,9 @@ def render_ai_insights():
         # Ideally, InvestmentCommittee should return strategy explanations.
         # For now, we simulate grabbing the ML strategy to show the concept.
 
-        from src.data_loader import \
-            fetch_stock_data  # Assuming we have a default ticker context
+        from src.data_loader import (
+            fetch_stock_data,
+        )  # Assuming we have a default ticker context
         from src.strategies.lightgbm_strategy import LightGBMStrategy
         from src.strategies.ml import MLStrategy
 
@@ -116,10 +121,13 @@ def render_ai_insights():
 
                 import plotly.graph_objects as go
 
-                fig = go.Figure(go.Bar(x=values, y=features, orientation="h", marker_color=colors))
+                fig = go.Figure(
+                    go.Bar(x=values, y=features, orientation="h", marker_color=colors)
+                )
 
                 fig.update_layout(
-                    title="特徴量貢献度 (SHAP Value 近似)", xaxis_title="インパクト (正=買い要因, 負=売り要因)"
+                    title="特徴量貢献度 (SHAP Value 近似)",
+                    xaxis_title="インパクト (正=買い要因, 負=売り要因)",
                 )
                 st.plotly_chart(fig, use_container_width=True)
 

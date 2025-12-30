@@ -30,13 +30,21 @@ class BaseAgent(ABC):
         """
         pass
 
-    def _create_response(self, decision: TradingDecision, confidence: float, reasoning: str) -> AgentAnalysis:
+    def _create_response(
+        self, decision: TradingDecision, confidence: float, reasoning: str
+    ) -> AgentAnalysis:
         """Helper to construct the response object."""
         return AgentAnalysis(
-            agent_name=self.name, role=self.role, decision=decision, confidence=confidence, reasoning=reasoning
+            agent_name=self.name,
+            role=self.role,
+            decision=decision,
+            confidence=confidence,
+            reasoning=reasoning,
         )
 
     def log_analysis(self, analysis: AgentAnalysis):
         """Log the analysis result."""
-        logger.info(f"[{self.name}] Decision: {analysis.decision.value} (Conf: {analysis.confidence:.2f})")
+        logger.info(
+            f"[{self.name}] Decision: {analysis.decision.value} (Conf: {analysis.confidence:.2f})"
+        )
         logger.debug(f"Reasoning: {analysis.reasoning}")

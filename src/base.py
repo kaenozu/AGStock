@@ -95,7 +95,9 @@ class BaseRiskManager(ABC):
         self.logger = logging.getLogger(self.__class__.__name__)
 
     @abstractmethod
-    def calculate_position_size(self, account_balance: float, signal: TradeSignal) -> float:
+    def calculate_position_size(
+        self, account_balance: float, signal: TradeSignal
+    ) -> float:
         """ポジションサイズ計算（サブクラスで実装）"""
         pass
 

@@ -24,7 +24,9 @@ class ReportVisualizer:
         except Exception as e:
             logger.warning(f"Failed to apply dark background style: {e}")
 
-    def generate_equity_chart(self, history_df: pd.DataFrame, filename: str = "equity_chart.png") -> str:
+    def generate_equity_chart(
+        self, history_df: pd.DataFrame, filename: str = "equity_chart.png"
+    ) -> str:
         """
         資産推移チャートを生成する
 
@@ -68,8 +70,20 @@ class ReportVisualizer:
             ax.grid(True, linestyle="--", alpha=0.3, color="#444444")
 
             # データプロット
-            ax.plot(df[date_col], df["total_equity"], color="#00CCFF", linewidth=2, label="Total Equity")
-            ax.fill_between(df[date_col], df["total_equity"], df["total_equity"].min(), color="#00CCFF", alpha=0.1)
+            ax.plot(
+                df[date_col],
+                df["total_equity"],
+                color="#00CCFF",
+                linewidth=2,
+                label="Total Equity",
+            )
+            ax.fill_between(
+                df[date_col],
+                df["total_equity"],
+                df["total_equity"].min(),
+                color="#00CCFF",
+                alpha=0.1,
+            )
 
             # タイトルとラベル
             ax.set_title("Portfolio Equity History", color="white", fontsize=14, pad=15)
@@ -100,7 +114,9 @@ class ReportVisualizer:
             logger.error(f"Failed to generate equity chart: {e}")
             return None
 
-    def generate_pnl_bar_chart(self, daily_pnl: float, filename: str = "daily_pnl.png") -> str:
+    def generate_pnl_bar_chart(
+        self, daily_pnl: float, filename: str = "daily_pnl.png"
+    ) -> str:
         """
         日次損益のバーチャートを生成する（シンプル版）
 

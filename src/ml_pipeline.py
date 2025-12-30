@@ -13,7 +13,9 @@ from src.drift_monitor import DriftMonitor
 from src.walkforward_blender import WalkForwardBlender
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -51,7 +53,11 @@ class ModelRegistry:
             logger.error(f"Failed to save registry: {e}")
 
     def register_model(
-        self, model_name: str, model_artifact: Any, metrics: Dict[str, float], version_tag: str = None
+        self,
+        model_name: str,
+        model_artifact: Any,
+        metrics: Dict[str, float],
+        version_tag: str = None,
     ) -> str:
         """
         Saves a model artifact and updates the registry.
@@ -72,7 +78,12 @@ class ModelRegistry:
             if model_name not in self.registry["models"]:
                 self.registry["models"][model_name] = []
 
-            metadata = {"version": version_id, "timestamp": timestamp, "path": artifact_path, "metrics": metrics}
+            metadata = {
+                "version": version_id,
+                "timestamp": timestamp,
+                "path": artifact_path,
+                "metrics": metrics,
+            }
 
             self.registry["models"][model_name].append(metadata)
             self._save_registry()
@@ -87,11 +98,18 @@ class ModelRegistry:
         """
         Retrieves the latest version of a model and its metadata.
         """
-        if model_name not in self.registry["models"] or not self.registry["models"][model_name]:
+        if (
+            model_name not in self.registry["models"]
+            or not self.registry["models"][model_name]
+        ):
             return None
 
         # Sort by timestamp descending
-        versions = sorted(self.registry["models"][model_name], key=lambda x: x["timestamp"], reverse=True)
+        versions = sorted(
+            self.registry["models"][model_name],
+            key=lambda x: x["timestamp"],
+            reverse=True,
+        )
         latest_meta = versions[0]
 
         try:
@@ -101,12 +119,17 @@ class ModelRegistry:
             logger.error(f"Failed to load model artifact: {e}")
             return None
 
-    def get_best_model(self, model_name: str, metric: str = "accuracy") -> Optional[Tuple[Any, Dict[str, Any]]]:
+    def get_best_model(
+        self, model_name: str, metric: str = "accuracy"
+    ) -> Optional[Tuple[Any, Dict[str, Any]]]:
         """
         Retrieves the best performing model based on a metric.
         Assumes higher is better for the metric.
         """
-        if model_name not in self.registry["models"] or not self.registry["models"][model_name]:
+        if (
+            model_name not in self.registry["models"]
+            or not self.registry["models"][model_name]
+        ):
             return None
 
         versions = self.registry["models"][model_name]
@@ -147,7 +170,9 @@ class DataVersionManager:
 
     def _save_registry(self) -> None:
         try:
-            self.registry_file.write_text(json.dumps(self.registry, indent=2), encoding="utf-8")
+            self.registry_file.write_text(
+                json.dumps(self.registry, indent=2), encoding="utf-8"
+            )
         except Exception as exc:
             logger.error("Failed to save data registry: %s", exc)
 
@@ -163,7 +188,9 @@ class DataVersionManager:
                 path = path.with_suffix(".csv")
                 df.to_csv(path, index=False)
             checksum = hashlib.md5(df.to_csv(index=False).encode("utf-8")).hexdigest()
-            self.registry["versions"].append({"version": version, "path": str(path), "checksum": checksum})
+            self.registry["versions"].append(
+                {"version": version, "path": str(path), "checksum": checksum}
+            )
             self._save_registry()
             return version
         except Exception as exc:
@@ -171,7 +198,14 @@ class DataVersionManager:
             return ""
 
     def restore(self, version: str) -> Optional[pd.DataFrame]:
-        entry = next((v for v in self.registry.get("versions", []) if v.get("version") == version), None)
+        entry = next(
+            (
+                v
+                for v in self.registry.get("versions", [])
+                if v.get("version") == version
+            ),
+            None,
+        )
         if not entry:
             logger.warning("Data version %s not found", version)
             return None
@@ -187,7 +221,9 @@ class DataVersionManager:
     def restore_latest(self) -> Optional[pd.DataFrame]:
         if not self.registry.get("versions"):
             return None
-        latest = sorted(self.registry["versions"], key=lambda x: x.get("version", ""), reverse=True)[0]
+        latest = sorted(
+            self.registry["versions"], key=lambda x: x.get("version", ""), reverse=True
+        )[0]
         return self.restore(latest.get("version"))
 
 
@@ -201,7 +237,9 @@ class ContinuousLearner:
         self.data_registry = DataVersionManager()
         self.drift_monitor = DriftMonitor()
 
-    def train_and_evaluate(self, model_name: str, trainer_func, data: pd.DataFrame) -> Dict[str, Any]:
+    def train_and_evaluate(
+        self, model_name: str, trainer_func, data: pd.DataFrame
+    ) -> Dict[str, Any]:
         """
         Runs the training function and registers the model.
 
@@ -218,7 +256,11 @@ class ContinuousLearner:
             return {"status": "failed", "error": str(e)}
 
     def train_walkforward_blend(
-        self, model_name: str, data: pd.DataFrame, target_col: str = "Close", external_features: Optional[Dict] = None
+        self,
+        model_name: str,
+        data: pd.DataFrame,
+        target_col: str = "Close",
+        external_features: Optional[Dict] = None,
     ) -> Dict[str, Any]:
         """
         LightGBM/RandomForest/Linear ブレンディングをウォークフォワード検証で学習し、モデルとデータをバージョン管理する。
@@ -226,9 +268,15 @@ class ContinuousLearner:
         logger.info("Starting walk-forward blended training for %s", model_name)
         blender = WalkForwardBlender()
         try:
-            metrics = blender.fit(data, target_col=target_col, external_features=external_features)
+            metrics = blender.fit(
+                data, target_col=target_col, external_features=external_features
+            )
             version_id = self.registry.register_model(model_name, blender, metrics)
-            data_version = self.data_registry.snapshot(data, tag=f"{model_name}_{version_id}") if version_id else ""
+            data_version = (
+                self.data_registry.snapshot(data, tag=f"{model_name}_{version_id}")
+                if version_id
+                else ""
+            )
 
             # ベースラインとしてドリフト監視に使用
             self.drift_monitor.set_reference(data.select_dtypes(include=[np.number]))
@@ -264,16 +312,25 @@ class ContinuousLearner:
                     new_data.copy(), external_features=external_features
                 )
             else:
-                check = self.drift_monitor.check(new_data.select_dtypes(include=[np.number]))
+                check = self.drift_monitor.check(
+                    new_data.select_dtypes(include=[np.number])
+                )
                 needs_retrain = check.drift_detected
                 drift_details = check.details
 
             if not needs_retrain:
-                return {"status": "ok", "retrained": False, "reason": "no drift detected"}
+                return {
+                    "status": "ok",
+                    "retrained": False,
+                    "reason": "no drift detected",
+                }
 
             logger.info("Drift detected for %s: %s", model_name, drift_details)
             return self.train_walkforward_blend(
-                model_name, new_data, target_col=target_col, external_features=external_features
+                model_name,
+                new_data,
+                target_col=target_col,
+                external_features=external_features,
             )
         except Exception as exc:
             logger.error("Drift-based retrain failed: %s", exc)

@@ -41,8 +41,6 @@ logger = logging.getLogger(__name__)
 DB_PATH = "data/sentiment_data.db"
 
 
-
-
 def init_sentiment_db():
     """センチメントデータベースの初期化"""
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
@@ -173,7 +171,9 @@ class NewsSentimentAnalyzer:
                     "timestamp": news_item["date"],
                     "sentiment_score": sentiment["vader_compound"],
                     "sentiment_details": sentiment,
-                    "relevance": self._calculate_relevance(content, news_item.get("ticker", "")),
+                    "relevance": self._calculate_relevance(
+                        content, news_item.get("ticker", "")
+                    ),
                 }
             )
 
@@ -189,7 +189,10 @@ class NewsSentimentAnalyzer:
 
         if ticker_lower.replace(".t", "").replace(".", "") in text_lower:
             relevance += 0.5
-        if any(word in text_lower for word in ["earnings", "results", "report", "q1", "q2", "q3", "q4"]):
+        if any(
+            word in text_lower
+            for word in ["earnings", "results", "report", "q1", "q2", "q3", "q4"]
+        ):
             relevance += 0.3
         if any(word in text_lower for word in ["buy", "sell", "target", "rating"]):
             relevance += 0.2
@@ -218,7 +221,9 @@ class NewsSentimentAnalyzer:
                     (
                         "positive"
                         if item["sentiment_score"] > 0.1
-                        else "negative" if item["sentiment_score"] < -0.1 else "neutral"
+                        else "negative"
+                        if item["sentiment_score"] < -0.1
+                        else "neutral"
                     ),
                 ),
             )
@@ -260,19 +265,49 @@ class SocialMediaSentimentAnalyzer:
         for _ in range(count):
             # 銘柄に関連するモックツイートを生成
             sentiment_words = {
-                "positive": ["up", "bullish", "buy", "great", "amazing", "strong", "gain", "profit"],
-                "negative": ["down", "bearish", "sell", "bad", "terrible", "weak", "loss", "crash"],
-                "neutral": ["news", "update", "info", "data", "report", "market", "stock", "trade"],
+                "positive": [
+                    "up",
+                    "bullish",
+                    "buy",
+                    "great",
+                    "amazing",
+                    "strong",
+                    "gain",
+                    "profit",
+                ],
+                "negative": [
+                    "down",
+                    "bearish",
+                    "sell",
+                    "bad",
+                    "terrible",
+                    "weak",
+                    "loss",
+                    "crash",
+                ],
+                "neutral": [
+                    "news",
+                    "update",
+                    "info",
+                    "data",
+                    "report",
+                    "market",
+                    "stock",
+                    "trade",
+                ],
             }
 
             sentiment_type = random.choice(["positive", "negative", "neutral"])
-            words = random.choices(sentiment_words[sentiment_type], k=random.randint(5, 10))
+            words = random.choices(
+                sentiment_words[sentiment_type], k=random.randint(5, 10)
+            )
             text = f"${ticker} {' '.join(words)} trending {'up' if sentiment_type == 'positive' else 'down' if sentiment_type == 'negative' else 'mixed'}!"
 
             mock_tweets.append(
                 {
                     "text": text,
-                    "timestamp": datetime.now() - timedelta(minutes=random.randint(0, 1440)),
+                    "timestamp": datetime.now()
+                    - timedelta(minutes=random.randint(0, 1440)),
                     "retweets": random.randint(0, 1000),
                     "likes": random.randint(0, 5000),
                     "user_followers": random.randint(100, 1000000),
@@ -289,7 +324,11 @@ class SocialMediaSentimentAnalyzer:
             sentiment = self.analyzer.polarity_scores(tweet["text"])
 
             # インフルエンスファクター（フォロワー数やエンゲージメント）を考慮
-            influence_factor = min(10.0, (tweet["user_followers"] / 100000) * (tweet["retweets"] + tweet["likes"] + 1))
+            influence_factor = min(
+                10.0,
+                (tweet["user_followers"] / 100000)
+                * (tweet["retweets"] + tweet["likes"] + 1),
+            )
             adjusted_sentiment = sentiment["compound"] * (1 + influence_factor * 0.1)
 
             analyzed_tweets.append(
@@ -331,7 +370,9 @@ class SocialMediaSentimentAnalyzer:
         conn.commit()
         conn.close()
 
-    def get_social_sentiment_score(self, ticker: str, hours: int = 24) -> Dict[str, float]:
+    def get_social_sentiment_score(
+        self, ticker: str, hours: int = 24
+    ) -> Dict[str, float]:
         """SNSセンチメントスコアの取得"""
         conn = sqlite3.connect(DB_PATH)
 
@@ -346,7 +387,11 @@ class SocialMediaSentimentAnalyzer:
         conn.close()
 
         if df.empty:
-            return {"average_sentiment": 0.0, "volume_adjusted_sentiment": 0.0, "tweet_count": 0}
+            return {
+                "average_sentiment": 0.0,
+                "volume_adjusted_sentiment": 0.0,
+                "tweet_count": 0,
+            }
 
         # 平均センチメント
         avg_sentiment = df["sentiment_score"].mean()
@@ -428,13 +473,19 @@ class AlternativeDataIntegrator:
             "large_order_flow": np.random.uniform(-0.1, 0.1),
         }
 
-    def analyze_volume_sentiment(self, ticker: str, period: str = "5d") -> Dict[str, float]:
+    def analyze_volume_sentiment(
+        self, ticker: str, period: str = "5d"
+    ) -> Dict[str, float]:
         """出来高ベースのセンチメント分析"""
         try:
             data = yf.download(ticker, period=period, interval="1d")
 
             if data.empty:
-                return {"volume_momentum": 0.0, "volume_surprise": 0.0, "price_volume_correlation": 0.0}
+                return {
+                    "volume_momentum": 0.0,
+                    "volume_surprise": 0.0,
+                    "price_volume_correlation": 0.0,
+                }
 
             # 出来高の急増検出
             avg_volume = data["Volume"].rolling(window=10).mean()
@@ -447,7 +498,9 @@ class AlternativeDataIntegrator:
 
             latest_ratio = volume_ratio.iloc[-1] if len(volume_ratio) > 0 else 1.0
             latest_momentum = (
-                data["Volume"].iloc[-5:].mean() / data["Volume"].iloc[-20:-5].mean() if len(data) > 25 else 1.0
+                data["Volume"].iloc[-5:].mean() / data["Volume"].iloc[-20:-5].mean()
+                if len(data) > 25
+                else 1.0
             )
 
             return {
@@ -457,7 +510,11 @@ class AlternativeDataIntegrator:
             }
         except Exception as e:
             logger.error(f"Volume sentiment analysis error for {ticker}: {e}")
-            return {"volume_momentum": 0.0, "volume_surprise": 0.0, "price_volume_correlation": 0.0}
+            return {
+                "volume_momentum": 0.0,
+                "volume_surprise": 0.0,
+                "price_volume_correlation": 0.0,
+            }
 
     def integrate_all_sentiment(self, ticker: str) -> Dict[str, Any]:
         """すべてのセンチメントソースを統合"""
@@ -476,7 +533,11 @@ class AlternativeDataIntegrator:
         self.store_search_trends(search_trends)
 
         # 各種センチメントを統合
-        news_sentiment = np.mean([item["sentiment_score"] for item in processed_news]) if processed_news else 0.0
+        news_sentiment = (
+            np.mean([item["sentiment_score"] for item in processed_news])
+            if processed_news
+            else 0.0
+        )
         social_sentiment = self.social_analyzer.get_social_sentiment_score(ticker)
         volume_sentiment = self.analyze_volume_sentiment(ticker)
         order_book_sentiment = self.analyze_order_book_sentiment(ticker)
@@ -495,7 +556,13 @@ class AlternativeDataIntegrator:
             + social_sentiment["volume_adjusted_sentiment"] * weights["social"]
             + volume_sentiment["volume_momentum"] * weights["volume"]
             + order_book_sentiment["order_imbalance"] * weights["order_book"]
-            + np.mean([item["score"] for sublist in search_trends.values() for item in sublist])
+            + np.mean(
+                [
+                    item["score"]
+                    for sublist in search_trends.values()
+                    for item in sublist
+                ]
+            )
             / 50.0
             * weights["search"]  # 検索トレンドの正規化
         )
@@ -509,39 +576,64 @@ class AlternativeDataIntegrator:
             "sentiment_strength": abs(overall_sentiment),
             "sentiment_components": {
                 "news": news_sentiment * weights["news"],
-                "social": social_sentiment["volume_adjusted_sentiment"] * weights["social"],
+                "social": social_sentiment["volume_adjusted_sentiment"]
+                * weights["social"],
                 "volume": volume_sentiment["volume_momentum"] * weights["volume"],
-                "order_book": order_book_sentiment["order_imbalance"] * weights["order_book"],
-                "search": np.mean([item["score"] for sublist in search_trends.values() for item in sublist])
+                "order_book": order_book_sentiment["order_imbalance"]
+                * weights["order_book"],
+                "search": np.mean(
+                    [
+                        item["score"]
+                        for sublist in search_trends.values()
+                        for item in sublist
+                    ]
+                )
                 / 50.0
                 * weights["search"],
             },
         }
 
-    def get_sentiment_features(self, ticker: str, lookback_days: int = 7) -> Dict[str, float]:
+    def get_sentiment_features(
+        self, ticker: str, lookback_days: int = 7
+    ) -> Dict[str, float]:
         """センチメント特徴量の取得"""
         integrated_sentiment = self.integrate_all_sentiment(ticker)
 
         # 時系列センチメント特徴量
-        historical_news = self.news_analyzer.get_historical_sentiment(ticker, lookback_days)
+        historical_news = self.news_analyzer.get_historical_sentiment(
+            ticker, lookback_days
+        )
 
         features = {
             "sentiment_score": integrated_sentiment["overall_sentiment"],
             "sentiment_strength": integrated_sentiment["sentiment_strength"],
             "news_sentiment": integrated_sentiment["news_sentiment"],
-            "social_sentiment": integrated_sentiment["social_sentiment"]["average_sentiment"],
-            "volume_sentiment": integrated_sentiment["volume_sentiment"]["volume_momentum"],
-            "order_book_sentiment": integrated_sentiment["order_book_sentiment"]["order_imbalance"],
+            "social_sentiment": integrated_sentiment["social_sentiment"][
+                "average_sentiment"
+            ],
+            "volume_sentiment": integrated_sentiment["volume_sentiment"][
+                "volume_momentum"
+            ],
+            "order_book_sentiment": integrated_sentiment["order_book_sentiment"][
+                "order_imbalance"
+            ],
             "tweet_volume": integrated_sentiment["social_sentiment"]["tweet_count"],
-            "engagement_score": integrated_sentiment["social_sentiment"]["total_engagement"],
+            "engagement_score": integrated_sentiment["social_sentiment"][
+                "total_engagement"
+            ],
         }
 
         # 歴史的傾向
         if not historical_news.empty:
-            features["sentiment_trend"] = historical_news["sentiment_score"].diff().mean()
+            features["sentiment_trend"] = (
+                historical_news["sentiment_score"].diff().mean()
+            )
             features["sentiment_volatility"] = historical_news["sentiment_score"].std()
             features["sentiment_momentum"] = (
-                (historical_news["sentiment_score"].iloc[-1] - historical_news["sentiment_score"].iloc[-3:].mean())
+                (
+                    historical_news["sentiment_score"].iloc[-1]
+                    - historical_news["sentiment_score"].iloc[-3:].mean()
+                )
                 if len(historical_news) >= 3
                 else 0.0
             )
@@ -555,7 +647,9 @@ class SatelliteImageAnalyzer:
     def __init__(self):
         # 衛星画像解析は高度な処理が必要で、実際にはAPIや専門ツールを使用
         self.enabled = False
-        logger.info("Satellite image analysis requires specialized API and is disabled by default")
+        logger.info(
+            "Satellite image analysis requires specialized API and is disabled by default"
+        )
 
     def analyze_retail_activity(self, location: str) -> Dict[str, float]:
         """小売業活動の衛星画像分析（モック）"""
@@ -572,7 +666,11 @@ class SatelliteImageAnalyzer:
     def analyze_supply_chain(self, area: str) -> Dict[str, float]:
         """サプライチェーンの衛星画像分析（モック）"""
         if not self.enabled:
-            return {"shipping_activity": 0.5, "transport_change": 0.0, "confidence": 0.0}
+            return {
+                "shipping_activity": 0.5,
+                "transport_change": 0.0,
+                "confidence": 0.0,
+            }
 
         return {
             "shipping_activity": np.random.uniform(0.3, 0.8),
@@ -622,11 +720,15 @@ class SentimentEnhancedPredictor(BasePredictor):
 
         return np.array(results)
 
-    def predict_with_sentiment(self, ticker: str, base_features: np.ndarray) -> Dict[str, Any]:
+    def predict_with_sentiment(
+        self, ticker: str, base_features: np.ndarray
+    ) -> Dict[str, Any]:
         """センチメント情報を統合した予測"""
         # 基本的な数値予測
         base_prediction = (
-            self.base_predictor.predict(base_features) if hasattr(self.base_predictor, "predict") else [0.01] * 5
+            self.base_predictor.predict(base_features)
+            if hasattr(self.base_predictor, "predict")
+            else [0.01] * 5
         )  # 5日分の予測
 
         # センチメント分析
@@ -648,7 +750,9 @@ class SentimentEnhancedPredictor(BasePredictor):
             "sentiment_adjusted_prediction": sentiment_adjusted_prediction,
             "sentiment_features": sentiment_features,
             "sentiment_impact": overall_sentiment * self.sentiment_influence_weight,
-            "prediction_confidence": min(1.0, 0.8 + abs(overall_sentiment) * 0.2),  # センチメントが強いほど自信度が増す
+            "prediction_confidence": min(
+                1.0, 0.8 + abs(overall_sentiment) * 0.2
+            ),  # センチメントが強いほど自信度が増す
         }
 
     def get_sentiment_impact_analysis(self, ticker: str) -> Dict[str, Any]:
@@ -663,7 +767,13 @@ if __name__ == "__main__":
     # モック予測器
     class MockPredictor:
         def predict(self, X):
-            return [0.02, 0.015, 0.01, 0.008, 0.012]  # 5日分の予測 (2%, 1.5%, 1%, 0.8%, 1.2%)
+            return [
+                0.02,
+                0.015,
+                0.01,
+                0.008,
+                0.012,
+            ]  # 5日分の予測 (2%, 1.5%, 1%, 0.8%, 1.2%)
 
     mock_predictor = MockPredictor()
 
@@ -685,4 +795,6 @@ if __name__ == "__main__":
     impact_analysis = sentiment_predictor.get_sentiment_impact_analysis("7203.T")
     print(f"Sentiment impact analysis: {impact_analysis}")
 
-    print("Sentiment analysis and alternative data integration components test completed.")
+    print(
+        "Sentiment analysis and alternative data integration components test completed."
+    )

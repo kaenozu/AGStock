@@ -40,7 +40,9 @@ class CacheManager:
     def get(self, key: str) -> Optional[Any]:
         """Retrieve value if not expired"""
         with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.execute("SELECT value, expiry FROM cache WHERE key = ?", (key,))
+            cursor = conn.execute(
+                "SELECT value, expiry FROM cache WHERE key = ?", (key,)
+            )
             row = cursor.fetchone()
 
             if row:
