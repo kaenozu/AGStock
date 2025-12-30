@@ -56,6 +56,23 @@
 - `test_render_performance_tab_with_data` - テスト間干渉
 - `test_render_performance_tab_error_handling` - テスト間干渉
 
+## 実行・通知
+- `test_execute_orders_real_buy` - モック設定不完全
+- `test_run_cycle` - LiveTradingEngine テスト問題
+- `test_notify_strong_signal` - Notifierインターフェース変更
+- `test_notify_daily_summary` - Notifierインターフェース変更
+
+## インポートエラーによりスキップされたテストファイル
+以下のファイルは壊れたインポートのためcollection時にスキップ:
+- `test_features_comprehensive.py` - add_advanced_features等が未定義
+- `test_features_performance.py` - add_frequency_features等が未定義
+- `test_phase29_features_simple.py` - モジュールレベルでsys.exit呼び出し
+- `test_cli.py` - agstockモジュール不存在
+- `test_external_data.py` - DataLoaderクラス不存在
+- `test_features.py` - feature関数群が未定義
+- `test_phase29_features.py` - run_backtest不存在
+- `test_simple_dashboard.py` - SimpleDashboardクラス不存在
+
 ## 修正方針
 1. コンストラクタTypeError: 引数の追加/デフォルト値の設定
 2. モック不完全: 適切なモックデータの追加
