@@ -158,7 +158,13 @@ def add_advanced_features(df: pd.DataFrame) -> pd.DataFrame:
     df["SMA_200"] = ta.trend.SMAIndicator(df["Close"], window=200).sma_indicator()
 
     df["SMA_Ratio"] = df["SMA_20"] / df["SMA_50"]
+    df["Dist_SMA_20"] = (df["Close"] - df["SMA_20"]) / df["SMA_20"]
+    df["Dist_SMA_50"] = (df["Close"] - df["SMA_50"]) / df["SMA_50"]
     df["Dist_SMA_200"] = (df["Close"] - df["SMA_200"]) / df["SMA_200"]
+
+    # Target Label for ML (Next Day Return)
+    # Used by LightGBMStrategy (y_train > 0)
+    df["Return_1d"] = df["Close"].pct_change().shift(-1)
 
     # 4. Volume
     if "OBV" not in df.columns:
