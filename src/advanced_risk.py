@@ -413,3 +413,4 @@ class AdvancedRiskManager:
         inv_vols = 1.0 / (volatilities + tolerance)  # zero division 防止
         weights = inv_vols / inv_vols.sum()
         return weights
+# CI trigger
