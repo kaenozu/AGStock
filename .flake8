@@ -21,8 +21,10 @@ extend-ignore =
     E203,
     # W503: line break before binary operator
     W503,
-# 最大複雑度
-max-complexity = 10
+    # E501: line too long (handled by formatter)
+    E501,
+    # C901: function complexity (many UI functions are inherently complex)
+    C901,
 # インラインコメントのスペース要件
 inline-quotes = double
 # ドルーネンについての設定
