@@ -250,4 +250,3 @@ def style_dataframe_percentage(
                 lambda x: format_percentage(x, decimals=decimals, show_sign=show_sign)
             )
     return styled_df
-

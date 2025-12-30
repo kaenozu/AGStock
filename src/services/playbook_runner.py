@@ -74,7 +74,7 @@ def run_morning_playbook(use_demo: bool = False) -> Dict:
             sharpe = float(eq["return"].mean() / (eq["return"].std() + 1e-6) * (252 ** 0.5))
 
     checklist = [
-        f"現金比率: {kpis['cash']/kpis['equity']:.0%} / エクスポージャー: {kpis['exposure']:.0%}",
+        f"現金比率: {kpis['cash'] / kpis['equity']:.0%} / エクスポージャー: {kpis['exposure']:.0%}",
         f"ポジション数: {len(positions)}",
         f"直近勝率: {win_rate:.0%} / シャープ: {sharpe:.2f}",
     ]

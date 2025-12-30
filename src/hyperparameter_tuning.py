@@ -194,9 +194,11 @@ class HyperparameterTuner:
 
         # 目的関数の選択
         if self.model_type == "lightgbm":
-            def objective_func(trial): return self._objective_lightgbm(trial, X, y)
+            def objective_func(trial):
+                return self._objective_lightgbm(trial, X, y)
         elif self.model_type == "lstm":
-            def objective_func(trial): return self._objective_lstm(trial, X, y)
+            def objective_func(trial):
+                return self._objective_lstm(trial, X, y)
         else:
             raise ValueError(f"Unsupported model type: {self.model_type}")
 

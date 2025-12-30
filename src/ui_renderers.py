@@ -225,13 +225,13 @@ def render_performance_tab(ticker_group, selected_market, custom_tickers, curren
                 with col1:
                     st.subheader("🚀 トップ5")
                     top5 = returns_df.nlargest(5, "Return")[["Ticker", "Name", "Return"]]
-                    top5["Return"] = top5["Return"].apply(lambda x: f"{x*100:+.2f}%")
+                    top5["Return"] = top5["Return"].apply(lambda x: f"{x * 100:+.2f}%")
                     st.dataframe(top5, use_container_width=True)
 
                 with col2:
                     st.subheader("📉 ワースト5")
                     bottom5 = returns_df.nsmallest(5, "Return")[["Ticker", "Name", "Return"]]
-                    bottom5["Return"] = bottom5["Return"].apply(lambda x: f"{x*100:+.2f}%")
+                    bottom5["Return"] = bottom5["Return"].apply(lambda x: f"{x * 100:+.2f}%")
                     st.dataframe(bottom5, use_container_width=True)
 
 
@@ -476,7 +476,7 @@ def render_market_scan_tab(
             # In production, this should come from the model's probability output.
             def calc_confidence(row):
                 base_conf = 0.5
-                ret_contr = min(0.4, abs(row["Return"]) * 5) # Up to 0.4 from return
+                ret_contr = min(0.4, abs(row["Return"]) * 5)  # Up to 0.4 from return
                 strat_bonus = 0.1 if "LightGBM" in row["Strategy"] else 0.0
 
                 return max(0.0, min(0.99, base_conf + ret_contr + strat_bonus))
@@ -495,8 +495,8 @@ def render_market_scan_tab(
 
                 # Apply Filters
                 actionable_df = actionable_df[
-                    (actionable_df["Return"] >= min_return_filter) &
-                    (actionable_df["Confidence"] >= confidence_threshold)
+                    (actionable_df["Return"] >= min_return_filter)
+                    & (actionable_df["Confidence"] >= confidence_threshold)
                 ]
 
                 if actionable_df.empty:
@@ -513,9 +513,9 @@ def render_market_scan_tab(
                 upside = best_pick["Return"]
                 downside = abs(best_pick["Max Drawdown"])
                 risk_reward = upside / downside if downside > 0 else 1.0
-                win_prob = 0.55 # Conservative default
+                win_prob = 0.55  # Conservative default
                 kelly = win_prob - (1 - win_prob) / risk_reward if risk_reward > 0 else 0
-                kelly = max(0, kelly) # No negative Kelly
+                kelly = max(0, kelly)  # No negative Kelly
 
                 # リスクレベル判定（統一版）
                 risk_level = get_risk_level(best_pick.get("Max Drawdown", -0.15))
@@ -907,7 +907,7 @@ def render_market_scan_tab(
                             pe = fund.get("trailingPE")
                             roe = fund.get("returnOnEquity")
                             actionable_df.at[idx, "PER"] = f"{pe:.1f}x" if pe else "N/A"
-                            actionable_df.at[idx, "ROE"] = f"{roe*100:.1f}%" if roe else "N/A"
+                            actionable_df.at[idx, "ROE"] = f"{roe * 100:.1f}%" if roe else "N/A"
 
                     display_df = actionable_df[
                         [
@@ -923,8 +923,8 @@ def render_market_scan_tab(
                             "ROE",
                         ]
                     ].copy()
-                    display_df["Return"] = display_df["Return"].apply(lambda x: f"{x*100:.1f}%")
-                    display_df["Max Drawdown"] = display_df["Max Drawdown"].apply(lambda x: f"{x*100:.1f}%")
+                    display_df["Return"] = display_df["Return"].apply(lambda x: f"{x * 100:.1f}%")
+                    display_df["Max Drawdown"] = display_df["Max Drawdown"].apply(lambda x: f"{x * 100:.1f}%")
                     display_df["Last Price"] = display_df["Last Price"].apply(lambda x: f"¥{x:,.0f}")
 
                     st.dataframe(display_df, use_container_width=True)
@@ -986,7 +986,6 @@ def render_realtime_monitoring_tab(ticker_group, selected_market, custom_tickers
 
         placeholder = st.empty()
         st.empty()
-
 
         try:
             # 簡易ループ (実際にはバックグラウンドスレッド推奨だが、UI更新のためメインスレッドで実行)

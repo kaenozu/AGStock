@@ -20,6 +20,5 @@ class MorningStrategyMemo:
             return "米国市場データの取得に失敗しました。通常通りのリスク管理を継続してください。"
 
 
-
 # try:
 #             model = genai.GenerativeModel("gemini-1.5-flash") # Use flash for speed

@@ -30,8 +30,6 @@ logger = logging.getLogger(__name__)
 DB_PATH = "data/sentiment_data.db"
 
 
-
-
 def init_sentiment_db():
     """センチメントデータベースの初期化"""
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
@@ -256,7 +254,8 @@ class SocialMediaSentimentAnalyzer:
 
             sentiment_type = random.choice(["positive", "negative", "neutral"])
             words = random.choices(sentiment_words[sentiment_type], k=random.randint(5, 10))
-            text = f"${ticker} {' '.join(words)} trending {'up' if sentiment_type == 'positive' else 'down' if sentiment_type == 'negative' else 'mixed'}!"
+            trend = 'up' if sentiment_type == 'positive' else ('down' if sentiment_type == 'negative' else 'mixed')
+            text = f"${ticker} {' '.join(words)} trending {trend}!"
 
             mock_tweets.append(
                 {

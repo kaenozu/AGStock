@@ -153,9 +153,9 @@ def _render_metric_card(
     """メトリクスカードをレンダリング"""
     if format_type == "currency":
         if abs(value) >= 1_000_000:
-            formatted = f"{value/1_000_000:.2f}M"
+            formatted = f"{value / 1_000_000:.2f}M"
         elif abs(value) >= 1_000:
-            formatted = f"{value/1_000:.1f}K"
+            formatted = f"{value / 1_000:.1f}K"
         else:
             formatted = f"{value:,.0f}"
     else:

@@ -157,10 +157,10 @@ class SectorRotation:
 
             # モメンタムスコア（加重平均）
             momentum_score = (
-                return_1w * 0.1 +
-                return_1m * 0.3 +
-                return_3m * 0.4 +
-                return_6m * 0.2
+                return_1w * 0.1
+                + return_1m * 0.3
+                + return_3m * 0.4
+                + return_6m * 0.2
             )
 
             # 推奨判定

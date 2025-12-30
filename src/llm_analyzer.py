@@ -161,7 +161,10 @@ class LLMAnalyzer:
         return {
             "sentiment": sentiment,
             "score": score,
-            "reasoning": f"Mock Analysis: Detected {len(found_bullish)} positive and {len(found_bearish)} negative keywords in {len(news_list)} headlines.",
+            "reasoning": (
+                f"Mock Analysis: Detected {len(found_bullish)} positive and "
+                f"{len(found_bearish)} negative keywords in {len(news_list)} headlines."
+            ),
             "risks": ["Market volatility (Mock)", "Sector rotation (Mock)"],
             "catalysts": ["Earnings surprise (Mock)", "New product launch (Mock)"],
         }

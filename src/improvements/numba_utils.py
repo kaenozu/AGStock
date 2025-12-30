@@ -41,15 +41,15 @@ def fast_sma(prices: np.ndarray, period: int) -> np.ndarray:
     """
     n = len(prices)
     result = np.empty(n)
-    result[:period-1] = np.nan
+    result[:period - 1] = np.nan
 
     # 最初の値
     window_sum = np.sum(prices[:period])
-    result[period-1] = window_sum / period
+    result[period - 1] = window_sum / period
 
     # ローリング計算
     for i in range(period, n):
-        window_sum = window_sum - prices[i-period] + prices[i]
+        window_sum = window_sum - prices[i - period] + prices[i]
         result[i] = window_sum / period
 
     return result
@@ -73,7 +73,7 @@ def fast_ema(prices: np.ndarray, period: int) -> np.ndarray:
     alpha = 2.0 / (period + 1)
 
     for i in range(1, n):
-        result[i] = alpha * prices[i] + (1 - alpha) * result[i-1]
+        result[i] = alpha * prices[i] + (1 - alpha) * result[i - 1]
 
     return result
 
@@ -112,8 +112,8 @@ def fast_rsi(prices: np.ndarray, period: int = 14) -> np.ndarray:
 
     # スムージング
     for i in range(period + 1, n):
-        avg_gain = (avg_gain * (period - 1) + gains[i-1]) / period
-        avg_loss = (avg_loss * (period - 1) + losses[i-1]) / period
+        avg_gain = (avg_gain * (period - 1) + gains[i - 1]) / period
+        avg_loss = (avg_loss * (period - 1) + losses[i - 1]) / period
 
         if avg_loss == 0:
             result[i] = 100.0
@@ -173,11 +173,11 @@ def fast_bollinger_bands(
 
     upper = np.empty(n)
     lower = np.empty(n)
-    upper[:period-1] = np.nan
-    lower[:period-1] = np.nan
+    upper[:period - 1] = np.nan
+    lower[:period - 1] = np.nan
 
     for i in range(period - 1, n):
-        window = prices[i-period+1:i+1]
+        window = prices[i - period + 1:i + 1]
         std = np.std(window)
         upper[i] = middle[i] + num_std * std
         lower[i] = middle[i] - num_std * std

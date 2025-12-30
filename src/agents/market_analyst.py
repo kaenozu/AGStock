@@ -42,7 +42,7 @@ class MarketAnalyst(BaseAgent):
         # 3. Consume Earnings Report
         earnings_report = data.get("earnings_report")
         earnings_msg = ""
-        earnings_impact = 0.0 # -1 to 1 impact
+        earnings_impact = 0.0  # -1 to 1 impact
 
         if earnings_report:
             rec = earnings_report.get("recommendation", "HOLD")
@@ -105,7 +105,10 @@ class MarketAnalyst(BaseAgent):
         lessons_learned = data.get("lessons_learned", "")
         lessons_msg = f"\n[Self-Learning Lessons: {lessons_learned}]" if lessons_learned else ""
 
-        reasoning = f"Sentiment: {sentiment}. {quant_reasoning} {earnings_msg} Key Drivers: {', '.join(impact.get('key_drivers', []))}. {regime_msg}{lessons_msg}"
+        reasoning = (
+            f"Sentiment: {sentiment}. {quant_reasoning} {earnings_msg} "
+            f"Key Drivers: {', '.join(impact.get('key_drivers', []))}. {regime_msg}{lessons_msg}"
+        )
 
         analysis = self._create_response(final_decision, final_confidence, reasoning)
         self.log_analysis(analysis)

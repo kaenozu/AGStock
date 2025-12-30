@@ -49,6 +49,8 @@ except ImportError:
 T = TypeVar("T")
 
 # シングルトンキャッシュインスタンスの作成
+
+
 def _create_cache_instance():
     """キャッシュマネージャーのインスタンスを作成"""
     if HAS_PERSISTENT_CACHE and CacheManager is not None:

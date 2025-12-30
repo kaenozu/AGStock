@@ -110,9 +110,9 @@ class MarketScanner:
             return STOXX50_TICKERS[:30]
         elif market == "all":
             return (
-                NIKKEI_225_TICKERS[:30] +
-                SP500_TICKERS[:30] +
-                STOXX50_TICKERS[:20]
+                NIKKEI_225_TICKERS[:30]
+                + SP500_TICKERS[:30]
+                + STOXX50_TICKERS[:20]
             )
         else:
             return NIKKEI_225_TICKERS[:50]

@@ -79,8 +79,8 @@ class InvestmentCommittee:
         data = {
             "ticker": ticker,
             "news": synthesized_news,
-            "earnings_report": earnings_report, # New injection point
-            "macro_data": macro_data, # New injection point
+            "earnings_report": earnings_report,  # New injection point
+            "macro_data": macro_data,  # New injection point
             "market_stats": {
                 "price": signal_data.get("price"),
                 "vix": macro_data.get("vix", {}).get("value", 20.0),
@@ -104,7 +104,7 @@ class InvestmentCommittee:
 
                     # Determine Ensemble Decision
                     ensemble_decision = "HOLD"
-                    if pred_price > current_price * 1.005: # 0.5% threshold
+                    if pred_price > current_price * 1.005:  # 0.5% threshold
                         ensemble_decision = "UP"
                     elif pred_price < current_price * 0.995:
                         ensemble_decision = "DOWN"
@@ -120,7 +120,7 @@ class InvestmentCommittee:
 
         # Fallback if still None
         if not pred_report:
-             pred_report = {
+            pred_report = {
                 "ensemble_decision": "UNKNOWN",
                 "confidence": 0.0,
                 "components": {},
@@ -129,9 +129,9 @@ class InvestmentCommittee:
 
         data["prediction_report"] = pred_report
         data["portfolio"] = {
-                "cash": 1000000,
-                "total_equity": 1000000,
-                "positions": [],
+            "cash": 1000000,
+            "total_equity": 1000000,
+            "positions": [],
         }
 
         result = self.hold_meeting(data)
@@ -178,7 +178,7 @@ class InvestmentCommittee:
         if lessons:
             kb_text += "\n【過去の銘柄別教訓】\n"
             for lesson in lessons:
-                kb_text += f"- {lesson['timestamp'][:10]}: {lesson['decision']} -> {lesson['outcome']} (収益率: {lesson['return_1w']*100:.1f}%)\n"
+                kb_text += f"- {lesson['timestamp'][:10]}: {lesson['decision']} -> {lesson['outcome']} (収益率: {lesson['return_1w'] * 100:.1f}%)\n"
 
         if recent_failures:
             kb_text += "\n【最近の全体的な失敗事例】\n"
@@ -230,7 +230,7 @@ class InvestmentCommittee:
 
         # 4. Position Sizing
         equity = data.get("portfolio", {}).get("total_equity", 1000000)
-        win_rate = 0.6 # Placeholder for realized win-rate
+        win_rate = 0.6  # Placeholder for realized win-rate
         sizing = self.sizer.calculate_size(ticker, equity, win_rate)
         result["sizing_recommendation"] = sizing
 
@@ -253,7 +253,8 @@ class InvestmentCommittee:
             {
                 "agent": "MarketAnalyst",
                 "avatar": "📈",
-                "message": f"Analyzing {ticker}... My Technical/Fundamental models suggest: {ma_analysis.decision.value}.\nReason: {ma_analysis.reasoning}",
+                "message": (f"Analyzing {ticker}... My Technical/Fundamental models suggest: "
+                            f"{ma_analysis.decision.value}.\nReason: {ma_analysis.reasoning}"),
                 "decision": ma_analysis.decision.value,
             }
         )
@@ -272,7 +273,8 @@ class InvestmentCommittee:
             {
                 "agent": "RiskManager",
                 "avatar": "🛡️",
-                "message": f"I have reviewed the risk profile. I {response_tone} with the analyst.\nMy assessment: {rm_analysis.decision.value}.\nRisk Factors: {rm_analysis.reasoning}",
+                "message": (f"I have reviewed the risk profile. I {response_tone} with the analyst.\n"
+                            f"My assessment: {rm_analysis.decision.value}.\nRisk Factors: {rm_analysis.reasoning}"),
                 "decision": rm_analysis.decision.value,
             }
         )
@@ -295,7 +297,8 @@ class InvestmentCommittee:
             {
                 "agent": "Chairperson",
                 "avatar": "🏛️",
-                "message": f"After hearing all perspectives (Technical, Risk, and Macro), the committee rules: {final_decision.value}.\nRationale: {rationale}",
+                "message": (f"After hearing all perspectives (Technical, Risk, and Macro), "
+                            f"the committee rules: {final_decision.value}.\nRationale: {rationale}"),
                 "decision": final_decision.value,
             }
         )

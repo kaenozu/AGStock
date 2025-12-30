@@ -87,7 +87,7 @@ class Config(BaseSettings):
 
     def get(self, key: str, default: Any = None) -> Any:
         """後方互換性のためのドット記法アクセス.
-        
+
         Example:
             config.get("trading.max_daily_trades") -> 5
             config.get("system.initial_capital") -> 10000000

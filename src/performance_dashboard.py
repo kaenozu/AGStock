@@ -44,7 +44,7 @@ def create_performance_dashboard():
         st.metric("最大ドローダウン", f"{metrics['max_drawdown_pct']:.2f}%", delta=None, delta_color="inverse")
 
     with col4:
-        st.metric("勝率", f"{metrics['win_rate']*100:.1f}%", delta=f"損益比: {metrics['win_loss_ratio']:.2f}")
+        st.metric("勝率", f"{metrics['win_rate'] * 100:.1f}%", delta=f"損益比: {metrics['win_loss_ratio']:.2f}")
 
     # 2. 資産推移グラフ
     st.header("💰 資産推移")

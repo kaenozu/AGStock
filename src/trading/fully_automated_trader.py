@@ -123,7 +123,7 @@ class FullyAutomatedTrader:
         # New Risk Modules (from feat-add-position-guards)
         try:
             self.regime_detector = RegimeDetector()
-            self.orchestrator = StrategyOrchestrator(self.config) # Added
+            self.orchestrator = StrategyOrchestrator(self.config)  # Added
             self.risk_manager = DynamicRiskManager(self.regime_detector)
             self.kelly_criterion = KellyCriterion()
             self.dynamic_stop_manager = DynamicStopManager()
@@ -597,7 +597,7 @@ class FullyAutomatedTrader:
         self.self_healing.monitor_and_heal()
         vix = self._get_vix_level() or 20.0
         # Get simple performance summary for optimizer
-        perf = {'win_rate': 0.55} # Placeholder until RealStats linked
+        perf = {'win_rate': 0.55}  # Placeholder until RealStats linked
         new_params = self.param_optimizer.optimize_parameters(perf, vix)
         self.log(f'🧬 自己最適化適用: TP={new_params["take_profit_pct"]}, SL={new_params["stop_loss_pct"]}')
         """市場をスキャンして新規シグナルを検出（グローバル分散対応）"""
@@ -929,8 +929,8 @@ class FullyAutomatedTrader:
                 # Use a few key tickers for optimization
                 self.learning_pipeline.run_optimization(tickers=["7203.T", "9984.T", "^GSPC", "AAPL", "MSFT"])
                 self.log(
-                "Phase 72 & 73 & 74 のすべての実装が完了しました。システムはこれまで以上に守りに強く、自己進化する準備が整っています。"
-            )
+                    "Phase 72 & 73 & 74 のすべての実装が完了しました。システムはこれまで以上に守りに強く、自己進化する準備が整っています。"
+                )
             except Exception as e:
                 self.log(f"自己学習エラー: {e}", "WARNING")
 

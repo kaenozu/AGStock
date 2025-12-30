@@ -89,7 +89,6 @@ def render_ai_insights():
         # Ideally, InvestmentCommittee should return strategy explanations.
         # For now, we simulate grabbing the ML strategy to show the concept.
 
-
         # Hardcoded demo for immediate visual feedback (since
         # committee.hold_meeting mock doesn't return actual strategy objs)
         st.info("AIがどのデータを重視したかを表示します（デモ: LightGBMモデル）")
