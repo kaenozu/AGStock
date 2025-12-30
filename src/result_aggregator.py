@@ -4,10 +4,8 @@
 計算と集計を分離することで、単一責任の原則を適用します。
 """
 
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
-import numpy as np
 import pandas as pd
 
 
@@ -42,7 +40,9 @@ class ResultAggregator:
 
         return df
 
-    def aggregate_position_history(self, position_history: List[int], date_index: pd.DatetimeIndex) -> pd.DataFrame:
+    def aggregate_position_history(
+        self, position_history: List[int], date_index: pd.DatetimeIndex
+    ) -> pd.DataFrame:
         """ポジション履歴を集計
 
         Args:
@@ -66,7 +66,10 @@ class ResultAggregator:
         return df
 
     def aggregate_portfolio_history(
-        self, portfolio_values: List[float], date_index: pd.DatetimeIndex, initial_capital: float
+        self,
+        portfolio_values: List[float],
+        date_index: pd.DatetimeIndex,
+        initial_capital: float,
     ) -> pd.DataFrame:
         """ポートフォリオ履歴を集計
 
@@ -85,7 +88,9 @@ class ResultAggregator:
 
         # リーターン計算
         df["daily_return"] = df["portfolio_value"].pct_change()
-        df["cumulative_return"] = (df["portfolio_value"] - initial_capital) / initial_capital
+        df["cumulative_return"] = (
+            df["portfolio_value"] - initial_capital
+        ) / initial_capital
 
         # 最高値、最低値、ドローダン
         df["rolling_max"] = df["portfolio_value"].expanding().max()
@@ -94,7 +99,9 @@ class ResultAggregator:
 
         return df
 
-    def aggregate_signal_statistics(self, signals: Dict[str, pd.Series], ticker: str = None) -> Dict[str, int]:
+    def aggregate_signal_statistics(
+        self, signals: Dict[str, pd.Series], ticker: str = None
+    ) -> Dict[str, int]:
         """シグナルの統計を集計
 
         Args:
@@ -153,13 +160,21 @@ class ResultAggregator:
         # 取引統計
         trade_stats = {
             "total_trades": len(trades_df),
-            "winning_trades": (trades_df["return"] > 0).sum() if "return" in trades_df.columns else 0,
-            "losing_trades": (trades_df["return"] < 0).sum() if "return" in trades_df.columns else 0,
-            "break_even_trades": (trades_df["return"] == 0).sum() if "return" in trades_df.columns else 0,
+            "winning_trades": (trades_df["return"] > 0).sum()
+            if "return" in trades_df.columns
+            else 0,
+            "losing_trades": (trades_df["return"] < 0).sum()
+            if "return" in trades_df.columns
+            else 0,
+            "break_even_trades": (trades_df["return"] == 0).sum()
+            if "return" in trades_df.columns
+            else 0,
         }
 
         if trade_stats["total_trades"] > 0:
-            trade_stats["win_rate"] = trade_stats["winning_trades"] / trade_stats["total_trades"]
+            trade_stats["win_rate"] = (
+                trade_stats["winning_trades"] / trade_stats["total_trades"]
+            )
         else:
             trade_stats["win_rate"] = 0.0
 
@@ -168,20 +183,32 @@ class ResultAggregator:
             "final_value": final_capital,
             "total_return_pct": total_return * 100,
             "max_portfolio_value": (
-                portfolio_df["portfolio_value"].max() if "portfolio_value" in portfolio_df.columns else 0.0
+                portfolio_df["portfolio_value"].max()
+                if "portfolio_value" in portfolio_df.columns
+                else 0.0
             ),
             "min_portfolio_value": (
-                portfolio_df["portfolio_value"].min() if "portfolio_value" in portfolio_df.columns else 0.0
+                portfolio_df["portfolio_value"].min()
+                if "portfolio_value" in portfolio_df.columns
+                else 0.0
             ),
-            "max_drawdown": portfolio_df["drawdown"].min() if "drawdown" in portfolio_df.columns else 0.0,
+            "max_drawdown": portfolio_df["drawdown"].min()
+            if "drawdown" in portfolio_df.columns
+            else 0.0,
         }
 
         # ポジション統計
         position_stats = {
             "total_days": len(position_df) if not position_df.empty else 0,
-            "long_days": (position_df["position"] == 1).sum() if "position" in position_df.columns else 0,
-            "short_days": (position_df["position"] == -1).sum() if "position" in position_df.columns else 0,
-            "flat_days": (position_df["position"] == 0).sum() if "position" in position_df.columns else 0,
+            "long_days": (position_df["position"] == 1).sum()
+            if "position" in position_df.columns
+            else 0,
+            "short_days": (position_df["position"] == -1).sum()
+            if "position" in position_df.columns
+            else 0,
+            "flat_days": (position_df["position"] == 0).sum()
+            if "position" in position_df.columns
+            else 0,
         }
 
         return {
@@ -197,7 +224,10 @@ class ResultAggregator:
         }
 
     def create_equity_curve(
-        self, portfolio_values: List[float], date_index: pd.DatetimeIndex, initial_capital: float
+        self,
+        portfolio_values: List[float],
+        date_index: pd.DatetimeIndex,
+        initial_capital: float,
     ) -> pd.Series:
         """equity curve を作成
 

@@ -4,7 +4,6 @@
 システムの実績を分析・可視化
 """
 
-import datetime
 from typing import Dict, Tuple
 
 import numpy as np
@@ -98,7 +97,9 @@ class PerformanceAnalyzer:
         drawdown = (equity - cummax) / cummax
         return drawdown.min()
 
-    def _calculate_win_metrics(self, trade_history: pd.DataFrame) -> Tuple[float, float]:
+    def _calculate_win_metrics(
+        self, trade_history: pd.DataFrame
+    ) -> Tuple[float, float]:
         """勝率と損益比を計算"""
         if trade_history.empty or "realized_pnl" not in trade_history.columns:
             return 0.0, 0.0
@@ -128,7 +129,9 @@ class PerformanceAnalyzer:
             return pd.Series()
 
         equity_history = equity_history.copy()
-        equity_history["month"] = pd.to_datetime(equity_history["date"]).dt.to_period("M")
+        equity_history["month"] = pd.to_datetime(equity_history["date"]).dt.to_period(
+            "M"
+        )
 
         monthly = equity_history.groupby("month")["total_equity"].last()
         monthly_returns = monthly.pct_change()
@@ -141,7 +144,9 @@ class PerformanceAnalyzer:
             return pd.Series()
 
         equity_history = equity_history.copy()
-        equity_history["week"] = pd.to_datetime(equity_history["date"]).dt.to_period("W")
+        equity_history["week"] = pd.to_datetime(equity_history["date"]).dt.to_period(
+            "W"
+        )
 
         weekly = equity_history.groupby("week")["total_equity"].last()
         weekly_returns = weekly.pct_change()
@@ -176,13 +181,14 @@ class PerformanceAnalyzer:
                 return {}
 
             # ベンチマークのリターン計算
-            benchmark_return = (benchmark_data["Close"].iloc[-1] - benchmark_data["Close"].iloc[0]) / benchmark_data[
-                "Close"
-            ].iloc[0]
+            benchmark_return = (
+                benchmark_data["Close"].iloc[-1] - benchmark_data["Close"].iloc[0]
+            ) / benchmark_data["Close"].iloc[0]
 
             # 自分のリターン
             my_return = (
-                equity_history.iloc[-1]["total_equity"] - equity_history.iloc[0]["total_equity"]
+                equity_history.iloc[-1]["total_equity"]
+                - equity_history.iloc[0]["total_equity"]
             ) / equity_history.iloc[0]["total_equity"]
 
             # アウトパフォーマンス

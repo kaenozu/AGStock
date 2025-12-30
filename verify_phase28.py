@@ -1,62 +1,88 @@
 import os
 import sys
-from io import BytesIO
-from unittest.mock import MagicMock
+import logging
+import json
+import pandas as pd
+from typing import Dict, Any
 
-# Add src to path
-sys.path.append(os.path.join(os.getcwd(), ""))
+# Add project root to path
+sys.path.append(os.getcwd())
 
+from src.agents.council_avatars import AvatarCouncil
+from src.execution.precog_defense import PrecogDefense
+from src.trading.trade_executor import TradeExecutor
+from src.execution import ExecutionEngine
+from src.paper_trader import PaperTrader
+from src.agents.committee import InvestmentCommittee
 
-def test_embeddings_hunter():
-    print("\n[VERIFY] Phase 28: Earnings Hunter")
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-    # 1. Dependency Check
-    try:
-        import pypdf
+def test_phase28_sovereign():
+    print("\n" + "="*60)
+    print("🧬 AGStock Phase 28: Sovereign Oversight Verification")
+    print("="*60)
 
-        print("  Dependency (pypdf): OK")
-    except ImportError:
-        print("  FAILURE: pypdf not installed")
-        return
+    # 1. Test Council Meritocracy
+    print("\n[Step 1] Testing Council Meritocracy (Meta-Learning)...")
+    council = AvatarCouncil(persistence_path="data/test_council.json")
+    
+    # Simulate a vote on 7203.T
+    print("-> Holding Assembly...")
+    res = council.hold_grand_assembly("7203.T", {})
+    
+    # Check if pending votes were recorded
+    with open("data/test_council.json", "r") as f:
+        state = json.load(f)
+        has_pending = any(p.get("pending_votes") for p in state)
+        print(f"-> Pending votes recorded: {has_pending}")
 
-    # 2. Backend Import Check
-    try:
-        from src.analysis.pdf_reader import EarningsAnalyzer, PDFExtractor
+    # Simulate outcome update
+    print("-> Updating Meritocracy (Outcome: BULL)...")
+    initial_weight = state[0]["weight"]
+    council.update_meritocracy("7203.T", "BULL")
+    
+    with open("data/test_council.json", "r") as f:
+        new_state = json.load(f)
+        # Find a persona that voted BULL
+        for i, p in enumerate(state):
+             pending = [v for v in p.get("pending_votes",[]) if v["ticker"] == "7203.T"]
+             if pending and pending[0]["stance"] == "BULL":
+                 if new_state[i]["weight"] > p["weight"]:
+                     print(f"-> ✅ Meritocracy Success: Avatar {p['id']} rewarded (Weight {p['weight']:.2f} -> {new_state[i]['weight']:.2f})")
+                     break
 
-        print("  Backend Imports: OK")
-    except ImportError as e:
-        print(f"  FAILURE: Import error: {e}")
-        return
+    # 2. Test Index Hedging
+    print("\n[Step 2] Testing Index Hedging (Precog Index Defense)...")
+    defense = PrecogDefense(risk_threshold=70)
+    high_risk = {"aggregate_risk_score": 85, "system_status": "DEFENSIVE", "events": [{"name": "Global Crash", "risk_score": 90}]}
+    
+    action = defense.evaluate_emergency_action(high_risk)
+    print(f"-> Index Hedge Triggered: {action['trigger_index_hedge']}")
+    print(f"-> Index Symbols: {action['index_symbols']}")
+    
+    if action['trigger_index_hedge']:
+         print("-> ✅ Index Hedging logic verified in PrecogDefense.")
 
-    # 3. Analyze Logic Check (Mocking LLM)
-    try:
-        analyzer = EarningsAnalyzer()
-        # Mock LLMReasoner
-        analyzer.llm = MagicMock()
-        analyzer.llm.analyze_earnings_report.return_value = {
-            "summary": "Mock Summary",
-            "raw_analysis": "Mock Analysis Result: Positive",
-        }
+    # 3. Test Multimodal Integration
+    print("\n[Step 3] Testing Multimodal Analyst Integration...")
+    committee = InvestmentCommittee()
+    if hasattr(committee, 'multimodal_analyst'):
+        print("-> ✅ MultimodalAnalyst initialized in InvestmentCommittee.")
+    else:
+        print("-> ❌ MultimodalAnalyst missing.")
 
-        result = analyzer.analyze_report("This is a dummy earnings report text.")
-
-        if "raw_analysis" in result:
-            print("  Analyzer Logic: OK")
-        else:
-            print(f"  FAILURE: Analyzer output mismatch: {result}")
-
-    except Exception as e:
-        print(f"  FAILURE: Logic check failed: {e}")
-
-    # 4. UI Import Check
-    try:
-        from src.ui.earnings_analyst import render_earnings_analyst
-
-        print("  UI Imports: OK")
-        print("  SUCCESS")
-    except ImportError as e:
-        print(f"  FAILURE: UI Import error: {e}")
-
+    print("\n" + "="*60)
+    print("✅ Phase 28 Verification Complete.")
+    print("="*60)
 
 if __name__ == "__main__":
-    test_embeddings_hunter()
+    try:
+        test_phase28_sovereign()
+    except Exception as e:
+        logger.error(f"Verification failed: {e}")
+        import traceback
+        traceback.print_exc()
+    finally:
+        if os.path.exists("data/test_council.json"):
+            os.remove("data/test_council.json")

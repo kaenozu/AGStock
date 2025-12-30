@@ -71,18 +71,26 @@ class RiskGuard:
                 state = json.load(f)
 
             # Load state values with defaults
-            self.daily_start_value = state.get("daily_start_value", self.daily_start_value)
+            self.daily_start_value = state.get(
+                "daily_start_value", self.daily_start_value
+            )
 
             last_date_str = state.get("last_reset_date")
             if last_date_str:
-                self.last_reset_date = datetime.strptime(last_date_str, "%Y-%m-%d").date()
+                self.last_reset_date = datetime.strptime(
+                    last_date_str, "%Y-%m-%d"
+                ).date()
 
-            self.circuit_breaker_triggered = state.get("circuit_breaker_triggered", False)
+            self.circuit_breaker_triggered = state.get(
+                "circuit_breaker_triggered", False
+            )
             self.high_water_mark = state.get("high_water_mark", self.high_water_mark)
             self.drawdown_triggered = state.get("drawdown_triggered", False)
             self.consecutive_losses = state.get("consecutive_losses", 0)
 
-            logger.info(f"Risk state loaded. Daily Start: {self.daily_start_value}, HWM: {self.high_water_mark}")
+            logger.info(
+                f"Risk state loaded. Daily Start: {self.daily_start_value}, HWM: {self.high_water_mark}"
+            )
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse risk state file {self.state_file}: {e}")
             from .errors import RiskManagementError
@@ -138,7 +146,9 @@ class RiskGuard:
         """
         self.reset_daily_tracking(current_value)
 
-        daily_pnl_pct = ((current_value - self.daily_start_value) / self.daily_start_value) * 100
+        daily_pnl_pct = (
+            (current_value - self.daily_start_value) / self.daily_start_value
+        ) * 100
 
         if daily_pnl_pct <= self.daily_loss_limit_pct:
             if not self.circuit_breaker_triggered:
@@ -161,7 +171,9 @@ class RiskGuard:
             self.high_water_mark = current_value
             self.save_state()
 
-        drawdown_pct = ((current_value - self.high_water_mark) / self.high_water_mark) * 100
+        drawdown_pct = (
+            (current_value - self.high_water_mark) / self.high_water_mark
+        ) * 100
 
         if drawdown_pct <= self.max_drawdown_limit_pct:
             if not self.drawdown_triggered:
@@ -182,7 +194,9 @@ class RiskGuard:
         position_pct = (order_value / portfolio_value) * 100
 
         if position_pct > self.max_position_size_pct:
-            logger.warning(f"⚠️ Position size {position_pct:.2f}% exceeds limit {self.max_position_size_pct}%")
+            logger.warning(
+                f"⚠️ Position size {position_pct:.2f}% exceeds limit {self.max_position_size_pct}%"
+            )
             return True
 
         return False
@@ -261,7 +275,9 @@ class RiskGuard:
 
         return False, ""
 
-    def validate_order(self, order_value: float, portfolio_value: float) -> Tuple[bool, str]:
+    def validate_order(
+        self, order_value: float, portfolio_value: float
+    ) -> Tuple[bool, str]:
         """
         Validate if an order is safe to execute.
         Returns (is_valid, reason)

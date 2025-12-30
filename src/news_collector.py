@@ -58,8 +58,13 @@ class NewsCollector:
                         "source": "Yahoo Finance",
                         "title": entry.title,
                         "link": entry.link,
-                        "published": entry.get("published", datetime.datetime.now().strftime("%Y-%m-%d %H:%M")),
-                        "summary": entry.get("summary", ""),  # specific to ticker if scraping, but RSS usually generic
+                        "published": entry.get(
+                            "published",
+                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+                        ),
+                        "summary": entry.get(
+                            "summary", ""
+                        ),  # specific to ticker if scraping, but RSS usually generic
                     }
                 )
         except Exception as e:
@@ -72,22 +77,51 @@ class NewsCollector:
         # Sort by date if possible (though RSS format varies)
         return all_news[:limit]
 
-    def fetch_news_for_ticker(self, ticker: str, limit: int = 5) -> List[Dict[str, str]]:
+    def fetch_news_for_ticker(
+        self, ticker: str, limit: int = 5
+    ) -> List[Dict[str, str]]:
         """
-        Fetches news specific to a ticker.
-        Note: Specific ticker RSS is hard to find without paid API.
-        We will use a search-based RSS or fallback to general market news for now,
-        OR scrape Yahoo Finance specific page (Simulated for safety).
-
-        For this implementation, we will fetch generic business news and
-        filter if the ticker name (or company name) appears in tile.
+        Fetches news specific to a ticker using yfinance.
         """
-        # In a real PRO app, we would use an API like NewsAPI or Google Search API.
-        # Here we fetch general news and maybe find matches, or just return general news
-        # as context for "Market Sentiment".
+        cache_key = f"ticker_news_{ticker}_{limit}"
+        if self.cache:
+            cached_data = self.cache.get(cache_key)
+            if cached_data:
+                return cached_data
 
-        # Let's fetch general news for now as "Market Context".
-        return self.fetch_market_news(limit)
+        import yfinance as yf
+
+        all_news = []
+        try:
+            yf_ticker = yf.Ticker(ticker)
+            yf_news = yf_ticker.news
+
+            for item in yf_news[:limit]:
+                all_news.append(
+                    {
+                        "source": item.get("publisher", "Unknown"),
+                        "title": item.get("title", "No Title"),
+                        "link": item.get("link", ""),
+                        "published": datetime.datetime.fromtimestamp(
+                            item.get("providerPublishTime", 0)
+                        ).strftime("%Y-%m-%d %H:%M")
+                        if item.get("providerPublishTime")
+                        else "Unknown",
+                        "summary": item.get("summary", ""),
+                        "type": item.get("type", "STORY"),
+                    }
+                )
+        except Exception as e:
+            logger.error(f"Error fetching yfinance news for {ticker}: {e}")
+
+        # If yfinance news is empty, fallback to market news
+        if not all_news:
+            return self.fetch_market_news(limit)
+
+        if self.cache and all_news:
+            self.cache.set(cache_key, all_news, ttl_seconds=3600)  # 1 hour
+
+        return all_news
 
 
 _collector = None

@@ -10,6 +10,7 @@ from typing import Dict
 import numpy as np
 import pandas as pd
 import yfinance as yf
+
 try:
     from sklearn.metrics import roc_auc_score
 except ImportError:
@@ -19,13 +20,20 @@ except ImportError:
 class BenchmarkComparator:
     """ベンチマーク比較クラス"""
 
-    BENCHMARKS = {"nikkei225": "^N225", "sp500": "^GSPC", "topix": "^TPX", "nasdaq": "^IXIC"}
+    BENCHMARKS = {
+        "nikkei225": "^N225",
+        "sp500": "^GSPC",
+        "topix": "^TPX",
+        "nasdaq": "^IXIC",
+    }
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.benchmark_data = {}
 
-    def fetch_benchmark_data(self, benchmark_name: str, period: str = "1y") -> pd.DataFrame:
+    def fetch_benchmark_data(
+        self, benchmark_name: str, period: str = "1y"
+    ) -> pd.DataFrame:
         """
         ベンチマークデータを取得
 
@@ -41,23 +49,16 @@ class BenchmarkComparator:
             return pd.DataFrame()
 
         try:
-            # yfinance.Tickerを優先して呼び出し、モックしやすくする
-            ticker_client = yf.Ticker(ticker)
-            data = ticker_client.history(period=period)
-            if data is None or data.empty:
-                data = yf.download(ticker, period=period, progress=False)
-
-            if data is None or data.empty:
-                self.logger.warning("No benchmark data fetched for %s", benchmark_name)
-                return pd.DataFrame()
-
+            data = yf.download(ticker, period=period, progress=False)
             self.benchmark_data[benchmark_name] = data
             return data
         except Exception as e:
             self.logger.error(f"Failed to fetch {benchmark_name}: {e}")
             return pd.DataFrame()
 
-    def calculate_active_return(self, portfolio_returns: pd.Series, benchmark_returns: pd.Series) -> float:
+    def calculate_active_return(
+        self, portfolio_returns: pd.Series, benchmark_returns: pd.Series
+    ) -> float:
         """
         アクティブリターンを計算
 
@@ -83,7 +84,9 @@ class BenchmarkComparator:
 
         return active_return
 
-    def calculate_information_ratio(self, portfolio_returns: pd.Series, benchmark_returns: pd.Series) -> float:
+    def calculate_information_ratio(
+        self, portfolio_returns: pd.Series, benchmark_returns: pd.Series
+    ) -> float:
         """
         情報比率（Information Ratio）を計算
 
@@ -112,7 +115,9 @@ class BenchmarkComparator:
 
         return information_ratio
 
-    def calculate_beta(self, portfolio_returns: pd.Series, benchmark_returns: pd.Series) -> float:
+    def calculate_beta(
+        self, portfolio_returns: pd.Series, benchmark_returns: pd.Series
+    ) -> float:
         """
         ベータ（β）を計算
 
@@ -137,7 +142,10 @@ class BenchmarkComparator:
         return beta
 
     def calculate_alpha(
-        self, portfolio_returns: pd.Series, benchmark_returns: pd.Series, risk_free_rate: float = 0.001
+        self,
+        portfolio_returns: pd.Series,
+        benchmark_returns: pd.Series,
+        risk_free_rate: float = 0.001,
     ) -> float:
         """
         アルファ（α）を計算
@@ -166,20 +174,22 @@ class BenchmarkComparator:
 
         return alpha
 
-    def calculate_sharpe_ratio(self, returns: pd.Series, risk_free_rate: float = 0.001) -> float:
+    def calculate_sharpe_ratio(
+        self, returns: pd.Series, risk_free_rate: float = 0.001
+    ) -> float:
         """
         シャープレシオを計算 (Rp - Rf) / Sigma
         """
         if returns.empty:
             return 0.0
-            
+
         excess_returns = returns - (risk_free_rate / 252)
         mean_excess = excess_returns.mean() * 252
         std_dev = returns.std() * np.sqrt(252)
-        
+
         if std_dev < 1e-9:
             return 0.0
-            
+
         return mean_excess / std_dev
 
     def calculate_auc(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
@@ -192,26 +202,28 @@ class BenchmarkComparator:
         if roc_auc_score is None:
             self.logger.warning("sklearn not installed, cannot calculate AUC")
             return 0.5
-            
+
         try:
             # Drop NaNs if any aligned
             mask = ~np.isnan(y_true) & ~np.isnan(y_score)
             if not mask.any():
                 return 0.5
-                
+
             y_true_clean = y_true[mask]
             y_score_clean = y_score[mask]
-            
+
             # AUC requires at least 2 classes
             if len(np.unique(y_true_clean)) < 2:
                 return 0.5
-                
+
             return roc_auc_score(y_true_clean, y_score_clean)
         except Exception as e:
             self.logger.error(f"Error calculating AUC: {e}")
             return 0.5
 
-    def generate_comparison_report(self, portfolio_returns: pd.Series, benchmark_name: str = "nikkei225") -> Dict:
+    def generate_comparison_report(
+        self, portfolio_returns: pd.Series, benchmark_name: str = "nikkei225"
+    ) -> Dict:
         """
         包括的な比較レポートを生成
 
@@ -225,7 +237,7 @@ class BenchmarkComparator:
         # ベンチマークデータ取得
         benchmark_data = self.fetch_benchmark_data(benchmark_name)
 
-        if benchmark_data.empty or "Close" not in benchmark_data.columns:
+        if benchmark_data.empty:
             return {}
 
         # ベンチマークリターン計算
@@ -233,15 +245,16 @@ class BenchmarkComparator:
 
         # 期間を合わせる
         common_index = portfolio_returns.index.intersection(benchmark_returns.index)
-        if common_index.empty:
-            return {}
-
         portfolio_aligned = portfolio_returns.loc[common_index]
         benchmark_aligned = benchmark_returns.loc[common_index]
 
         # 各指標計算
-        active_return = self.calculate_active_return(portfolio_aligned, benchmark_aligned)
-        info_ratio = self.calculate_information_ratio(portfolio_aligned, benchmark_aligned)
+        active_return = self.calculate_active_return(
+            portfolio_aligned, benchmark_aligned
+        )
+        info_ratio = self.calculate_information_ratio(
+            portfolio_aligned, benchmark_aligned
+        )
         beta = self.calculate_beta(portfolio_aligned, benchmark_aligned)
         alpha = self.calculate_alpha(portfolio_aligned, benchmark_aligned)
 
@@ -276,9 +289,13 @@ class BenchmarkComparator:
         interpretation = []
 
         if alpha > 0:
-            interpretation.append(f"✅ プラスアルファ（+{alpha*100:.2f}%）- ベンチマークを上回る")
+            interpretation.append(
+                f"✅ プラスアルファ（+{alpha * 100:.2f}%）- ベンチマークを上回る"
+            )
         else:
-            interpretation.append(f"❌ マイナスアルファ（{alpha*100:.2f}%）- ベンチマーク未達")
+            interpretation.append(
+                f"❌ マイナスアルファ（{alpha * 100:.2f}%）- ベンチマーク未達"
+            )
 
         if info_ratio > 0.5:
             interpretation.append("✅ 高い情報比率 - 効率的な運用")

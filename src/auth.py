@@ -3,22 +3,13 @@ Authentication Manager - 認証・認可システム
 JWT トークンベースの認証
 """
 
-import base64
-import hashlib
-import hmac
-import json
 import sqlite3
-import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Dict, Optional, Tuple
 
 import bcrypt
-
-try:
-    import jwt  # type: ignore
-except ImportError:  # pragma: no cover - optional dependency fallback
-    jwt = None
+import jwt
 
 
 @dataclass
@@ -44,66 +35,6 @@ class AuthManager:
         self.secret_key = secret_key
         self.db_path = db_path
         self._init_database()
-
-    # --- JWT helpers (PyJWT優先、未導入なら簡易HMAC署名にフォールバック) ---
-    def _encode_token(self, payload: Dict) -> str:
-        """JWTエンコード（PyJWTが無ければ簡易実装を使用）"""
-        if jwt:
-            return jwt.encode(payload, self.secret_key, algorithm="HS256")
-
-        # Fallback: HS256ライクな署名付きトークンを生成
-        header = {"alg": "HS256", "typ": "JWT"}
-
-        def _b64(data: Dict) -> str:
-            raw = json.dumps(data, default=str).encode("utf-8")
-            return base64.urlsafe_b64encode(raw).rstrip(b"=").decode("ascii")
-
-        header_b64 = _b64(header)
-        payload_copy = dict(payload)
-        # datetimeをUNIXタイムに寄せる（検証では数値比較するため）
-        for key in ("exp", "iat"):
-            if isinstance(payload_copy.get(key), datetime):
-                payload_copy[key] = int(payload_copy[key].timestamp())
-        payload_b64 = _b64(payload_copy)
-
-        signing_input = f"{header_b64}.{payload_b64}".encode("ascii")
-        signature = hmac.new(self.secret_key.encode("utf-8"), signing_input, hashlib.sha256).digest()
-        signature_b64 = base64.urlsafe_b64encode(signature).rstrip(b"=").decode("ascii")
-        return f"{header_b64}.{payload_b64}.{signature_b64}"
-
-    def _decode_token(self, token: str) -> Optional[Dict]:
-        """JWTデコード（PyJWTが無ければ簡易実装を使用）"""
-        if jwt:
-            try:
-                return jwt.decode(token, self.secret_key, algorithms=["HS256"])
-            except jwt.ExpiredSignatureError:
-                return None
-            except jwt.InvalidTokenError:
-                return None
-
-        try:
-            header_b64, payload_b64, signature_b64 = token.split(".")
-            signing_input = f"{header_b64}.{payload_b64}".encode("ascii")
-            expected_sig = hmac.new(self.secret_key.encode("utf-8"), signing_input, hashlib.sha256).digest()
-            expected_sig_b64 = base64.urlsafe_b64encode(expected_sig).rstrip(b"=")
-
-            if not hmac.compare_digest(expected_sig_b64, signature_b64.encode("ascii")):
-                return None
-
-            # Paddingを補う
-            def _b64decode(segment: str) -> Dict:
-                padded = segment + "=" * (-len(segment) % 4)
-                return json.loads(base64.urlsafe_b64decode(padded).decode("utf-8"))
-
-            payload = _b64decode(payload_b64)
-
-            exp = payload.get("exp")
-            if isinstance(exp, (int, float)) and exp < time.time():
-                return None
-
-            return payload
-        except Exception:
-            return None
 
     def _init_database(self):
         """データベース初期化"""
@@ -140,8 +71,12 @@ class AuthManager:
             )
 
             # インデックス追加
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at)")
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at)"
+            )
 
             conn.commit()
 
@@ -170,7 +105,9 @@ class AuthManager:
 
         return True, "OK"
 
-    def create_user(self, username: str, email: str, password: str, is_admin: bool = False) -> Optional[int]:
+    def create_user(
+        self, username: str, email: str, password: str, is_admin: bool = False
+    ) -> Optional[int]:
         """ユーザー作成"""
         # パスワード強度チェック
         is_strong, message = self.check_password_strength(password)
@@ -224,7 +161,7 @@ class AuthManager:
 
             cursor.execute(
                 """
-                SELECT locked_until FROM users 
+                SELECT locked_until FROM users
                 WHERE username = ? AND locked_until > datetime('now')
             """,
                 (username,),
@@ -239,7 +176,7 @@ class AuthManager:
 
             cursor.execute(
                 """
-                UPDATE users 
+                UPDATE users
                 SET failed_login_attempts = failed_login_attempts + 1
                 WHERE username = ?
             """,
@@ -259,7 +196,7 @@ class AuthManager:
                 locked_until = datetime.utcnow() + self.LOCKOUT_DURATION
                 cursor.execute(
                     """
-                    UPDATE users 
+                    UPDATE users
                     SET locked_until = ?
                     WHERE username = ?
                 """,
@@ -275,7 +212,7 @@ class AuthManager:
 
             cursor.execute(
                 """
-                UPDATE users 
+                UPDATE users
                 SET failed_login_attempts = 0, locked_until = NULL
                 WHERE username = ?
             """,
@@ -292,10 +229,9 @@ class AuthManager:
             "iat": datetime.utcnow(),
         }
 
-        token = self._encode_token(payload)
+        token = jwt.encode(payload, self.secret_key, algorithm="HS256")
 
         # セッションに保存
-        expires_at = payload["exp"]
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
 
@@ -304,7 +240,7 @@ class AuthManager:
                 INSERT INTO sessions (user_id, token, expires_at)
                 VALUES (?, ?, ?)
             """,
-                (user_id, token, expires_at),
+                (user_id, token, payload["exp"]),
             )
 
             conn.commit()
@@ -313,13 +249,10 @@ class AuthManager:
 
     def verify_token(self, token: str) -> Optional[Dict]:
         """トークン検証"""
-        payload = self._decode_token(token)
-
-        if not payload:
-            return None
-
-        # セッション確認
         try:
+            payload = jwt.decode(token, self.secret_key, algorithms=["HS256"])
+
+            # セッション確認
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
 
@@ -336,14 +269,18 @@ class AuthManager:
                 if result:
                     return payload
                 return None
-        except Exception:
+        except jwt.ExpiredSignatureError:
+            return None
+        except jwt.InvalidTokenError:
             return None
 
     def login(self, username: str, password: str) -> Optional[str]:
         """ログイン"""
         # アカウントロックチェック
         if self.is_account_locked(username):
-            raise ValueError("アカウントがロックされています。15分後に再試行してください。")
+            raise ValueError(
+                "アカウントがロックされています。15分後に再試行してください。"
+            )
 
         user = self.get_user(username)
 

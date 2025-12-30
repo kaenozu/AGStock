@@ -2,6 +2,7 @@
 Portfolio Manager for AGStock (Phase 30-3)
 
 This module handles portfolio-level risk management:
+    pass
 1. Correlation Risk: Prevent concentration in highly correlated assets.
 2. Sector Risk: Limit exposure to specific sectors.
 3. Position Sizing: Adjust position sizes based on portfolio volatility.
@@ -26,7 +27,12 @@ class PortfolioManager:
     def set_sector_map(self, sector_map: Dict[str, str]):
         self.sector_map = sector_map
 
-    def check_new_position(self, ticker: str, current_portfolio: List[str], correlation_matrix: pd.DataFrame) -> bool:
+    def check_new_position(
+        self,
+        ticker: str,
+        current_portfolio: List[str],
+        correlation_matrix: pd.DataFrame,
+    ) -> bool:
         """
         Check if adding a new position violates risk constraints.
 
@@ -46,7 +52,9 @@ class PortfolioManager:
             if ticker in correlation_matrix.index:
                 correlations = correlation_matrix.loc[ticker, current_portfolio]
                 if (correlations > self.max_correlation).any():
-                    logger.warning(f"Rejecting {ticker}: High correlation with existing portfolio")
+                    logger.warning(
+                        f"Rejecting {ticker}: High correlation with existing portfolio"
+                    )
                     return False
 
         # 2. Sector Check
@@ -54,15 +62,23 @@ class PortfolioManager:
             sector = self.sector_map.get(ticker)
             if sector:
                 sector_counts = [self.sector_map.get(t) for t in current_portfolio]
-                sector_exposure = sector_counts.count(sector) / len(current_portfolio) if current_portfolio else 0
+                sector_exposure = (
+                    sector_counts.count(sector) / len(current_portfolio)
+                    if current_portfolio
+                    else 0
+                )
 
                 if sector_exposure >= self.max_sector_exposure:
-                    logger.warning(f"Rejecting {ticker}: Sector limit reached for {sector}")
+                    logger.warning(
+                        f"Rejecting {ticker}: Sector limit reached for {sector}"
+                    )
                     return False
 
         return True
 
-    def calculate_portfolio_volatility(self, weights: Dict[str, float], cov_matrix: pd.DataFrame) -> float:
+    def calculate_portfolio_volatility(
+        self, weights: Dict[str, float], cov_matrix: pd.DataFrame
+    ) -> float:
         """
         Calculate portfolio volatility.
         """

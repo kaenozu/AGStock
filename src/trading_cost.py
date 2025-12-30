@@ -70,7 +70,9 @@ class TradingCostCalculator:
 
         return profit * self.tax_rate
 
-    def calculate_net_profit(self, ticker: str, entry_price: float, exit_price: float, quantity: int) -> Dict:
+    def calculate_net_profit(
+        self, ticker: str, entry_price: float, exit_price: float, quantity: int
+    ) -> Dict:
         """
         手数料・税金を考慮した純利益を計算
 
@@ -121,7 +123,12 @@ class TradingCostCalculator:
         }
 
     def should_sell_for_profit(
-        self, ticker: str, entry_price: float, current_price: float, quantity: int, min_profit_pct: float = 1.0
+        self,
+        ticker: str,
+        entry_price: float,
+        current_price: float,
+        quantity: int,
+        min_profit_pct: float = 1.0,
     ) -> bool:
         """
         利確すべきか判定（手数料・税金を考慮）
@@ -141,7 +148,9 @@ class TradingCostCalculator:
         # 純利益率が最低基準を超えているか
         return result["net_profit_pct"] >= min_profit_pct
 
-    def get_breakeven_price(self, ticker: str, entry_price: float, quantity: int) -> float:
+    def get_breakeven_price(
+        self, ticker: str, entry_price: float, quantity: int
+    ) -> float:
         """
         損益分岐点の価格を計算
 
@@ -167,10 +176,18 @@ class TradingCostCalculator:
         if is_jp_stock:
             # 日本株の場合
             # breakeven_price = total_cost / (quantity * (1 - commission_rate - tax_rate))
-            factor = 1 - self.jp_commission_rate - (self.tax_rate * (1 - self.jp_commission_rate))
+            factor = (
+                1
+                - self.jp_commission_rate
+                - (self.tax_rate * (1 - self.jp_commission_rate))
+            )
         else:
             # 米国株の場合
-            factor = 1 - self.us_commission_rate - (self.tax_rate * (1 - self.us_commission_rate))
+            factor = (
+                1
+                - self.us_commission_rate
+                - (self.tax_rate * (1 - self.us_commission_rate))
+            )
 
         breakeven_price = total_cost / (quantity * factor)
 

@@ -1,7 +1,6 @@
 import logging
 from typing import Dict
 
-import lightgbm as lgb
 import numpy as np
 import pandas as pd
 
@@ -35,7 +34,14 @@ logger = logging.getLogger(__name__)
 
 
 class LightGBMStrategy(Strategy):
-    def __init__(self, lookback_days=365, threshold=0.005, auto_tune=False, use_weekly=False, name="LightGBM Alpha"):
+    def __init__(
+        self,
+        lookback_days=365,
+        threshold=0.005,
+        auto_tune=False,
+        use_weekly=False,
+        name="LightGBM Alpha",
+    ):
         # name引数を追加して、複数インスタンス（短期・中期）を区別可能にする
         super().__init__(name)
         self.lookback_days = lookback_days
@@ -65,15 +71,17 @@ class LightGBMStrategy(Strategy):
             "US10Y_Ret",
             "US10Y_Corr",
             "VIX_Ret",  # [NEW] Volatility Index
-            "VIX_Corr", # [NEW]
-            "GOLD_Ret", # [NEW] Gold (Risk off)
-            "GOLD_Corr",# [NEW]
-            "Sentiment_Score", # [NEW] News Sentiment
-            "Freq_Power", # [NEW] Frequency Domain
+            "VIX_Corr",  # [NEW]
+            "GOLD_Ret",  # [NEW] Gold (Risk off)
+            "GOLD_Corr",  # [NEW]
+            "Sentiment_Score",  # [NEW] News Sentiment
+            "Freq_Power",  # [NEW] Frequency Domain
         ]
         self.explainer = None
 
-    def _generate_signals_from_probs(self, probs: pd.Series, upper: float, lower: float) -> pd.Series:
+    def _generate_signals_from_probs(
+        self, probs: pd.Series, upper: float, lower: float
+    ) -> pd.Series:
         """Convert probability predictions into trading signals."""
         signals = pd.Series(0, index=probs.index)
         signals[probs > upper] = 1
@@ -127,7 +135,9 @@ class LightGBMStrategy(Strategy):
                 coverage = actionable.mean()
                 score = accuracy * coverage
 
-                if score > best_score or (np.isclose(score, best_score) and coverage > best_coverage):
+                if score > best_score or (
+                    np.isclose(score, best_score) and coverage > best_coverage
+                ):
                     best_score = score
                     best_coverage = coverage
                     best_upper, best_lower = upper, lower
@@ -174,7 +184,9 @@ class LightGBMStrategy(Strategy):
 
             explanation = dict(zip(self.feature_cols, vals))
             # Sort by absolute impact
-            sorted_expl = dict(sorted(explanation.items(), key=lambda item: abs(item[1]), reverse=True))
+            sorted_expl = dict(
+                sorted(explanation.items(), key=lambda item: abs(item[1]), reverse=True)
+            )
             return sorted_expl
 
         except ImportError:
@@ -204,39 +216,40 @@ class LightGBMStrategy(Strategy):
             # Ensure index is datetime
             if not isinstance(df.index, pd.DatetimeIndex):
                 df.index = pd.to_datetime(df.index)
-            
+
             # Logic to aggregate OHLCV
             logic = {
-                'Open': 'first',
-                'High': 'max',
-                'Low': 'min',
-                'Close': 'last',
-                'Volume': 'sum'
+                "Open": "first",
+                "High": "max",
+                "Low": "min",
+                "Close": "last",
+                "Volume": "sum",
             }
-            # Add logic for other features if they exist? 
+            # Add logic for other features if they exist?
             # Ideally features should be generated AFTER resampling to be "Weekly Features"
             # But add_advanced_features calls rely on daily data sometimes?
             # Actually, standard indicators (RSI, SMA) work on any timeframe if logical.
             # So we resample OHLCV FIRST, then generate features.
-            
+
             # Handle extra columns that might be needed or drop them
-            df_weekly = df.resample('W-FRI').agg(logic)
+            df_weekly = df.resample("W-FRI").agg(logic)
             df_weekly = df_weekly.dropna()
-            
+
             work_df = df_weekly
         else:
             work_df = df
 
         data = add_advanced_features(work_df)
-        macro_data = fetch_macro_data(period="5y") # Macro data is daily usually
-        
+        macro_data = fetch_macro_data(period="5y")  # Macro data is daily usually
+
         # If weekly, we need macro data to be aligned or resampled?
         # add_macro_features logic:
+        #             pass
         # It aligns macro data to `data` index.
         # If `data` is weekly, it will reindex macro (daily) to weekly index?
         # add_macro_features uses `aligned_feat = macro_feat.reindex(df.index, method="ffill")`
         # This works perfect for weekly too (takes value at Friday).
-        
+
         data = add_macro_features(data, macro_data)
 
         # Min required adjustment for Weekly
@@ -244,16 +257,18 @@ class LightGBMStrategy(Strategy):
         # User request says "lookback... separate models".
         # If I pass lookback_days=365 for weekly, that means 365 weeks (~7 years).
         # That's reasonable for "Mid/Long term".
-        
+
         min_required = self.lookback_days + 50
         if len(data) < min_required:
-             # If weekly, 365 weeks is A LOT of data. 
-             # Maybe default lookback should be adjusted by caller.
-             logger.warning(f"Insufficient data for {self.name}: {len(data)} < {min_required}")
-             return pd.Series(0, index=df.index)
+            # If weekly, 365 weeks is A LOT of data.
+            # Maybe default lookback should be adjusted by caller.
+            logger.warning(
+                f"Insufficient data for {self.name}: {len(data)} < {min_required}"
+            )
+            return pd.Series(0, index=df.index)
 
         signals = pd.Series(0, index=work_df.index)
-        retrain_period = 60 # For weekly this means 60 weeks (~1 year). Acceptable.
+        retrain_period = 60  # For weekly this means 60 weeks (~1 year). Acceptable.
         start_idx = self.lookback_days
         end_idx = len(data)
         current_idx = start_idx
@@ -279,14 +294,22 @@ class LightGBMStrategy(Strategy):
             y_train = (train_df["Return_1d"] > 0).astype(int)
 
             # Default params
-            params = {"objective": "binary", "metric": "binary_logloss", "verbosity": -1, "seed": 42}
+            params = {
+                "objective": "binary",
+                "metric": "binary_logloss",
+                "verbosity": -1,
+                "seed": 42,
+            }
 
             # Auto-Tune if enabled (and enough data)
             if self.auto_tune and len(train_df) > 200:
                 try:
                     # Only tune occasionally to save time (e.g. at start or every year)
                     # For simplicity here: Tune if model is None (first run) or every 5 loops
-                    if self.model is None or (current_idx - start_idx) % (retrain_period * 5) == 0:
+                    if (
+                        self.model is None
+                        or (current_idx - start_idx) % (retrain_period * 5) == 0
+                    ):
                         logger.info(f"Running Optuna tuning at index {current_idx}...")
                         tuner = OptunaTuner(n_trials=10)  # 10 trials for speed
                         best_params = tuner.optimize_lightgbm(X_train, y_train)
@@ -329,7 +352,9 @@ class LightGBMStrategy(Strategy):
             X_test = test_df[self.feature_cols]
             if not X_test.empty:
                 preds = pd.Series(self.model.predict(X_test), index=X_test.index)
-                chunk_signals = self._generate_signals_from_probs(preds, calibrated_upper, calibrated_lower)
+                chunk_signals = self._generate_signals_from_probs(
+                    preds, calibrated_upper, calibrated_lower
+                )
                 signals.loc[chunk_signals.index] = chunk_signals
 
             current_idx += retrain_period
@@ -340,11 +365,11 @@ class LightGBMStrategy(Strategy):
             # Or signal generated on Friday is valid from Friday?
             # Usually we want to know "What is the signal for today?"
             # If we are in the middle of the week, we use last known weekly signal.
-            
+
             # Reindex to original daily index
-            daily_signals = signals.reindex(original_idx, method='ffill').fillna(0)
+            daily_signals = signals.reindex(original_idx, method="ffill").fillna(0)
             return daily_signals
-        
+
         return signals
 
     def get_signal_explanation(self, signal: int) -> str:

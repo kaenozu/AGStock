@@ -37,7 +37,9 @@ def render_automation_tab():
             )
 
         with col2:
-            dry_run = st.checkbox("シミュレーションモード（実際には売買しない）", value=True)
+            dry_run = st.checkbox(
+                "シミュレーションモード（実際には売買しない）", value=True
+            )
 
         if st.button("🔍 リバランス必要性をチェック", type="primary"):
             with st.spinner("ポートフォリオを分析中..."):
@@ -45,7 +47,9 @@ def render_automation_tab():
                 needs_rebalance, high_corr_pairs = rebalancer.check_rebalance_needed()
 
                 if needs_rebalance:
-                    st.warning(f"⚠️ リバランスが必要です（{len(high_corr_pairs)}組の高相関ペア）")
+                    st.warning(
+                        f"⚠️ リバランスが必要です（{len(high_corr_pairs)}組の高相関ペア）"
+                    )
 
                     for t1, t2, corr in high_corr_pairs:
                         st.write(f"- {t1} ↔ {t2}: 相関 {corr:.2f}")
@@ -62,7 +66,9 @@ def render_automation_tab():
                         else:
                             st.info("実行するアクションがありませんでした。")
                 else:
-                    st.success("✅ リバランス不要です。ポートフォリオは良好に分散されています。")
+                    st.success(
+                        "✅ リバランス不要です。ポートフォリオは良好に分散されています。"
+                    )
 
     # --- Tab 2: Anomaly Detection ---
     with tab2:
@@ -78,8 +84,12 @@ def render_automation_tab():
                     st.error(f"🚨 {len(anomalies)}件の異常を検出しました")
 
                     for anomaly in anomalies:
-                        severity_color = "🔴" if anomaly["severity"] == "CRITICAL" else "🟡"
-                        st.warning(f"{severity_color} **{anomaly['type']}**: {anomaly['message']}")
+                        severity_color = (
+                            "🔴" if anomaly["severity"] == "CRITICAL" else "🟡"
+                        )
+                        st.warning(
+                            f"{severity_color} **{anomaly['type']}**: {anomaly['message']}"
+                        )
 
                         if "positions" in anomaly:
                             for pos in anomaly["positions"]:
@@ -101,7 +111,9 @@ def render_automation_tab():
         st.subheader("自動パフォーマンスレポート")
         st.write("週次/月次でAI分析付きPDFレポートを自動生成します。")
 
-        report_frequency = st.selectbox("レポート頻度", ["毎週日曜日", "毎月末", "手動のみ"])
+        report_frequency = st.selectbox(
+            "レポート頻度", ["毎週日曜日", "毎月末", "手動のみ"]
+        )
 
         if st.button("📄 今すぐレポートを生成", type="primary"):
             with st.spinner("PDFレポートを生成中..."):
@@ -123,12 +135,16 @@ def render_automation_tab():
                                     file_name=f"AGStock_Report_{datetime.now().strftime('%Y%m%d')}.pdf",
                                     mime="application/pdf",
                                 )
-                        except:
+                        except BaseException:
                             st.info(f"ファイルは {output_path} に保存されました。")
 
-                        st.session_state["report_count"] = st.session_state.get("report_count", 0) + 1
+                        st.session_state["report_count"] = (
+                            st.session_state.get("report_count", 0) + 1
+                        )
                     else:
-                        st.error("❌ レポート生成に失敗しました。ログを確認してください。")
+                        st.error(
+                            "❌ レポート生成に失敗しました。ログを確認してください。"
+                        )
                 except Exception as e:
                     st.error(f"エラー: {e}")
 

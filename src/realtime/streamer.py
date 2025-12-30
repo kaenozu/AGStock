@@ -12,7 +12,15 @@ class marketStreamer:
     In a real scenario, this would connect to a WebSocket.
     """
 
-    def __init__(self, tickers, interval_sec=60, max_retries=3, backoff_factor=2.0, max_backoff_sec=30, downloader=None):
+    def __init__(
+        self,
+        tickers,
+        interval_sec=60,
+        max_retries=3,
+        backoff_factor=2.0,
+        max_backoff_sec=30,
+        downloader=None,
+    ):
         self.tickers = tickers
         self.interval_sec = interval_sec
         self.max_retries = max_retries
@@ -61,13 +69,20 @@ class marketStreamer:
         for attempt in range(1, self.max_retries + 1):
             try:
                 # period='1d', interval='1m' gets the latest minute data
-                data = self.downloader(tickers_str, period="1d", interval="1m", progress=False)
+                data = self.downloader(
+                    tickers_str, period="1d", interval="1m", progress=False
+                )
 
                 timestamp = datetime.now()
 
                 if len(self.tickers) == 1:
                     row = data.iloc[-1]
-                    update = {"ticker": self.tickers[0], "price": row["Close"], "volume": row["Volume"], "time": timestamp}
+                    update = {
+                        "ticker": self.tickers[0],
+                        "price": row["Close"],
+                        "volume": row["Volume"],
+                        "time": timestamp,
+                    }
                     self._notify(update)
                 else:
                     # MultiIndex: (PriceType, Ticker)
@@ -75,7 +90,12 @@ class marketStreamer:
                         try:
                             price = data["Close"][ticker].iloc[-1]
                             volume = data["Volume"][ticker].iloc[-1]
-                            update = {"ticker": ticker, "price": price, "volume": volume, "time": timestamp}
+                            update = {
+                                "ticker": ticker,
+                                "price": price,
+                                "volume": volume,
+                                "time": timestamp,
+                            }
                             self._notify(update)
                         except KeyError:
                             continue
@@ -89,7 +109,9 @@ class marketStreamer:
                 self.last_error = str(e)
 
                 if attempt < self.max_retries:
-                    sleep_time = min(self.max_backoff_sec, self.backoff_factor ** (attempt - 1))
+                    sleep_time = min(
+                        self.max_backoff_sec, self.backoff_factor ** (attempt - 1)
+                    )
                     time.sleep(sleep_time)
                 else:
                     print(f"Fetch Error after {attempt} attempts: {e}")

@@ -2,7 +2,7 @@
 
 import logging
 from dataclasses import dataclass
-from typing import Dict, Tuple
+from typing import Dict
 
 import numpy as np
 import pandas as pd
@@ -10,7 +10,9 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-def _population_stability_index(expected: np.ndarray, actual: np.ndarray, bins: int = 10) -> float:
+def _population_stability_index(
+    expected: np.ndarray, actual: np.ndarray, bins: int = 10
+) -> float:
     """PSIを計算（欠損・ゼロ割り込みに配慮）。"""
     expected = expected[~np.isnan(expected)]
     actual = actual[~np.isnan(actual)]
@@ -22,10 +24,14 @@ def _population_stability_index(expected: np.ndarray, actual: np.ndarray, bins: 
         expected_counts, _ = np.histogram(expected, bins=breakpoints)
         actual_counts, _ = np.histogram(actual, bins=breakpoints)
 
-        expected_perc = np.where(expected_counts == 0, 1e-6, expected_counts / expected.size)
+        expected_perc = np.where(
+            expected_counts == 0, 1e-6, expected_counts / expected.size
+        )
         actual_perc = np.where(actual_counts == 0, 1e-6, actual_counts / actual.size)
 
-        psi = np.sum((actual_perc - expected_perc) * np.log(actual_perc / expected_perc))
+        psi = np.sum(
+            (actual_perc - expected_perc) * np.log(actual_perc / expected_perc)
+        )
         return float(psi)
     except Exception as exc:
         logger.debug("PSI calculation failed: %s", exc)
@@ -43,7 +49,12 @@ class DriftMonitor:
     数値特徴量の分布を監視し、ドリフト検知で再学習を促す。
     """
 
-    def __init__(self, psi_threshold: float = 0.2, ks_threshold: float = 0.1, min_samples: int = 200) -> None:
+    def __init__(
+        self,
+        psi_threshold: float = 0.2,
+        ks_threshold: float = 0.1,
+        min_samples: int = 200,
+    ) -> None:
         self.psi_threshold = psi_threshold
         self.ks_threshold = ks_threshold
         self.min_samples = min_samples
@@ -53,7 +64,10 @@ class DriftMonitor:
         """基準データを保存."""
         numeric = df.select_dtypes(include=[np.number])
         if numeric.shape[0] < self.min_samples:
-            logger.info("Reference window too small for drift baseline: %s rows", numeric.shape[0])
+            logger.info(
+                "Reference window too small for drift baseline: %s rows",
+                numeric.shape[0],
+            )
         self.reference = numeric.copy()
 
     def check(self, df: pd.DataFrame) -> DriftResult:

@@ -1,6 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from src.schemas import AgentAnalysis, TradingDecision
 
@@ -28,15 +28,22 @@ class BaseAgent(ABC):
         Returns:
             AgentAnalysis object containing decision, confidence, and reasoning.
         """
-        pass
 
-    def _create_response(self, decision: TradingDecision, confidence: float, reasoning: str) -> AgentAnalysis:
+    def _create_response(
+        self, decision: TradingDecision, confidence: float, reasoning: str
+    ) -> AgentAnalysis:
         """Helper to construct the response object."""
         return AgentAnalysis(
-            agent_name=self.name, role=self.role, decision=decision, confidence=confidence, reasoning=reasoning
+            agent_name=self.name,
+            role=self.role,
+            decision=decision,
+            confidence=confidence,
+            reasoning=reasoning,
         )
 
     def log_analysis(self, analysis: AgentAnalysis):
         """Log the analysis result."""
-        logger.info(f"[{self.name}] Decision: {analysis.decision.value} (Conf: {analysis.confidence:.2f})")
+        logger.info(
+            f"[{self.name}] Decision: {analysis.decision.value} (Conf: {analysis.confidence:.2f})"
+        )
         logger.debug(f"Reasoning: {analysis.reasoning}")

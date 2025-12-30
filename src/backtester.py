@@ -491,7 +491,6 @@ class Backtester:
                 today_sig = df["Signal"].iloc[i]
                 exec_price = df["Open"].iloc[i + 1]
                 position = holdings[ticker]
-                exit_executed = False
                 today_high = df["High"].iloc[i]
                 today_low = df["Low"].iloc[i]
 
@@ -531,7 +530,6 @@ class Backtester:
                             entry_prices[ticker] = 0.0
                             trailing_stop_levels[ticker] = 0.0
                             highest_prices[ticker] = 0.0
-                            exit_executed = True
                             continue
 
                         # Check take profit
@@ -553,7 +551,6 @@ class Backtester:
                             entry_prices[ticker] = 0.0
                             trailing_stop_levels[ticker] = 0.0
                             highest_prices[ticker] = 0.0
-                            exit_executed = True
                             continue
 
                         # Check stop loss
@@ -575,13 +572,12 @@ class Backtester:
                             entry_prices[ticker] = 0.0
                             trailing_stop_levels[ticker] = 0.0
                             highest_prices[ticker] = 0.0
-                            exit_executed = True
                             continue
 
                 # ----- PROCESS ORDERS FROM SIGNALS -----
                 if isinstance(today_sig, Order):
                     # Order-based strategy
-                    if today_sig.side == OrderSide.BUY and position == 0:
+                    if today_sig.side == 'BUY' and position == 0:
                         # Enter long
                         # Use fixed fraction of portfolio for now
                         # In the original, it was a fixed amount (e.g., 100 shares)
@@ -593,7 +589,7 @@ class Backtester:
                             holdings[ticker] = size
                             entry_prices[ticker] = exec_price
                             highest_prices[ticker] = exec_price
-                    elif today_sig.side == OrderSide.SELL and position > 0:
+                    elif today_sig.side == 'SELL' and position > 0:
                         # Exit long
                         cash += position * exec_price
                         holdings[ticker] = 0.0

@@ -17,7 +17,9 @@ class PerformanceAttribution:
     def __init__(self):
         pass
 
-    def factor_analysis(self, portfolio_returns: pd.Series, factor_returns: pd.DataFrame) -> Dict:
+    def factor_analysis(
+        self, portfolio_returns: pd.Series, factor_returns: pd.DataFrame
+    ) -> Dict:
         """
         Fama-French style factor analysis.
 
@@ -44,7 +46,7 @@ class PerformanceAttribution:
         # OLS regression
         try:
             beta = np.linalg.lstsq(X, y, rcond=None)[0]
-        except:
+        except BaseException:
             return {}
 
         alpha = beta[0] * 252  # Annualize
@@ -56,7 +58,11 @@ class PerformanceAttribution:
         ss_tot = np.sum((y - y.mean()) ** 2)
         r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
 
-        return {"alpha": alpha, "factor_loadings": factor_loadings, "r_squared": r_squared}
+        return {
+            "alpha": alpha,
+            "factor_loadings": factor_loadings,
+            "r_squared": r_squared,
+        }
 
     def sector_contribution(
         self, holdings: pd.DataFrame, sector_map: Dict[str, str], returns: pd.DataFrame
@@ -90,16 +96,26 @@ class PerformanceAttribution:
         contributions = []
         for sector, weight in sector_weights.items():
             if sector in sector_returns:
-                sector_ret = pd.concat(sector_returns[sector], axis=1).mean(axis=1).mean()
+                sector_ret = (
+                    pd.concat(sector_returns[sector], axis=1).mean(axis=1).mean()
+                )
                 contribution = weight * sector_ret
                 contributions.append(
-                    {"sector": sector, "weight": weight, "return": sector_ret, "contribution": contribution}
+                    {
+                        "sector": sector,
+                        "weight": weight,
+                        "return": sector_ret,
+                        "contribution": contribution,
+                    }
                 )
 
         return pd.DataFrame(contributions)
 
     def timing_vs_selection(
-        self, portfolio_returns: pd.Series, benchmark_returns: pd.Series, holdings: pd.DataFrame
+        self,
+        portfolio_returns: pd.Series,
+        benchmark_returns: pd.Series,
+        holdings: pd.DataFrame,
     ) -> Dict:
         """
         Decompose returns into timing and selection effects.
@@ -142,7 +158,9 @@ class PerformanceAttribution:
             ),
         }
 
-    def risk_adjusted_metrics(self, returns: pd.Series, benchmark_returns: Optional[pd.Series] = None) -> Dict:
+    def risk_adjusted_metrics(
+        self, returns: pd.Series, benchmark_returns: Optional[pd.Series] = None
+    ) -> Dict:
         """
         Calculate comprehensive risk-adjusted performance metrics.
 
@@ -163,12 +181,22 @@ class PerformanceAttribution:
 
         # Sharpe ratio
         risk_free_rate = 0.02
-        sharpe = (annualized_return - risk_free_rate) / volatility if volatility > 0 else 0
+        sharpe = (
+            (annualized_return - risk_free_rate) / volatility if volatility > 0 else 0
+        )
 
         # Sortino ratio (downside deviation)
         downside_returns = returns[returns < 0]
-        downside_std = downside_returns.std() * np.sqrt(252) if len(downside_returns) > 0 else volatility
-        sortino = (annualized_return - risk_free_rate) / downside_std if downside_std > 0 else 0
+        downside_std = (
+            downside_returns.std() * np.sqrt(252)
+            if len(downside_returns) > 0
+            else volatility
+        )
+        sortino = (
+            (annualized_return - risk_free_rate) / downside_std
+            if downside_std > 0
+            else 0
+        )
 
         # Maximum drawdown
         cum_returns = (1 + returns).cumprod()
@@ -195,14 +223,24 @@ class PerformanceAttribution:
             if len(aligned) > 0:
                 excess_returns = aligned.iloc[:, 0] - aligned.iloc[:, 1]
                 tracking_error = excess_returns.std() * np.sqrt(252)
-                information_ratio = excess_returns.mean() * 252 / tracking_error if tracking_error > 0 else 0
+                information_ratio = (
+                    excess_returns.mean() * 252 / tracking_error
+                    if tracking_error > 0
+                    else 0
+                )
 
                 # Beta
                 cov = np.cov(aligned.iloc[:, 0], aligned.iloc[:, 1])[0, 1]
                 var = aligned.iloc[:, 1].var()
                 beta = cov / var if var > 0 else 1
 
-                metrics.update({"tracking_error": tracking_error, "information_ratio": information_ratio, "beta": beta})
+                metrics.update(
+                    {
+                        "tracking_error": tracking_error,
+                        "information_ratio": information_ratio,
+                        "beta": beta,
+                    }
+                )
 
         return metrics
 

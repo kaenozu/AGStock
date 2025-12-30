@@ -4,11 +4,10 @@ Time Series Cross-Validation - 時系列専用CV
 """
 
 import logging
-from typing import Dict, Generator, List, Tuple
+from typing import Dict, Generator, Tuple
 
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import TimeSeriesSplit
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +24,9 @@ class TimeSeriesCV:
         self.n_splits = n_splits
         self.gap = gap
 
-    def split(self, X: pd.DataFrame, y: pd.Series = None) -> Generator[Tuple, None, None]:
+    def split(
+        self, X: pd.DataFrame, y: pd.Series = None
+    ) -> Generator[Tuple, None, None]:
         """
         時系列データを分割
 
@@ -97,7 +98,9 @@ class WalkForwardOptimizer:
             start += self.step
 
 
-def evaluate_with_cv(model_factory, X: pd.DataFrame, y: pd.Series, cv=None, metric: str = "accuracy") -> Dict:
+def evaluate_with_cv(
+    model_factory, X: pd.DataFrame, y: pd.Series, cv=None, metric: str = "accuracy"
+) -> Dict:
     """
     クロスバリデーションでモデルを評価
 
@@ -149,7 +152,12 @@ def evaluate_with_cv(model_factory, X: pd.DataFrame, y: pd.Series, cv=None, metr
     if not scores:
         return {"mean": 0, "std": 0, "scores": []}
 
-    return {"mean": np.mean(scores), "std": np.std(scores), "scores": scores, "n_folds": len(scores)}
+    return {
+        "mean": np.mean(scores),
+        "std": np.std(scores),
+        "scores": scores,
+        "n_folds": len(scores),
+    }
 
 
 if __name__ == "__main__":

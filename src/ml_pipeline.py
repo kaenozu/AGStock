@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
 import joblib
+import numpy as np
 import pandas as pd
 
 from src.drift_monitor import DriftMonitor
@@ -27,21 +28,11 @@ class ModelRegistry:
         self.base_dir = base_dir
         self.registry_file = os.path.join(base_dir, "registry.json")
         self._ensure_dir()
-        self._ensure_registry_file()
         self.registry = self._load_registry()
 
     def _ensure_dir(self):
         if not os.path.exists(self.base_dir):
             os.makedirs(self.base_dir)
-
-    def _ensure_registry_file(self):
-        """レジストリファイルが存在しない場合に空のファイルを作成"""
-        if not os.path.exists(self.registry_file):
-            try:
-                with open(self.registry_file, "w") as f:
-                    json.dump({"models": {}}, f, indent=4)
-            except Exception as e:
-                logger.error(f"Failed to initialize registry file: {e}")
 
     def _load_registry(self) -> Dict[str, Any]:
         if os.path.exists(self.registry_file):
@@ -55,7 +46,6 @@ class ModelRegistry:
 
     def _save_registry(self):
         try:
-            self._ensure_dir()
             with open(self.registry_file, "w") as f:
                 json.dump(self.registry, f, indent=4)
         except Exception as e:

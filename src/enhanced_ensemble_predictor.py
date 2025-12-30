@@ -2,6 +2,7 @@
 高度なアンサンブル予測モジュール
 
 既存のアンサンブル予測に以下の高度な機能を統合:
+    pass
 - 新しい予測モデル（Transformer、AttentionLSTMなど）
 - 拡張特徴量エンジニアリング
 - ハイパーパラメータ最適化
@@ -17,23 +18,22 @@
 """
 
 import logging
-from typing import Dict, List, Optional, Tuple
+from typing import Dict
 
 import numpy as np
 import pandas as pd
-import tensorflow as tf
 
 from src.advanced_ensemble import create_model_diversity_ensemble
 from src.advanced_models import AdvancedModels
+
 # 新しい高度な機能のインポート
-from src.continual_learning import (ConceptDriftDetector,
-                                    ContinualLearningSystem)
+from src.continual_learning import ConceptDriftDetector, ContinualLearningSystem
 from src.data_loader import fetch_external_data
 from src.data_preprocessing import preprocess_for_prediction
 from src.enhanced_features import generate_enhanced_features
 from src.fundamental_analyzer import FundamentalAnalyzer
 from src.future_predictor import FuturePredictor
-from src.hyperparameter_optimizer import MultiModelOptimizer
+from src.optimization import MultiModelOptimizer
 from src.lgbm_predictor import LGBMPredictor
 from src.mlops_manager import MLopsManager
 from src.multi_asset_analytics import MultiAssetPredictor
@@ -42,6 +42,7 @@ from src.realtime_analytics import RealTimeAnalyticsPipeline
 from src.risk_adjusted_prediction import RiskAdjustedPredictor
 from src.scenario_analyzer import ScenarioBasedPredictor
 from src.sentiment_analytics import SentimentEnhancedPredictor
+
 # 新しい実装のインポート
 from src.transformer_predictor import TransformerPredictor
 from src.xai_explainer import XAIFramework
@@ -58,24 +59,39 @@ class EnhancedEnsemblePredictor:
     """
 
     def __init__(self):
-        self.transformer_predictor = TransformerPredictor()
-        self.advanced_models = AdvancedModels()
+        # 1. 基本的な予測器を先に初期化
         self.lgbm_predictor = LGBMPredictor()
+        self.transformer_predictor = TransformerPredictor()
         self.prophet_predictor = ProphetPredictor()
         self.future_predictor = FuturePredictor()
-        self.sentiment_predictor = SentimentEnhancedPredictor()
-        self.risk_predictor = RiskAdjustedPredictor()
+        self.advanced_models = AdvancedModels()
+
+        # 2. 拡張予測器を初期化 (base_predictorとしてLGBMを使用)
+        self.sentiment_predictor = SentimentEnhancedPredictor(
+            base_predictor=self.lgbm_predictor
+        )
+        self.risk_predictor = RiskAdjustedPredictor(base_predictor=self.lgbm_predictor)
+        self.scenario_predictor = ScenarioBasedPredictor(
+            base_predictor=self.lgbm_predictor
+        )
+        self.realtime_pipeline = RealTimeAnalyticsPipeline(
+            base_predictor=self.lgbm_predictor
+        )
+
+        # 3. その他のコンポーネント
         self.multi_asset_predictor = MultiAssetPredictor()
-        self.scenario_predictor = ScenarioBasedPredictor()
-        self.realtime_pipeline = RealTimeAnalyticsPipeline()
         self.mlops_manager = MLopsManager()
         self.concept_drift_detector = ConceptDriftDetector()
-        self.continual_learning_system = ContinualLearningSystem()
+        self.continual_learning_system = ContinualLearningSystem(
+            base_model=self.lgbm_predictor
+        )
         self.fundamental_analyzer = FundamentalAnalyzer()
-        self.xai_framework = XAIFramework()
+        self.xai_framework = XAIFramework(model=self.lgbm_predictor)
 
         # アンサンブル統合器
-        self.ensemble_strategy = "stacking"  # または "dynamic_weighting", "diversity" など
+        self.ensemble_strategy = (
+            "stacking"  # または "dynamic_weighting", "diversity" など
+        )
         self.advanced_ensemble = None
         self.diversity_ensemble = create_model_diversity_ensemble()
         self.hyperparameter_optimizer = MultiModelOptimizer()
@@ -88,7 +104,9 @@ class EnhancedEnsemblePredictor:
 
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    def _prepare_features(self, data: pd.DataFrame, ticker: str, fundamentals: Dict = None) -> pd.DataFrame:
+    def _prepare_features(
+        self, data: pd.DataFrame, ticker: str, fundamentals: Dict = None
+    ) -> pd.DataFrame:
         """
         予測に使用する特徴量を準備
         - 価格ベース特徴量
@@ -114,7 +132,7 @@ class EnhancedEnsemblePredictor:
                 features[key] = value
 
         # センチメント特徴量を追加（簡略化）
-        if hasattr(self.sentiment_predictor, 'get_sentiment_features'):
+        if hasattr(self.sentiment_predictor, "get_sentiment_features"):
             sentiment_features = self.sentiment_predictor.get_sentiment_features(ticker)
             for key, value in sentiment_features.items():
                 features[f"sentiment_{key}"] = value
@@ -124,9 +142,9 @@ class EnhancedEnsemblePredictor:
         # これらのデータはリアルタイムで取得するか、事前にキャッシュしておく必要がある
 
         # 時系列特徴量を追加（日付から）
-        features['day_of_week'] = data.index.dayofweek
-        features['month'] = data.index.month
-        features['quarter'] = data.index.quarter
+        features["day_of_week"] = data.index.dayofweek
+        features["month"] = data.index.month
+        features["quarter"] = data.index.quarter
 
         # トレンド・ボラティリティ・取引高などの市場状態特徴量
         # ... 既存の特徴量計算ロジック ...
@@ -135,7 +153,7 @@ class EnhancedEnsemblePredictor:
         # ...
 
         # 前処理（スケーリング、欠損値処理など）
-        features = preprocess_for_prediction(features)
+        features, _ = preprocess_for_prediction(features)
 
         return features
 
@@ -146,7 +164,7 @@ class EnhancedEnsemblePredictor:
         # 各モデルに適した特徴量を準備
         X = self._prepare_features(data, ticker)
         # ターゲット変数（例:翌日の終値変化率）
-        y = data['Close'].pct_change().shift(-1).dropna()
+        y = data["Close"].pct_change().shift(-1).dropna()
         X = X.iloc[:-1]  # 最後の行を除く（yに合わせる）
 
         # Transformerモデルの準備
@@ -159,7 +177,7 @@ class EnhancedEnsemblePredictor:
         self.lgbm_predictor.prepare_model(X, y)
 
         # ProphetPredictorの準備（これは時系列そのもので学習）
-        self.prophet_predictor.prepare_model(data[['Close']])
+        self.prophet_predictor.prepare_model(data[["Close"]])
 
         # FuturePredictorの準備
         self.future_predictor.prepare_model(X, y)
@@ -200,7 +218,7 @@ class EnhancedEnsemblePredictor:
 
         # 特徴量の準備
         X = self._prepare_features(data, ticker, fundamentals)
-        y = data['Close'].pct_change().shift(-1).dropna()
+        y = data["Close"].pct_change().shift(-1).dropna()
         X = X.iloc[:-1]  # 最後の行を除く（yに合わせる）
 
         # 各高度なモデルを学習
@@ -239,12 +257,14 @@ class EnhancedEnsemblePredictor:
 
         # Stackingのメタモデルを学習
         from sklearn.linear_model import Ridge
+
         meta_model = Ridge(alpha=1.0)
         meta_model.fit(X_meta, y)
 
         # または、動的重み付け、多様性ベースのアンサンブル手法を使用
         # ここでは例として StackingEnsemble を使用
         from src.advanced_ensemble import StackingEnsemble
+
         base_models = [
             self.transformer_predictor,
             self.advanced_models,
@@ -257,17 +277,27 @@ class EnhancedEnsemblePredictor:
             self.scenario_predictor,
             self.realtime_pipeline,
         ]
-        self.advanced_ensemble = StackingEnsemble(base_models=base_models, meta_model=meta_model)
+        self.advanced_ensemble = StackingEnsemble(
+            base_models=base_models, meta_model=meta_model
+        )
 
         # モデル全体の学習完了
         self.is_fitted = True
 
         # MLOpsマネージャーに学習済みモデルを登録（仮）
-        self.mlops_manager.log_model(self.advanced_ensemble, model_name=f"EnhancedEnsemble_{ticker}")
+        self.mlops_manager.log_model(
+            self.advanced_ensemble, model_name=f"EnhancedEnsemble_{ticker}"
+        )
 
         self.logger.info(f"EnhancedEnsemblePredictor fitted for {ticker}")
 
-    def predict_trajectory(self, data: pd.DataFrame, days_ahead: int = 5, ticker: str = "unknown", fundamentals: Dict = None) -> Dict:
+    def predict_trajectory(
+        self,
+        data: pd.DataFrame,
+        days_ahead: int = 5,
+        ticker: str = "unknown",
+        fundamentals: Dict = None,
+    ) -> Dict:
         """
         今後の価格変動を予測（軌跡）
         - `days_ahead` 日先までの予測を返す
@@ -289,15 +319,15 @@ class EnhancedEnsemblePredictor:
 
         # 1-1. Transformer予測
         transformer_pred = self.transformer_predictor.predict_point(current_features)
-        prediction_details['transformer'] = transformer_pred
+        prediction_details["transformer"] = transformer_pred
 
         # 1-2. AdvancedModels予測
         advanced_pred = self.advanced_models.predict_point(current_features)
-        prediction_details['advanced_models'] = advanced_pred
+        prediction_details["advanced_models"] = advanced_pred
 
         # 1-3. LGBM予測
         lgbm_pred = self.lgbm_predictor.predict_point(current_features)
-        prediction_details['lgbm'] = lgbm_pred
+        prediction_details["lgbm"] = lgbm_pred
 
         # ... 他のモデルの予測も同様に取得 ...
 
@@ -312,8 +342,10 @@ class EnhancedEnsemblePredictor:
             ensemble_pred = np.mean(predictions, axis=0)
 
         # 3. 価格変動率から価格に変換（現在価格を基準）
-        current_price = data['Close'].iloc[-1]
-        predicted_changes = ensemble_pred  # これは価格変動率の予測値（例: 0.01 は 1% 上昇）
+        current_price = data["Close"].iloc[-1]
+        predicted_changes = (
+            ensemble_pred  # これは価格変動率の予測値（例: 0.01 は 1% 上昇）
+        )
         predicted_price = current_price * (1 + predicted_changes)
 
         # 4. 方向性の判断（UP/DOWN/FLAT）
@@ -328,7 +360,9 @@ class EnhancedEnsemblePredictor:
         model_predictions = [pred for pred in prediction_details.values()]
         if len(model_predictions) > 1:
             std_dev = np.std(model_predictions, axis=0)
-            confidence = 1.0 / (1.0 + std_dev)  # 標準偏差が小さいほど信頼度が高い（簡略化）
+            confidence = 1.0 / (
+                1.0 + std_dev
+            )  # 標準偏差が小さいほど信頼度が高い（簡略化）
         else:
             confidence = 0.5  # 単一モデルの場合は中間の信頼度
 
@@ -336,30 +370,42 @@ class EnhancedEnsemblePredictor:
         explanations = self.xai_framework.explain_prediction(
             model=self.advanced_ensemble,
             X=current_features,
-            prediction=predicted_changes
+            prediction=predicted_changes,
         )
 
         # 7. ファンダメンタルズ評価
-        fundamental_score = self.fundamental_analyzer.analyze(ticker) if self.fundamental_analyzer else None
+        fundamental_score = (
+            self.fundamental_analyzer.analyze(ticker)
+            if self.fundamental_analyzer
+            else None
+        )
 
         # 8. リスク調整された予測（オプション）
-        risk_adjusted_pred = self.risk_predictor.adjust_prediction(
-            prediction=predicted_changes,
-            features=current_features
-        ) if self.risk_predictor else predicted_changes
+        risk_adjusted_pred = (
+            self.risk_predictor.adjust_prediction(
+                prediction=predicted_changes, features=current_features
+            )
+            if self.risk_predictor
+            else predicted_changes
+        )
 
         # 9. シナリオ分析（オプション）
-        scenario_analysis = self.scenario_predictor.analyze(
-            features=current_features,
-            base_prediction=predicted_changes
-        ) if self.scenario_predictor else None
+        scenario_analysis = (
+            self.scenario_predictor.analyze(
+                features=current_features, base_prediction=predicted_changes
+            )
+            if self.scenario_predictor
+            else None
+        )
 
         # 10. 継続的学習と概念ドリフト検出
         # 実際には、このメソッド内で新しいデータポイントを検出・学習するロジックが必要
         # ここでは簡略化し、ドリフト検出のみ
         drift_detected = False
         if self.concept_drift_detector:
-            drift_detected = self.concept_drift_detector.detect(X.iloc[-10:])  # 最新10点で検出
+            drift_detected = self.concept_drift_detector.detect(
+                X.iloc[-10:]
+            )  # 最新10点で検出
 
         result = {
             "predictions": [predicted_price],  # 現在の実装では単一の価格予測
@@ -369,14 +415,16 @@ class EnhancedEnsemblePredictor:
             "confidence": confidence,
             "details": {
                 "models_used": list(prediction_details.keys()),
-                "trend_votes": {k: "UP" if v > 0 else "DOWN" for k, v in prediction_details.items()},
+                "trend_votes": {
+                    k: "UP" if v > 0 else "DOWN" for k, v in prediction_details.items()
+                },
                 "explanations": explanations,
                 "fundamental": fundamental_score,
                 "risk_adjusted_prediction": risk_adjusted_pred,
                 "scenario_analysis": scenario_analysis,
                 "drift_detected": drift_detected,
             },
-            "timestamp": pd.Timestamp.now()
+            "timestamp": pd.Timestamp.now(),
         }
 
         # 価格変動率を複数日分予測するには、再帰的に特徴量を更新しながら予測するなど、
@@ -429,8 +477,12 @@ class EnhancedEnsemblePredictor:
 
         # オプション: 定期的に再学習
         from datetime import datetime
+
         today = datetime.now().date()
-        if self.last_retrain_date is None or (today - self.last_retrain_date).days >= self.retrain_interval:
+        if (
+            self.last_retrain_date is None
+            or (today - self.last_retrain_date).days >= self.retrain_interval
+        ):
             self.logger.info("Scheduled retraining.")
             # self.fit(...) を呼ぶ
             # self.fit(new_data, ticker, fundamentals) # 古いデータも含めて再学習

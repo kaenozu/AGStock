@@ -19,7 +19,8 @@
         "require_approval": true,
         "max_daily_trades": 3,
         "daily_loss_limit_pct": -3.0,
-        "max_vix": 40.0
+        "max_vix": 40.0,
+        "enabled": true
     },
     "notifications": {
         "enabled": false,

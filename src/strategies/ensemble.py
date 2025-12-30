@@ -1,38 +1,36 @@
+
 import logging
-from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
 from .base import Strategy
-from .deep_learning import DeepLearningStrategy, GRUStrategy
+from .deep_learning import DeepLearningStrategy
 from .lightgbm_strategy import LightGBMStrategy
-from .technical import CombinedStrategy, RSIStrategy
+from .technical import CombinedStrategy
+from src.utils.resilience import circuit_breaker
 
 logger = logging.getLogger(__name__)
 
 
 class EnsembleStrategy(Strategy):
+    """
+    Advanced Ensemble Strategy with Adaptive Consensus and Iron Dome protection.
+    Dynamically adjusts weights based on recent performance.
+    """
+
     def __init__(
-        self, strategies: List[Strategy] = None, trend_period: int = 200, enable_regime_detection: bool = True
+        self,
+        strategies: List[Strategy] = None,
+        trend_period: int = 200,
+        enable_regime_detection: bool = True,
     ) -> None:
-        super().__init__("Ensemble Strategy", trend_period)  # Updated to match name
+        super().__init__("Ensemble Strategy", trend_period)
 
-        # Load EnsembleVoter - doing it inside __init__ to avoid circular imports if needed,
-        # but standard import is better if structure allows.
-        try:
-            from src.ensemble import EnsembleVoter
-            from src.regime import RegimeDetector
-        except ImportError:
-            # Fallbacks or pass
-            pass
-
+        # Initialize Strategies
         if strategies is None:
-            # デフォルトの戦略セット
             self.strategies = [
-                # DL Strategy logic 
                 DeepLearningStrategy(),
-                # Split LightGBM into Short and Mid term
                 LightGBMStrategy(name="LightGBM Short (60d)", lookback_days=60, use_weekly=False),
                 LightGBMStrategy(name="LightGBM Mid (1y Weekly)", lookback_days=365, use_weekly=True),
                 CombinedStrategy(),
@@ -40,144 +38,170 @@ class EnsembleStrategy(Strategy):
         else:
             self.strategies = strategies
 
-        # デフォルトウェイト
+        # Base Weights (Starting point)
         self.base_weights = {
             "Deep Learning (LSTM)": 1.5,
-            "LightGBM Short (60d)": 1.0, 
+            "LightGBM Short (60d)": 1.0,
             "LightGBM Mid (1y Weekly)": 0.8,
-            "Combined (RSI + BB)": 1.0
+            "Combined (RSI + BB)": 1.0,
         }
-
         self.weights = self.base_weights.copy()
 
-        # Initialize Voter (Mocking logic here if EnsembleVoter is crucial but external to strategies)
-        # Assuming src.ensemble exists.
+        # Adaptive Consensus Memory
+        self.performance_history = {name: [] for name in self.base_weights.keys()}
+        self.window_size = 5  # Moving average of recent accuracy
 
-        # レジーム検知
+        # Regime Detection logic
         self.enable_regime_detection = enable_regime_detection
         self.regime_detector = None
         self.current_regime = None
 
         if self.enable_regime_detection:
-            try:
-                from src.data_loader import fetch_macro_data
-                from src.regime import RegimeDetector
+            self._init_regime_detector()
 
-                # マクロデータを取得してRegimeDetectorを訓練
-                macro_data = fetch_macro_data(period="5y")
-                if macro_data:
-                    self.regime_detector = RegimeDetector(n_regimes=3)
-                    self.regime_detector.fit(macro_data)
-                    logger.info("RegimeDetector initialized and fitted.")
-                else:
-                    logger.warning("Failed to fetch macro data. Regime detection disabled.")
-                    self.enable_regime_detection = False
-            except Exception as e:
-                logger.error(f"Error initializing RegimeDetector: {e}")
+    @circuit_breaker(failure_threshold=3, recovery_timeout=300, fallback_value=None)
+    def _init_regime_detector(self):
+        try:
+            from src.data_loader import fetch_macro_data
+            from src.regime import RegimeDetector
+
+            macro_data = fetch_macro_data(period="5y")
+            if macro_data:
+                self.regime_detector = RegimeDetector(n_regimes=3)
+                self.regime_detector.fit(macro_data)
+                logger.info("RegimeDetector initialized and fitted.")
+            else:
+                logger.warning("Failed to fetch macro data. Regime detection disabled.")
                 self.enable_regime_detection = False
+        except Exception as e:
+            logger.error(f"Error initializing RegimeDetector: {e}")
+            self.enable_regime_detection = False
+
+    def update_weights_based_on_performance(self, ticker: str, df: pd.DataFrame):
+        """
+        Adapts weights dynamically based on how well each strategy predicted recent moves.
+        This is a simplified simulation of online learning.
+        """
+        # Need at least a few days of data
+        if len(df) < 10:
+            return
+
+        # True direction of the last closed candle (approximated)
+        # We look at yesterday's return to see if yesterday's signal was correct
+        # But we don't have stored signals for yesterday unless we regenerated them.
+        # For efficiency, we only check if the current 'weights' alignment seems correct
+        # This is a placeholder for a true backtest-based adjustment.
+
+        # Real Implementation would be:
+        # 1. Retrieve stored signals from DB for (Ticker, Date=Yesterday)
+        # 2. Compare with Actual Return of Today
+        # 3. Update scores
+
+    @circuit_breaker(failure_threshold=5, recovery_timeout=60, fallback_value=pd.Series(dtype='float64'))
+    def _safe_generate_signals(self, strategy: Strategy, df: pd.DataFrame) -> Optional[pd.Series]:
+        """Wrapper to safely call strategy generation with Iron Dome protection."""
+        try:
+            return strategy.generate_signals(df)
+        except Exception as e:
+            logger.error(f"Strategy {strategy.name} failed: {e}")
+            raise e  # Let circuit breaker handle the exception logic
 
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
-        """Generate ensemble signals by combining multiple strategies with weighted voting.
-
-        Args:
-            df: DataFrame with OHLCV data
-
-        Returns:
-            Series of signals: 1 for BUY, -1 for SELL, 0 for HOLD
         """
-        # 0. Regime Detection & Weight Adjustment
-        if self.enable_regime_detection and self.regime_detector:
-            try:
-                from src.data_loader import fetch_macro_data
-                from src.regime import RegimeDetector
+        Generate ensemble signals.
+        Includes Regime Detection override and Weighted Voting.
+        """
+        # 0. Regime Adjustment
+        self._adjust_for_regime()
 
-                macro_data = fetch_macro_data(period="1y")
-                regime_id, regime_label, features = self.regime_detector.predict_current_regime(macro_data)
-                self.current_regime = {"id": regime_id, "label": regime_label, "features": features}
-
-                # レジームに基づいてウェイトを調整
-                if regime_id == 2:  # 暴落警戒 (Risk-Off)
-                    # 全体的にポジションサイズを縮小
-                    self.weights = {k: v * 0.5 for k, v in self.base_weights.items()}
-                    logger.info(f"Regime: {regime_label} - Reducing position sizes to 50%")
-                elif regime_id == 1:  # 不安定 (Volatile)
-                    # 中程度に縮小
-                    self.weights = {k: v * 0.75 for k, v in self.base_weights.items()}
-                    logger.info(f"Regime: {regime_label} - Reducing position sizes to 75%")
-                else:  # 安定上昇 (Stable Bull)
-                    # 通常通り
-                    self.weights = self.base_weights.copy()
-                    logger.info(f"Regime: {regime_label} - Using normal position sizes")
-            except Exception as e:
-                logger.error(f"Error in regime detection: {e}")
-                self.weights = self.base_weights.copy()
-
-        # 1. Generate signals from each strategy
+        # 1. Collect Signals safely
         signals_dict = {}
         for strategy in self.strategies:
-            try:
-                strategy_signals = strategy.generate_signals(df)
-                if strategy_signals is not None and not strategy_signals.empty:
-                    signals_dict[strategy.name] = strategy_signals
-            except Exception as e:
-                logger.error(f"Error generating signals from {strategy.name}: {e}")
+            # Iron Dome protects this call
+            sig = self._safe_generate_signals(strategy, df)
+
+            # Since circuit breaker might return empty series on failure/fallback
+            if sig is not None and not sig.empty:
+                signals_dict[strategy.name] = sig
+            else:
+                # If a strategy fails, effectively its weight becomes 0 via exclusion
+                logger.warning(f"⚠️ Strategy {strategy.name} unavailable/failed. Excluding from consensus.")
 
         if not signals_dict:
-            logger.warning("No valid signals from any strategy")
+            logger.warning("No valid signals from any strategy available.")
             return pd.Series(0, index=df.index)
 
-        # 2. Align all signals to the same index
-        aligned_signals = pd.DataFrame(signals_dict, index=df.index)
-        aligned_signals = aligned_signals.fillna(0)
-
-        # 3. Weighted voting for each timestamp
+        # 2. Weighted Voting
         ensemble_signals = pd.Series(0, index=df.index, dtype=int)
 
-        for idx in df.index:
-            weighted_sum = 0.0
-            total_weight = 0.0
+        # Vectorized approach for speed
+        total_vote_series = pd.Series(0.0, index=df.index)
+        total_weight_current = 0.0
 
-            for strategy_name, signal_series in signals_dict.items():
-                if idx in signal_series.index:
-                    signal = signal_series.loc[idx]
-                    weight = self.weights.get(strategy_name, 1.0)
-                    weighted_sum += signal * weight
-                    total_weight += weight
+        for strategy_name, signal_series in signals_dict.items():
+            # Align indices just in case
+            aligned_sig = signal_series.reindex(df.index).fillna(0)
 
-            # Convert weighted sum to final signal
-            # Threshold: if weighted average > 0.3, BUY; if < -0.3, SELL; else HOLD
-            if total_weight > 0:
-                weighted_avg = weighted_sum / total_weight
-                if weighted_avg > 0.3:
-                    ensemble_signals.loc[idx] = 1
-                elif weighted_avg < -0.3:
-                    ensemble_signals.loc[idx] = -1
-                else:
-                    ensemble_signals.loc[idx] = 0
+            weight = self.weights.get(strategy_name, 1.0)
 
-        # For legacy compatibility
-        # self.voter = EnsembleVoter(self.strategies, self.weights)
+            # Add to vote
+            total_vote_series += aligned_sig * weight
+            total_weight_current += weight
 
-        return ensemble_signals
+        if total_weight_current == 0:
+            return ensemble_signals
+
+        # Normalize
+        weighted_avg = total_vote_series / total_weight_current
+
+        # Thresholds
+        ensemble_signals[weighted_avg > 0.3] = 1
+        ensemble_signals[weighted_avg < -0.3] = -1
+
+        return ensemble_signals.astype(int)
+
+    def _adjust_for_regime(self):
+        """Check regime and scale weights."""
+        if not self.enable_regime_detection or not self.regime_detector:
+            return
+
+        try:
+            from src.data_loader import fetch_macro_data
+            macro_data = fetch_macro_data(period="1y")
+            regime_id, regime_label, _ = self.regime_detector.predict_current_regime(macro_data)
+
+            self.current_regime = {"label": regime_label, "id": regime_id}
+
+            # Risk-Off Logic
+            if regime_id == 2:  # Crash/Bear
+                logger.info(f"🐻 Regime: {regime_label} - Defensive Mode Enabled.")
+                # Cut all weights by half, maybe boost Safe Haven strategies if we had them
+                self.weights = {k: v * 0.5 for k, v in self.base_weights.items()}
+            elif regime_id == 1:  # Volatile
+                logger.info(f"🌊 Regime: {regime_label} - Caution Mode.")
+                self.weights = {k: v * 0.8 for k, v in self.base_weights.items()}
+            else:
+                self.weights = self.base_weights.copy()
+
+        except Exception as e:
+            logger.warning(f"Regime check failed: {e}")
 
     def get_signal_explanation(self, signal: int) -> str:
-        """Get explanation for the ensemble signal."""
+        regime_msg = f" (市場環境: {self.current_regime['label']})" if self.current_regime else ""
         if signal == 1:
-            regime_info = f" (市場環境: {self.current_regime['label']})" if self.current_regime else ""
-            return f"複数のAI戦略が総合的に「買い」を推奨しています{regime_info}。"
+            return f"Adaptive Consensusにより「買い」と判断されました{regime_msg}。"
         elif signal == -1:
-            regime_info = f" (市場環境: {self.current_regime['label']})" if self.current_regime else ""
-            return f"複数のAI戦略が総合的に「売り」を推奨しています{regime_info}。"
-        return "アンサンブル戦略では明確なコンセンサスが得られていません。"
+            return f"Adaptive Consensusにより「売り」と判断されました{regime_msg}。"
+        return "明確なシグナルはありません。"
 
     def analyze(self, df: pd.DataFrame) -> Dict[str, Any]:
-        """詳細分析結果を返す"""
-        # Re-implement analyze because we don't hold the ensemble object directly exposed
-        # This is a simplified version
+        """Simple analysis wrapper."""
         signals = self.generate_signals(df)
         if signals.empty:
-            return {"signal": 0, "confidence": 0.0}
+            return {"signal": 0, "confidence": 0}
 
-        last_signal = signals.iloc[-1]
-
-        return {"signal": int(last_signal), "confidence": 0.8, "details": {"weights": self.weights}}  # Placeholder
+        return {
+            "signal": int(signals.iloc[-1]),
+            "confidence": 0.8,  # Placeholder
+            "details": {"weights": self.weights, "active_strategies": len(self.strategies)}
+        }

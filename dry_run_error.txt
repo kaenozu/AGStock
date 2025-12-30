@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "C:\gemini-thinkpad\AGStock\tools\dry_run_system.py", line 62, in run_dry_test
+    trader.pt._init_db() # Re-init with new path
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'PaperTrader' object has no attribute '_init_db'. Did you mean: '__init__'?

@@ -4,18 +4,66 @@ LightGBM予測モデル
 """
 
 import logging
+from typing import Any, Dict
 
 import lightgbm as lgb
-import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
+
+from src.base_predictor import BasePredictor
 
 logger = logging.getLogger(__name__)
 
 
-class LGBMPredictor:
+class LGBMPredictor(BasePredictor):
     def __init__(self):
         self.model = None
+        self.params = self._load_optimized_params()
+
+    def _load_optimized_params(self) -> Dict[str, Any]:
+        """Load optimized parameters if they exist."""
+        try:
+            import os
+            import json
+
+            if os.path.exists("model_params.json"):
+                with open("model_params.json", "r", encoding="utf-8") as f:
+                    all_params = json.load(f)
+                    return all_params.get("lgbm", {})
+        except Exception:
+            pass
+        return {}
+
+    def prepare_model(self, X, y):
+        """モデルの準備（LGBMでは特に必要なし）"""
+
+    def fit(self, X, y):
+        """モデルの学習"""
+        # データチェック
+        if len(X) != len(y):
+            raise ValueError("X and y must have same length")
+
+        # Use optimized params or default
+        params = {
+            "n_estimators": 100,
+            "learning_rate": 0.05,
+            "max_depth": 5,
+            "verbose": -1,
+        }
+        params.update(self.params)
+
+        self.model = lgb.LGBMRegressor(**params)
+        self.model.fit(X, y)
+        return self
+
+    def predict(self, X):
+        """予測実行"""
+        if self.model is None:
+            raise ValueError("Model not fitted")
+        return self.model.predict(X)
+
+    def predict_point(self, current_features):
+        """単一点予測（Ensemble互換）"""
+        return self.predict(current_features)[0]
 
     def predict_trajectory(self, df: pd.DataFrame, days_ahead: int = 5) -> dict:
         """
@@ -23,7 +71,9 @@ class LGBMPredictor:
         """
         try:
             if df is None or df.empty or len(df) < 50:
-                return {"error": f"データ不足 (データ数: {len(df) if df is not None else 0})"}
+                return {
+                    "error": f"データ不足 (データ数: {len(df) if df is not None else 0})"
+                }
 
             # 1. 特徴量生成
             data = df.copy()
@@ -60,7 +110,9 @@ class LGBMPredictor:
             split_idx = int(len(X) * 0.8)
             X_train, y_train = X[:split_idx], y[:split_idx]
 
-            self.model = lgb.LGBMRegressor(n_estimators=100, learning_rate=0.05, max_depth=5, verbose=-1)
+            self.model = lgb.LGBMRegressor(
+                n_estimators=100, learning_rate=0.05, max_depth=5, verbose=-1
+            )
             self.model.fit(X_train, y_train)
 
             # 5. 未来予測（再帰的）

@@ -42,7 +42,9 @@ class RiskLimiter:
         """リスク制限取得"""
         return self.config.get("risk_limits", self._default_config()["risk_limits"])
 
-    def check_position_size(self, position_value: float, total_equity: float) -> Tuple[bool, str]:
+    def check_position_size(
+        self, position_value: float, total_equity: float
+    ) -> Tuple[bool, str]:
         """ポジションサイズチェック"""
         max_size = self.risk_limits["max_position_size"]
         position_pct = position_value / total_equity if total_equity > 0 else 0
@@ -76,7 +78,9 @@ class RiskLimiter:
 
         return True, "OK"
 
-    def check_total_exposure(self, invested_amount: float, total_equity: float) -> Tuple[bool, str]:
+    def check_total_exposure(
+        self, invested_amount: float, total_equity: float
+    ) -> Tuple[bool, str]:
         """総投資比率チェック"""
         max_exposure = self.risk_limits["max_total_exposure"]
         exposure = invested_amount / total_equity if total_equity > 0 else 0
@@ -100,7 +104,9 @@ class RiskLimiter:
 
         return True, "OK"
 
-    def check_emergency_stop(self, total_pnl_pct: float, initial_capital: float) -> Tuple[bool, str]:
+    def check_emergency_stop(
+        self, total_pnl_pct: float, initial_capital: float
+    ) -> Tuple[bool, str]:
         """緊急停止チェック"""
         emergency_level = self.risk_limits["emergency_stop_loss_pct"]
 
@@ -111,7 +117,9 @@ class RiskLimiter:
 
         return True, "OK"
 
-    def validate_trade(self, trade_info: dict, portfolio_state: dict) -> Tuple[bool, List[str]]:
+    def validate_trade(
+        self, trade_info: dict, portfolio_state: dict
+    ) -> Tuple[bool, List[str]]:
         """取引の総合バリデーション"""
         checks = []
         all_passed = True

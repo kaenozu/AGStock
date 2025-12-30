@@ -27,10 +27,14 @@ def render_news_analyst():
             st.warning("この機能を使用するには、Google Gemini APIキーが必要です。")
 
             st.info("💡 **設定方法**")
-            st.markdown("画面上部の **「⚙️ 設定」** タブを開き、APIキーを入力してください。")
+            st.markdown(
+                "画面上部の **「⚙️ 設定」** タブを開き、APIキーを入力してください。"
+            )
 
             if st.button("設定タブへ移動不可 (手動で切り替えてください)"):
-                st.caption("Streamlitの仕様上、ここから直接タブ切り替えはできません。上のタブをクリックしてください。")
+                st.caption(
+                    "Streamlitの仕様上、ここから直接タブ切り替えはできません。上のタブをクリックしてください。"
+                )
 
         return  # Stop rendering until key is set
 
@@ -43,15 +47,21 @@ def render_news_analyst():
 
         with col_left:
             st.subheader("📡 最新ニュースフィード")
-            if st.button("ニュースを取得 & 分析開始", type="primary", use_container_width=True):
-                with st.spinner("ニュースを収集し、AIが分析中... (これには数秒〜1分かかります)"):
+            if st.button(
+                "ニュースを取得 & 分析開始", type="primary", use_container_width=True
+            ):
+                with st.spinner(
+                    "ニュースを収集し、AIが分析中... (これには数秒〜1分かかります)"
+                ):
                     try:
                         # 1. Fetch News
                         collector = get_news_collector()
                         news_list = collector.fetch_market_news(limit=10)
 
                         if not news_list:
-                            st.error("ニュースを取得できませんでした。ネットワーク接続を確認してください。")
+                            st.error(
+                                "ニュースを取得できませんでした。ネットワーク接続を確認してください。"
+                            )
                             return
 
                         st.success(f"{len(news_list)} 件のニュースを取得しました。")
@@ -90,16 +100,15 @@ def render_news_analyst():
 
                 # Color logic
                 if score > 3:
-                    color = "green"
                     label = "強気 (BULLISH)"
                 elif score < -3:
-                    color = "red"
                     label = "弱気 (BEARISH)"
                 else:
-                    color = "gray"
                     label = "中立 (NEUTRAL)"
 
-                st.metric(label="AI市場センチメント", value=f"{score:+.1f} / 10", delta=label)
+                st.metric(
+                    label="AI市場センチメント", value=f"{score:+.1f} / 10", delta=label
+                )
 
                 # Progress bar visual
                 st.progress((score + 10) / 20)  # Map -10..10 to 0..1
@@ -137,13 +146,19 @@ def render_news_analyst():
                     pdf_text = PDFLoader.extract_text_from_file(uploaded_file)
 
                     if not pdf_text or pdf_text.startswith("Error extracting PDF"):
-                        st.error("テキストを抽出できませんでした。画像ベースPDFや破損ファイルの可能性があります。")
+                        st.error(
+                            "テキストを抽出できませんでした。画像ベースPDFや破損ファイルの可能性があります。"
+                        )
                     elif len(pdf_text) < 100:
-                        st.error("テキストを抽出できませんでした（画像ベースのPDFの可能性があります）。")
+                        st.error(
+                            "テキストを抽出できませんでした（画像ベースのPDFの可能性があります）。"
+                        )
                     else:
                         st.info(f"テキスト抽出完了: {len(pdf_text)} 文字")
                         if len(pdf_text) < 200:
-                            st.warning("抽出テキストが短いです。OCR済みのPDFを推奨します。")
+                            st.warning(
+                                "抽出テキストが短いです。OCR済みのPDFを推奨します。"
+                            )
 
                         # 2. Analyze
                         # Dynamically add method if needed or use ask() for now,

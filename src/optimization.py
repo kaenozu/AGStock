@@ -34,14 +34,13 @@ class HyperparameterOptimizer:
 
     def save_params(self):
         os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
-        try:
-            with open(self.config_path, "w") as f:
-                json.dump(self.best_params, f, indent=4)
-            logger.info(f"Saved optimized parameters to {self.config_path}")
-        except OSError as exc:
-            logger.warning("Could not save optimized parameters: %s", exc)
+        with open(self.config_path, "w") as f:
+            json.dump(self.best_params, f, indent=4)
+        logger.info(f"Saved optimized parameters to {self.config_path}")
 
-    def optimize_random_forest(self, df: pd.DataFrame, n_trials: int = 20) -> Dict[str, Any]:
+    def optimize_random_forest(
+        self, df: pd.DataFrame, n_trials: int = 20
+    ) -> Dict[str, Any]:
         """
         Optimizes Random Forest parameters using Optuna.
         """
@@ -50,21 +49,25 @@ class HyperparameterOptimizer:
         # Prepare Data
         data = add_advanced_features(df).dropna()
         if len(data) < 100:
-            logger.warning("Not enough data for optimization; continuing with minimal dataset for tuning")
+            logger.warning("Not enough data for optimization")
+            return {}
 
         # Target: Next day return > 0
-        X = data[["RSI", "SMA_Ratio", "Volatility", "Ret_1", "Ret_5", "Freq_Power", "Sentiment_Score"]]
+        X = data[
+            [
+                "RSI",
+                "SMA_Ratio",
+                "Volatility",
+                "Ret_1",
+                "Ret_5",
+                "Freq_Power",
+                "Sentiment_Score",
+            ]
+        ]
         y = (data["Return_1d"] > 0).astype(int)
 
         # Time-series split
-        split_idx = max(int(len(X) * 0.8), 1)
-        if split_idx >= len(X):
-            split_idx = len(X) - 1
-
-        if split_idx <= 0 or len(X) < 2:
-            logger.warning("Insufficient samples after split; skipping optimization")
-            return {}
-
+        split_idx = int(len(X) * 0.8)
         X_train, X_test = X.iloc[:split_idx], X.iloc[split_idx:]
         y_train, y_test = y.iloc[:split_idx], y.iloc[split_idx:]
 
@@ -74,7 +77,10 @@ class HyperparameterOptimizer:
             min_samples_split = trial.suggest_int("min_samples_split", 2, 10)
 
             clf = RandomForestClassifier(
-                n_estimators=n_estimators, max_depth=max_depth, min_samples_split=min_samples_split, random_state=42
+                n_estimators=n_estimators,
+                max_depth=max_depth,
+                min_samples_split=min_samples_split,
+                random_state=42,
             )
 
             clf.fit(X_train, y_train)
@@ -97,20 +103,21 @@ class HyperparameterOptimizer:
 
         data = add_advanced_features(df).dropna()
         if len(data) < 100:
-            logger.warning("Not enough data for optimization; continuing with minimal dataset for tuning")
+            return {}
 
-        feature_cols = ["ATR", "BB_Width", "RSI", "MACD", "Dist_SMA_20", "Freq_Power", "Sentiment_Score"]
+        feature_cols = [
+            "ATR",
+            "BB_Width",
+            "RSI",
+            "MACD",
+            "Dist_SMA_20",
+            "Freq_Power",
+            "Sentiment_Score",
+        ]
         X = data[feature_cols]
         y = (data["Return_1d"] > 0).astype(int)
 
-        split_idx = max(int(len(X) * 0.8), 1)
-        if split_idx >= len(X):
-            split_idx = len(X) - 1
-
-        if split_idx <= 0 or len(X) < 2:
-            logger.warning("Insufficient samples after split; skipping optimization")
-            return {}
-
+        split_idx = int(len(X) * 0.8)
         X_train, X_test = X.iloc[:split_idx], X.iloc[split_idx:]
         y_train, y_test = y.iloc[:split_idx], y.iloc[split_idx:]
 
@@ -137,7 +144,10 @@ class HyperparameterOptimizer:
                 param,
                 train_data,
                 valid_sets=[valid_data],
-                callbacks=[lgb.early_stopping(stopping_rounds=10), lgb.log_evaluation(False)],
+                callbacks=[
+                    lgb.early_stopping(stopping_rounds=10),
+                    lgb.log_evaluation(False),
+                ],
             )
 
             preds = gbm.predict(X_test)
@@ -153,7 +163,9 @@ class HyperparameterOptimizer:
         self.save_params()
         return study.best_params
 
-    def optimize_transformer(self, df: pd.DataFrame, n_trials: int = 20) -> Dict[str, Any]:
+    def optimize_transformer(
+        self, df: pd.DataFrame, n_trials: int = 20
+    ) -> Dict[str, Any]:
         """
         Optimizes Transformer parameters.
         """
@@ -166,10 +178,14 @@ class HyperparameterOptimizer:
             # 探索空間
             params = {
                 "hidden_size": trial.suggest_categorical("hidden_size", [32, 64, 128]),
-                "num_attention_heads": trial.suggest_categorical("num_attention_heads", [2, 4, 8]),
+                "num_attention_heads": trial.suggest_categorical(
+                    "num_attention_heads", [2, 4, 8]
+                ),
                 "num_encoder_layers": trial.suggest_int("num_encoder_layers", 1, 3),
                 "dropout": trial.suggest_float("dropout", 0.0, 0.3),
-                "learning_rate": trial.suggest_float("learning_rate", 1e-4, 1e-2, log=True),
+                "learning_rate": trial.suggest_float(
+                    "learning_rate", 1e-4, 1e-2, log=True
+                ),
                 "batch_size": trial.suggest_categorical("batch_size", [16, 32, 64]),
             }
 
@@ -202,7 +218,9 @@ if __name__ == "__main__":
         optimizer.optimize_random_forest(df, n_trials=2)
         optimizer.optimize_lightgbm(df, n_trials=2)
 
-    def optimize_transformer(self, df: pd.DataFrame, n_trials: int = 10) -> Dict[str, Any]:
+    def optimize_transformer(
+        self, df: pd.DataFrame, n_trials: int = 10
+    ) -> Dict[str, Any]:
         """
         Optimizes Transformer parameters using Optuna.
         """
@@ -232,7 +250,9 @@ if __name__ == "__main__":
         def objective(trial):
             # Hyperparameters
             hidden_size = trial.suggest_categorical("hidden_size", [32, 64, 128])
-            num_attention_heads = trial.suggest_categorical("num_attention_heads", [2, 4])
+            num_attention_heads = trial.suggest_categorical(
+                "num_attention_heads", [2, 4]
+            )
             num_encoder_layers = trial.suggest_int("num_encoder_layers", 1, 3)
             dropout = trial.suggest_float("dropout", 0.0, 0.3)
             learning_rate = trial.suggest_float("learning_rate", 1e-4, 1e-2, log=True)
@@ -249,8 +269,12 @@ if __name__ == "__main__":
             )
 
             # Data Prep
-            X_train, y_train = model.prepare_sequences(train_df, sequence_length=30, forecast_horizon=5)
-            X_val, y_val = model.prepare_sequences(val_df, sequence_length=30, forecast_horizon=5)
+            X_train, y_train = model.prepare_sequences(
+                train_df, sequence_length=30, forecast_horizon=5
+            )
+            X_val, y_val = model.prepare_sequences(
+                val_df, sequence_length=30, forecast_horizon=5
+            )
 
             if len(X_train) == 0 or len(X_val) == 0:
                 raise optuna.TrialPruned("Not enough data for sequences")
@@ -292,6 +316,7 @@ def optimize_strategy_wfo(
     Walk-Forward Optimization (WFO)
 
     データを複数のウィンドウに分割し、各ウィンドウで:
+        pass
     1. 訓練期間でパラメータ最適化
     2. テスト期間でパフォーマンス測定
 
@@ -319,7 +344,9 @@ def optimize_strategy_wfo(
         train_df = df.iloc[start_idx:train_end]
         test_df = df.iloc[train_end:test_end]
 
-        logger.info(f"Window: train={start_idx}:{train_end}, test={train_end}:{test_end}")
+        logger.info(
+            f"Window: train={start_idx}:{train_end}, test={train_end}:{test_end}"
+        )
 
         # Optuna で訓練期間のパラメータ最適化
         def objective(trial):
@@ -340,7 +367,9 @@ def optimize_strategy_wfo(
             # バックテスト (簡易版)
             returns = train_df["Close"].pct_change()
             strategy_returns = signals.shift(1) * returns
-            sharpe = strategy_returns.mean() / (strategy_returns.std() + 1e-6) * np.sqrt(252)
+            sharpe = (
+                strategy_returns.mean() / (strategy_returns.std() + 1e-6) * np.sqrt(252)
+            )
 
             return sharpe
 
@@ -354,7 +383,11 @@ def optimize_strategy_wfo(
         test_signals = test_strategy.generate_signals(test_df)
         test_returns = test_df["Close"].pct_change()
         test_strategy_returns = test_signals.shift(1) * test_returns
-        test_sharpe = test_strategy_returns.mean() / (test_strategy_returns.std() + 1e-6) * np.sqrt(252)
+        test_sharpe = (
+            test_strategy_returns.mean()
+            / (test_strategy_returns.std() + 1e-6)
+            * np.sqrt(252)
+        )
 
         results.append(
             {
@@ -365,7 +398,9 @@ def optimize_strategy_wfo(
             }
         )
 
-        logger.info(f"Best params: {best_params}, Train Sharpe: {study.best_value:.2f}, Test Sharpe: {test_sharpe:.2f}")
+        logger.info(
+            f"Best params: {best_params}, Train Sharpe: {study.best_value:.2f}, Test Sharpe: {test_sharpe:.2f}"
+        )
 
     # 全ウィンドウの平均パラメータを計算
     avg_params = {}
@@ -438,7 +473,13 @@ def optimize_multi_objective(
 
     results = []
     for trial in pareto_trials[:10]:  # 上位10個
-        results.append({"params": trial.params, "total_return": trial.values[0], "max_drawdown": -trial.values[1]})
+        results.append(
+            {
+                "params": trial.params,
+                "total_return": trial.values[0],
+                "max_drawdown": -trial.values[1],
+            }
+        )
 
     logger.info(f"Found {len(pareto_trials)} Pareto optimal solutions")
 

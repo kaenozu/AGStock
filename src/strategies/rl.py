@@ -51,7 +51,9 @@ class RLStrategy(Strategy):
                     self.agent.load(self.model_path)  # Try loading existing model
                     logger.info("Loaded RL agent model.")
                 except Exception as e:
-                    logger.warning(f"Failed to load/init RL Agent (training might be needed): {e}")
+                    logger.warning(
+                        f"Failed to load/init RL Agent (training might be needed): {e}"
+                    )
                     # Initialize fresh if load fails
                     self.agent = DQNAgent(state_size, action_size)
 
@@ -115,7 +117,7 @@ class RLStrategy(Strategy):
 
             self.agent.update_target_model()
             logger.info(
-                f"Episode {e+1}/{episodes} - Total Reward: {total_reward:.2f}, Epsilon: {self.agent.epsilon:.2f}"
+                f"Episode {e + 1}/{episodes} - Total Reward: {total_reward:.2f}, Epsilon: {self.agent.epsilon:.2f}"
             )
 
         try:

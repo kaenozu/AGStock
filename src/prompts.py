@@ -8,6 +8,7 @@ Your goal is to provide a comprehensive yet concise daily market report based on
 The report should be written in professional Japanese.
 
 Structure the report as follows:
+    pass
 1. **Market Overview**: Summary of major indices (Nikkei 225, S&P 500) and their trends.
 2. **Market Regime**: Current market environment (e.g., High Volatility Bull Market).
 3. **Portfolio Update**: Brief summary of current positions and any significant changes.
@@ -22,6 +23,7 @@ Analyze the provided technical indicators, market regime, and strategy signals t
 Avoid generic statements; refer to specific data points provided in the context.
 
 Structure:
+    pass
 - **Decision**: Buy/Sell/Hold
 - **Primary Driver**: The main reason for the trade (e.g., RSI oversold, Trend following).
 - **Context**: Market regime and other supporting factors.

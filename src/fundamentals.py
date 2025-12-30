@@ -5,7 +5,9 @@ class FundamentalFilter:
     def __init__(self):
         pass
 
-    def filter_undervalued(self, fundamentals: Dict, max_pe: float = 25.0, max_pbr: float = 3.0) -> bool:
+    def filter_undervalued(
+        self, fundamentals: Dict, max_pe: float = 25.0, max_pbr: float = 3.0
+    ) -> bool:
         """
         Checks if the stock is undervalued based on PER and PBR.
         """
@@ -36,7 +38,9 @@ class FundamentalFilter:
 
         return roe > min_roe
 
-    def filter_large_cap(self, fundamentals: Dict, min_cap: float = 100_000_000_000) -> bool:
+    def filter_large_cap(
+        self, fundamentals: Dict, min_cap: float = 100_000_000_000
+    ) -> bool:
         """
         Checks if the stock is a large cap (default > 100B JPY).
         """

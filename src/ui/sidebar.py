@@ -7,11 +7,10 @@ import json
 
 import streamlit as st
 
-from src.constants import MARKETS, TICKER_NAMES
 from src.schemas import load_config as load_config_schema
-from src.services.defense import activate_defense, deactivate_defense, defense_status
 
 from src import demo_data  # noqa: F401  # imported for side-effects if needed
+
 
 def load_config():
     """Load config utilizing schema validation (fallback to defaults if error)."""
@@ -40,43 +39,95 @@ def render_sidebar():
 
     st.sidebar.divider()
 
-    # --- One-click Defense Mode ---
-    st.sidebar.subheader("🛡️ ワンクリック防御モード")
-    current_on = st.session_state.get("defense_mode", defense_status())
-    toggle = st.sidebar.checkbox("新規BUY抑制 + リスク圧縮", value=current_on)
+    # --- System Status Widget ---
+    import os
+    from datetime import datetime
 
-    if toggle and not current_on:
-        snapshot = activate_defense()
-        st.session_state["defense_snapshot"] = snapshot
-        st.session_state["defense_mode"] = True
-        st.sidebar.success("防御モードを適用しました")
-    elif not toggle and current_on:
-        deactivate_defense(st.session_state.get("defense_snapshot"))
-        st.session_state["defense_snapshot"] = None
-        st.session_state["defense_mode"] = False
-        st.sidebar.info("防御モードを解除しました")
+    st.sidebar.subheader("📡 システム稼働状況")
 
-    st.sidebar.caption("SAFE_MODE=1, シナリオ=conservative, 銘柄/セクター上限を引き締めます。")
+    status_file = "data/system_status.json"
+    scheduler_alive = False
+
+    if os.path.exists(status_file):
+        try:
+            with open(status_file, "r", encoding="utf-8") as f:
+                sys_status = json.load(f)
+
+            heartbeat = sys_status.get("heartbeat")
+            if heartbeat:
+                last_beat = datetime.fromisoformat(heartbeat)
+                delta = datetime.now() - last_beat
+                if delta.total_seconds() < 120:  # 2 minutes tolerance
+                    scheduler_alive = True
+
+            if scheduler_alive:
+                st.sidebar.success(f"🟢 スケジューラー稼働中")
+            else:
+                st.sidebar.error(f"🔴 スケジューラー停止/無反応")
+                if heartbeat:
+                    st.sidebar.caption(f"最終ビート: {last_beat.strftime('%H:%M:%S')}")
+
+            # Show individual job status
+            jobs = sys_status.get("jobs", {})
+
+            # Map for human readable
+            job_map = {
+                "auto_invest": "自動投資",
+                "smart_alerts": "スマート監視",
+                "morning_brief": "朝刊配送",
+            }
+
+            for key, label in job_map.items():
+                info = jobs.get(key, {})
+                status = info.get("status", "unknown")
+                last_run = info.get("last_run", "")
+
+                if last_run:
+                    dt = datetime.fromisoformat(last_run)
+                    timestr = dt.strftime("%H:%M")
+                else:
+                    timestr = "--:--"
+
+                if status == "success":
+                    icon = "🟢"
+                elif status == "running":
+                    icon = "🔄"
+                elif status == "error":
+                    icon = "🔴"
+                else:
+                    icon = "⚪"
+
+                st.sidebar.markdown(f"{icon} **{label}**: {timestr}")
+                if status == "error":
+                    st.sidebar.caption(f"Err: {info.get('message', '')[:20]}...")
+
+        except Exception:
+            st.sidebar.warning(f"ステータス読込エラー")
+    else:
+        st.sidebar.warning("⚠️ ステータス情報なし")
+        st.sidebar.caption("START_SYSTEM.batを実行してください")
 
     st.sidebar.divider()
 
     # --- New Risk Monitor Section ---
     st.sidebar.subheader("🛡️ リスク監視モニター")
-    
+
     # Check Market Crash (if Risk Manager is initialized)
     if "risk_manager" in st.session_state and st.session_state["risk_manager"]:
         rm = st.session_state["risk_manager"]
         # Simplified check (logging mocked or passed appropriately)
         # Note: In a UI loop, we might want to cache this or run it less frequently.
         # For now, we run it every re-render to ensure safety status.
-        crash_ok, crash_reason = rm.check_market_crash(logger=None) # Logger optional/none for UI check
-        
+        crash_ok, crash_reason = rm.check_market_crash(
+            logger=None
+        )  # Logger optional/none for UI check
+
         if crash_ok:
             st.sidebar.success("✅ 市場状況: 正常")
         else:
             st.sidebar.error("🚨 市場急落警戒中")
             st.sidebar.caption(f"{crash_reason}")
-            
+
         # Display VaR (Mock or stored value if available)
         st.sidebar.metric(label="予想最大損失率 (VaR)", value="2.8%", delta="-0.1%")
     else:
@@ -90,20 +141,17 @@ def render_sidebar():
     st.sidebar.divider()
 
     # Demo mode toggle
-    use_demo = st.sidebar.checkbox("🧪 デモモード (オフライン向け)", value=st.session_state.get("use_demo_data", False))
+    use_demo = st.sidebar.checkbox(
+        "🧪 デモモード (オフライン向け)",
+        value=st.session_state.get("use_demo_data", False),
+    )
     st.session_state["use_demo_data"] = use_demo
 
     # Dark Mode Toggle
     dark_mode = st.sidebar.checkbox("🌙 ダークモード", value=True)
     if dark_mode:
-        st.markdown(
-            """
-        <style>
-        .stApp { background-color: #0e1117; color: #fafafa; }
-        </style>
-        """,
-            unsafe_allow_html=True,
-        )
+        # The main style_v2.css handles this.
+        pass
 
     st.sidebar.info("⚙️ 詳細設定は「🧪 戦略研究所」→「システム設定」から")
 

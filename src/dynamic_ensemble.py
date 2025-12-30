@@ -41,7 +41,13 @@ class DynamicEnsemble:
         self.state_file = state_file
         self.load_state()
 
-    def update(self, ticker: str, date: datetime, actual_return: float, predictions: Dict[str, float]):
+    def update(
+        self,
+        ticker: str,
+        date: datetime,
+        actual_return: float,
+        predictions: Dict[str, float],
+    ):
         """
         実際のリターンに基づいてウェイトを更新
 
@@ -74,7 +80,7 @@ class DynamicEnsemble:
             return
 
         # 直近の履歴を取得
-        recent_history = self.history[-self.window_size :]
+        recent_history = self.history[-self.window_size:]
 
         scores = {name: 0.0 for name in self.weights.keys()}
 
@@ -97,7 +103,9 @@ class DynamicEnsemble:
         total_score = sum(max(0, s) for s in scores.values())
 
         if total_score > 0:
-            new_weights = {name: max(0, score) / total_score for name, score in scores.items()}
+            new_weights = {
+                name: max(0, score) / total_score for name, score in scores.items()
+            }
 
             # EMAでウェイトを更新
             for name in self.weights:
@@ -143,7 +151,10 @@ class DynamicEnsemble:
     def save_state(self):
         """状態をJSONに保存"""
         try:
-            state = {"weights": self.weights, "history": self.history[-100:]}  # 最新100件のみ保存
+            state = {
+                "weights": self.weights,
+                "history": self.history[-100:],
+            }  # 最新100件のみ保存
             with open(self.state_file, "w") as f:
                 json.dump(state, f, indent=2)
         except Exception as e:

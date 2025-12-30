@@ -29,8 +29,6 @@ class ErrorCategory(Enum):
 class RetryableError(Exception):
     """リトライ可能なエラーを示す基底クラス"""
 
-    pass
-
 
 def retry(
     max_attempts: int = 3,
@@ -40,22 +38,22 @@ def retry(
     on_retry: Optional[Callable] = None,
 ):
     """
-    リトライデコレータ
+        リトライデコレータ
 
-    Args:
-        max_attempts: 最大試行回数
-        delay: 初回待機時間（秒）
-        backoff: 待機時間の乗数（指数バックオフ）
-        exceptions: リトライ対象の例外タプル
-        on_retry: リトライ時に呼ばれるコールバック関数
+        Args:
+            max_attempts: 最大試行回数
+            delay: 初回待機時間（秒）
+            backoff: 待機時間の乗数（指数バックオフ）
+            exceptions: リトライ対象の例外タプル
+            on_retry: リトライ時に呼ばれるコールバック関数
 
-    Example:
-        ```python
-        @retry(max_attempts=3, delay=1.0, backoff=2.0)
-        def fetch_data():
-            # ネットワークリクエスト
-            pass
-        ```
+        Example:
+            ```python
+            @retry(max_attempts=3, delay=1.0, backoff=2.0)
+            def fetch_data():
+    # ネットワークリクエスト
+                pass
+            ```
     """
 
     def decorator(func: Callable) -> Callable:
@@ -71,7 +69,9 @@ def retry(
                     attempt += 1
 
                     if attempt >= max_attempts:
-                        logger.error(f"{func.__name__} failed after {max_attempts} attempts: {e}")
+                        logger.error(
+                            f"{func.__name__} failed after {max_attempts} attempts: {e}"
+                        )
                         raise
 
                     logger.warning(
@@ -196,7 +196,10 @@ def get_user_friendly_message(exception: Exception, context: str = "") -> dict:
         ErrorCategory.VALIDATION: {
             "title": "バリデーションエラー",
             "message": "入力値が不正です。",
-            "suggestion": ("• 入力値を確認してください\n" "• 必須項目が入力されているか確認してください"),
+            "suggestion": (
+                "• 入力値を確認してください\n"
+                "• 必須項目が入力されているか確認してください"
+            ),
         },
         ErrorCategory.EXTERNAL_API: {
             "title": "外部APIエラー",
@@ -237,12 +240,19 @@ def get_user_friendly_message(exception: Exception, context: str = "") -> dict:
 # よく使うリトライ設定のプリセット
 def network_retry(func: Callable) -> Callable:
     """ネットワーク処理用のリトライデコレータ（3回、指数バックオフ）"""
-    return retry(max_attempts=3, delay=1.0, backoff=2.0, exceptions=(ConnectionError, TimeoutError, IOError))(func)
+    return retry(
+        max_attempts=3,
+        delay=1.0,
+        backoff=2.0,
+        exceptions=(ConnectionError, TimeoutError, IOError),
+    )(func)
 
 
 def api_retry(func: Callable) -> Callable:
     """API呼び出し用のリトライデコレータ（5回、長めの待機）"""
-    return retry(max_attempts=5, delay=2.0, backoff=2.0, exceptions=(Exception,))(func)  # 広範囲のエラーをリトライ
+    return retry(max_attempts=5, delay=2.0, backoff=2.0, exceptions=(Exception,))(
+        func
+    )  # 広範囲のエラーをリトライ
 
 
 # エラーログヘルパー
@@ -258,12 +268,12 @@ def log_error_with_context(exception: Exception, context: str, level: str = "err
     error_info = get_user_friendly_message(exception, context)
 
     log_message = (
-        f"\n{'='*60}\n"
+        f"\n{'=' * 60}\n"
         f"Error Category: {error_info['category'].value}\n"
         f"Title: {error_info['title']}\n"
         f"Message: {error_info['message']}\n"
         f"Technical Details: {error_info['technical_details']}\n"
-        f"{'='*60}"
+        f"{'=' * 60}"
     )
 
     log_func = getattr(logger, level, logger.error)

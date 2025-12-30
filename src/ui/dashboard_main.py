@@ -13,8 +13,14 @@ import streamlit as st
 from src.constants import TICKER_NAMES
 from src.formatters import get_risk_level
 from src.paper_trader import PaperTrader
-from src.ui_components import (display_best_pick_card, display_error_message,
-                               display_sentiment_gauge)
+from src.ui_components import (
+    display_best_pick_card,
+    display_error_message,
+    display_sentiment_gauge,
+)
+from src.regime_detector import RegimeDetector
+from src.strategies.orchestrator import StrategyOrchestrator
+from src.data_loader import fetch_stock_data
 
 
 def render_market_scan_tab(sidebar_config):
@@ -22,7 +28,47 @@ def render_market_scan_tab(sidebar_config):
     Renders the Market Scan tab content.
     """
     st.header("市場全体スキャン")
-    st.write("指定した銘柄群に対して全戦略をバックテストし、有望なシグナルを検出します。")
+
+    # --- Phase 62: Regime & Strategy Visualization ---
+    try:
+        with st.expander(
+            "🛡️ 現在の市場レジームと戦略チーム (Active Squad)", expanded=True
+        ):
+            col1, col2 = st.columns([1, 2])
+
+            # Fetch Nikkei for representative regime
+            data = fetch_stock_data(["^N225"], period="3mo")
+            df = data.get("^N225")
+
+            if df is not None and not df.empty:
+                detector = RegimeDetector()
+                orchestrator = StrategyOrchestrator()
+
+                # Detect
+                regime = detector.detect_regime(df)
+                squad = orchestrator.get_active_squad(regime)
+
+                with col1:
+                    st.metric("Detected Regime", regime.upper().replace("_", " "))
+                    if "trending" in regime:
+                        st.caption("📈 トレンド追随モード")
+                    elif "volatility" in regime:
+                        st.caption("🌪️ アクティブ防衛モード")
+                    else:
+                        st.caption("↔️ レンジ対応モード")
+
+                with col2:
+                    st.markdown("**🚀 Active Strategy Squad:**")
+                    squad_names = [s.name for s in squad]
+                    st.write(", ".join([f"`{n}`" for n in squad_names]))
+            else:
+                st.info("市場データを取得してレジームを判定中...")
+    except Exception as e:
+        st.error(f"レジーム判定エラー: {e}")
+
+    st.write(
+        "指定した銘柄群に対して全戦略をバックテストし、有望なシグナルを検出します。"
+    )
 
     # Unpack config
     enable_fund_filter = sidebar_config["enable_fund_filter"]
@@ -37,19 +83,27 @@ def render_market_scan_tab(sidebar_config):
             with open("scan_results.json", "r", encoding="utf-8") as f:
                 data = json.load(f)
                 # Check if data is fresh (e.g., from today)
-                scan_date = datetime.datetime.strptime(data["scan_date"], "%Y-%m-%d %H:%M:%S")
+                scan_date = datetime.datetime.strptime(
+                    data["scan_date"], "%Y-%m-%d %H:%M:%S"
+                )
                 if scan_date.date() == datetime.date.today():
                     cached_results = data
-                    st.success(f"✅ 最新のスキャン結果を読み込みました ({data['scan_date']})")
+                    st.success(
+                        f"✅ 最新のスキャン結果を読み込みました ({data['scan_date']})"
+                    )
         except Exception as e:
             display_error_message(
-                "data", "スキャン結果の読み込みに失敗しました。ファイルが破損している可能性があります。", str(e)
+                "data",
+                "スキャン結果の読み込みに失敗しました。ファイルが破損している可能性があります。",
+                str(e),
             )
 
     run_fresh = False
     # Button logic
     if st.button(
-        "市場をスキャンして推奨銘柄を探す (再スキャン)" if cached_results else "市場をスキャンして推奨銘柄を探す",
+        "市場をスキャンして推奨銘柄を探す (再スキャン)"
+        if cached_results
+        else "市場をスキャンして推奨銘柄を探す",
         type="primary",
     ):
         run_fresh = True
@@ -85,16 +139,23 @@ def render_market_scan_tab(sidebar_config):
 
                 # PER
                 if "PER" in actionable_df.columns:
-                    actionable_df = actionable_df[(actionable_df["PER"].notna()) & (actionable_df["PER"] <= max_per)]
+                    actionable_df = actionable_df[
+                        (actionable_df["PER"].notna())
+                        & (actionable_df["PER"] <= max_per)
+                    ]
 
                 # PBR
                 if "PBR" in actionable_df.columns:
-                    actionable_df = actionable_df[(actionable_df["PBR"].notna()) & (actionable_df["PBR"] <= max_pbr)]
+                    actionable_df = actionable_df[
+                        (actionable_df["PBR"].notna())
+                        & (actionable_df["PBR"] <= max_pbr)
+                    ]
 
                 # ROE
                 if "ROE" in actionable_df.columns:
                     actionable_df = actionable_df[
-                        (actionable_df["ROE"].notna()) & (actionable_df["ROE"] >= min_roe / 100.0)
+                        (actionable_df["ROE"].notna())
+                        & (actionable_df["ROE"] >= min_roe / 100.0)
                     ]
 
                 filtered_count = len(actionable_df)
@@ -126,10 +187,16 @@ def render_market_scan_tab(sidebar_config):
                     pt = PaperTrader()
                     trade_action = "BUY" if "BUY" in action else "SELL"
                     if pt.execute_trade(
-                        ticker, trade_action, trading_unit, price, reason=f"Best Pick: {best_pick['Strategy']}"
+                        ticker,
+                        trade_action,
+                        trading_unit,
+                        price,
+                        reason=f"Best Pick: {best_pick['Strategy']}",
                     ):
                         st.balloons()
-                        st.success(f"{best_pick['Name']} を {trading_unit}株 {trade_action} しました！")
+                        st.success(
+                            f"{best_pick['Name']} を {trading_unit}株 {trade_action} しました！"
+                        )
                     else:
                         display_error_message(
                             "permission",
@@ -152,24 +219,32 @@ def render_market_scan_tab(sidebar_config):
 
                 # Ask AI Button
                 if st.button(
-                    f"🤖 この銘柄 ({best_pick['Name']}) についてAIに聞く", key=f"ask_ai_{best_pick['Ticker']}"
+                    f"🤖 この銘柄 ({best_pick['Name']}) についてAIに聞く",
+                    key=f"ask_ai_{best_pick['Ticker']}",
                 ):
-                    st.session_state["chat_initial_input"] = (
-                        f"{best_pick['Name']} ({best_pick['Ticker']}) の詳細な分析をお願いします。なぜこの戦略が推奨されたのですか？"
+                    st.session_state[
+                        "chat_initial_input"
+                    ] = f"{best_pick['Name']} ({best_pick['Ticker']}) の詳細な分析をお願いします。なぜこの戦略が推奨されたのですか？"
+                    st.info(
+                        "「💬 AIチャット」タブへ移動して、送信ボタンを押してください ↗"
                     )
-                    st.info("「💬 AIチャット」タブへ移動して、送信ボタンを押してください ↗")
 
             # 1.5. AI Robo-Advisor Portfolio
             if "portfolio" in cached_results and cached_results["portfolio"]:
                 portfolio = cached_results["portfolio"]
                 st.markdown("---")
-                with st.expander("💰 AIロボアドバイザー・ポートフォリオ", expanded=False):
+                with st.expander(
+                    "💰 AIロボアドバイザー・ポートフォリオ", expanded=False
+                ):
                     st.write(f"**推奨銘柄数**: {portfolio['total_assets']}銘柄")
                     st.write("AIが最適なリスク・リターン比率で配分を計算しました。")
 
                     # Display weights as pie chart
                     weights_df = pd.DataFrame(
-                        [{"銘柄": TICKER_NAMES.get(t, t), "配分比率": w * 100} for t, w in portfolio["weights"].items()]
+                        [
+                            {"銘柄": TICKER_NAMES.get(t, t), "配分比率": w * 100}
+                            for t, w in portfolio["weights"].items()
+                        ]
                     )
                     st.dataframe(weights_df)
 

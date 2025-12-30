@@ -42,13 +42,17 @@ class AsyncDataFetcher:
 
         def fetch_one(ticker: str) -> tuple:
             try:
-                data = yf.download(ticker, period=period, interval=interval, progress=False)
+                data = yf.download(
+                    ticker, period=period, interval=interval, progress=False
+                )
                 return (ticker, data)
             except Exception as e:
                 logger.warning(f"Failed to fetch {ticker}: {e}")
                 return (ticker, pd.DataFrame())
 
-        futures = {self.executor.submit(fetch_one, ticker): ticker for ticker in tickers}
+        futures = {
+            self.executor.submit(fetch_one, ticker): ticker for ticker in tickers
+        }
 
         for future in as_completed(futures):
             ticker = futures[future]
@@ -62,7 +66,9 @@ class AsyncDataFetcher:
         logger.info(f"Fetched {len(results)}/{len(tickers)} tickers")
         return results
 
-    async def fetch_multiple_async(self, tickers: List[str], period: str = "1y") -> Dict[str, pd.DataFrame]:
+    async def fetch_multiple_async(
+        self, tickers: List[str], period: str = "1y"
+    ) -> Dict[str, pd.DataFrame]:
         """
         複数銘柄を非同期で取得
 
@@ -80,7 +86,8 @@ class AsyncDataFetcher:
 
             try:
                 data = await loop.run_in_executor(
-                    self.executor, lambda: yf.download(ticker, period=period, progress=False)
+                    self.executor,
+                    lambda: yf.download(ticker, period=period, progress=False),
                 )
                 return (ticker, data)
             except Exception as e:

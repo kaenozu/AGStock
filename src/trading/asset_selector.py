@@ -1,8 +1,12 @@
-from typing import Dict, List
+from typing import List
 
-from src.constants import (CRYPTO_PAIRS, FX_PAIRS, NIKKEI_225_TICKERS,
-                           SP500_TICKERS, STOXX50_TICKERS)
-from src.data_loader import fetch_fundamental_data
+from src.constants import (
+    CRYPTO_PAIRS,
+    FX_PAIRS,
+    NIKKEI_225_TICKERS,
+    SP500_TICKERS,
+    STOXX50_TICKERS,
+)
 
 
 class AssetSelector:
@@ -15,11 +19,19 @@ class AssetSelector:
         self.pt = paper_trader
         self.logger = logger
         self.asset_config = self.config.get(
-            "assets", {"japan_stocks": True, "us_stocks": True, "europe_stocks": True, "crypto": False, "fx": False}
+            "assets",
+            {
+                "japan_stocks": True,
+                "us_stocks": True,
+                "europe_stocks": True,
+                "crypto": False,
+                "fx": False,
+            },
         )
         # ポートフォリオ配分目標
         portfolio_targets = self.config.get(
-            "portfolio_targets", {"japan": 40, "us": 30, "europe": 10, "crypto": 10, "fx": 10}
+            "portfolio_targets",
+            {"japan": 40, "us": 30, "europe": 10, "crypto": 10, "fx": 10},
         )
         self.target_japan_pct = portfolio_targets.get("japan", 40)
         self.target_us_pct = portfolio_targets.get("us", 30)

@@ -1,96 +1,132 @@
 import numpy as np
 import pandas as pd
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class TradingEnvironment:
     """
-    OpenAI Gym-like Stock Trading Environment.
-    State: [O, H, L, C, V, Indicators...] (Normalized)
+    Advanced Stock Trading Environment with normalized states and risk-adjusted rewards.
+    State: [Features (Normalized), Position Status, Unrealized PnL %]
     Action: 0 (HOLD), 1 (BUY), 2 (SELL)
-    Reward: Change in Portfolio Value (Simplified)
     """
 
-    def __init__(self, df: pd.DataFrame, initial_balance: float = 1000000.0):
-        self.df = df.reset_index(drop=True)
-        self.initial_balance = initial_balance
-        self.reset()
+    def __init__(
+        self,
+        df: pd.DataFrame,
+        initial_balance: float = 1000000.0,
+        transaction_cost_pct: float = 0.001,
+        lookback_window: int = 20
+    ):
+        # Numeric columns only for the observation state
+        self.raw_df = df.copy()
+        numeric_cols = df.select_dtypes(include=[np.number]).columns
+        self.df = df[numeric_cols].reset_index(drop=True)
 
-        # Determine state size from dataframe columns (assuming all cols are features)
-        # We exclude 'Open', 'High', 'Low', 'Close', 'Volume' if they are raw values unscaled.
-        # But for simplicity, we assume 'df' passed here is ALREADY SCALED FEATURES.
-        self.state_size = df.shape[1]
-        self.action_space_size = 3  # HOLD, BUY, SELL
+        self.initial_balance = initial_balance
+        self.transaction_cost_pct = transaction_cost_pct
+        self.lookback_window = lookback_window
+
+        # Pre-calculate rolling normalization parameters to keep step() fast
+        self.means = self.df.rolling(window=lookback_window, min_periods=1).mean()
+        self.stds = self.df.rolling(window=lookback_window, min_periods=1).std().replace(0, 1)  # Avoid div by zero
+
+        self.state_size = self.df.shape[1] + 2
+        self.action_space_size = 3
+
+        self.reset()
 
     def reset(self):
         self.balance = self.initial_balance
-        self.position = 0  # 0: No pos, 1: Long (Simplified to binary pos for now)
+        self.shares_held = 0
         self.entry_price = 0.0
-        self.current_step = 0
+        self.current_step = self.lookback_window  # Start where normalization is stable
         self.max_steps = len(self.df) - 1
+
+        self.portfolio_value_history = [self.initial_balance]
+        self.portfolio_value = self.initial_balance
+        self.prev_portfolio_value = self.initial_balance
 
         return self._get_observation()
 
     def _get_observation(self):
-        return self.df.iloc[self.current_step].values
+        # Z-score normalization of current features
+        # (val - mean) / std
+        current_data = self.df.iloc[self.current_step]
+        m = self.means.iloc[self.current_step]
+        s = self.stds.iloc[self.current_step]
+
+        normalized_frame = (current_data - m) / s
+
+        # Position features
+        position_flag = 1.0 if self.shares_held > 0 else 0.0
+        current_price = self.df.iloc[self.current_step]["Close"]
+
+        if self.shares_held > 0 and self.entry_price > 0:
+            unrealized_pnl = (current_price - self.entry_price) / self.entry_price
+        else:
+            unrealized_pnl = 0.0
+
+        return np.append(normalized_frame.values, [position_flag, unrealized_pnl])
 
     def step(self, action):
-        """
-        Execute action and return (next_state, reward, done, info)
-        Action: 0=HOLD, 1=BUY, 2=SELL
-        """
-        current_price = self.df.iloc[self.current_step][
-            "Close"
-        ]  # Assuming 'Close' is present or we track it separately
-        reward = 0
-        done = False
+        current_price = self.df.iloc[self.current_step]["Close"]
 
-        # Basic logic:
-        # BUY: If no position, enter.
-        # SELL: If position, exit and take profit/loss.
-        # HOLD: Do nothing.
-
-        # Note: If df is scaled, 'Close' might be 0.5 etc.
-        # For realistic reward, we need Raw Close Px.
-        # We assume for this prototype, we use percentage gain as reward directly roughly.
-
-        # Let's assume the passed DF has a 'Raw_Close' column for PnL calc if possible,
-        # OR we just simulate using the scaled value trend which is risky.
-        # FIX: We will rely on simple trend reward for this prototype:
-        # If Action=BUY and Next Price > Current Price -> Reward +1
-        # If Action=SELL and Next Price < Current Price -> Reward +1
-
-        # Ideally, we need lookahead to calculate reward for 'step'.
-
-        next_step = self.current_step + 1
-        if next_step >= self.max_steps:
-            done = True
-            return np.zeros(self.state_size), 0, True, {}
-
-        next_price = self.df.iloc[next_step]["Close"]
-        price_change_pct = (next_price - current_price) / current_price if current_price != 0 else 0
-
+        # Transaction Logic
         if action == 1:  # BUY
-            if self.position == 0:
-                self.position = 1
-                self.entry_price = current_price
-            reward = price_change_pct * 100  # Reward is % return
+            if self.shares_held == 0:
+                max_shares = int(self.balance / (current_price * (1 + self.transaction_cost_pct)))
+                if max_shares > 0:
+                    cost = max_shares * current_price * (1 + self.transaction_cost_pct)
+                    self.balance -= cost
+                    self.shares_held = max_shares
+                    self.entry_price = current_price
 
         elif action == 2:  # SELL
-            if self.position == 1:
-                self.position = 0
-                # Realize trade
-                trade_return = (current_price - self.entry_price) / self.entry_price
-                reward = trade_return * 100
-            else:
-                # Short selling logic or just penalty for invalid action?
-                # Let's say we Short.
-                reward = -price_change_pct * 100
-
-        else:  # HOLD
-            # Small penalty for holding? Or 0.
-            reward = 0
+            if self.shares_held > 0:
+                revenue = self.shares_held * current_price * (1 - self.transaction_cost_pct)
+                self.balance += revenue
+                self.shares_held = 0
+                self.entry_price = 0.0
 
         self.current_step += 1
-        next_state = self._get_observation()
+        done = self.current_step >= self.max_steps
 
-        return next_state, reward, done, {}
+        # Portfolio Calculation
+        next_price = self.df.iloc[self.current_step]["Close"] if not done else current_price
+        new_val = self.balance + (self.shares_held * next_price)
+        self.portfolio_value_history.append(new_val)
+
+        # Reward Function: Risk-Adjusted Profit
+        # 1. Delta change
+        step_return = (new_val - self.prev_portfolio_value) / self.prev_portfolio_value
+
+        # 2. Volatility Penalty (reward consistency)
+        # Use simple lookback for volatility if possible
+        if len(self.portfolio_value_history) > 5:
+            rets = np.diff(self.portfolio_value_history[-5:]) / self.portfolio_value_history[-6:-1]
+            vol_penalty = np.std(rets) * 0.1
+        else:
+            vol_penalty = 0.0
+
+        reward = (step_return * 100) - vol_penalty
+
+        # Additional penalty for holding -5% drawdown to encourage stop-losses
+        if self.shares_held > 0:
+            drawdown = (next_price - self.entry_price) / self.entry_price
+            if drawdown < -0.05:
+                reward -= 0.5  # Sharp penalty for holding heavy losses
+
+        self.prev_portfolio_value = new_val
+        self.portfolio_value = new_val
+
+        next_state = self._get_observation() if not done else np.zeros(self.state_size)
+
+        info = {
+            "step": self.current_step,
+            "value": self.portfolio_value,
+            "shares": self.shares_held
+        }
+
+        return next_state, reward, done, info

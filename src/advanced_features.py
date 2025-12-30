@@ -18,7 +18,9 @@ logger = logging.getLogger(__name__)
 
 
 def add_lag_features(
-    df: pd.DataFrame, columns: List[str] = ["Close", "Volume"], lags: List[int] = [1, 3, 5, 10, 20]
+    df: pd.DataFrame,
+    columns: List[str] = ["Close", "Volume"],
+    lags: List[int] = [1, 3, 5, 10, 20],
 ) -> pd.DataFrame:
     """
     ラグ特徴量を追加
@@ -45,13 +47,17 @@ def add_lag_features(
             df_out[f"{col}_return_{lag}"] = df_out[col].pct_change(lag)
 
             # 対数リターン
-            df_out[f"{col}_log_return_{lag}"] = np.log(df_out[col] / df_out[col].shift(lag))
+            df_out[f"{col}_log_return_{lag}"] = np.log(
+                df_out[col] / df_out[col].shift(lag)
+            )
 
     return df_out
 
 
 def add_rolling_stats(
-    df: pd.DataFrame, columns: List[str] = ["Close"], windows: List[int] = [5, 10, 20, 60]
+    df: pd.DataFrame,
+    columns: List[str] = ["Close"],
+    windows: List[int] = [5, 10, 20, 60],
 ) -> pd.DataFrame:
     """
     ローリング統計量を追加
@@ -100,7 +106,11 @@ def add_advanced_technical_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     df_out = df.copy()
 
-    if "High" not in df_out.columns or "Low" not in df_out.columns or "Close" not in df_out.columns:
+    if (
+        "High" not in df_out.columns
+        or "Low" not in df_out.columns
+        or "Close" not in df_out.columns
+    ):
         return df_out
 
     # ATR (Average True Range) - ボラティリティ
@@ -240,7 +250,9 @@ def add_volatility_regime(df: pd.DataFrame, window: int = 20) -> pd.DataFrame:
         else:
             return 2  # 高ボラティリティ
 
-    df_out["Volatility_Regime"] = df_out["Historical_Volatility"].apply(classify_volatility)
+    df_out["Volatility_Regime"] = df_out["Historical_Volatility"].apply(
+        classify_volatility
+    )
 
     # ボラティリティの変化率
     df_out["Volatility_Change"] = df_out["Historical_Volatility"].pct_change()
@@ -270,11 +282,17 @@ def add_momentum_features(df: pd.DataFrame) -> pd.DataFrame:
     try:
         # ROC (Rate of Change)
         for period in [5, 10, 20]:
-            df_out[f"ROC_{period}"] = ta.momentum.ROCIndicator(close=df_out["Close"], window=period).roc()
+            df_out[f"ROC_{period}"] = ta.momentum.ROCIndicator(
+                close=df_out["Close"], window=period
+            ).roc()
 
         # Stochastic Oscillator
         stoch = ta.momentum.StochasticOscillator(
-            high=df_out["High"], low=df_out["Low"], close=df_out["Close"], window=14, smooth_window=3
+            high=df_out["High"],
+            low=df_out["Low"],
+            close=df_out["Close"],
+            window=14,
+            smooth_window=3,
         )
         df_out["Stoch_K"] = stoch.stoch()
         df_out["Stoch_D"] = stoch.stoch_signal()
@@ -302,6 +320,7 @@ def generate_phase29_features(df: pd.DataFrame) -> pd.DataFrame:
     Phase 29-1のすべての新規特徴量を生成
 
     既存の特徴量に加えて、以下を追加:
+        pass
     - ボラティリティレジーム分類
     - 追加のモメンタム指標
 

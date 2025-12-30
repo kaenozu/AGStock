@@ -5,7 +5,6 @@ Neuro-Evolutionによって獲得された「最強のパラメータ」を使�
 
 import logging
 
-import numpy as np
 import pandas as pd
 
 from src.neuro_evolution import get_neuro_evolution_engine
@@ -30,7 +29,9 @@ class EvolvedStrategy:
                 "stop_loss_pct": 0.05,
                 "take_profit_pct": 0.10,
             }
-            logger.info("EvolvedStrategy: Using default parameters (No evolution data found)")
+            logger.info(
+                "EvolvedStrategy: Using default parameters (No evolution data found)"
+            )
         else:
             logger.info(f"EvolvedStrategy: Loaded evolved parameters: {self.params}")
 

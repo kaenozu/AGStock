@@ -5,7 +5,7 @@ GPU Acceleration Check - GPU加速チェック
 
 import logging
 import os
-from typing import Dict, Optional
+from typing import Dict
 
 logger = logging.getLogger(__name__)
 
@@ -32,16 +32,25 @@ class GPUAccelerator:
                 self.gpu_info["pytorch"] = {
                     "available": True,
                     "device_count": torch.cuda.device_count(),
-                    "device_name": torch.cuda.get_device_name(0) if torch.cuda.device_count() > 0 else "N/A",
+                    "device_name": torch.cuda.get_device_name(0)
+                    if torch.cuda.device_count() > 0
+                    else "N/A",
                     "memory_total": (
-                        torch.cuda.get_device_properties(0).total_memory if torch.cuda.device_count() > 0 else 0
+                        torch.cuda.get_device_properties(0).total_memory
+                        if torch.cuda.device_count() > 0
+                        else 0
                     ),
                 }
-                logger.info(f"CUDA GPU detected: {self.gpu_info['pytorch']['device_name']}")
+                logger.info(
+                    f"CUDA GPU detected: {self.gpu_info['pytorch']['device_name']}"
+                )
             else:
                 self.gpu_info["pytorch"] = {"available": False}
         except ImportError:
-            self.gpu_info["pytorch"] = {"available": False, "reason": "PyTorch not installed"}
+            self.gpu_info["pytorch"] = {
+                "available": False,
+                "reason": "PyTorch not installed",
+            }
         except Exception as e:
             self.gpu_info["pytorch"] = {"available": False, "reason": str(e)}
 
@@ -62,7 +71,10 @@ class GPUAccelerator:
             else:
                 self.gpu_info["tensorflow"] = {"available": False}
         except ImportError:
-            self.gpu_info["tensorflow"] = {"available": False, "reason": "TensorFlow not installed"}
+            self.gpu_info["tensorflow"] = {
+                "available": False,
+                "reason": "TensorFlow not installed",
+            }
         except Exception as e:
             self.gpu_info["tensorflow"] = {"available": False, "reason": str(e)}
 
@@ -72,7 +84,8 @@ class GPUAccelerator:
 
             # LightGBMのGPUサポートは明示的にインストールが必要
             self.gpu_info["lightgbm"] = {
-                "available": "gpu" in lgb.__file__.lower() or os.environ.get("LIGHTGBM_GPU", "0") == "1",
+                "available": "gpu" in lgb.__file__.lower()
+                or os.environ.get("LIGHTGBM_GPU", "0") == "1",
                 "note": "GPU support requires special build",
             }
         except ImportError:
@@ -123,7 +136,11 @@ class GPUAccelerator:
 
     def get_status(self) -> Dict:
         """GPU状態を取得"""
-        status = {"gpu_available": self.gpu_available, "device": self.device, "frameworks": self.gpu_info}
+        status = {
+            "gpu_available": self.gpu_available,
+            "device": self.device,
+            "frameworks": self.gpu_info,
+        }
 
         # メモリ使用量を追加
         try:

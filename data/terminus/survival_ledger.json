@@ -1,0 +1,21 @@
+{
+    "version": "1.0-TERMINUS",
+    "timestamp": "2025-12-29T14:51:10.065259",
+    "status": "FINAL_BLACKOUT_PREP",
+    "contents": {
+        "wealth_manifest": {
+            "last_ticker": "9984.T",
+            "status": "SCANNING"
+        },
+        "dynasty_lineage": {},
+        "ai_consciousness_snapshot": {
+            "logic": 0.5,
+            "intuition": 0.5
+        }
+    },
+    "instructions": [
+        "1. If digital networks are down, contact paper brokers listed in contacts.txt.",
+        "2. Visit your bank vault - keys are in secondary offline location.",
+        "3. Use the Genesis Seed at the bottom to reboot the Dynasty on any clean machine."
+    ]
+}

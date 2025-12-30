@@ -89,7 +89,9 @@ class DiscordWebhookService(NotificationService):
             data = {"embeds": [embed]}
 
             response = requests.post(
-                self.webhook_url, data=json.dumps(data), headers={"Content-Type": "application/json"}
+                self.webhook_url,
+                data=json.dumps(data),
+                headers={"Content-Type": "application/json"},
             )
 
             if response.status_code == 204:
@@ -128,7 +130,10 @@ class SlackWebhookService(NotificationService):
             data = {
                 "text": f"{icon_map.get(alert.priority.value, ':bell:')} *{alert.alert_type.value.upper()} Alert*",
                 "blocks": [
-                    {"type": "section", "text": {"type": "mrkdwn", "text": alert.message}},
+                    {
+                        "type": "section",
+                        "text": {"type": "mrkdwn", "text": alert.message},
+                    },
                     {
                         "type": "context",
                         "elements": [
@@ -142,7 +147,9 @@ class SlackWebhookService(NotificationService):
             }
 
             response = requests.post(
-                self.webhook_url, data=json.dumps(data), headers={"Content-Type": "application/json"}
+                self.webhook_url,
+                data=json.dumps(data),
+                headers={"Content-Type": "application/json"},
             )
 
             if response.status_code == 200:

@@ -35,10 +35,9 @@ class AdvancedMetrics:
     def sharpe_ratio(self, periods: int = 252) -> float:
         """シャープレシオを計算"""
         excess_returns = self.returns - self.daily_rf_rate
-        std = excess_returns.std()
-        if std < 1e-9:
+        if excess_returns.std() == 0:
             return 0.0
-        return np.sqrt(periods) * excess_returns.mean() / std
+        return np.sqrt(periods) * excess_returns.mean() / excess_returns.std()
 
     def sortino_ratio(self, periods: int = 252) -> float:
         """ソルティノレシオを計算（下方リスクのみ考慮）"""
@@ -73,7 +72,9 @@ class AdvancedMetrics:
             return 0
 
         changes = np.diff(drawdown_flags.astype(int))
-        boundaries = np.concatenate(([0], np.flatnonzero(changes) + 1, [drawdown_flags.size]))
+        boundaries = np.concatenate(
+            ([0], np.flatnonzero(changes) + 1, [drawdown_flags.size])
+        )
 
         max_duration = 0
         for start, end in zip(boundaries[:-1], boundaries[1:]):
@@ -129,7 +130,9 @@ class AdvancedMetrics:
             self._drawdown_cache = (cumulative - running_max) / running_max
         return self._drawdown_cache
 
-    def all_metrics(self, benchmark_returns: Optional[pd.Series] = None) -> Dict[str, float]:
+    def all_metrics(
+        self, benchmark_returns: Optional[pd.Series] = None
+    ) -> Dict[str, float]:
         """すべてのメトリクスを計算"""
         metrics = {
             "total_return": (1 + self.returns).prod() - 1,
@@ -170,7 +173,9 @@ class TransactionCostModel:
         self.slippage_pct = slippage_pct
         self.market_impact_factor = market_impact_factor
 
-    def calculate_cost(self, order_value: float, daily_volume: float, is_buy: bool = True) -> float:
+    def calculate_cost(
+        self, order_value: float, daily_volume: float, is_buy: bool = True
+    ) -> float:
         """
         取引コストを計算
 
@@ -190,7 +195,9 @@ class TransactionCostModel:
 
         # マーケットインパクト
         volume_participation = order_value / daily_volume if daily_volume > 0 else 0
-        market_impact = order_value * self.market_impact_factor * (volume_participation**2)
+        market_impact = (
+            order_value * self.market_impact_factor * (volume_participation**2)
+        )
 
         total_cost = commission + slippage + market_impact
 

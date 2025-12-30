@@ -5,7 +5,7 @@
 """
 
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -20,41 +20,41 @@ from src.services.defense import defense_status
 from src.ui.playbooks import render_playbook_cards
 
 
-def format_currency_jp(amount: float) -> str:
-    """日本円を万円形式で表示"""
-    if amount >= 100000000:
-        return f"¥{amount/100000000:.2f}億"
-    elif amount >= 10000:
-        return f"¥{amount/10000:.1f}万"
-    else:
-        return f"¥{amount:,.0f}"
+from src.utils.currency import format_currency_jp
 
 
 def _demo_mode() -> bool:
     env_flag = os.getenv("USE_DEMO_DATA", "")
-    return bool(st.session_state.get("use_demo_data")) or env_flag.lower() in {"1", "true", "yes"}
+    return bool(st.session_state.get("use_demo_data")) or env_flag.lower() in {
+        "1",
+        "true",
+        "yes",
+    }
 
 
 def _apply_theme(theme: str):
     """テーマに応じた簡易CSSを注入。"""
-    if theme == "navy":
+    if theme == "dark-contrast":
         css = """
         <style>
-        .stApp {background: radial-gradient(circle at 20% 20%, #0f1a2b, #070c14);}
-        .stMetric, .stDataFrame {backdrop-filter: blur(6px);}
+        .stApp {background: #05070a;}
+        div[data-testid="stMetricValue"] { color: #f8fafc !important; }
+        div[data-testid="stMetricLabel"] { color: #94a3b8 !important; }
+        .stAlert > div { color: #000 !important; font-weight: 600; }
         </style>
         """
-    elif theme == "dark-contrast":
+    elif theme == "navy":
         css = """
         <style>
-        .stApp {background: linear-gradient(180deg, #0b0f16 0%, #0f1724 50%, #0b0f16 100%);}
-        .stMetric, .stDataFrame {backdrop-filter: blur(8px); background: rgba(20,30,45,0.7); color: #e8f0ff;}
+        .stApp {background: #0f172a;}
         </style>
         """
     else:
+        # Default/Light - but let's keep it somewhat readable
         css = """
         <style>
-        .stApp {background: linear-gradient(180deg, #f7f9fc 0%, #eef2f7 50%, #e9eef6 100%);}
+        .stApp {background: #f8fafc;}
+        * { color: #0f172a; }
         </style>
         """
     st.markdown(css, unsafe_allow_html=True)
@@ -63,13 +63,19 @@ def _apply_theme(theme: str):
 def _scenario_controls():
     """リスクプリセット/エクスポージャー上限をUIから調整。"""
     st.sidebar.subheader("シナリオプリセット")
-    preset_labels = {"保守( drawdown最優先 )": "conservative", "中立": "neutral", "積極": "aggressive"}
+    preset_labels = {
+        "保守( drawdown最優先 )": "conservative",
+        "中立": "neutral",
+        "積極": "aggressive",
+    }
     current = st.session_state.get("scenario", os.getenv("TRADING_SCENARIO", "neutral"))
     label_default = [k for k, v in preset_labels.items() if v == current]
     selection = st.sidebar.radio(
         "リスクプロファイル",
         list(preset_labels.keys()),
-        index=0 if not label_default else list(preset_labels.keys()).index(label_default[0]),
+        index=0
+        if not label_default
+        else list(preset_labels.keys()).index(label_default[0]),
     )
     scenario = preset_labels[selection]
     st.session_state["scenario"] = scenario
@@ -78,17 +84,26 @@ def _scenario_controls():
     st.sidebar.caption("銘柄/セクターの最大エクスポージャーを調整")
     default_ticker = float(os.getenv("MAX_PER_TICKER_PCT", 0.25))
     default_sector = float(os.getenv("MAX_PER_SECTOR_PCT", 0.35))
-    max_ticker_pct = st.sidebar.slider("銘柄上限(%)", 5, 50, int(default_ticker * 100), step=1) / 100
-    max_sector_pct = st.sidebar.slider("セクター上限(%)", 10, 80, int(default_sector * 100), step=1) / 100
+    max_ticker_pct = (
+        st.sidebar.slider("銘柄上限(%)", 5, 50, int(default_ticker * 100), step=1) / 100
+    )
+    max_sector_pct = (
+        st.sidebar.slider("セクター上限(%)", 10, 80, int(default_sector * 100), step=1)
+        / 100
+    )
     os.environ["MAX_PER_TICKER_PCT"] = str(max_ticker_pct)
     os.environ["MAX_PER_SECTOR_PCT"] = str(max_sector_pct)
 
     # プレビュー
     st.sidebar.write("シナリオ適用プレビュー")
     preview_equity = 1_000_000
-    max_lot = preview_equity * (0.1 if scenario == "conservative" else 0.2 if scenario == "neutral" else 0.3)
+    max_lot = preview_equity * (
+        0.1 if scenario == "conservative" else 0.2 if scenario == "neutral" else 0.3
+    )
     st.sidebar.metric("最大想定ロット", format_currency_jp(max_lot))
-    st.sidebar.caption(f"シナリオ: {scenario} / 銘柄 {max_ticker_pct:.0%} / セクター {max_sector_pct:.0%}")
+    st.sidebar.caption(
+        f"シナリオ: {scenario} / 銘柄 {max_ticker_pct:.0%} / セクター {max_sector_pct:.0%}"
+    )
 
 
 def _load_backtest_history(demo: bool, pt: PaperTrader = None) -> pd.DataFrame:
@@ -107,15 +122,19 @@ def _load_backtest_history(demo: bool, pt: PaperTrader = None) -> pd.DataFrame:
 
     # Fallback: compute from equity/trade history
     if pt:
-        equity_df = pd.DataFrame(pt.get_equity_history(), columns=["date", "total_equity"])
+        equity_df = pd.DataFrame(
+            pt.get_equity_history(), columns=["date", "total_equity"]
+        )
         if not equity_df.empty:
             equity_df["date"] = pd.to_datetime(equity_df["date"])
             equity_df["return"] = equity_df["total_equity"].pct_change()
-            equity_df["win_rate"] = (equity_df["return"] > 0).rolling(10, min_periods=3).mean()
+            equity_df["win_rate"] = (
+                (equity_df["return"] > 0).rolling(10, min_periods=3).mean()
+            )
             equity_df["sharpe"] = (
                 equity_df["return"].rolling(30, min_periods=5).mean()
                 / (equity_df["return"].rolling(30, min_periods=5).std() + 1e-6)
-                * (252 ** 0.5)
+                * (252**0.5)
             )
             return equity_df[["date", "win_rate", "sharpe"]].dropna()
     return pd.DataFrame()
@@ -132,14 +151,33 @@ def _show_backtest_history():
         hist = hist.sort_values("date")
         fig = go.Figure()
         if "win_rate" in hist.columns:
-            fig.add_trace(go.Scatter(x=hist["date"], y=hist["win_rate"], mode="lines", name="勝率", line=dict(color="#2E86AB")))
+            fig.add_trace(
+                go.Scatter(
+                    x=hist["date"],
+                    y=hist["win_rate"],
+                    mode="lines",
+                    name="勝率",
+                    line=dict(color="#2E86AB"),
+                )
+            )
         if "sharpe" in hist.columns:
-            fig.add_trace(go.Scatter(x=hist["date"], y=hist["sharpe"], mode="lines", name="シャープ比", line=dict(color="#8E44AD"), yaxis="y2"))
+            fig.add_trace(
+                go.Scatter(
+                    x=hist["date"],
+                    y=hist["sharpe"],
+                    mode="lines",
+                    name="シャープ比",
+                    line=dict(color="#8E44AD"),
+                    yaxis="y2",
+                )
+            )
             fig.update_layout(
                 yaxis2=dict(title="シャープ比", overlaying="y", side="right"),
                 yaxis=dict(title="勝率"),
             )
-        fig.update_layout(title="日次バックテストトレンド", height=360, legend_orientation="h")
+        fig.update_layout(
+            title="日次バックテストトレンド", height=360, legend_orientation="h"
+        )
         st.plotly_chart(fig, use_container_width=True)
     finally:
         if pt:
@@ -155,6 +193,7 @@ def _exposure_heatmap():
         if positions.empty:
             st.info("ポジションがありません")
             return
+
         # 地域推定
         def region(tkr: str) -> str:
             if tkr.endswith(".T"):
@@ -173,10 +212,19 @@ def _exposure_heatmap():
 
         positions["value"] = positions["quantity"] * positions["current_price"]
         total = positions["value"].sum()
-        pivot = positions.pivot_table(index="sector", columns="region", values="value", aggfunc="sum").fillna(0)
+        pivot = positions.pivot_table(
+            index="sector", columns="region", values="value", aggfunc="sum"
+        ).fillna(0)
         pivot_pct = pivot / total if total else pivot
 
-        fig = go.Figure(data=go.Heatmap(z=pivot_pct.values, x=pivot_pct.columns, y=pivot_pct.index, colorscale="Blues"))
+        fig = go.Figure(
+            data=go.Heatmap(
+                z=pivot_pct.values,
+                x=pivot_pct.columns,
+                y=pivot_pct.index,
+                colorscale="Blues",
+            )
+        )
         fig.update_layout(title="セクター x 地域 エクスポージャー(%)", height=320)
         st.plotly_chart(fig, use_container_width=True)
     finally:
@@ -186,6 +234,7 @@ def _exposure_heatmap():
 
 def _model_version_card():
     import json
+
     registry_path = Path("models/registry.json")
     data_registry_path = Path("models/data_versions/registry.json")
 
@@ -197,7 +246,9 @@ def _model_version_card():
                 latest = None
                 for model, items in reg.get("models", {}).items():
                     if items:
-                        items_sorted = sorted(items, key=lambda x: x.get("timestamp", ""), reverse=True)
+                        items_sorted = sorted(
+                            items, key=lambda x: x.get("timestamp", ""), reverse=True
+                        )
                         latest = items_sorted[0]
                         st.success(f"最新モデル: {model} / {latest.get('version')}")
                         st.caption(f"metrics: {latest.get('metrics')}")
@@ -214,7 +265,9 @@ def _model_version_card():
                 reg = json.loads(data_registry_path.read_text())
                 versions = reg.get("versions", [])
                 if versions:
-                    versions_sorted = sorted(versions, key=lambda x: x.get("version", ""), reverse=True)
+                    versions_sorted = sorted(
+                        versions, key=lambda x: x.get("version", ""), reverse=True
+                    )
                     v = versions_sorted[0]
                     st.success(f"データ版: {v.get('version')}")
                     st.caption(v.get("path"))
@@ -229,9 +282,13 @@ def _model_version_card():
 def _notification_hooks():
     st.subheader("通知フック")
     st.caption("Slack/Webhook/メールへの通知先を設定し、テスト送信できます。")
-    slack_url = st.text_input("Slack Webhook URL", value=os.getenv("SLACK_WEBHOOK_URL", ""))
+    slack_url = st.text_input(
+        "Slack Webhook URL", value=os.getenv("SLACK_WEBHOOK_URL", "")
+    )
     message = st.text_area("テストメッセージ", "AGStock 通知テスト")
-    quiet_hours = st.text_input("静音時間 (例 22:00-07:00)", value=os.getenv("QUIET_HOURS", "22:00-07:00"))
+    quiet_hours = st.text_input(
+        "静音時間 (例 22:00-07:00)", value=os.getenv("QUIET_HOURS", "22:00-07:00")
+    )
     os.environ["QUIET_HOURS"] = quiet_hours
     if st.button("Slackにテスト送信"):
         try:
@@ -252,7 +309,11 @@ def _go_no_go():
     from src.utils.health import quick_health_check
 
     health = quick_health_check()
-    ext_ok = "✅" if all(k.startswith("api_latency") or v for k, v in health.items()) else "⚠️"
+    ext_ok = (
+        "✅"
+        if all(k.startswith("api_latency") or v for k, v in health.items())
+        else "⚠️"
+    )
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric("Disk OK", "Yes" if health.get("disk_ok") else "Low")
@@ -261,7 +322,9 @@ def _go_no_go():
     with col3:
         latency = health.get("api_latency_ms", 0.0)
         st.metric("API latency", f"{latency:.0f} ms", delta=None)
-    st.caption(f"{ext_ok} システム健全性: disk={health.get('disk_ok')} mem={health.get('memory_ok')} api={health.get('api_ok')}")
+    st.caption(
+        f"{ext_ok} システム健全性: disk={health.get('disk_ok')} mem={health.get('memory_ok')} api={health.get('api_ok')}"
+    )
 
     vix_display = "N/A"
     try:
@@ -273,10 +336,14 @@ def _go_no_go():
         pass
     st.write(f"VIX: {vix_display}")
 
-    safe_mode = st.checkbox("安全モード (BUY抑制)", value=os.getenv("SAFE_MODE", "").lower() in {"1", "true", "yes"})
+    safe_mode = st.checkbox(
+        "安全モード (BUY抑制)",
+        value=os.getenv("SAFE_MODE", "").lower() in {"1", "true", "yes"},
+    )
     os.environ["SAFE_MODE"] = "1" if safe_mode else "0"
     if safe_mode:
         st.warning("安全モード中は新規BUYを抑制します。")
+
 
 def _show_market_status():
     """市場開閉状況を表示"""
@@ -289,7 +356,11 @@ def _show_market_status():
 
     # 東京証券取引所 (9:00-11:30, 12:30-15:00 JST)
     if weekday < 5:  # 平日
-        if (9 <= hour < 11) or (hour == 11 and minute < 30) or (12 <= hour < 15 and not (hour == 12 and minute < 30)):
+        if (
+            (9 <= hour < 11)
+            or (hour == 11 and minute < 30)
+            or (12 <= hour < 15 and not (hour == 12 and minute < 30))
+        ):
             markets.append("東証: 営業中")
         else:
             markets.append("東証: 休場中")
@@ -327,6 +398,11 @@ def _show_portfolio_summary():
                 "daily_pnl": float(positions["market_value"].sum() * 0.002),
             }
         else:
+            # Force update prices to ensure PnL is fresh
+            try:
+                pt.update_positions_prices()
+            except Exception:
+                pass
             balance = pt.get_current_balance()
             positions = pt.get_positions()
 
@@ -348,38 +424,82 @@ def _show_portfolio_summary():
         if not positions.empty:
             st.subheader("保有銘柄")
             # フィルタ
-            with st.expander("フィルタ", expanded=False):
-                show_gainers = st.checkbox("含み益のみ", value=False, key="filter_gainers")
-                show_losers = st.checkbox("含み損のみ", value=False, key="filter_losers")
+            # フィルタ
+            with st.container():
+                st.caption("フィルタ設定")
+                show_gainers = st.checkbox(
+                    "含み益のみ", value=False, key="filter_gainers"
+                )
+                show_losers = st.checkbox(
+                    "含み損のみ", value=False, key="filter_losers"
+                )
                 max_mv = int(positions["market_value"].max() or 0)
-                min_value = st.slider("最低保有額(円)", 0, max_mv if max_mv > 0 else 0, 0, step=1000) if max_mv > 0 else 0
+                min_value = (
+                    st.slider(
+                        "最低保有額(円)", 0, max_mv if max_mv > 0 else 0, 0, step=1000
+                    )
+                    if max_mv > 0
+                    else 0
+                )
 
             positions_display = positions.copy()
             if show_gainers and not show_losers:
-                positions_display = positions_display[positions_display.get("unrealized_pnl", 0) > 0]
+                positions_display = positions_display[
+                    positions_display.get("unrealized_pnl", 0) > 0
+                ]
             if show_losers and not show_gainers:
-                positions_display = positions_display[positions_display.get("unrealized_pnl", 0) < 0]
+                positions_display = positions_display[
+                    positions_display.get("unrealized_pnl", 0) < 0
+                ]
             if min_value:
-                positions_display = positions_display[positions_display["market_value"] >= min_value]
+                positions_display = positions_display[
+                    positions_display["market_value"] >= min_value
+                ]
 
-            positions_display["保有額"] = positions_display["current_price"] * positions_display["quantity"]
+            positions_display["保有額"] = (
+                positions_display["current_price"] * positions_display["quantity"]
+            )
             positions_display["評価損益"] = positions_display["unrealized_pnl"]
             positions_display["評価損益率"] = positions_display["unrealized_pnl_pct"]
-            
+
             # Map ticker to company name
-            positions_display["company_name"] = positions_display["ticker"].map(TICKER_NAMES).fillna(positions_display["ticker"])
+            positions_display["company_name"] = (
+                positions_display["ticker"]
+                .map(TICKER_NAMES)
+                .fillna(positions_display["ticker"])
+            )
 
             # 列名を日本語に変換して表示
             display_df = positions_display[
-                ["ticker", "company_name", "quantity", "current_price", "保有額", "評価損益", "評価損益率"]
+                [
+                    "ticker",
+                    "company_name",
+                    "quantity",
+                    "current_price",
+                    "保有額",
+                    "評価損益",
+                    "評価損益率",
+                ]
             ].copy()
-            display_df.columns = ["銘柄コード", "銘柄名", "数量", "現在価格", "保有額", "評価損益", "評価損益率"]
+            display_df.columns = [
+                "銘柄コード",
+                "銘柄名",
+                "数量",
+                "現在価格",
+                "保有額",
+                "評価損益",
+                "評価損益率",
+            ]
 
             # 数値のフォーマット
-            display_df["現在価格"] = display_df["現在価格"].apply(lambda x: f"¥{x:,.0f}")
+            display_df["現在価格"] = display_df["現在価格"].apply(
+                lambda x: f"¥{x:,.0f}"
+            )
             display_df["保有額"] = display_df["保有額"].apply(format_currency_jp)
             display_df["評価損益"] = display_df["評価損益"].apply(format_currency_jp)
-            display_df["評価損益率"] = display_df["評価損益率"].apply(lambda x: f"{x:.2%}")
+            display_df["評価損益率"] = display_df["評価損益率"].apply(
+                lambda x: f"{x:.2%}"
+            )
 
             st.dataframe(display_df, use_container_width=True)
         else:
@@ -399,8 +519,12 @@ def _show_performance_chart():
         if demo:
             equity_df = demo_data.generate_equity_history(days=30)
         else:
-            equity_data = pt.get_equity_history(days=30)
-            equity_df = pd.DataFrame(equity_data, columns=["date", "equity"]) if equity_data else pd.DataFrame()
+            equity_data = pt.get_equity_history()
+            equity_df = (
+                pd.DataFrame(equity_data, columns=["date", "equity"])
+                if equity_data is not None and not equity_data.empty
+                else pd.DataFrame()
+            )
 
         if not equity_df.empty:
             df = equity_df.copy()
@@ -419,11 +543,16 @@ def _show_performance_chart():
                 )
             )
 
-            fig.update_layout(title="資産推移 (直近30日)", xaxis_title="日付", yaxis_title="総資産 (円)", height=400)
+            fig.update_layout(
+                title="資産推移 (直近30日)",
+                xaxis_title="日付",
+                yaxis_title="総資産 (円)",
+                height=400,
+            )
 
             st.plotly_chart(fig, use_container_width=True)
         else:
-                st.info("パフォーマンスデータがありません")
+            st.info("パフォーマンスデータがありません")
     finally:
         if pt:
             pt.close()
@@ -437,8 +566,12 @@ def _return_distribution():
         if demo:
             equity_df = demo_data.generate_equity_history(days=90)
         else:
-            equity_data = pt.get_equity_history(days=120)
-            equity_df = pd.DataFrame(equity_data, columns=["date", "equity"]) if equity_data else pd.DataFrame()
+            equity_data = pt.get_equity_history()
+            equity_df = (
+                pd.DataFrame(equity_data, columns=["date", "equity"])
+                if equity_data is not None and not equity_data.empty
+                else pd.DataFrame()
+            )
 
         if equity_df.empty:
             st.info("リターンデータがありません")
@@ -454,8 +587,18 @@ def _return_distribution():
 
         p5 = rets.quantile(0.05)
         fig = go.Figure()
-        fig.add_trace(go.Histogram(x=rets, nbinsx=30, marker_color="#4a90e2", opacity=0.8, name="Returns"))
-        fig.add_vline(x=p5, line_dash="dash", line_color="red", annotation_text=f"5%: {p5:.2%}", annotation_position="top right")
+        fig.add_trace(
+            go.Histogram(
+                x=rets, nbinsx=30, marker_color="#4a90e2", opacity=0.8, name="Returns"
+            )
+        )
+        fig.add_vline(
+            x=p5,
+            line_dash="dash",
+            line_color="red",
+            annotation_text=f"5%: {p5:.2%}",
+            annotation_position="top right",
+        )
         fig.update_layout(title="期待リターン分布と下方5%点", height=300, bargap=0.05)
         st.plotly_chart(fig, use_container_width=True)
     finally:
@@ -506,7 +649,11 @@ def _show_stat_cards():
         pt = PaperTrader()
         hist = pt.get_trade_history(limit=500)
         equity_df = pt.get_equity_history()
-        equity = pd.DataFrame(equity_df, columns=["date", "total_equity"]) if equity_df else pd.DataFrame()
+        equity = (
+            pd.DataFrame(equity_df, columns=["date", "total_equity"])
+            if equity_df is not None and len(equity_df) > 0
+            else pd.DataFrame()
+        )
         pt.close()
 
     win_rate = 0.0
@@ -540,9 +687,9 @@ def _show_stat_cards():
 
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("勝率", f"{win_rate*100:.1f}%")
+        st.metric("勝率", f"{win_rate * 100:.1f}%")
     with col2:
-        st.metric("最大DD", f"{max_dd*100:.2f}%")
+        st.metric("最大DD", f"{max_dd * 100:.2f}%")
     with col3:
         st.metric("連勝数", win_streak)
     with col4:
@@ -552,10 +699,12 @@ def _show_stat_cards():
 def create_simple_dashboard():
     """メインダッシュボード"""
     # st.set_page_config is handled in app.py (DO NOT Call it here)
-    
+
     # テーマ & シナリオ (サイドバー)
     # Note: If running inside app.py tabs, sidebar elements will appear in the main sidebar.
-    theme_choice = st.sidebar.selectbox("テーマ", ["light", "navy", "dark-contrast"], index=0)
+    theme_choice = st.sidebar.selectbox(
+        "テーマ", ["dark-contrast", "navy", "light"], index=0
+    )
     _apply_theme(theme_choice)
     _scenario_controls()
 
@@ -571,10 +720,19 @@ def create_simple_dashboard():
         with col2:
             # 最終更新（エクイティ）
             try:
-                eq_df = demo_data.generate_equity_history(days=2) if demo else pd.DataFrame(
-                    PaperTrader().get_equity_history(), columns=["date", "total_equity"]
+                eq_df = (
+                    demo_data.generate_equity_history(days=2)
+                    if demo
+                    else pd.DataFrame(
+                        PaperTrader().get_equity_history(),
+                        columns=["date", "total_equity"],
+                    )
                 )
-                last_date = pd.to_datetime(eq_df["date"]).max().date() if not eq_df.empty else None
+                last_date = (
+                    pd.to_datetime(eq_df["date"]).max().date()
+                    if not eq_df.empty
+                    else None
+                )
             except Exception:
                 last_date = None
             st.success(f"データ更新: {last_date or 'N/A'}")
@@ -589,7 +747,9 @@ def create_simple_dashboard():
                 pass
             st.warning(f"VIX: {vix_display}")
         with col4:
-            scenario = st.session_state.get("scenario", os.getenv("TRADING_SCENARIO", "neutral"))
+            scenario = st.session_state.get(
+                "scenario", os.getenv("TRADING_SCENARIO", "neutral")
+            )
             st.success(f"シナリオ: {scenario}")
         with col5:
             if defense_status():
@@ -642,5 +802,7 @@ def create_simple_dashboard():
 
 
 if __name__ == "__main__":
-    st.set_page_config(page_title="AGStock - ダッシュボード", page_icon="📈", layout="wide")
+    st.set_page_config(
+        page_title="AGStock - ダッシュボード", page_icon="📈", layout="wide"
+    )
     create_simple_dashboard()
