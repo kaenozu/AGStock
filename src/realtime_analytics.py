@@ -37,12 +37,8 @@ class RealTimeDataManager:
     def __init__(self, buffer_size: int = 1000):
         self.buffer_size = buffer_size
         # 銘柄ごとのデータを保持
-        self.data_buffers: Dict[str, deque] = defaultdict(
-            lambda: deque(maxlen=buffer_size)
-        )
-        self.timestamps: Dict[str, deque] = defaultdict(
-            lambda: deque(maxlen=buffer_size)
-        )
+        self.data_buffers: Dict[str, deque] = defaultdict(lambda: deque(maxlen=buffer_size))
+        self.timestamps: Dict[str, deque] = defaultdict(lambda: deque(maxlen=buffer_size))
         self.latest_data: Dict[str, Dict] = {}
         self.lock = threading.Lock()
 
@@ -242,9 +238,7 @@ class EventDrivenPredictor:
                     }
         return None
 
-    def check_events(
-        self, ticker: str, current_data: Dict, previous_data: Optional[Dict] = None
-    ):
+    def check_events(self, ticker: str, current_data: Dict, previous_data: Optional[Dict] = None):
         """イベントのチェックと検出"""
         # 価格変化を計算
         if previous_data and "Close" in current_data and "Close" in previous_data:
@@ -258,9 +252,7 @@ class EventDrivenPredictor:
                 if event:
                     detected_events.append(event)
                     # イベントをキューに追加
-                    self.push_event(
-                        {"ticker": ticker, "event": event, "data": current_data}
-                    )
+                    self.push_event({"ticker": ticker, "event": event, "data": current_data})
             except Exception as e:
                 logger.error(f"Event detection rule error: {e}")
 
@@ -272,9 +264,7 @@ class EventDrivenPredictor:
         event_info = event["event"]
         data = event["data"]
 
-        logger.info(
-            f"Processing event for {ticker}: {event_info['type']} (magnitude: {event_info['magnitude']:.3f})"
-        )
+        logger.info(f"Processing event for {ticker}: {event_info['type']} (magnitude: {event_info['magnitude']:.3f})")
 
         # イベントに基づいて予測モデルを更新または再実行
         try:
@@ -306,11 +296,7 @@ class EdgeInferenceEngine:
     def __init__(self, model: Any, optimization_level: str = "medium"):
         self.model = model
         self.optimization_level = optimization_level
-        self.model_path = (
-            "models/edge_model.tflite"
-            if optimization_level == "high"
-            else "models/edge_model.h5"
-        )
+        self.model_path = "models/edge_model.tflite" if optimization_level == "high" else "models/edge_model.h5"
         self.is_quantized = optimization_level in ["medium", "high"]
         self.executor = ThreadPoolExecutor(max_workers=2)
 
@@ -343,9 +329,7 @@ class EdgeInferenceEngine:
         """量子化用の代表データ生成"""
         # ダミーデータを生成（実際には実際のデータで置き換える）
         for _ in range(100):
-            yield [
-                np.random.random((1, 10)).astype(np.float32)
-            ]  # 例として入力形状を仮定
+            yield [np.random.random((1, 10)).astype(np.float32)]  # 例として入力形状を仮定
 
     def predict(self, X: np.ndarray) -> np.ndarray:
         """推論の実行"""
@@ -416,9 +400,7 @@ class RealTimePredictionUpdater:
         # 更新スレッドの開始
         self.update_thread = threading.Thread(target=self._run_updates, daemon=True)
         self.update_thread.start()
-        logger.info(
-            f"Started real-time prediction updates with frequency {self.update_frequency}"
-        )
+        logger.info(f"Started real-time prediction updates with frequency {self.update_frequency}")
 
     def stop_updates(self):
         """更新の停止"""
@@ -486,9 +468,7 @@ class RealTimePredictionUpdater:
 
             # 予測の実行
             prediction = (
-                self.predictor.predict([features])
-                if hasattr(self.predictor, "predict")
-                else [0.0] * 5
+                self.predictor.predict([features]) if hasattr(self.predictor, "predict") else [0.0] * 5
             )  # ダミー
 
             # キャッシュに保存
@@ -581,10 +561,7 @@ class RealTimeAnalyticsPipeline:
         return np.array(results)
 
     def setup_pipeline(
-        self,
-        tickers: List[str],
-        update_frequency: str = "1min",
-        optimization_level: str = "medium",
+        self, tickers: List[str], update_frequency: str = "1min", optimization_level: str = "medium"
     ) -> "RealTimeAnalyticsPipeline":
         """パイプラインの設定"""
         # データストリームの設定
@@ -597,9 +574,7 @@ class RealTimeAnalyticsPipeline:
         self.edge_engine = EdgeInferenceEngine(self.base_predictor, optimization_level)
 
         # リアルタイム更新器
-        self.updater = RealTimePredictionUpdater(
-            self.edge_engine, self.data_stream, update_frequency
-        )
+        self.updater = RealTimePredictionUpdater(self.edge_engine, self.data_stream, update_frequency)
 
         return self
 
@@ -624,21 +599,13 @@ class RealTimeAnalyticsPipeline:
     def get_system_status(self) -> Dict[str, Any]:
         """システム状態を取得"""
         return {
-            "data_stream_active": self.data_stream.is_streaming
-            if self.data_stream
-            else False,
-            "event_predictor_active": self.event_predictor.is_running
-            if self.event_predictor
-            else False,
+            "data_stream_active": self.data_stream.is_streaming if self.data_stream else False,
+            "event_predictor_active": self.event_predictor.is_running if self.event_predictor else False,
             "updater_active": self.updater.is_active if self.updater else False,
-            "cached_predictions": len(self.updater.predictions_cache)
-            if self.updater
-            else 0,
+            "cached_predictions": len(self.updater.predictions_cache) if self.updater else 0,
             "buffer_sizes": (
                 {
-                    ticker: self.data_stream.data_buffer.get_buffer_size(ticker)
-                    if self.data_stream
-                    else 0
+                    ticker: self.data_stream.data_buffer.get_buffer_size(ticker) if self.data_stream else 0
                     for ticker in (self.data_stream.tickers if self.data_stream else [])
                 }
                 if self.data_stream
