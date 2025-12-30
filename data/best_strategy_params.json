@@ -1,0 +1,8 @@
+{
+    "rsi_period": 9,
+    "rsi_oversold": 27.74678172389873,
+    "rsi_overbought": 68.64285315762382,
+    "ma_short": 17,
+    "ma_long": 52,
+    "stop_loss_pct": 0.08378720098450639
+}
