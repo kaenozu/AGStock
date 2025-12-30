@@ -5,9 +5,13 @@ Provides consistent error handling, logging, and user-friendly notifications.
 
 import logging
 import traceback
+import os
+import sys
+import shutil
+import sqlite3
+import datetime
 from functools import wraps
 from typing import Any, Callable, Optional
-
 import streamlit as st
 
 logger = logging.getLogger(__name__)
@@ -111,7 +115,6 @@ def validate_api_key(name: str, value: Optional[str]) -> bool:
         )
     return True
 
-
 class ErrorRecovery:
     """Utility for automatic error recovery strategies."""
 
@@ -132,3 +135,141 @@ class ErrorRecovery:
                 delay *= 2
                 
         raise last_exception
+
+def autonomous_error_handler(
+    name: str = "System",
+    reraise: bool = False,
+    notification_enabled: bool = True
+):
+    """
+    Decorator for autonomous error handling, logging, and diagnostics.
+    Captures stack traces and logs them in JSON structured format.
+    """
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        def wrapper(*args, **kwargs) -> Any:
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                error_msg = f"Critical Error in {name}.{func.__name__}: {str(e)}"
+                stack_trace = traceback.format_exc()
+                
+                # Take System Snapshot (Time Travel Debug)
+                snapshot_path = take_system_snapshot(name, func.__name__)
+                
+                # Log with extended info
+                logger.error(
+                    error_msg,
+                    extra={
+                        "err_type": type(e).__name__,
+                        "err_function": func.__name__,
+                        "err_module": name,
+                        "stack_trace": stack_trace,
+                        "snapshot": snapshot_path
+                    }
+                )
+                
+                # Self-Diagnosis
+                diagnose_environment()
+                
+                if notification_enabled:
+                    try:
+                        # Attempt to notify via existing channels
+                        from src.smart_notifier import SmartNotifier
+                        from src.config import settings
+                        notifier = SmartNotifier(settings.dict())
+                        notifier.send_error_notification(
+                            module=name,
+                            error=str(e),
+                            stack=stack_trace[:500] + "..."
+                        )
+                    except Exception as notify_err:
+                        logger.warning(f"Notification in error handler failed: {notify_err}")
+
+                if reraise:
+                    raise
+                return None
+        return wrapper
+    return decorator
+
+def diagnose_environment():
+    """Perform a lightweight system check to see if environment issues caused the error."""
+    logger.info("🛠 Running Self-Diagnosis...")
+    
+    # 1. Disk Space
+    try:
+        total, used, free = shutil.disk_usage(".")
+        logger.info(f"Disk Check: Total={total // (2**30)}GB, Free={free // (2**30)}GB")
+    except Exception: pass
+    
+    # 2. Database Connectivity
+    try:
+        from src.paths import STOCK_DATA_DB
+        conn = sqlite3.connect(STOCK_DATA_DB)
+        conn.execute("SELECT 1")
+        conn.close()
+        logger.info("DB Check: Connection OK")
+    except Exception as e:
+        logger.error(f"DB Check: FAILED - {e}")
+
+    # 3. Memory
+    try:
+        import psutil
+        mem = psutil.virtual_memory()
+        logger.info(f"Memory Check: {mem.percent}% used")
+    except ImportError: pass
+
+def take_system_snapshot(module: str, function: str) -> str:
+    """Saves a JSON snapshot of the system state for debugging."""
+    try:
+        from src.paths import LOGS_DIR
+        from src.utils.state_engine import state_engine
+        
+        snapshot_dir = LOGS_DIR / "snapshots"
+        snapshot_dir.mkdir(parents=True, exist_ok=True)
+        
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"snapshot_{timestamp}_{module}_{function}.json"
+        filepath = snapshot_dir / filename
+        
+        snapshot = {
+            "timestamp": timestamp,
+            "module": module,
+            "function": function,
+            "system_state": state_engine.state,
+            "environment": {
+                "os": os.name,
+                "cwd": os.getcwd(),
+                "python": sys.version
+            }
+        }
+        
+        import json
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(snapshot, f, ensure_ascii=False, indent=2, default=str)
+            
+        logger.info(f"📸 System snapshot saved: {filepath}")
+        return str(filepath)
+    except Exception as e:
+        logger.warning(f"Failed to take system snapshot: {e}")
+        return "N/A"
+
+
+class SafeExecution:
+    """Context manager for safe execution of code blocks."""
+    
+    def __init__(self, context: str = "", default_return: Any = None, show_error: bool = True):
+        self.context = context
+        self.default_return = default_return
+        self.show_error = show_error
+        self.result = default_return
+        
+    def __enter__(self):
+        return self
+        
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type is not None:
+            if self.show_error:
+                handle_error(exc_val, context=self.context)
+            return True  # Suppress the exception
+        return False

@@ -35,9 +35,7 @@ class ProductionManager:
         self.error_log = []
         self.performance_log = []
 
-        logger.info(
-            f"ProductionManager initialized: production_mode={self.is_production}"
-        )
+        logger.info(f"ProductionManager initialized: production_mode={self.is_production}")
 
     def load_config(self) -> Dict:
         """設定ファイルを読み込み"""
@@ -53,10 +51,7 @@ class ProductionManager:
                     "max_daily_trades": 10,
                     "stop_loss_pct": 0.05,  # 5%
                     "take_profit_pct": 0.15,  # 15%
-                    "monitoring": {
-                        "enabled": True,
-                        "alert_threshold": 0.03,
-                    },  # 3%のドローダウンでアラート
+                    "monitoring": {"enabled": True, "alert_threshold": 0.03},  # 3%のドローダウンでアラート
                 }
                 self.save_config(default_config)
                 return default_config
@@ -115,21 +110,14 @@ class ProductionManager:
         # ポジションサイズチェック
         max_position = self.config.get("max_position_size", 0.2)
 
-        total_value = sum(
-            pos.get("quantity", 0) * pos.get("current_price", 0)
-            for pos in portfolio.values()
-        )
+        total_value = sum(pos.get("quantity", 0) * pos.get("current_price", 0) for pos in portfolio.values())
 
         for ticker, position in portfolio.items():
-            position_value = position.get("quantity", 0) * position.get(
-                "current_price", 0
-            )
+            position_value = position.get("quantity", 0) * position.get("current_price", 0)
             if total_value > 0:
                 position_pct = position_value / total_value
                 if position_pct > max_position:
-                    logger.warning(
-                        f"Position size limit exceeded for {ticker}: {position_pct:.1%}"
-                    )
+                    logger.warning(f"Position size limit exceeded for {ticker}: {position_pct:.1%}")
                     return False
 
         return True
@@ -149,34 +137,33 @@ class ProductionManager:
 - Total Trades: {len(trades)}
 """
 
+        for trade in trades:
+            report += f"- {trade.get('action')} {trade.get('quantity')} shares of {trade.get('ticker')} @ ¥{trade.get('price'):.2f}\n"
 
-for trade in trades:
-    report += f"- {trade.get('action')} {trade.get('quantity')} shares of {trade.get('ticker')} @ ¥{trade.get('price'):.2f}\n"
+        report += "\n## Risk Metrics\n"
+        report += f"- Max Position Size: {self.config.get('max_position_size', 0.2):.1%}\n"
+        report += f"- Stop Loss: {self.config.get('stop_loss_pct', 0.05):.1%}\n"
 
-    #         report += "\n## Risk Metrics\n"
-    #         report += f"- Max Position Size: {self.config.get('max_position_size', 0.2):.1%}\n"
-    #         report += f"- Stop Loss: {self.config.get('stop_loss_pct', 0.05):.1%}\n"
+        # エラーがあれば記載
+        if self.error_log:
+            report += f"\n## Errors ({len(self.error_log)})\n"
+            for error in self.error_log[-5:]:  # 最新5件
+                report += f"- [{error['timestamp']}] {error['error_type']}: {error['error_message']}\n"
 
-    # エラーがあれば記載
-    #         if self.error_log:
-    report += f"\n## Errors ({len(self.error_log)})\n"
-    for error in self.error_log[-5:]:  # 最新5件
-        report += f"- [{error['timestamp']}] {error['error_type']}: {error['error_message']}\n"
+        return report
 
-    #         return report
+    def should_halt_trading(self) -> bool:
+        """取引を停止すべきかどうかを判定"""
+        # 過度なエラーが発生している場合
+        recent_errors = [
+            e for e in self.error_log if datetime.fromisoformat(e["timestamp"]) > datetime.now() - timedelta(hours=1)
+        ]
 
-    #     def should_halt_trading(self) -> bool:
-    #         """取引を停止すべきかどうかを判定"""
-    # 過度なエラーが発生している場合
-    #         recent_errors = [
-    #             e for e in self.error_log if datetime.fromisoformat(e["timestamp"]) > datetime.now() - timedelta(hours=1)
-    #         ]
+        if len(recent_errors) > 5:
+            logger.critical("Too many errors in the last hour. Halting trading.")
+            return True
 
-    #         if len(recent_errors) > 5:
-    logger.critical("Too many errors in the last hour. Halting trading.")
-#             return True
-
-#         return False
+        return False
 
 
 # グローバルインスタンス

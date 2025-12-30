@@ -78,16 +78,10 @@ class BacktestExecutor:
                 # トレーリングストップ価格更新
                 if trailing_stop and trailing_stop > 0:
                     new_stop = highest_prices[ticker] * (1 - trailing_stop)
-                    trailing_stop_levels[ticker] = max(
-                        trailing_stop_levels[ticker], new_stop
-                    )
+                    trailing_stop_levels[ticker] = max(trailing_stop_levels[ticker], new_stop)
 
                 # トレーリングストップチェック
-                if (
-                    trailing_stop
-                    and trailing_stop_levels[ticker] > 0
-                    and today_low <= trailing_stop_levels[ticker]
-                ):
+                if trailing_stop and trailing_stop_levels[ticker] > 0 and today_low <= trailing_stop_levels[ticker]:
                     trades.append(
                         {
                             "ticker": ticker,
@@ -113,11 +107,7 @@ class BacktestExecutor:
                 (position > 0 and (today_high - entry) / entry >= take_profit)
                 or (position < 0 and (entry - today_low) / entry >= take_profit)
             ):
-                take_profit_price = (
-                    entry * (1 + take_profit)
-                    if position > 0
-                    else entry * (1 - take_profit)
-                )
+                take_profit_price = entry * (1 + take_profit) if position > 0 else entry * (1 - take_profit)
                 trades.append(
                     {
                         "ticker": ticker,
@@ -147,9 +137,7 @@ class BacktestExecutor:
                 (position > 0 and (entry - today_low) / entry >= stop_loss)
                 or (position < 0 and (today_high - entry) / entry >= stop_loss)
             ):
-                stop_price = (
-                    entry * (1 - stop_loss) if position > 0 else entry * (1 + stop_loss)
-                )
+                stop_price = entry * (1 - stop_loss) if position > 0 else entry * (1 + stop_loss)
                 trades.append(
                     {
                         "ticker": ticker,
@@ -162,11 +150,7 @@ class BacktestExecutor:
                         "reason": "Stop Loss",
                     }
                 )
-                cash += (
-                    holdings[ticker] * stop_price
-                    if position > 0
-                    else (entry - stop_price) * abs(holdings[ticker])
-                )
+                cash += holdings[ticker] * stop_price if position > 0 else (entry - stop_price) * abs(holdings[ticker])
                 holdings[ticker] = 0.0
                 entry_prices[ticker] = 0.0
                 trailing_stop_levels[ticker] = 0.0
@@ -222,38 +206,34 @@ class BacktestExecutor:
                 should_execute = True
             elif signal.type == OrderType.LIMIT:
                 if signal.action.upper() == "BUY":
-                    if aligned_data[ticker]["Low"].iloc[i + 1] <= signal.price:
+                    if today_low <= signal.price:
                         should_execute = True
                         fill_price = min(signal.price, exec_price)
                 else:  # SELL
-                    if aligned_data[ticker]["High"].iloc[i + 1] >= signal.price:
+                    if today_high >= signal.price:
                         should_execute = True
                         fill_price = max(signal.price, exec_price)
             elif signal.type == OrderType.STOP:
                 if signal.action.upper() == "BUY":
-                    if aligned_data[ticker]["High"].iloc[i + 1] >= signal.price:
+                    if today_high >= signal.price:
                         should_execute = True
                         fill_price = max(signal.price, exec_price)
                 else:  # SELL
-                    if aligned_data[ticker]["Low"].iloc[i + 1] <= signal.price:
+                    if today_low <= signal.price:
                         should_execute = True
                         fill_price = min(signal.price, exec_price)
 
             if should_execute:
                 if signal.action.upper() == "BUY":
                     if holdings[ticker] == 0:
-                        qty = self._size_position(
-                            ticker, current_portfolio_value, fill_price
-                        )
+                        qty = self._size_position(ticker, current_portfolio_value, fill_price)
                         holdings[ticker] = qty
                         entry_prices[ticker] = fill_price
                         cash -= qty * fill_price
                         # トレーリングストップ追跡の初期化
                         highest_prices[ticker] = fill_price
                         if trailing_stop and trailing_stop > 0:
-                            trailing_stop_levels[ticker] = fill_price * (
-                                1 - trailing_stop
-                            )
+                            trailing_stop_levels[ticker] = fill_price * (1 - trailing_stop)
                 elif signal.action.upper() == "SELL":
                     if holdings[ticker] != 0:
                         entry = entry_prices[ticker]
@@ -287,9 +267,7 @@ class BacktestExecutor:
         if not exit_executed and isinstance(signal, (int, np.integer)):
             if holdings[ticker] == 0 and signal == 1:
                 # ロングポジションオープン
-                shares = self._size_position(
-                    ticker, current_portfolio_value, exec_price
-                )
+                shares = self._size_position(ticker, current_portfolio_value, exec_price)
                 holdings[ticker] = shares
                 entry_prices[ticker] = exec_price
                 cash -= shares * exec_price
@@ -299,18 +277,14 @@ class BacktestExecutor:
                     trailing_stop_levels[ticker] = exec_price * (1 - trailing_stop)
             elif holdings[ticker] == 0 and signal == -1 and self.allow_short:
                 # ショートポジションオープン
-                shares = self._size_position(
-                    ticker, current_portfolio_value, exec_price
-                )
+                shares = self._size_position(ticker, current_portfolio_value, exec_price)
                 holdings[ticker] = -shares
                 entry_prices[ticker] = exec_price
-        # ショートエントリーでは現金は変化しない（マージンモデル）
+                # ショートエントリーでは現金は変化しない（マージンモデル）
 
         return cash, holdings, entry_prices, exit_executed, trades
 
-    def _size_position(
-        self, ticker: str, portfolio_value: float, exec_price: float
-    ) -> float:
+    def _size_position(self, ticker: str, portfolio_value: float, exec_price: float) -> float:
         """Calculate number of shares for a new position."""
         # This is a simplified method; in practice, it might use self.position_size
         # which could be a float or a dict per ticker like in the original Backtester.
