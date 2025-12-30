@@ -151,3 +151,37 @@ run-backtest:
 # モーフンステスト実行
 benchmark:
 	python benchmark_accuracy.py
+
+# === 新機能コマンド ===
+
+# 改善テスト実行
+test-improvements:
+	python -m pytest tests/test_improvements.py -v
+
+# DBインデックス追加
+add-indexes:
+	python scripts/add_indexes.py
+
+# キャッシュクリア
+clear-cache:
+	python -c "from src.improvements.memory_cache import get_memory_cache; get_memory_cache().flushall(); print('Cache cleared')"
+
+# キャッシュ統計
+cache-stats:
+	python -c "from src.improvements.memory_cache import get_memory_cache; print(get_memory_cache().info())"
+
+# Numbaベンチマーク
+benchmark-numba:
+	python -c "from src.improvements.numba_utils import benchmark_numba; print(benchmark_numba())"
+
+# 決算カレンダーチェック
+check-earnings:
+	python -c "from src.features.earnings_calendar import get_earnings_calendar; cal = get_earnings_calendar(); print(cal.get_upcoming_earnings(['AAPL', 'MSFT', 'GOOGL', '7203.T', '9984.T']))"
+
+# センチメント確認
+check-sentiment:
+	python -c "from src.features.sentiment_indicators import get_sentiment_indicators; print(get_sentiment_indicators().get_trading_recommendation())"
+
+# セクターローテーション
+check-sectors:
+	python -c "from src.features.sector_rotation import get_sector_rotation; sr = get_sector_rotation(); print(sr.get_recommendations())"
