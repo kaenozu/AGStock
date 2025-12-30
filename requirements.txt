@@ -2,20 +2,9 @@ streamlit>=1.29.0
 yfinance>=0.2.0
 pandas>=2.0.0
 
-# Phase 0: Quick Wins
+# Core dependencies
 reportlab>=4.0.0
 openpyxl>=3.1.0
-
-# Phase 36: Social Trading (future)
-# social-auth-app-django==5.0.0
-
-# Phase 39: Derivatives (future)
-# py_vollib==1.0.1
-# quantlib==1.30
-
-# Phase 40: AI Evolution (future)
-# tpot==0.12.0
-# auto-sklearn==0.15.0
 shap==0.43.0
 scipy>=1.11.0
 cvxpy>=1.4.0
@@ -38,3 +27,19 @@ pyjwt>=2.8.0
 bcrypt>=4.0.0
 PyYAML>=6.0
 pypdf>=3.17.0
+matplotlib>=3.7.0
+tenacity>=8.2.0
+
+# Async support
+aiohttp>=3.9.0
+nest_asyncio>=1.6.0
+
+# Security
+cryptography>=41.0.0
+pydantic>=2.0.0
+
+# Testing
+pytest>=8.0.0
+pytest-mock>=3.12.0
+pytest-asyncio>=0.23.0
+pytest-cov>=4.1.0

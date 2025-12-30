@@ -3,7 +3,7 @@ import pytest
 import pandas as pd
 import numpy as np
 from src.backtesting.engine import BacktestEngine
-from src.strategies import MovingAverageCrossoverStrategy
+from src.strategies import SMACrossoverStrategy as MovingAverageCrossoverStrategy
 
 
 @pytest.fixture

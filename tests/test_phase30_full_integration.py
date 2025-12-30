@@ -9,7 +9,7 @@ import numpy as np
 import os
 from unittest.mock import MagicMock, patch
 from src.paper_trader import PaperTrader
-from fully_automated_trader import FullyAutomatedTrader
+from src.trading.fully_automated_trader import FullyAutomatedTrader
 
 class TestPhase30FullIntegration(unittest.TestCase):
     def setUp(self):

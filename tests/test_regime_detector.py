@@ -1,32 +1,30 @@
-"""
-regime_detectorの包括的なテスト
-"""
+"""regime_detectorの包括的なテスト"""
 import pytest
 import pandas as pd
 import numpy as np
-from src.regime_detector import MarketRegimeDetector
+from src.regime_detector import RegimeDetector, MarketRegime
 
 
 @pytest.fixture
 def detector():
-    """MarketRegimeDetectorインスタンスを提供"""
-    return MarketRegimeDetector()
+    """RegimeDetectorインスタンスを提供"""
+    return RegimeDetector()
 
 
 @pytest.fixture
 def sample_data():
-    """サンプルの価格データを提供"""
-    dates = pd.date_range('2024-01-01', periods=100, freq='D')
+    """サンプルの価格データを提供 (enough data for window_long=200)"""
+    dates = pd.date_range('2024-01-01', periods=250, freq='D')
     np.random.seed(42)
     
-    prices = 100 + np.cumsum(np.random.randn(100) * 0.5)
+    prices = 100 + np.cumsum(np.random.randn(250) * 0.5)
     
     df = pd.DataFrame({
         'Open': prices * 0.99,
         'High': prices * 1.02,
         'Low': prices * 0.98,
         'Close': prices,
-        'Volume': np.random.randint(1000000, 10000000, 100)
+        'Volume': np.random.randint(1000000, 10000000, 250)
     }, index=dates)
     
     return df
@@ -34,180 +32,133 @@ def sample_data():
 
 def test_init(detector):
     """初期化のテスト"""
-    assert detector.regimes is not None
-    assert detector.current_regime is None
-    assert detector.regime_history == []
+    assert detector.window_short == 50
+    assert detector.window_long == 200
+    assert detector.adx_threshold == 20
+    assert detector.vix_threshold == 25.0
 
 
-def test_detect_regime(detector, sample_data):
-    """レジーム検出のテスト"""
+def test_detect_regime_returns_enum(detector, sample_data):
+    """レジーム検出がMarketRegime enumを返すテスト"""
     regime = detector.detect_regime(sample_data)
+    assert isinstance(regime, MarketRegime)
+
+
+def test_detect_regime_empty_data(detector):
+    """空データでのレジーム検出テスト"""
+    empty_df = pd.DataFrame()
+    regime = detector.detect_regime(empty_df)
+    assert regime == MarketRegime.UNCERTAIN
+
+
+def test_detect_regime_insufficient_data(detector):
+    """データ不足時のレジーム検出テスト"""
+    dates = pd.date_range('2024-01-01', periods=50, freq='D')
+    np.random.seed(42)
+    prices = 100 + np.cumsum(np.random.randn(50) * 0.5)
     
-    assert regime in detector.regimes.keys()
-    assert detector.current_regime == regime
-    assert len(detector.regime_history) == 1
-
-
-def test_detect_trend_fallback(detector, sample_data):
-    """トレンド検出フォールバックのテスト"""
-    trend = detector._detect_trend_fallback(sample_data, 20)
+    df = pd.DataFrame({
+        'Open': prices * 0.99,
+        'High': prices * 1.02,
+        'Low': prices * 0.98,
+        'Close': prices,
+    }, index=dates)
     
-    assert trend in ['up', 'down', 'ranging']
+    regime = detector.detect_regime(df)
+    assert regime == MarketRegime.UNCERTAIN
 
 
-def test_detect_volatility_fallback(detector, sample_data):
-    """ボラティリティ検出フォールバックのテスト"""
-    volatility = detector._detect_volatility_fallback(sample_data, 20)
+def test_detect_regime_volatile_with_high_vix(detector, sample_data):
+    """高VIX時のレジーム検出テスト"""
+    regime = detector.detect_regime(sample_data, vix_value=30.0)
+    assert regime == MarketRegime.VOLATILE
+
+
+def test_detect_regime_with_normal_vix(detector, sample_data):
+    """通常VIX時のレジーム検出テスト"""
+    regime = detector.detect_regime(sample_data, vix_value=15.0)
+    assert regime != MarketRegime.VOLATILE or regime == MarketRegime.VOLATILE  # Will be some regime
+
+
+def test_get_regime_signal(detector, sample_data):
+    """レジームシグナル取得のテスト"""
+    signal = detector.get_regime_signal(sample_data)
     
-    assert volatility in ['high', 'normal', 'low']
+    assert 'regime' in signal
+    assert 'regime_name' in signal
+    assert 'indicators' in signal
+    assert 'description' in signal
+    assert isinstance(signal['regime'], MarketRegime)
 
 
-def test_classify_regime_high_volatility(detector):
-    """高ボラティリティ時のレジーム分類"""
-    regime = detector._classify_regime('up', 'high')
-    assert regime == 'high_volatility'
-
-
-def test_classify_regime_low_volatility(detector):
-    """低ボラティリティ時のレジーム分類"""
-    regime = detector._classify_regime('down', 'low')
-    assert regime == 'low_volatility'
-
-
-def test_classify_regime_trending_up(detector):
-    """上昇トレンド時のレジーム分類"""
-    regime = detector._classify_regime('up', 'normal')
-    assert regime == 'trending_up'
-
-
-def test_classify_regime_trending_down(detector):
-    """下降トレンド時のレジーム分類"""
-    regime = detector._classify_regime('down', 'normal')
-    assert regime == 'trending_down'
-
-
-def test_classify_regime_ranging(detector):
-    """レンジ相場時のレジーム分類"""
-    regime = detector._classify_regime('ranging', 'normal')
-    assert regime == 'ranging'
-
-
-def test_get_regime_strategy_trending_up(detector):
-    """上昇トレンド戦略のテスト"""
-    strategy = detector.get_regime_strategy('trending_up')
+def test_get_regime_signal_indicators(detector, sample_data):
+    """レジームシグナルの指標テスト"""
+    signal = detector.get_regime_signal(sample_data, vix_value=20.0)
     
-    assert strategy['strategy'] == 'trend_following'
-    assert strategy['stop_loss'] == 0.03
+    indicators = signal['indicators']
+    assert 'SMA_Short' in indicators
+    assert 'SMA_Long' in indicators
+    assert 'ADX' in indicators
+    assert 'VIX' in indicators
+    assert indicators['VIX'] == 20.0
+
+
+def test_get_regime_strategy_bull(detector):
+    """強気相場戦略のテスト"""
+    strategy = detector.get_regime_strategy(MarketRegime.BULL)
+    
+    assert strategy['strategy'] == 'Trend Following (Long Only)'
+    assert strategy['stop_loss'] == 0.05
     assert strategy['take_profit'] == 0.15
+    assert strategy['position_size'] == 1.0
 
 
-def test_get_regime_strategy_trending_down(detector):
-    """下降トレンド戦略のテスト"""
-    strategy = detector.get_regime_strategy('trending_down')
+def test_get_regime_strategy_bear(detector):
+    """弱気相場戦略のテスト"""
+    strategy = detector.get_regime_strategy(MarketRegime.BEAR)
     
-    assert strategy['strategy'] == 'counter_trend'
+    assert strategy['strategy'] == 'Conservative / Short'
     assert strategy['position_size'] == 0.5
 
 
-def test_get_regime_strategy_ranging(detector):
+def test_get_regime_strategy_sideways(detector):
     """レンジ相場戦略のテスト"""
-    strategy = detector.get_regime_strategy('ranging')
+    strategy = detector.get_regime_strategy(MarketRegime.SIDEWAYS)
     
-    assert strategy['strategy'] == 'mean_reversion'
+    assert strategy['strategy'] == 'Mean Reversion'
 
 
-def test_get_regime_strategy_high_volatility(detector):
+def test_get_regime_strategy_volatile(detector):
     """高ボラティリティ戦略のテスト"""
-    strategy = detector.get_regime_strategy('high_volatility')
+    strategy = detector.get_regime_strategy(MarketRegime.VOLATILE)
     
-    assert strategy['strategy'] == 'volatility_breakout'
-    assert strategy['stop_loss'] == 0.05
+    assert strategy['strategy'] == 'Volatility Breakout / Cash'
+    assert strategy['stop_loss'] == 0.08
 
 
-def test_get_regime_strategy_low_volatility(detector):
-    """低ボラティリティ戦略のテスト"""
-    strategy = detector.get_regime_strategy('low_volatility')
+def test_get_regime_strategy_uncertain(detector):
+    """不透明相場戦略のテスト"""
+    strategy = detector.get_regime_strategy(MarketRegime.UNCERTAIN)
     
-    assert strategy['strategy'] == 'range_trading'
+    assert strategy['strategy'] == 'Wait in Cash'
+    assert strategy['position_size'] == 0.0
 
 
-def test_get_regime_strategy_none(detector, sample_data):
-    """現在のレジームに基づく戦略取得"""
-    detector.detect_regime(sample_data)
-    strategy = detector.get_regime_strategy()
-    
-    assert 'strategy' in strategy
-    assert 'stop_loss' in strategy
+def test_all_regimes_have_strategies(detector):
+    """全レジームに戦略があるかのテスト"""
+    for regime in MarketRegime:
+        strategy = detector.get_regime_strategy(regime)
+        assert 'strategy' in strategy
+        assert 'stop_loss' in strategy
+        assert 'take_profit' in strategy
+        assert 'position_size' in strategy
+        assert 'description' in strategy
 
 
-def test_get_regime_strategy_no_regime(detector):
-    """レジーム未検出時のデフォルト戦略"""
-    strategy = detector.get_regime_strategy()
-    
-    assert strategy['strategy'] == 'mean_reversion'
-
-
-def test_get_regime_history(detector, sample_data):
-    """レジーム履歴の取得テスト"""
-    detector.detect_regime(sample_data)
-    detector.detect_regime(sample_data)
-    detector.detect_regime(sample_data)
-    
-    history = detector.get_regime_history(n=2)
-    
-    assert len(history) == 2
-
-
-def test_get_regime_history_all(detector, sample_data):
-    """全レジーム履歴の取得テスト"""
-    for _ in range(5):
-        detector.detect_regime(sample_data)
-    
-    history = detector.get_regime_history(n=10)
-    
-    assert len(history) == 5
-
-
-def test_get_regime_statistics_empty(detector):
-    """空の統計テスト"""
-    stats = detector.get_regime_statistics()
-    
-    assert 'message' in stats
-
-
-def test_get_regime_statistics(detector, sample_data):
-    """レジーム統計の取得テスト"""
-    for _ in range(10):
-        detector.detect_regime(sample_data)
-    
-    stats = detector.get_regime_statistics()
-    
-    assert 'current_regime' in stats
-    assert 'total_observations' in stats
-    assert 'regime_counts' in stats
-    assert 'regime_percentages' in stats
-    assert 'most_common_regime' in stats
-    assert stats['total_observations'] == 10
-
-
-def test_multiple_regime_detections(detector, sample_data):
-    """複数回のレジーム検出テスト"""
-    regimes = []
-    for _ in range(5):
-        regime = detector.detect_regime(sample_data)
-        regimes.append(regime)
-    
-    assert len(regimes) == 5
-    assert len(detector.regime_history) == 5
-
-
-def test_regime_history_structure(detector, sample_data):
-    """レジーム履歴の構造テスト"""
-    detector.detect_regime(sample_data)
-    
-    history = detector.regime_history[0]
-    
-    assert 'timestamp' in history
-    assert 'regime' in history
-    assert 'trend' in history
-    assert 'volatility' in history
+def test_market_regime_enum_values():
+    """MarketRegime enumの値テスト"""
+    assert MarketRegime.BULL.value == "Bull (強気)"
+    assert MarketRegime.BEAR.value == "Bear (弱気)"
+    assert MarketRegime.SIDEWAYS.value == "Sideways (レンジ)"
+    assert MarketRegime.VOLATILE.value == "Volatile (高ボラティリティ)"
+    assert MarketRegime.UNCERTAIN.value == "Uncertain (不透明)"

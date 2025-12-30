@@ -2,6 +2,9 @@ import logging
 import sys
 import os
 
+# Module-level logger for backward compatibility
+logger = logging.getLogger(__name__)
+
 def setup_logging(log_file: str = "app.log", level=logging.INFO):
     """
     Setup centralized logging configuration.

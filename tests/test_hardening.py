@@ -12,13 +12,13 @@ from src.helpers import retry_with_backoff
 
 class TestHardening(unittest.TestCase):
     def test_load_config_defaults(self):
-        """設定ファイルがなぁE��合、デフォルト値がロードされるぁE""
+        """設定ファイルがない場合、デフォルト値がロードされる"""
         config = load_config("non_existent_config.json")
         self.assertIsInstance(config, AppConfig)
         self.assertEqual(config.capital.initial_capital, 1000000.0)
     
     def test_load_config_valid(self):
-        """有効な設定ファイルがロードされるぁE""
+        """有効な設定ファイルがロードされる"""
         dummy_data = {"capital": {"initial_capital": 500.0}}
         with open("test_config.json", "w") as f:
             json.dump(dummy_data, f)
@@ -31,7 +31,7 @@ class TestHardening(unittest.TestCase):
                 os.remove("test_config.json")
                 
     def test_retry_decorator(self):
-        """リトライチE��レータが機�EするぁE""
+        """リトライデコレータが機能する"""
         mock = unittest.mock.Mock()
         mock.side_effect = [Exception("Fail 1"), Exception("Fail 2"), "Success"]
         

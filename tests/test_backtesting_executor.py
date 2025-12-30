@@ -23,7 +23,7 @@ def test_execute_market_buy_order(executor):
     signal = Order(
         ticker="7203.T",
         action="BUY",
-        order_type=OrderType.MARKET,
+        type=OrderType.MARKET,
         quantity=100,
         price=None  # 市場価格で執行
     )
@@ -63,7 +63,7 @@ def test_execute_market_sell_order(executor):
     signal = Order(
         ticker="7203.T",
         action="SELL",
-        order_type=OrderType.MARKET,
+        type=OrderType.MARKET,
         quantity=100,
         price=None  # 市場価格で執行
     )
