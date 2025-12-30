@@ -31,7 +31,7 @@ class ScanResult:
 
 class MarketScanner:
     """市場スキャナークラス
-    
+
     複数市場の銘柄をスキャンし、取引シグナルを検出
     """
 
@@ -42,7 +42,7 @@ class MarketScanner:
         max_results: int = 20,
     ):
         """初期化
-        
+
         Args:
             strategies: 使用する戦略リスト
             min_confidence: 最小信頼度閾値
@@ -60,11 +60,11 @@ class MarketScanner:
         custom_tickers: Optional[List[str]] = None,
     ) -> List[ScanResult]:
         """市場をスキャン
-        
+
         Args:
             market: 市場（"japan", "us", "europe", "all"）
             custom_tickers: カスタム銘柄リスト
-            
+
         Returns:
             スキャン結果リスト
         """
@@ -206,11 +206,11 @@ class MarketScanner:
         limit: int = 5,
     ) -> List[ScanResult]:
         """トップ機会を取得
-        
+
         Args:
             signal_type: シグナルタイプ（"BUY"または"SELL"）
             limit: 取得数
-            
+
         Returns:
             スキャン結果リスト
         """

@@ -16,7 +16,7 @@ class KeyboardShortcuts:
         // 既存のリスナーを削除（重複防止）
         if (window._agstockShortcutsInitialized) return;
         window._agstockShortcutsInitialized = true;
-        
+
         document.addEventListener('keydown', function(e) {
             // Ctrl/Cmd + 数字でタブ切替
             if ((e.ctrlKey || e.metaKey) && e.key >= '1' && e.key <= '9') {
@@ -28,7 +28,7 @@ class KeyboardShortcuts:
                     showToast(`タブ ${e.key} に切替`);
                 }
             }
-            
+
             // / で検索フォーカス
             if (e.key === '/' && !isInputFocused()) {
                 e.preventDefault();
@@ -38,13 +38,13 @@ class KeyboardShortcuts:
                     showToast('検索モード');
                 }
             }
-            
+
             // Escape でモーダルを閉じる
             if (e.key === 'Escape') {
                 const closeButtons = document.querySelectorAll('[aria-label="Close"]');
                 closeButtons.forEach(btn => btn.click());
             }
-            
+
             // Ctrl/Cmd + R でリフレッシュ（ページリロードを防止）
             if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
                 e.preventDefault();
@@ -58,19 +58,19 @@ class KeyboardShortcuts:
                     showToast('リフレッシュ中...');
                 }
             }
-            
+
             // Ctrl/Cmd + S でスクリーンショット（ページ保存を防止）
             if ((e.ctrlKey || e.metaKey) && e.key === 's') {
                 e.preventDefault();
                 showToast('スクリーンショット: ブラウザのデベロッパーツールを使用してください');
             }
-            
+
             // ? でショートカットヘルプ表示
             if (e.key === '?' && !isInputFocused()) {
                 e.preventDefault();
                 showShortcutHelp();
             }
-            
+
             // H でホーム（ダッシュボード）に戻る
             if (e.key === 'h' && !isInputFocused() && !e.ctrlKey && !e.metaKey) {
                 const tabs = document.querySelectorAll('[data-baseweb="tab"]');
@@ -79,7 +79,7 @@ class KeyboardShortcuts:
                     showToast('ダッシュボードに移動');
                 }
             }
-            
+
             // J/K でスクロール
             if (e.key === 'j' && !isInputFocused()) {
                 window.scrollBy(0, 100);
@@ -87,7 +87,7 @@ class KeyboardShortcuts:
             if (e.key === 'k' && !isInputFocused()) {
                 window.scrollBy(0, -100);
             }
-            
+
             // G + G でトップにスクロール
             if (e.key === 'g' && !isInputFocused()) {
                 if (window._lastKeyG) {
@@ -99,24 +99,24 @@ class KeyboardShortcuts:
                     setTimeout(() => { window._lastKeyG = false; }, 500);
                 }
             }
-            
+
             // Shift + G でボトムにスクロール
             if (e.key === 'G' && !isInputFocused()) {
                 window.scrollTo(0, document.body.scrollHeight);
                 showToast('ボトムに移動');
             }
         });
-        
+
         function isInputFocused() {
             const active = document.activeElement;
             return active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA');
         }
-        
+
         function showToast(message) {
             // 既存のトーストを削除
             const existing = document.getElementById('agstock-toast');
             if (existing) existing.remove();
-            
+
             const toast = document.createElement('div');
             toast.id = 'agstock-toast';
             toast.style.cssText = `
@@ -135,13 +135,13 @@ class KeyboardShortcuts:
             `;
             toast.textContent = message;
             document.body.appendChild(toast);
-            
+
             setTimeout(() => {
                 toast.style.animation = 'fadeOut 0.2s ease';
                 setTimeout(() => toast.remove(), 200);
             }, 2000);
         }
-        
+
         function showShortcutHelp() {
             const helpModal = document.createElement('div');
             helpModal.id = 'agstock-shortcut-help';
@@ -177,7 +177,7 @@ class KeyboardShortcuts:
             helpModal.onclick = () => helpModal.remove();
             document.body.appendChild(helpModal);
         }
-        
+
         // CSSアニメーション追加
         const style = document.createElement('style');
         style.textContent = `
@@ -186,7 +186,7 @@ class KeyboardShortcuts:
             kbd { background: #374151; padding: 2px 8px; border-radius: 4px; font-family: monospace; }
         `;
         document.head.appendChild(style);
-        
+
         console.log('⌨️ AGStock keyboard shortcuts initialized. Press ? for help.');
     })();
     </script>
