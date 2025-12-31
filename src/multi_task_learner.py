@@ -103,7 +103,7 @@ class MultiTaskPredictor:
 
             # 訓練/テスト分割
             split = int(len(X_valid) * 0.8)
-            X_train, X_test = X_valid[:split], X_valid[split:]
+            X_train = X_valid[:split]
 
             # 1. Direction予測
             dir_model = LGBMClassifier(

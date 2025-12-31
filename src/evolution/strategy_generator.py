@@ -61,22 +61,6 @@ class StrategyGenerator:
 
     def _generate_strategy_code(self, context: str) -> str:
         """Calls Gemini to write refined Python code."""
-        prompt = f"""
-あなたは伝説的なクオンツ・エンジニアです。
-以下の失敗パターンを分析し、これらを克服するための新しい「自律進化型トレード戦略」をPythonで記述してください。
-
-{context}
-
-【制約事項】
-1. `src.strategies.base.Strategy` クラスを継承すること。
-2. `generate_signals(self, df: pd.DataFrame) -> pd.Series` メソッドを実装すること。
-3. `explain_prediction` などの説明メソッドも含めること。
-4. ライブラリは `pandas`, `ta`, `numpy` 等を使用可能。
-5. 出力は「Pythonコードのみ」とすること（マニュアルや説明文は不要）。
-6. クラス名は `EvolvedStrategy` とすること。
-
-コードを開始してください：
-"""
 
 
 # try:

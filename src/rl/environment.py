@@ -105,7 +105,8 @@ class TradingEnvironment:
         # 2. Volatility Penalty (reward consistency)
         # Use simple lookback for volatility if possible
         if len(self.portfolio_value_history) > 5:
-            rets = np.diff(self.portfolio_value_history[-5:]) / self.portfolio_value_history[-6:-1]
+            recent_values = self.portfolio_value_history[-6:]
+            rets = np.diff(recent_values) / np.array(recent_values[:-1])
             vol_penalty = np.std(rets) * 0.1
         else:
             vol_penalty = 0.0

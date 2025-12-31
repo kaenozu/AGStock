@@ -19,7 +19,7 @@ def render_realtime_monitor():
     tickers = [t.strip() for t in tickers_input.split(",")]
 
     # 更新間隔
-    interval = st.selectbox(
+    st.selectbox(
         "更新間隔", [30, 60, 120, 300], format_func=lambda x: f"{x}秒"
     )
 

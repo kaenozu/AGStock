@@ -29,7 +29,7 @@ def render_scenario_sandbox():
     st.caption(res.get("note", ""))
     delta = res.get("delta", 0)
     delta_pct = res.get("delta_pct", 0)
-    st.metric("ポートフォリオ影響", f"{delta:,.0f}", f"{delta_pct*100:.2f}%")
+    st.metric("ポートフォリオ影響", f"{delta:,.0f}", f"{delta_pct * 100:.2f}%")
 
     positions = res.get("positions")
     if positions is not None and not positions.empty:

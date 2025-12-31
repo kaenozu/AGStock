@@ -3,11 +3,14 @@ AI Chat Interface (Ghostwriter)
 """
 
 import json
+import asyncio
+import threading
 
 import streamlit as st
 
 from src.llm_reasoner import get_llm_reasoner
 from src.paper_trader import PaperTrader
+from src.realtime import RealtimeDataClient
 
 
 def render_ai_chat():
@@ -27,6 +30,26 @@ def render_ai_chat():
                 "content": "こんにちは。本日の市場動向とポートフォリオについて、何か気になることはありますか？",
             }
         )
+
+    # 2. Initialize Realtime Data Client
+    if "realtime_client" not in st.session_state:
+        st.session_state.realtime_client = RealtimeDataClient()
+        st.session_state.realtime_data = {}
+        
+        # Start client in separate thread
+        def start_client():
+            asyncio.run(st.session_state.realtime_client.connect())
+        
+        client_thread = threading.Thread(target=start_client, daemon=True)
+        client_thread.start()
+        
+        # Register data handler
+        async def handle_market_data(data):
+            st.session_state.realtime_data = data
+            # Force Streamlit to rerun to update UI
+            st.experimental_rerun()
+        
+        st.session_state.realtime_client.register_data_handler("market_data", handle_market_data)
 
     # 2. Display Chat Messages
     chat_container = st.container()
@@ -91,6 +114,11 @@ def render_ai_chat():
                     # 3. Committee Decision (Placeholder for now)
                     committee_context = "No recent committee meeting held."
 
+                    # 4. Realtime Data
+                    realtime_context = "No realtime data available."
+                    if st.session_state.realtime_data:
+                        realtime_context = json.dumps(st.session_state.realtime_data, ensure_ascii=False)
+
                     context_data = f"""
 ## User Portfolio
                     - Cash: {balance.get('cash', 0):,.0f} JPY
@@ -103,6 +131,9 @@ def render_ai_chat():
 
 ## AI Committee
                     {committee_context}
+
+## Realtime Data
+                    {realtime_context}
                     """
 
                     reasoner = get_llm_reasoner()
@@ -127,3 +158,14 @@ def render_ai_chat():
                     )
 
         st.experimental_rerun()
+
+    # 4. Add Realtime Data Display
+    if st.session_state.realtime_data:
+        st.sidebar.subheader("📡 リアルタイム市場データ")
+        realtime_data = st.session_state.realtime_data.get("data", {})
+        for symbol, data in realtime_data.items():
+            st.sidebar.write(f"**{symbol}**")
+            st.sidebar.write(f"価格: {data.get('price', 0):.2f}")
+            st.sidebar.write(f"変化: {data.get('change', 0):.2f}%")
+            st.sidebar.write(f"出来高: {data.get('volume', 0):,}")
+            st.sidebar.divider()

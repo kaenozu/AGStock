@@ -5,7 +5,6 @@ from typing import Dict
 import pandas as pd
 import yfinance as yf
 import streamlit as st
-import sqlite3
 
 # --- Cached Computation Functions ---
 

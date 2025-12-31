@@ -47,7 +47,7 @@ def render_nisa_manager():
             col3.metric(
                 "生涯非課税限度額",
                 f"¥{remaining.get('lifetime_remaining', 0):,.0f}",
-                f"/ ¥18,000,000",
+                "/ ¥18,000,000",
             )
         else:
             col1, col2 = st.columns(2)

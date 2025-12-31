@@ -329,8 +329,20 @@ def responsive_columns(mobile: int = 1, tablet: int = 2, desktop: int = 3):
         デフォルトでデスクトップレイアウトを返す。
         将来的にJavaScriptと連携して実装可能。
     """
-    # TODO: JavaScriptでデバイス幅を検出してst.session_stateに保存
-    device_type = st.session_state.get("device_type", "desktop")
+    # デバイス検出の簡易実装（User-Agentベース）
+    # Streamlitの制約により、JavaScriptによる直接的なデバイス検出は困難
+    # User-Agent文字列での簡易判定を実装
+    user_agent = st.runtime.get_instance().component_registry.get_script_run_ctx().browser_user_agent
+    
+    if "Mobile" in user_agent or "Android" in user_agent or "iPhone" in user_agent:
+        device_type = "mobile"
+    elif "iPad" in user_agent or "Tablet" in user_agent:
+        device_type = "tablet"
+    else:
+        device_type = st.session_state.get("device_type", "desktop")
+    
+    # セッション状態に保存して再計算を避ける
+    st.session_state["device_type"] = device_type
 
     if device_type == "mobile":
         return st.columns(mobile)

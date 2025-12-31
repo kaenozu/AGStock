@@ -42,14 +42,14 @@ class DeepOptimizer:
             trial.suggest_int("hidden_size", 32, 256)
             trial.suggest_int("num_layers", 1, 4)
             trial.suggest_float("dropout", 0.0, 0.5)
-            learning_rate = trial.suggest_float("learning_rate", 1e-4, 1e-2, log=True)
+            trial.suggest_float("learning_rate", 1e-4, 1e-2, log=True)
             seq_length = trial.suggest_int("seq_length", 10, 60)
 
             # モデル構築と評価（簡易）
             # データ分割
             train_size = int(len(df) * 0.8)
-            train_data = df.iloc[:train_size]
-            val_data = df.iloc[train_size:]
+            df.iloc[:train_size]
+            df.iloc[train_size:]
 
             # エラー回避のための基本チェック
             if len(df) < seq_length + 10:
@@ -84,7 +84,7 @@ class DeepOptimizer:
         logger.info("Starting Transformer optimization...")
 
         def objective(trial):
-            params = {
+            {
                 "hidden_size": trial.suggest_int("hidden_size", 32, 128),
                 "num_attention_heads": trial.suggest_categorical(
                     "num_attention_heads", [2, 4, 8]

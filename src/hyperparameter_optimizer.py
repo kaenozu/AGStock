@@ -83,7 +83,7 @@ def create_lstm_objective(X: np.ndarray, y: np.ndarray, cv_folds: int = 3):
             )
 
             # 学習
-            history = model.fit(
+            model.fit(
                 X_train,
                 y_train,
                 epochs=epochs,
@@ -214,7 +214,7 @@ def create_transformer_objective(X: np.ndarray, y: np.ndarray, cv_folds: int = 3
             )
 
             # 学習
-            history = model.fit(
+            model.fit(
                 X_train,
                 y_train,
                 epochs=epochs,

@@ -38,20 +38,20 @@ class MarketAnalyst(BaseAgent):
         prediction_report = data.get("prediction_report", {})
         ensemble_decision = prediction_report.get("ensemble_decision", "UNKNOWN")
         ensemble_conf = prediction_report.get("confidence", 0.0)
-        
+
         # 3. Consume Earnings Report
         earnings_report = data.get("earnings_report")
         earnings_msg = ""
-        earnings_impact = 0.0 # -1 to 1 impact
-        
+        earnings_impact = 0.0  # -1 to 1 impact
+
         if earnings_report:
             rec = earnings_report.get("recommendation", "HOLD")
             conf = earnings_report.get("confidence", 0.5)
             reason = earnings_report.get("reasoning", "")
             sentiment_e = earnings_report.get("sentiment", "NEUTRAL")
-            
+
             earnings_msg = f" [Earnings: {rec} (Conf: {conf:.2f}), {sentiment_e}. Reason: {reason}]"
-            
+
             if rec == "BUY":
                 earnings_impact = 0.5 * conf
             elif rec == "SELL":
@@ -65,7 +65,7 @@ class MarketAnalyst(BaseAgent):
         regime_msg = ""
         if regime_info:
             regime_name = regime_info["regime_name"]
-            regime_val = regime_info["regime"]
+            regime_info["regime"]
             regime_msg = f" [Market Regime: {regime_name}]"
 
             # Logic: If Bear Market, discount Bullish news
@@ -75,19 +75,19 @@ class MarketAnalyst(BaseAgent):
         # 5. Synthesize Decision (LLM + Quantitative + Earnings)
         final_decision = TradingDecision.HOLD
         final_confidence = 0.5
-        
+
         qt_signal = "NEUTRAL"
         if ensemble_decision == "UP":
             qt_signal = "BULLISH"
         elif ensemble_decision == "DOWN":
             qt_signal = "BEARISH"
-            
+
         # Composite score calculation
         sentiment_score = 1.0 if "BULLISH" in sentiment else -1.0 if "BEARISH" in sentiment else 0.0
         quant_score = (1.0 if qt_signal == "BULLISH" else -1.0 if qt_signal == "BEARISH" else 0.0) * ensemble_conf
-        
+
         total_score = (sentiment_score * 0.3) + (quant_score * 0.4) + (earnings_impact * 0.3)
-        
+
         if total_score > 0.3:
             final_decision = TradingDecision.BUY
             final_confidence = min(0.95, 0.5 + abs(total_score))
@@ -100,12 +100,15 @@ class MarketAnalyst(BaseAgent):
 
         components_str = ", ".join([f"{k}:{v}" for k, v in prediction_report.get("components", {}).items()])
         quant_reasoning = f"Quant Models: {ensemble_decision} ({ensemble_conf:.2f}). Details: [{components_str}]."
-        
+
         # Self-Learning context
         lessons_learned = data.get("lessons_learned", "")
         lessons_msg = f"\n[Self-Learning Lessons: {lessons_learned}]" if lessons_learned else ""
 
-        reasoning = f"Sentiment: {sentiment}. {quant_reasoning} {earnings_msg} Key Drivers: {', '.join(impact.get('key_drivers', []))}. {regime_msg}{lessons_msg}"
+        reasoning = (
+            f"Sentiment: {sentiment}. {quant_reasoning} {earnings_msg} "
+            f"Key Drivers: {', '.join(impact.get('key_drivers', []))}. {regime_msg}{lessons_msg}"
+        )
 
         analysis = self._create_response(final_decision, final_confidence, reasoning)
         self.log_analysis(analysis)

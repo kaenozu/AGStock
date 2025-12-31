@@ -10,6 +10,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+from src.constants import TICKER_NAMES
 from src.dashboard_utils import check_and_execute_missed_trades
 from src.formatters import format_currency
 from src.paper_trader import PaperTrader
@@ -121,7 +122,8 @@ def show_main_dashboard():
 
     st.markdown(
         f"""
-    <div style="text-align: center; padding: 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; color: white; margin-bottom: 2rem;">
+    <div style="text-align: center; padding: 2rem; border-radius: 16px; color: white; margin-bottom: 2rem;
+         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
         <div style="font-size: 1.2rem; opacity: 0.9;">あなたの資産</div>
         <div class="big-number">{format_currency(total_equity)}</div>
         <div style="font-size: 1.5rem; margin-top: 1rem;">
@@ -247,7 +249,6 @@ def show_main_dashboard():
                 with col2:
                     # 最新の取引
                     latest = today_trades.iloc[-1]
-                    from src.constants import TICKER_NAMES
 
                     company_name = TICKER_NAMES.get(latest["ticker"], latest["ticker"])
                     action_emoji = "🟢" if latest["action"] == "BUY" else "🔴"
@@ -257,7 +258,9 @@ def show_main_dashboard():
                     <div class="card">
                         <div style="font-size: 1.1rem; font-weight: bold; margin-bottom: 0.5rem;">最新の取引</div>
                         <div style="font-size: 1.3rem; font-weight: bold;">{action_emoji} {company_name}</div>
-                        <div style="font-size: 0.9rem; color: #666; margin-top: 0.3rem;">{latest['timestamp'].strftime('%H:%M')} | {latest['quantity']}株</div>
+                        <div style="font-size: 0.9rem; color: #666; margin-top: 0.3rem;">
+                            {latest['timestamp'].strftime('%H:%M')} | {latest['quantity']}株
+                        </div>
                     </div>
                     """,
                         unsafe_allow_html=True,
@@ -423,7 +426,6 @@ def show_main_dashboard():
             entry_price = pos.get("entry_price", 0)
 
             # 会社名取得
-            from src.constants import TICKER_NAMES
 
             company_name = TICKER_NAMES.get(ticker, ticker)
 
@@ -450,10 +452,16 @@ def show_main_dashboard():
             <div class="stock-item {card_class}">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <div style="font-size: 1.3rem; font-weight: bold;">{emoji} {company_name}</div>
+                        <div style="font-size: 1.3rem; font-weight: bold;">
+                            {emoji} {company_name}
+                        </div>
                         <div style="color: #888; font-size: 0.9rem; margin-top: 0.2rem;">{ticker}</div>
-                        <div style="color: #666; margin-top: 0.5rem;">{quantity}株 | 現在価格: {format_currency(current_price)}</div>
-                        <div style="color: #888; font-size: 0.85rem; margin-top: 0.3rem;">購入日: {formatted_date} | 購入価格: {format_currency(entry_price)}</div>
+                        <div style="color: #666; margin-top: 0.5rem;">
+                            {quantity}株 | 現在価格: {format_currency(current_price)}
+                        </div>
+                        <div style="color: #888; font-size: 0.85rem; margin-top: 0.3rem;">
+                            購入日: {formatted_date} | 購入価格: {format_currency(entry_price)}
+                        </div>
                     </div>
                     <div style="text-align: right;">
                         <div style="font-size: 0.9rem; color: #555; margin-bottom: 0.2rem;">評価損益</div>

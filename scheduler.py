@@ -27,7 +27,7 @@ def update_status(job_name: str, status: str, message: str = ""):
             try:
                 with open(STATUS_FILE, "r", encoding="utf-8") as f:
                     current_data = json.load(f)
-            except:
+            except Exception:
                 pass
         
         timestamp = datetime.now().isoformat()

@@ -176,7 +176,7 @@ class HyperparameterOptimizer:
 
         def objective(trial):
             # 探索空間
-            params = {
+            {
                 "hidden_size": trial.suggest_categorical("hidden_size", [32, 64, 128]),
                 "num_attention_heads": trial.suggest_categorical(
                     "num_attention_heads", [2, 4, 8]
@@ -281,7 +281,7 @@ if __name__ == "__main__":
 
             # Train
             # エポック数は少なめに設定して高速化
-            history = model.fit(
+            model.fit(
                 X_train,
                 y_train,
                 epochs=5,

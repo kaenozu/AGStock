@@ -6,28 +6,17 @@
 - 取引ボリュームとオーダーブック分析
 """
 
-import asyncio
-import json
 import logging
 import os
-import pickle
-import re
 import sqlite3
 import warnings
-from collections import defaultdict
-from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
-import aiohttp
-import nltk
 import numpy as np
 import pandas as pd
-import requests
 import yfinance as yf
 from nltk.sentiment import SentimentIntensityAnalyzer
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
 from textblob import TextBlob
 
 from src.base_predictor import BasePredictor
@@ -39,8 +28,6 @@ logger = logging.getLogger(__name__)
 
 # データベースの初期化
 DB_PATH = "data/sentiment_data.db"
-
-
 
 
 def init_sentiment_db():
@@ -267,7 +254,8 @@ class SocialMediaSentimentAnalyzer:
 
             sentiment_type = random.choice(["positive", "negative", "neutral"])
             words = random.choices(sentiment_words[sentiment_type], k=random.randint(5, 10))
-            text = f"${ticker} {' '.join(words)} trending {'up' if sentiment_type == 'positive' else 'down' if sentiment_type == 'negative' else 'mixed'}!"
+            trend = 'up' if sentiment_type == 'positive' else ('down' if sentiment_type == 'negative' else 'mixed')
+            text = f"${ticker} {' '.join(words)} trending {trend}!"
 
             mock_tweets.append(
                 {

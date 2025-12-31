@@ -8,7 +8,6 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 from typing import Dict, List
-import warnings
 
 # yfinance が使用される場合は、ここでインポート
 try:
@@ -87,7 +86,8 @@ class AdvancedRiskManager:
                 signals.append({
                     "ticker": ticker,
                     "action": "SELL",
-                    "reason": f"Drawdown protection triggered. Daily loss: {daily_change_pct:.2f}% exceeded threshold: {self.max_daily_loss_pct:.2f}%",
+                    "reason": (f"Drawdown protection triggered. Daily loss: {daily_change_pct:.2f}% "
+                               f"exceeded threshold: {self.max_daily_loss_pct:.2f}%"),
                     "strategy": "Drawdown Protection"
                 })
 
@@ -169,7 +169,7 @@ class AdvancedRiskManager:
 
         # 銘柄リストを結合
         all_tickers = [ticker] + existing_positions
-        unique_tickers = list(set(all_tickers)) # 重複を排除
+        unique_tickers = list(set(all_tickers))  # 重複を排除
 
         try:
             # 価格データを取得
@@ -194,7 +194,7 @@ class AdvancedRiskManager:
                 returns_map[tkr] = df['Return'].dropna()
             else:
                 logger.warning(f"No valid price data for {tkr}")
-                returns_map[tkr] = pd.Series(dtype=float) # 空のSeries
+                returns_map[tkr] = pd.Series(dtype=float)  # 空のSeries
 
         if ticker not in returns_map or returns_map[ticker].empty:
             logger.warning(f"No return data for new ticker: {ticker}")
@@ -231,13 +231,17 @@ class AdvancedRiskManager:
             print(f"DEBUG: Correlation value: {correlation}, type: {type(correlation)}")
 
             # デバッグ出力を追加
-            logger.debug(f'Correlation calc: ticker={ticker}, existing_ticker={existing_ticker}, correlation={correlation}, abs(correlation)={abs(correlation)}, threshold={self.max_correlation}, condition={abs(correlation) > self.max_correlation}')
+            logger.debug(
+                f'Correlation calc: ticker={ticker}, existing_ticker={existing_ticker}, '
+                f'correlation={correlation}, abs(correlation)={abs(correlation)}, '
+                f'threshold={self.max_correlation}, condition={abs(correlation) > self.max_correlation}'
+            )
 
             if pd.isna(correlation):
-                print(f"DEBUG: Correlation is NaN, treating as 1.0")
+                print("DEBUG: Correlation is NaN, treating as 1.0")
                 # 相関が計算できない場合 (例: すべて同じ値)
                 # 両者が非常に似ている可能性があるため、高相関とみなす。
-                correlation = 1.0 # 便宜上、高相関とみなす
+                correlation = 1.0  # 便宜上、高相関とみなす
                 logger.info(f"Correlation for {ticker}-{existing_ticker} is NaN, treating as 1.0 for safety.")
 
             # 閾値を超えたら危険
@@ -245,10 +249,10 @@ class AdvancedRiskManager:
             if abs(correlation) > self.max_correlation:
                 reason = f"{ticker} と {existing_ticker} の相関係数 ({correlation:.3f}) が閾値 ({self.max_correlation:.2f}) を超えています。相関が高すぎる。"
                 logger.warning(reason)
-                print(f"DEBUG: High correlation detected, returning False")
+                print("DEBUG: High correlation detected, returning False")
                 return False, reason
             else:
-                print(f"DEBUG: Correlation is within threshold, continuing")
+                print("DEBUG: Correlation is within threshold, continuing")
 
         # すべての既存銘柄との相関が許容範囲内であればOK
         print("DEBUG: All correlations are within threshold. Returning True.")
@@ -326,7 +330,7 @@ class AdvancedRiskManager:
 
     def _interpret_var(self, var: float) -> str:
         """VaRの解釈を返す"""
-        return f"At {self.confidence_level*100:.0f}% confidence, expected loss is {abs(var)*100:.2f}%"
+        return f"At {self.confidence_level * 100:.0f}% confidence, expected loss is {abs(var) * 100:.2f}%"
 
     def stress_test(self, baseline_returns: pd.Series, scenarios: List[Dict]) -> Dict:
         """
@@ -360,7 +364,7 @@ class AdvancedRiskManager:
         Returns:
             np.ndarray: 風险均等分配のウェイト
         """
-        n_assets = returns.shape[1]
+        returns.shape[1]
         volatilities = returns.std().values  # 各資産のボラティリティ
 
         # 簡易リスクパリティ（ボラティリティの逆数に比例）

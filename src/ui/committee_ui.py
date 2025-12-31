@@ -31,17 +31,20 @@ def render_committee_ui():
         st.write("4. **🏛️Chairperson**: 議長・最終意思決定")
 
         start_btn = st.button("委員会を開催する", type="primary", use_container_width=True)
-        
+
         # Macro Radar Dashboard
         st.markdown("---")
         st.subheader("🌐 マクロ相関レーダー")
         macro = MacroLoader().fetch_macro_data()
         if "error" not in macro:
             score = macro["macro_score"]
-            if score > 70: st.success(f"市場安定度: {score:.0f}/100 (BULLISH)")
-            elif score < 40: st.error(f"市場安定度: {score:.0f}/100 (CAUTION)")
-            else: st.warning(f"市場安定度: {score:.0f}/100 (NEUTRAL)")
-            
+            if score > 70:
+                st.success(f"市場安定度: {score:.0f}/100 (BULLISH)")
+            elif score < 40:
+                st.error(f"市場安定度: {score:.0f}/100 (CAUTION)")
+            else:
+                st.warning(f"市場安定度: {score:.0f}/100 (NEUTRAL)")
+
             mc1, mc2 = st.columns(2)
             with mc1:
                 st.metric("VIX", f"{macro['vix']['value']:.1f}", f"{macro['vix']['change_pct']:+.1f}%", delta_color="inverse")
@@ -115,11 +118,11 @@ def render_committee_ui():
                     # Final Decision Highlight
                     final_decision = debate_log[-1]["decision"]
                     if final_decision == "BUY":
-                        st.success(f"### 🎯 決定 買い (BUY) 推奨")
+                        st.success("### 🎯 決定 買い (BUY) 推奨")
                     elif final_decision == "SELL":
-                        st.error(f"### 🛑 決定 売り (SELL) 推奨")
+                        st.error("### 🛑 決定 売り (SELL) 推奨")
                     else:
-                        st.warning(f"### ✋決定 様子見 (HOLD)")
+                        st.warning("### ✋決定 様子見 (HOLD)")
 
                 except Exception as e:
                     st.error(f"委員会中にエラーが発生しました: {e}")

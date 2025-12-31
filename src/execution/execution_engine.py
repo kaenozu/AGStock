@@ -348,7 +348,7 @@ class ExecutionEngine:
                     else:
                         # Phase 72: Forced Stop Loss (Default 5%)
                         initial_stop = price * 0.95
-                        
+
                         success = _retry_trade(
                             lambda: self.pt.execute_trade(
                                 ticker, "BUY", qty, price, reason=f"{reason} (Conf: {confidence:.2f})", initial_stop_price=initial_stop

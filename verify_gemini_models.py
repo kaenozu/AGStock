@@ -11,7 +11,7 @@ def list_models():
             with open("config.json", "r") as f:
                 config = json.load(f)
                 api_key = config.get("gemini_api_key")
-        except:
+        except Exception:
             pass
 
     if not api_key:

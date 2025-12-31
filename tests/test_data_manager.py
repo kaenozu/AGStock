@@ -62,14 +62,15 @@ def test_save_data(data_manager, sample_stock_data):
     ticker = "AAPL"
     data_manager.save_data(sample_stock_data, ticker)
 
-    # データが保存されたか確認
+    # データが保存されたか確認 (ticker_metadataテーブルを確認)
     conn = sqlite3.connect(data_manager.db_path)
     cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) FROM stock_data WHERE ticker = ?", (ticker,))
-    count = cursor.fetchone()[0]
+    cursor.execute("SELECT data_points FROM ticker_metadata WHERE ticker = ?", (ticker,))
+    result = cursor.fetchone()
     conn.close()
 
-    assert count == len(sample_stock_data)
+    assert result is not None
+    assert result[0] == len(sample_stock_data)
 
 
 def test_save_empty_data(data_manager):

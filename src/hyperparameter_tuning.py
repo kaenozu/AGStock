@@ -148,7 +148,7 @@ class HyperparameterTuner:
             Sharpe Ratio（最大化）
         """
         # パラメータの提案
-        params = {
+        {
             "hidden_units": trial.suggest_int("hidden_units", 32, 256, step=32),
             "num_layers": trial.suggest_int("num_layers", 1, 4),
             "dropout_rate": trial.suggest_float("dropout_rate", 0.1, 0.5),
@@ -194,9 +194,11 @@ class HyperparameterTuner:
 
         # 目的関数の選択
         if self.model_type == "lightgbm":
-            def objective_func(trial): return self._objective_lightgbm(trial, X, y)
+            def objective_func(trial):
+                return self._objective_lightgbm(trial, X, y)
         elif self.model_type == "lstm":
-            def objective_func(trial): return self._objective_lstm(trial, X, y)
+            def objective_func(trial):
+                return self._objective_lstm(trial, X, y)
         else:
             raise ValueError(f"Unsupported model type: {self.model_type}")
 

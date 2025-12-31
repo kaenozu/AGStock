@@ -45,7 +45,7 @@ for i in range(20, 5, -1):
         if pred_up == actual_up:
             correct += 1
         total += 1
-    except:
+    except Exception:
         pass
 
 basic_acc = correct / total if total > 0 else 0
@@ -73,7 +73,7 @@ for i in range(15, 5, -1):
         if pred_up == actual_up:
             correct += 1
         total += 1
-    except:
+    except Exception:
         pass
 
 ensemble_acc = correct / total if total > 0 else 0

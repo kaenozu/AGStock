@@ -92,7 +92,7 @@ class EarningsAnalyzer:
         # 基本情報
         metadata = pdf_data.get("metadata", {})
         if metadata:
-            context_parts.append(f"【企業情報】")
+            context_parts.append("【企業情報】")
             context_parts.append(f"企業名: {metadata.get('company', '不明')}")
             context_parts.append(f"発表日: {metadata.get('date', '不明')}")
             context_parts.append("")

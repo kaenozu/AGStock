@@ -170,7 +170,7 @@ def optimize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     for col in df.columns:
         col_type = df[col].dtype
 
-        if col_type != object and not pd.api.types.is_datetime64_any_dtype(col_type):
+        if col_type is not object and not pd.api.types.is_datetime64_any_dtype(col_type):
             c_min = df[col].min()
             c_max = df[col].max()
 

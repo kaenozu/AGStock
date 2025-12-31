@@ -250,26 +250,3 @@ def style_dataframe_percentage(
                 lambda x: format_percentage(x, decimals=decimals, show_sign=show_sign)
             )
     return styled_df
-
-
-def style_dataframe_percentage(
-    df: pd.DataFrame, columns: list, decimals: int = 2
-) -> pd.DataFrame:
-    """
-    DataFrameのパーセンテージカラムをフォーマット
-
-    Args:
-        df: DataFrame
-        columns: フォーマット対象のカラム名リスト
-        decimals: 小数点以下の桁数
-
-    Returns:
-        スタイル適用済みDataFrame
-    """
-    styled_df = df.copy()
-    for col in columns:
-        if col in styled_df.columns:
-            styled_df[col] = styled_df[col].apply(
-                lambda x: format_percentage(x, decimals=decimals)
-            )
-    return styled_df

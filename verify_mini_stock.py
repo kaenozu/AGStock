@@ -167,7 +167,7 @@ def main():
     try:
         if input().lower() == "y":
             test_real_price_simulation()
-    except:
+    except Exception:
         print("スキップ")
 
     # 結果サマリー

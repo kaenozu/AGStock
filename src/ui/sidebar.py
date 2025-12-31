@@ -61,9 +61,9 @@ def render_sidebar():
                     scheduler_alive = True
 
             if scheduler_alive:
-                st.sidebar.success(f"🟢 スケジューラー稼働中")
+                st.sidebar.success("🟢 スケジューラー稼働中")
             else:
-                st.sidebar.error(f"🔴 スケジューラー停止/無反応")
+                st.sidebar.error("🔴 スケジューラー停止/無反応")
                 if heartbeat:
                     st.sidebar.caption(f"最終ビート: {last_beat.strftime('%H:%M:%S')}")
 
@@ -102,7 +102,7 @@ def render_sidebar():
                     st.sidebar.caption(f"Err: {info.get('message', '')[:20]}...")
 
         except Exception:
-            st.sidebar.warning(f"ステータス読込エラー")
+            st.sidebar.warning("ステータス読込エラー")
     else:
         st.sidebar.warning("⚠️ ステータス情報なし")
         st.sidebar.caption("START_SYSTEM.batを実行してください")

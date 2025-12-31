@@ -100,11 +100,11 @@ def render_intelligence_dashboard():
             lessons = [dict(row) for row in cursor.fetchall()]
 
         if lessons:
-            for l in lessons:
-                with st.expander(f"📌 {l['timestamp'][:10]} | {l['ticker']} ({l['decision']})"):
-                    st.write(f"**結果**: {l['outcome']} (1週間後収益率: {l['return_1w'] * 100:.2f}%)")
-                    st.info(f"💡 **教訓**: {l['lesson_learned']}")
-                    st.markdown(f"**分析詳細**:\n{l['reflection_log']}")
+            for lesson in lessons:
+                with st.expander(f"📌 {lesson['timestamp'][:10]} | {lesson['ticker']} ({lesson['decision']})"):
+                    st.write(f"**結果**: {lesson['outcome']} (1週間後収益率: {lesson['return_1w'] * 100:.2f}%)")
+                    st.info(f"💡 **教訓**: {lesson['lesson_learned']}")
+                    st.markdown(f"**分析詳細**:\n{lesson['reflection_log']}")
         else:
             st.info("自己反省ログはまだ生成されていません。夜間の自動バッチ処理をお待ちください。")
     except Exception as e:
