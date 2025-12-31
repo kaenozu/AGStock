@@ -26,8 +26,28 @@ def run_daily_routine(force_run: bool = False):
 
     except Exception as e:
         # エラーハンドリングをここに集約
-        # TODO: より詳細なエラーログや通知
-        return {"status": "error", "message": str(e)}
+        import traceback
+        from datetime import datetime
+        
+        # 詳細なエラーログ
+        error_details = {
+            "timestamp": datetime.now().isoformat(),
+            "error_type": type(e).__name__,
+            "error_message": str(e),
+            "traceback": traceback.format_exc(),
+            "function": "daily_routine"
+        }
+        
+        # ログファイルに記録
+        try:
+            import json
+            with open("error_logs.json", "a", encoding="utf-8") as f:
+                f.write(json.dumps(error_details, ensure_ascii=False) + "\n")
+        except Exception:
+            pass  # ログ記録失敗は無視
+        
+        # 簡潔なエラーメッセージを返す
+        return {"status": "error", "message": f"{type(e).__name__}: {str(e)}"}
 
 
 if __name__ == "__main__":

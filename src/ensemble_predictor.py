@@ -461,7 +461,19 @@ class EnhancedEnsemblePredictor:
                 if drift_detected:
                     logger.warning(f"Concept drift detected for {ticker}!")
                     # ドリフト検出時の対応
-                    # TODO: モデルの再学習や重みの再調整ロジックを追加
+                    # モデルの再学習や重みの再調整ロジックを実装
+                    try:
+                        # 重みのリセット（より均等な重みに戻す）
+                        self.weights = np.ones(len(self.models)) / len(self.models)
+                        self.performance_history[ticker][-10:] = []  # 最近の性能履歴をクリア
+                        
+                        # 必要に応じてモデル再学習をトリガー
+                        if hasattr(self, 'retrain_callback'):
+                            self.retrain_callback(ticker, "concept_drift")
+                            
+                        logger.info(f"Adjusted weights for {ticker} due to concept drift")
+                    except Exception as e:
+                        logger.error(f"Failed to adjust weights for {ticker}: {e}")
 
             return {
                 "current_price": current_price,
