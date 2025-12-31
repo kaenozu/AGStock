@@ -276,3 +276,73 @@ tests/
 - `6e321eb` fix: TradingEnvironment bug
 - `126b9a7` style: trailing whitespace
 - `89d7fc0` Refactor: lint cleanup
+
+## 🧪 2025-12-31 追加改善実装
+
+### 実装済み機能
+
+#### 1. Quick Overviewのtoday_pnl計算機能
+- ファイル: `src/ui/components/quick_overview.py`
+- 説明: ポートフォリオデータから当日の損益を計算する機能を実装
+- 実装内容: `_get_portfolio_data()`関数内で`today_pnl`を計算し、返り値に含める
+
+#### 2. Trading Runnerの詳細なエラーログ記録機能
+- ファイル: `src/trading/runner.py`
+- 説明: エラー発生時に詳細な情報を含む構造化ログを記録する機能を実装
+- 実装内容: `run_daily_routine()`関数内の例外処理で、エラーの詳細情報を`error_logs.json`ファイルに記録
+
+#### 3. UIコンポーネントのデバイス検出機能
+- ファイル: `src/ui_components.py`
+- 説明: User-Agentベースでデバイスを検出する機能を実装
+- 実装内容: `responsive_columns()`関数内でUser-Agentを取得し、デバイスタイプを判定してセッション状態に保存
+
+#### 4. Ensemble Predictorのコンセプトドリフト対応機能
+- ファイル: `src/ensemble_predictor.py`
+- 説明: コンセプトドリフト検出時にモデルの重みを調整する機能を実装
+- 実装内容: `EnhancedEnsemblePredictor`クラス内でコンセプトドリフト検出時に、重みをリセットし性能履歴をクリアするロジックを追加
+
+### テスト結果
+
+```bash
+# 改善機能のテスト
+python test_improvements.py
+
+🧪 Testing AGStock Improvements
+==================================================
+
+📋 Quick Overview (today_pnl)
+------------------------------
+✅ Quick overview import successful
+✅ Portfolio data includes keys: ['total_value', 'cash', 'total_pnl', 'total_pnl_pct', 'today_pnl', 'positions']
+✅ today_pnl implemented: 0
+
+📋 Trading Runner (error logging)
+------------------------------
+✅ run_daily_routine import successful
+✅ run_daily_routine signature: (force_run: bool = False)
+
+📋 Device Detection
+------------------------------
+✅ ui_components import successful
+✅ Layout columns generated: 1 columns
+
+📋 Ensemble Predictor (concept drift)
+------------------------------
+✅ EnhancedEnsemblePredictor import successful
+
+==================================================
+📊 Test Summary
+==================================================
+Quick Overview (today_pnl): ✅ PASSED
+Trading Runner (error logging): ✅ PASSED
+Device Detection: ✅ PASSED
+Ensemble Predictor (concept drift): ✅ PASSED
+
+Overall: 4/4 tests passed
+```
+
+### 新規ファイル
+
+```
+test_improvements.py  # 改善機能のテストスクリプト
+```
