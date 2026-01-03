@@ -4,6 +4,8 @@ from typing import Any, Dict, Tuple
 import numpy as np
 import pandas as pd
 
+from src.sovereign_retrospective import SovereignRetrospective
+
 logger = logging.getLogger(__name__)
 
 
@@ -31,6 +33,10 @@ class TradingEnvironment:
         self.df = df.reset_index(drop=True)
         self.initial_balance = initial_balance
         self.commission_rate = 0.001  # 0.1%
+        
+        # Sovereign Adaptive Learning integration
+        self.retrospective = SovereignRetrospective()
+        self.retrospective.analyze_2025_failures()
 
         # Action space: 0=HOLD, 1=BUY, 2=SELL
         self.action_space_size = 3
@@ -108,6 +114,14 @@ class TradingEnvironment:
                 # ここではシンプルに、少しのペナルティ（機会損失コスト）を与えるか、0にする
                 # 報酬シェイピング: 含み益が増えればプラス、減ればマイナス
                 pass
+
+        # Apply Sovereign Reward Bias (Adaptive Learning)
+        # 過去の失敗パターンに基づき、報酬を動的に修正する
+        pnl_ratio = 0.0
+        if self.position == 1:
+            pnl_ratio = (current_price - self.entry_price) / self.entry_price
+            
+        reward += self.retrospective.get_reward_bias({"pnl_ratio": pnl_ratio, "step": self.current_step})
 
         # ステップ進行
         self.current_step += 1

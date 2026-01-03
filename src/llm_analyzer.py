@@ -60,6 +60,19 @@ class LLMAnalyzer:
         else:
             return self._analyze_mock(ticker, news_list)
 
+    def generate_text(self, prompt: str) -> str:
+        """
+        Generates free-form text using the LLM.
+        """
+        if self.is_active and self.model:
+            try:
+                response = self.model.generate_content(prompt)
+                return response.text
+            except Exception as e:
+                logger.error(f"Gemini text generation failed: {e}")
+                return ""
+        return ""
+
     def _analyze_with_gemini(
         self, ticker: str, news_list: List[Dict[str, Any]]
     ) -> Dict[str, Any]:

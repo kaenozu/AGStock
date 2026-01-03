@@ -53,6 +53,7 @@ from src.agents.social_analyst import SocialAnalyst
 from src.agents.visual_oracle import VisualOracle
 from src.trading.portfolio_manager import PortfolioManager
 from src.utils.self_learning import SelfLearningPipeline
+from src.oracle.oracle_2026 import Oracle2026
 
 # Create logger
 logger = logging.getLogger(__name__)
@@ -134,10 +135,13 @@ class FullyAutomatedTrader:
             self.portfolio_manager = PortfolioManager()
             self.learning_pipeline = SelfLearningPipeline(self.config)
             self.ai_veto_agent = AIVetoAgent(self.config)
+            self.ai_veto_agent = AIVetoAgent(self.config)
             self.social_analyst = SocialAnalyst(self.config)
             self.visual_oracle = VisualOracle(self.config)
+            self.oracle_2026 = Oracle2026() # Sovereign Update
 
             self.log('Phase 73: Self-Learning Pipeline (Optima) initialized')
+            self.log('Phase 73: Social Heat Analyst initialized')
             self.log('Phase 73: Social Heat Analyst initialized')
             self.log('Phase 72: Portfolio Risk Parity Manager initialized')
             self.log('Phase 5: WhaleTracker (Institutional Flow) initialized')
@@ -338,7 +342,16 @@ class FullyAutomatedTrader:
         else:
             self.log("VIX取得に失敗しました（キャッシュも無し）: ボラティリティチェックをスキップ", "WARNING")
 
-        # 3. 残高チェック
+        # 3. Oracle 2026 Sovereign Check
+        if hasattr(self, "oracle_2026"):
+            guidance = self.oracle_2026.get_risk_guidance()
+            if guidance.get("safety_mode"):
+                return False, f"Oracle 2026 強制停止: {guidance.get('oracle_message')}"
+            
+            # Apply dynamic adjustments (optional, or just log)
+            self.log(f"Oracle Guidance: {guidance.get('oracle_message')}")
+
+        # 4. 残高チェック
         if cash < 10000:  # 最低1万円
             return False, "現金残高が不足しています"
 

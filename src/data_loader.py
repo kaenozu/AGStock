@@ -372,24 +372,37 @@ def fetch_stock_data(
     need_refresh: list[str] = []
 
     for ticker in tickers:
-        cached_df, needs_refresh = _load_cached_ticker(db, ticker, start_date)
-        if cached_df is not None:
-            result[ticker] = cached_df
-        if needs_refresh:
+        try:
+            cached_df, needs_refresh = _load_cached_ticker(db, ticker, start_date)
+            if cached_df is not None:
+                result[ticker] = cached_df
+            if needs_refresh:
+                need_refresh.append(ticker)
+        except Exception as e:
+            logger.error(f"Error loading cached data for {ticker}: {e}")
+            # キャッシュ読み込みに失敗した場合は、更新が必要とみなす
             need_refresh.append(ticker)
 
-    downloaded = _download_and_cache_missing(
-        need_refresh, period, interval, start_date, db
-    )
-    result.update(downloaded)
+    try:
+        downloaded = _download_and_cache_missing(
+            need_refresh, period, interval, start_date, db
+        )
+        result.update(downloaded)
+    except Exception as e:
+        logger.error(f"Error downloading and caching missing data: {e}")
+        # ダウンロードに失敗した場合も、エラーログを出力し、処理を継続
 
     # Sanitize to avoid leaks/outliers
     for t, df in list(result.items()):
-        cleaned = _sanitize_price_history(df)
-        reason = evaluate_dataframe(cleaned)
-        if reason:
-            logger.warning("Data quality guard triggered for %s: %s", t, reason)
-        result[t] = cleaned
+        try:
+            cleaned = _sanitize_price_history(df)
+            reason = evaluate_dataframe(cleaned)
+            if reason:
+                logger.warning("Data quality guard triggered for %s: %s", t, reason)
+            result[t] = cleaned
+        except Exception as e:
+            logger.error(f"Error sanitizing data for {t}: {e}")
+            # サニタイズに失敗した場合は、元のデータをそのまま使用
 
     return result
 

@@ -25,7 +25,17 @@ class Order:
 
 
 class Strategy:
+    """
+    トレード戦略の基底クラス
+    """
     def __init__(self, name: str, trend_period: int = 200) -> None:
+        """
+        戦略の初期化
+
+        Args:
+            name: 戦略名
+            trend_period: トレンド期間（デフォルト: 200）
+        """
         self.name = name
         self.trend_period = trend_period
 

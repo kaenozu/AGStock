@@ -1,0 +1,55 @@
+[
+  {
+    "timestamp": "2025-12-30T19:36:29.913939",
+    "analyses": [
+      {
+        "agent_name": "MarketAnalyst",
+        "role": "Technical & Sentiment Analysis",
+        "decision": "HOLD",
+        "confidence": 1.0,
+        "reasoning": "Sentiment: NEUTRAL. Quant Models: UNKNOWN (0.00). Details: [].  Key Drivers: . ",
+        "timestamp": "2025-12-30 19:36:29.909885"
+      },
+      {
+        "agent_name": "RiskManager",
+        "role": "Risk Control",
+        "decision": "HOLD",
+        "confidence": 0.5,
+        "reasoning": "Risk levels acceptable.",
+        "timestamp": "2025-12-30 19:36:29.909885"
+      },
+      {
+        "agent_name": "MacroStrategist",
+        "role": "Global Macro Strategy",
+        "decision": "BUY",
+        "confidence": 0.9,
+        "reasoning": "Global macro environment is highly stable and supportive of risk-on assets.",
+        "timestamp": "2025-12-30 19:36:29.909885"
+      }
+    ],
+    "final_decision": "HOLD",
+    "rationale": "No clear majority or neutral sentiment.",
+    "participants": [
+      "MarketAnalyst",
+      "RiskManager",
+      "MacroStrategist",
+      "MTFAnalyst",
+      "BullRunner",
+      "AlphaSeeker"
+    ],
+    "spawned_agents": [
+      "BullRunner",
+      "AlphaSeeker"
+    ],
+    "sizing_recommendation": {
+      "ticker": "AAPL",
+      "equity_fraction": 0.1667,
+      "amount": 166667.0,
+      "method": "Kelly Criterion (Half-Kelly)",
+      "params": {
+        "win_rate": 0.6,
+        "profit_loss_ratio": 1.5
+      }
+    }
+  }
+]
