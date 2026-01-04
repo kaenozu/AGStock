@@ -1,5 +1,5 @@
 {
-    "gemini_api_key": "YOUR_API_KEY_HERE",
+    "gemini_api_key": "",
     "user_profile": {
         "experience": "beginner",
         "risk_tolerance": "low",
@@ -66,14 +66,14 @@
         "crypto": false,
         "fx": false
     },
-    "ai_committee": {
+"ai_committee": {
         "enabled": false,
         "strict_mode": false,
-        "api_key": "YOUR_API_KEY_HERE",
+        "api_key": "",
         "model": "gpt-4"
     },
-    "gemini": {
-        "api_key": "YOUR_API_KEY_HERE",
+"gemini": {
+        "api_key": "",
         "enabled": true
     },
     "paper_trading": {
@@ -88,5 +88,5 @@
         "broker": "rakuten_kabumini",
         "description": "楽天かぶミニ - 1株から取引可能 (寄付:無料 / リアルタイム:0.22%)"
     },
-    "openai_api_key": "YOUR_API_KEY_HERE"
+    "openai_api_key": ""
 }
