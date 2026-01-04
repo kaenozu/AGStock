@@ -3,29 +3,28 @@ PDF Report Generator Module
 Generates automated weekly/monthly performance reports with AI analysis.
 """
 
-from src.paper_trader import PaperTrader
-from src import demo_data
-from src.constants import CRYPTO_PAIRS, FX_PAIRS, NIKKEI_225_TICKERS, SP500_TICKERS, STOXX50_TICKERS
-from src.ai_analyst import AIAnalyst
-import matplotlib.pyplot as plt
-from datetime import datetime, timedelta
-import logging
-from typing import Optional
 import os
 import matplotlib
 import pandas as pd
 
 matplotlib.use("Agg")  # Non-interactive backend
+import logging
+from datetime import datetime, timedelta
 
+import matplotlib.pyplot as plt
+
+from src.ai_analyst import AIAnalyst
+from src.constants import CRYPTO_PAIRS, FX_PAIRS, NIKKEI_225_TICKERS, SP500_TICKERS, STOXX50_TICKERS
+from src import demo_data
+from src.paper_trader import PaperTrader
 
 # For PDF generation
 try:
     from reportlab.lib import colors
-    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.pagesizes import A4, letter
     from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
     from reportlab.lib.units import inch
-    from reportlab.platypus import (Image, Paragraph, SimpleDocTemplate,
-                                    Spacer, Table, TableStyle)
+    from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
     PDF_AVAILABLE = True
 except ImportError:
@@ -133,7 +132,7 @@ class PDFReportGenerator:
             else:
                 alloc["Other"] += value
 
-        sum(alloc.values()) or 1.0
+        total = sum(alloc.values()) or 1.0
         return {k: v for k, v in alloc.items()}
 
     def _plot_asset_allocation(self, allocation: dict, output_path: str = "temp_allocation.png") -> Optional[str]:
@@ -182,8 +181,12 @@ class PDFReportGenerator:
             ax.set_facecolor(self.bg_color)
             ax.figure.set_facecolor(self.bg_color)
             ax.grid(True, alpha=self.grid_alpha, color="#999999" if self.theme == "light" else "#444444")
-            ax.set_title("Portfolio Equity Curve", fontsize=14, fontweight="bold",
-                         color="#fafafa" if self.theme == "dark" else "black")
+            ax.set_title(
+                "Portfolio Equity Curve",
+                fontsize=14,
+                fontweight="bold",
+                color="#fafafa" if self.theme == "dark" else "black",
+            )
             ax.set_xlabel("Date")
             ax.set_ylabel("Equity (¥)")
             ax.grid(True, alpha=0.3)
@@ -232,8 +235,9 @@ Keep it concise (max 200 words).
             logger.error(f"Error generating AI analysis: {e}")
             return f"AI analysis error: {str(e)}"
 
-    def generate_weekly_report(self, output_path: str = "weekly_report.pdf",
-                               html_output_path: Optional[str] = None) -> bool:
+    def generate_weekly_report(
+        self, output_path: str = "weekly_report.pdf", html_output_path: Optional[str] = None
+    ) -> bool:
         """
         Generate weekly PDF report.
 
@@ -395,13 +399,8 @@ Keep it concise (max 200 words).
 
             if html_output_path:
                 self._generate_html_report(
-                    html_output_path,
-                    balance,
-                    trade_stats,
-                    allocation,
-                    chart_path,
-                    allocation_path,
-                    ai_analysis)
+                    html_output_path, balance, trade_stats, allocation, chart_path, allocation_path, ai_analysis
+                )
             return True
 
         except Exception as e:
@@ -421,7 +420,7 @@ Keep it concise (max 200 words).
         """シンプルなHTML版レポートを出力（オフライン確認用）"""
         try:
             alloc_rows = "".join(
-                f"<li>{k}: ¥{v:,.0f} ({(v / (sum(allocation.values()) or 1)) * 100:.1f}%)</li>"
+                f"<li>{k}: ¥{v:,.0f} ({(v / (sum(allocation.values()) or 1))*100:.1f}%)</li>"
                 for k, v in allocation.items()
             )
             top = trade_stats.get("top")

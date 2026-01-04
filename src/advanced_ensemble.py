@@ -308,9 +308,7 @@ def create_meta_feature_ensemble(base_models: List, feature_generator: callable 
     return MetaFeatureEnsemble(base_models, Ridge(), feature_generator)
 
 
-def ensemble_predict_with_confidence(
-    ensemble: StackingEnsemble, X: np.ndarray, confidence_interval: float = 0.95
-):
+def ensemble_predict_with_confidence(ensemble: StackingEnsemble, X: np.ndarray, confidence_interval: float = 0.95):
     """
     信頼区間付きアンサンブル予測
     - アンサンブルの予測とその確信度を返す

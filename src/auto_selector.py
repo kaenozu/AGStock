@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Type
 
 import numpy as np
@@ -7,12 +8,7 @@ import pandas as pd
 from src.constants import NIKKEI_225_TICKERS
 from src.data_loader import fetch_stock_data
 from src.regime_detector import MarketRegime, RegimeDetector
-from src.strategies import (
-    BollingerBandsStrategy,
-    RSIStrategy,
-    SMACrossoverStrategy,
-    Strategy,
-)
+from src.strategies import BollingerBandsStrategy, LightGBMStrategy, RSIStrategy, SMACrossoverStrategy, Strategy
 
 logger = logging.getLogger("AutoSelector")
 
@@ -62,15 +58,11 @@ class AutoSelector:
 
         # 2. Select Tickers based on Regime
         selected_tickers = self._select_tickers(regime)
-        logger.info(
-            f"✅ Selected Tickers ({len(selected_tickers)}): {selected_tickers}"
-        )
+        logger.info(f"✅ Selected Tickers ({len(selected_tickers)}): {selected_tickers}")
 
         # 3. Select Strategy based on Regime & Backtest
         best_strategy_cls, params = self._select_strategy(selected_tickers, regime)
-        logger.info(
-            f"🧠 Selected Strategy: {best_strategy_cls.__name__} with params {params}"
-        )
+        logger.info(f"🧠 Selected Strategy: {best_strategy_cls.__name__} with params {params}")
 
         return {
             "tickers": selected_tickers,
@@ -100,12 +92,7 @@ class AutoSelector:
                 momentum = (close.iloc[-1] / close.iloc[-20]) - 1  # 1-month momentum
 
                 candidates.append(
-                    {
-                        "ticker": ticker,
-                        "momentum": momentum,
-                        "volatility": volatility,
-                        "price": close.iloc[-1],
-                    }
+                    {"ticker": ticker, "momentum": momentum, "volatility": volatility, "price": close.iloc[-1]}
                 )
             except Exception as e:
                 logger.warning(f"Failed to fetch {ticker}: {e}")
@@ -132,9 +119,7 @@ class AutoSelector:
 
         return selected
 
-    def _select_strategy(
-        self, tickers: List[str], regime: MarketRegime
-    ) -> tuple[Type[Strategy], Dict]:
+    def _select_strategy(self, tickers: List[str], regime: MarketRegime) -> tuple[Type[Strategy], Dict]:
         """
         Selects best strategy class and parameters.
         For simplicity, maps Regime to Strategy first, then confirms.
@@ -145,11 +130,7 @@ class AutoSelector:
             return SMACrossoverStrategy, {"short_window": 10, "long_window": 30}
         elif regime == MarketRegime.BEAR:
             # Short term or Mean Reversion on dips
-            return RSIStrategy, {
-                "period": 14,
-                "buy_threshold": 25,
-                "sell_threshold": 45,
-            }
+            return RSIStrategy, {"period": 14, "buy_threshold": 25, "sell_threshold": 45}
         elif regime == MarketRegime.SIDEWAYS:
             # Bollinger Bands are king in ranges
             return BollingerBandsStrategy, {"window": 20, "num_std": 2}
@@ -160,5 +141,4 @@ class AutoSelector:
             # Default
             return SMACrossoverStrategy, {}
 
-
-# Note: In a full version, we would run loop backtests here.
+        # Note: In a full version, we would run loop backtests here.

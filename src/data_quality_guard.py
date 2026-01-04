@@ -74,9 +74,7 @@ def should_block_trading(metrics: Dict[str, float], thresholds: Optional[Quality
         return f"Price outlier detected (|z|={metrics['max_abs_zscore']:.1f} > {thresholds.max_zscore})"
 
     if metrics.get("max_price_jump_pct", 0) > thresholds.max_price_jump_pct:
-        return (
-            f"Unusual price jump: {metrics['max_price_jump_pct']:.1f}% > {thresholds.max_price_jump_pct:.1f}%"
-        )
+        return f"Unusual price jump: {metrics['max_price_jump_pct']:.1f}% > {thresholds.max_price_jump_pct:.1f}%"
 
     return None
 

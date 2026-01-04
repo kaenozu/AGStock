@@ -11,13 +11,11 @@ import yfinance as yf
 
 from src.broker import Broker
 from src.broker import Position as BrokerPosition
-from src.constants import DEFAULT_VOLATILITY_SYMBOL
+from src.constants import DEFAULT_VOLATILITY_SYMBOL, FALLBACK_VOLATILITY_SYMBOLS
 from src.strategies import Order, OrderType, Strategy
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Alias for backward compatibility
@@ -31,11 +29,7 @@ class PaperBroker(Broker):
     Persists state to a JSON file (local storage).
     """
 
-    def __init__(
-        self,
-        initial_capital: float = 100_000.0,
-        state_file: str = "paper_trading_state.json",
-    ):
+    def __init__(self, initial_capital: float = 100_000.0, state_file: str = "paper_trading_state.json"):
         self.initial_capital = initial_capital
         self.state_file = state_file
         self.cash = initial_capital
@@ -54,10 +48,7 @@ class PaperBroker(Broker):
                 self.cash = data.get("cash", self.initial_capital)
                 self.trade_history = data.get("trade_history", [])
                 positions_data = data.get("positions", {})
-                self.positions = {
-                    ticker: Position(**pos_data)
-                    for ticker, pos_data in positions_data.items()
-                }
+                self.positions = {ticker: Position(**pos_data) for ticker, pos_data in positions_data.items()}
                 logger.info(f"Loaded paper trading state. Cash: {self.cash}")
             except Exception as e:
                 logger.error(f"Failed to load state: {e}")
@@ -92,9 +83,7 @@ class PaperBroker(Broker):
     def get_portfolio_value(self, current_prices: Dict[str, float]) -> float:
         positions_value = 0.0
         for ticker, pos in self.positions.items():
-            price = current_prices.get(
-                ticker, pos.current_price
-            )  # Use last known if current not available
+            price = current_prices.get(ticker, pos.current_price)  # Use last known if current not available
             if price > 0:
                 positions_value += pos.quantity * price
                 # Update position current price for display
@@ -128,9 +117,7 @@ class PaperBroker(Broker):
                     )
 
                 self._log_trade(order, current_price, timestamp)
-                logger.info(
-                    f"BUY EXECUTED: {order.ticker} x {order.quantity} @ {current_price}"
-                )
+                logger.info(f"BUY EXECUTED: {order.ticker} x {order.quantity} @ {current_price}")
             else:
                 logger.warning(f"Insufficient funds for BUY {order.ticker}")
 
@@ -146,9 +133,7 @@ class PaperBroker(Broker):
                         del self.positions[order.ticker]
 
                     self._log_trade(order, current_price, timestamp)
-                    logger.info(
-                        f"SELL EXECUTED: {order.ticker} x {order.quantity} @ {current_price}"
-                    )
+                    logger.info(f"SELL EXECUTED: {order.ticker} x {order.quantity} @ {current_price}")
                 else:
                     logger.warning(f"Insufficient position for SELL {order.ticker}")
             else:
@@ -164,9 +149,7 @@ class PaperBroker(Broker):
                 "action": order.action,
                 "quantity": order.quantity,
                 "price": price,
-                "type": order.type.name
-                if hasattr(order.type, "name")
-                else str(order.type),
+                "type": order.type.name if hasattr(order.type, "name") else str(order.type),
             }
         )
 
@@ -226,21 +209,15 @@ class LiveTradingEngine:
             # バリデーション: volatility_symbolsが存在し、リスト形式であることを確認
             vol_list = cfg.get("volatility_symbols")
             if vol_list is not None:
-                if isinstance(vol_list, list) and all(
-                    isinstance(s, str) for s in vol_list if s
-                ):
+                if isinstance(vol_list, list) and all(isinstance(s, str) for s in vol_list if s):
                     fallback_list = [str(s) for s in vol_list if s]
                 else:
-                    logger.warning(
-                        "Invalid volatility_symbols format in config.json. Using default VIX symbol."
-                    )
+                    logger.warning("Invalid volatility_symbols format in config.json. Using default VIX symbol.")
         except FileNotFoundError:
             # config.jsonが存在しない場合はデフォルトのまま継続
             pass
         except json.JSONDecodeError:
-            logger.warning(
-                "Invalid JSON format in config.json. Using default VIX symbol."
-            )
+            logger.warning("Invalid JSON format in config.json. Using default VIX symbol.")
         except Exception:
             logger.warning("Error reading config.json. Using default VIX symbol.")
 
@@ -259,9 +236,7 @@ class LiveTradingEngine:
                 self._last_vix_level = val
                 return val
             except Exception as exc:
-                logger.warning(
-                    "Failed to fetch volatility symbol: %s, error: %s", sym, exc
-                )
+                logger.warning("Failed to fetch volatility symbol: %s, error: %s", sym, exc)
                 continue
 
         return self._last_vix_level
@@ -279,9 +254,7 @@ class LiveTradingEngine:
         if self.risk_guard:
             portfolio_value = self.broker.get_portfolio_value({})
             vix_level = self._get_vix_level()
-            should_halt, reason = self.risk_guard.should_halt_trading(
-                portfolio_value, vix_level
-            )
+            should_halt, reason = self.risk_guard.should_halt_trading(portfolio_value, vix_level)
             if should_halt:
                 logger.critical(f"🚨 Trading halted: {reason}")
                 self.emergency_stop = True
@@ -315,35 +288,17 @@ class LiveTradingEngine:
                         # For Limit/Stop, we'd need an Order Book in the Broker.
                         # For simplicity in Phase 1, we execute Market orders immediately.
                         if latest_signal.type == OrderType.MARKET:
-                            self.broker.execute_order(
-                                latest_signal, current_price, datetime.now()
-                            )
+                            self.broker.execute_order(latest_signal, current_price, datetime.now())
 
                     elif isinstance(latest_signal, (int, np.integer)):
                         # Legacy integer signal support
                         qty = 10  # Default quantity for int signals
                         if latest_signal == 1:  # BUY
-                            order = Order(
-                                ticker=ticker,
-                                action="BUY",
-                                quantity=qty,
-                                type=OrderType.MARKET,
-                                price=0,
-                            )
-                            self.broker.execute_order(
-                                order, current_price, datetime.now()
-                            )
+                            order = Order(ticker=ticker, action="BUY", quantity=qty, type=OrderType.MARKET, price=0)
+                            self.broker.execute_order(order, current_price, datetime.now())
                         elif latest_signal == -1:  # SELL
-                            order = Order(
-                                ticker=ticker,
-                                action="SELL",
-                                quantity=qty,
-                                type=OrderType.MARKET,
-                                price=0,
-                            )
-                            self.broker.execute_order(
-                                order, current_price, datetime.now()
-                            )
+                            order = Order(ticker=ticker, action="SELL", quantity=qty, type=OrderType.MARKET, price=0)
+                            self.broker.execute_order(order, current_price, datetime.now())
 
             except Exception as e:
                 logger.error(f"Error processing {ticker}: {e}")

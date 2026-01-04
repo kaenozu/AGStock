@@ -15,13 +15,7 @@ logger = logging.getLogger(__name__)
 
 class DeepLearningStrategy(Strategy):
     def __init__(
-        self,
-        lookback=60,
-        epochs=5,
-        batch_size=32,
-        trend_period=200,
-        train_window_days=365,
-        predict_window_days=20,
+        self, lookback=60, epochs=5, batch_size=32, trend_period=200, train_window_days=365, predict_window_days=20
     ):
         super().__init__("Deep Learning (LSTM)", trend_period)
         self.lookback = lookback
@@ -35,7 +29,7 @@ class DeepLearningStrategy(Strategy):
     def _create_sequences(self, data):
         X, y = [], []
         for i in range(self.lookback, len(data)):
-            X.append(data[i - self.lookback: i])
+            X.append(data[i - self.lookback : i])
             y.append(data[i, 0])
         return np.array(X), np.array(y)
 
@@ -71,9 +65,7 @@ class DeepLearningStrategy(Strategy):
         end_index = len(dataset)
         step = self.predict_window_days
 
-        print(
-            f"Starting Walk-Forward Validation for DL Strategy... (Total steps: {(end_index - start_index) // step})"
-        )
+        print(f"Starting Walk-Forward Validation for DL Strategy... (Total steps: {(end_index - start_index) // step})")
 
         for current_idx in range(start_index, end_index, step):
             train_start = max(0, current_idx - self.train_window_days)
@@ -93,13 +85,7 @@ class DeepLearningStrategy(Strategy):
                 continue
 
             model = self.build_model((X_train.shape[1], X_train.shape[2]))
-            model.fit(
-                X_train,
-                y_train,
-                batch_size=self.batch_size,
-                epochs=self.epochs,
-                verbose=0,
-            )
+            model.fit(X_train, y_train, batch_size=self.batch_size, epochs=self.epochs, verbose=0)
 
             pred_data_start = current_idx - self.lookback
             pred_data_raw = dataset[pred_data_start:predict_end]
@@ -167,19 +153,15 @@ class TransformerStrategy(Strategy):
             data = df_feat[numeric_cols].values
             X, y = [], []
             for i in range(len(data) - self.sequence_length - 1):
-                X.append(data[i: (i + self.sequence_length)])
-                y.append(
-                    data[i + self.sequence_length + 1, 0]
-                )  # Close price as target (simplified)
+                X.append(data[i : (i + self.sequence_length)])
+                y.append(data[i + self.sequence_length + 1, 0])  # Close price as target (simplified)
 
             X, y = np.array(X), np.array(y)
 
             if len(X) == 0:
                 return
 
-            self.model = AdvancedModels.build_gru_model(
-                input_shape=(X.shape[1], X.shape[2])
-            )
+            self.model = AdvancedModels.build_gru_model(input_shape=(X.shape[1], X.shape[2]))
             self.model.fit(X, y, epochs=10, batch_size=32, verbose=0)
             self.is_trained = True
             logger.info("GRU model trained")
@@ -200,7 +182,7 @@ class TransformerStrategy(Strategy):
             if len(df_feat) < self.sequence_length:
                 return "HOLD"
 
-            recent_data = df_feat[numeric_cols].iloc[-self.sequence_length:].values
+            recent_data = df_feat[numeric_cols].iloc[-self.sequence_length :].values
             X = np.expand_dims(recent_data, axis=0)
 
             pred = self.model.predict(X)[0][0]
@@ -238,19 +220,15 @@ class GRUStrategy(Strategy):
             data = df_feat[numeric_cols].values
             X, y = [], []
             for i in range(len(data) - self.sequence_length - 1):
-                X.append(data[i: (i + self.sequence_length)])
-                y.append(
-                    data[i + self.sequence_length + 1, 0]
-                )  # Close price as target (simplified)
+                X.append(data[i : (i + self.sequence_length)])
+                y.append(data[i + self.sequence_length + 1, 0])  # Close price as target (simplified)
 
             X, y = np.array(X), np.array(y)
 
             if len(X) == 0:
                 return
 
-            self.model = AdvancedModels.build_gru_model(
-                input_shape=(X.shape[1], X.shape[2])
-            )
+            self.model = AdvancedModels.build_gru_model(input_shape=(X.shape[1], X.shape[2]))
             self.model.fit(X, y, epochs=10, batch_size=32, verbose=0)
             self.is_trained = True
             logger.info("GRU model trained")
@@ -271,7 +249,7 @@ class GRUStrategy(Strategy):
             if len(df_feat) < self.sequence_length:
                 return "HOLD"
 
-            recent_data = df_feat[numeric_cols].iloc[-self.sequence_length:].values
+            recent_data = df_feat[numeric_cols].iloc[-self.sequence_length :].values
             X = np.expand_dims(recent_data, axis=0)
 
             pred = self.model.predict(X)[0][0]
@@ -307,7 +285,7 @@ class AttentionLSTMStrategy(Strategy):
             data = df_feat[numeric_cols].values
             X, y = [], []
             for i in range(len(data) - self.sequence_length - 1):
-                X.append(data[i: (i + self.sequence_length)])
+                X.append(data[i : (i + self.sequence_length)])
                 y.append(data[i + self.sequence_length + 1, 0])
 
             X, y = np.array(X), np.array(y)
@@ -315,9 +293,7 @@ class AttentionLSTMStrategy(Strategy):
             if len(X) == 0:
                 return
 
-            self.model = AdvancedModels.build_attention_lstm_model(
-                input_shape=(X.shape[1], X.shape[2])
-            )
+            self.model = AdvancedModels.build_attention_lstm_model(input_shape=(X.shape[1], X.shape[2]))
             self.model.fit(X, y, epochs=10, batch_size=32, verbose=0)
             self.is_trained = True
             logger.info("Attention-LSTM model trained")
@@ -338,7 +314,7 @@ class AttentionLSTMStrategy(Strategy):
             if len(df_feat) < self.sequence_length:
                 return "HOLD"
 
-            recent_data = df_feat[numeric_cols].iloc[-self.sequence_length:].values
+            recent_data = df_feat[numeric_cols].iloc[-self.sequence_length :].values
             X = np.expand_dims(recent_data, axis=0)
 
             pred = self.model.predict(X)[0][0]

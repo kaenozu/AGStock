@@ -4,17 +4,19 @@
 チャート画像付きの通知、重要度フィルタリング、モバイル対応を提供
 """
 
+import io
 import json
 import os
 import tempfile
 from datetime import datetime
 from datetime import time as dt_time
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import pandas as pd
 import requests
+from matplotlib.figure import Figure
 
 from src.notifier import Notifier
 
@@ -36,18 +38,12 @@ class SmartNotifier(Notifier):
         line_cfg = self.notification_settings.get("line", {})
         discord_cfg = self.notification_settings.get("discord", {})
         self.line_token = line_cfg.get("token") if isinstance(line_cfg, dict) else None
-        self.discord_webhook = (
-            discord_cfg.get("webhook_url") if isinstance(discord_cfg, dict) else None
-        )
+        self.discord_webhook = discord_cfg.get("webhook_url") if isinstance(discord_cfg, dict) else None
 
         # 通知フィルタ設定
         self.min_confidence = self.notification_settings.get("min_confidence", 0.7)
-        self.min_expected_return = self.notification_settings.get(
-            "min_expected_return", 0.03
-        )
-        self.quiet_hours = self.parse_quiet_hours(
-            self.notification_settings.get("quiet_hours", "22:00-07:00")
-        )
+        self.min_expected_return = self.notification_settings.get("min_expected_return", 0.03)
+        self.quiet_hours = self.parse_quiet_hours(self.notification_settings.get("quiet_hours", "22:00-07:00"))
 
     def load_config(self, config_path: str) -> Dict:
         """設定ファイルを読み込む"""
@@ -60,10 +56,7 @@ class SmartNotifier(Notifier):
             return {}
 
     def _send_line_notify_impl(
-        self,
-        message: str,
-        token: Optional[str] = None,
-        image_path: Optional[str] = None,
+        self, message: str, token: Optional[str] = None, image_path: Optional[str] = None
     ) -> bool:
         """LINE通知送信（テスト用の簡易実装）"""
         line_token = token or self.line_token
@@ -79,12 +72,7 @@ class SmartNotifier(Notifier):
                     files = {"imageFile": open(image_path, "rb")}
                 except Exception:
                     pass
-            resp = requests.post(
-                "https://notify-api.line.me/api/notify",
-                headers=headers,
-                data=data,
-                files=files,
-            )
+            resp = requests.post("https://notify-api.line.me/api/notify", headers=headers, data=data, files=files)
             return resp.status_code == 200
         except Exception:
             return False
@@ -96,10 +84,7 @@ class SmartNotifier(Notifier):
                     pass
 
     def _send_discord_webhook_impl(
-        self,
-        message: str,
-        webhook_url: Optional[str] = None,
-        image_path: Optional[str] = None,
+        self, message: str, webhook_url: Optional[str] = None, image_path: Optional[str] = None
     ) -> bool:
         """Discord通知送信（テスト用の簡易実装）"""
         webhook = webhook_url or self.discord_webhook
@@ -124,6 +109,31 @@ class SmartNotifier(Notifier):
                 except Exception:
                     pass
 
+    def send_text(self, message: str, title: str = "AGStock Alert") -> bool:
+        """
+        シンプルなテキスト通知をSlack / Discord / LINEの優先順で送信。
+        どのチャネルも設定されていない場合は False を返す。
+        """
+        sent = False
+
+        if self.notify_slack(message, title=title):
+            sent = True
+
+        if self.discord_webhook:
+            sent = self._send_discord_webhook_impl(f"{title}\n{message}", webhook_url=self.discord_webhook) or sent
+
+        if self.line_token:
+            sent = self._send_line_notify_impl(f"{title}\n{message}", token=self.line_token) or sent
+
+        return sent
+
+    def send_data_quality_summary(self, summary_lines: list[str], title: str = "Data Quality Alert") -> bool:
+        """
+        データ品質サマリをまとめて送信するヘルパー。
+        """
+        body = title + "\n" + "\n".join(summary_lines)
+        return self.send_text(body, title=title)
+
     def parse_quiet_hours(self, quiet_hours_str: str) -> tuple:
         """静穏時間を解析（例: "22:00-07:00"）"""
         try:
@@ -131,7 +141,7 @@ class SmartNotifier(Notifier):
             start_hour, start_min = map(int, start_str.split(":"))
             end_hour, end_min = map(int, end_str.split(":"))
             return (dt_time(start_hour, start_min), dt_time(end_hour, end_min))
-        except BaseException:
+        except:
             return (dt_time(22, 0), dt_time(7, 0))  # デフォルト
 
     def is_quiet_time(self) -> bool:
@@ -180,9 +190,7 @@ class SmartNotifier(Notifier):
         risk = signal.get("risk_level", "N/A")
         return f"{ticker} を{action}。戦略: {strategy} / 信頼度 {confidence:.2f} / 期待リターン {exp_return:.1%} / リスク {risk}"
 
-    def create_mini_chart(
-        self, ticker: str, df: pd.DataFrame, signal_action: str
-    ) -> str:
+    def create_mini_chart(self, ticker: str, df: pd.DataFrame, signal_action: str) -> str:
         """ミニチャートを生成してパスを返す"""
         try:
             fig, ax = plt.subplots(figsize=(8, 4), dpi=100)
@@ -191,50 +199,21 @@ class SmartNotifier(Notifier):
             df_recent = df.tail(30)
 
             # 価格チャート
-            ax.plot(
-                df_recent.index,
-                df_recent["Close"],
-                linewidth=2,
-                color="#00D9FF",
-                label="価格",
-            )
+            ax.plot(df_recent.index, df_recent["Close"], linewidth=2, color="#00D9FF", label="価格")
 
             # 移動平均線
             if len(df_recent) >= 20:
                 sma20 = df_recent["Close"].rolling(20).mean()
-                ax.plot(
-                    df_recent.index,
-                    sma20,
-                    linewidth=1,
-                    color="orange",
-                    alpha=0.7,
-                    label="SMA20",
-                )
+                ax.plot(df_recent.index, sma20, linewidth=1, color="orange", alpha=0.7, label="SMA20")
 
             # シグナルマーカー
             last_price = df_recent["Close"].iloc[-1]
             last_date = df_recent.index[-1]
 
             if signal_action == "BUY":
-                ax.scatter(
-                    [last_date],
-                    [last_price],
-                    color="lime",
-                    s=200,
-                    marker="^",
-                    zorder=5,
-                    label="買いシグナル",
-                )
+                ax.scatter([last_date], [last_price], color="lime", s=200, marker="^", zorder=5, label="買いシグナル")
             elif signal_action == "SELL":
-                ax.scatter(
-                    [last_date],
-                    [last_price],
-                    color="red",
-                    s=200,
-                    marker="v",
-                    zorder=5,
-                    label="売りシグナル",
-                )
+                ax.scatter([last_date], [last_price], color="red", s=200, marker="v", zorder=5, label="売りシグナル")
 
             # スタイル設定
             ax.set_facecolor("#1E1E1E")
@@ -251,12 +230,7 @@ class SmartNotifier(Notifier):
             ax.set_title(f"{ticker} - 直近30日", fontsize=14, color="white")
             ax.set_ylabel("価格 (円)", fontsize=10, color="white")
             ax.grid(True, alpha=0.2, color="white")
-            ax.legend(
-                loc="upper left",
-                facecolor="#2E2E2E",
-                edgecolor="white",
-                labelcolor="white",
-            )
+            ax.legend(loc="upper left", facecolor="#2E2E2E", edgecolor="white", labelcolor="white")
 
             # 日付フォーマット
             ax.xaxis.set_major_formatter(mdates.DateFormatter("%m/%d"))
@@ -264,9 +238,7 @@ class SmartNotifier(Notifier):
             plt.tight_layout()
 
             # 一時ファイルに保存
-            temp_file = tempfile.NamedTemporaryFile(
-                delete=False, suffix=".png", prefix="chart_"
-            )
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".png", prefix="chart_")
             fig.savefig(temp_file.name, facecolor="#1E1E1E", dpi=100)
             plt.close(fig)
 
@@ -303,9 +275,7 @@ class SmartNotifier(Notifier):
 
         # メッセージ作成
         action_emoji = "💰" if signal["action"] == "BUY" else "📉"
-        risk_emoji = {"低": "🟢", "中": "🟡", "高": "🔴"}.get(
-            signal.get("risk_level", "中"), "🟡"
-        )
+        risk_emoji = {"低": "🟢", "中": "🟡", "高": "🔴"}.get(signal.get("risk_level", "中"), "🟡")
         explanation = signal.get("explanation") or self._build_explanation(signal)
 
         message = f"""
@@ -320,7 +290,6 @@ class SmartNotifier(Notifier):
 リスク: {risk_emoji} {signal.get('risk_level', '中')}
 
 💡 理由:
-    pass
 {explanation}
 
 📊 戦略: {signal.get('strategy', '不明')}
@@ -329,43 +298,29 @@ class SmartNotifier(Notifier):
         # LINE通知
         line_config = self.notification_settings.get("line", {})
         if line_config.get("enabled"):
-            self.send_line_notify(
-                message, image_path=chart_path, token=line_config.get("token")
-            )
+            self.send_line_notify(message, image_path=chart_path, token=line_config.get("token"))
 
         # Discord通知
         discord_config = self.notification_settings.get("discord", {})
         if discord_config.get("enabled"):
-            self.send_discord_webhook(
-                message, webhook_url=discord_config.get("webhook_url")
-            )
+            self.send_discord_webhook(message, webhook_url=discord_config.get("webhook_url"))
 
         # チャート削除
         if chart_path and os.path.exists(chart_path):
             try:
                 os.unlink(chart_path)
-            except BaseException:
+            except:
                 pass
 
-    def send_line_notify(
-        self,
-        message: str,
-        image_path: Optional[str] = None,
-        token: Optional[str] = None,
-    ) -> bool:
+    def send_line_notify(self, message: str, image_path: Optional[str] = None, token: Optional[str] = None) -> bool:
         """LINE Notifyで通知を送信（boolを返すラッパー）"""
         return self._send_line_notify_impl(message, token=token, image_path=image_path)
 
     def send_discord_webhook(
-        self,
-        message: str,
-        webhook_url: Optional[str] = None,
-        image_path: Optional[str] = None,
+        self, message: str, webhook_url: Optional[str] = None, image_path: Optional[str] = None
     ) -> bool:
         """Discord Webhookで通知を送信（boolを返すラッパー）"""
-        return self._send_discord_webhook_impl(
-            message, webhook_url=webhook_url, image_path=image_path
-        )
+        return self._send_discord_webhook_impl(message, webhook_url=webhook_url, image_path=image_path)
 
     def send_daily_summary_rich(self, summary: Dict):
         """
@@ -392,10 +347,7 @@ class SmartNotifier(Notifier):
         signals_text = "なし"
         if summary.get("signals"):
             signals_text = "\n".join(
-                [
-                    f"  • {s['action']} {s['ticker']} ({s['name']})"
-                    for s in summary["signals"][:5]
-                ]  # 最大5件
+                [f"  • {s['action']} {s['ticker']} ({s['name']})" for s in summary["signals"][:5]]  # 最大5件
             )
 
         message = f"""
@@ -409,15 +361,12 @@ class SmartNotifier(Notifier):
 勝率: {summary.get('win_rate', 0):.0%}
 
 🎯 本日のシグナル:
-    pass
 {signals_text}
 
 🏆 トップパフォーマー:
-    pass
 {summary.get('top_performer', 'データなし')}
 
 💡 アドバイス:
-    pass
 {summary.get('advice', '通常運用を継続してください')}
 """.strip()
 
@@ -428,27 +377,4 @@ class SmartNotifier(Notifier):
 
         discord_config = self.notification_settings.get("discord", {})
         if discord_config.get("enabled"):
-            self.send_discord_webhook(
-                message, webhook_url=discord_config.get("webhook_url")
-            )
-
-    def notify(self, message: str, title: str = "AGStock Alert"):
-        """
-        汎用通知メソッド
-
-        Args:
-            message: 通知メッセージ
-            title: タイトル（Discord用）
-        """
-        # LINE通知
-        line_config = self.notification_settings.get("line", {})
-        if line_config.get("enabled"):
-            self.send_line_notify(message, token=line_config.get("token"))
-
-        # Discord通知
-        discord_config = self.notification_settings.get("discord", {})
-        if discord_config.get("enabled"):
-            full_msg = f"**{title}**\n{message}"
-            self.send_discord_webhook(
-                full_msg, webhook_url=discord_config.get("webhook_url")
-            )
+            self.send_discord_webhook(message, webhook_url=discord_config.get("webhook_url"))

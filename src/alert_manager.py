@@ -1,6 +1,6 @@
 """
-Alert Manager - アラート管理システム
-価格アラート、ポートフォリオアラート、カスタムアラートをサポート
+Alert Manager - アラート管琁E��スチE��
+価格アラート、�Eートフォリオアラート、カスタムアラートをサポ�EチE
 """
 
 import sqlite3
@@ -12,7 +12,7 @@ import pandas as pd
 
 
 class AlertType(Enum):
-    """アラートタイプ"""
+    """アラートタイチE""
 
     PRICE = "price"
     PORTFOLIO = "portfolio"
@@ -30,7 +30,7 @@ class AlertCondition(Enum):
 
 @dataclass
 class Alert:
-    """アラート"""
+    """アラーチE""
 
     id: Optional[int] = None
     type: str = AlertType.PRICE.value
@@ -45,14 +45,14 @@ class Alert:
 
 
 class AlertManager:
-    """アラート管理クラス"""
+    """アラート管琁E��ラス"""
 
     def __init__(self, db_path: str = "alerts.db"):
         self.db_path = db_path
         self._init_database()
 
     def _init_database(self):
-        """データベース初期化"""
+        """チE�Eタベ�Eス初期匁E""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
@@ -90,7 +90,7 @@ class AlertManager:
         conn.close()
 
     def create_alert(self, alert: Alert) -> int:
-        """アラート作成"""
+        """アラート作�E"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
@@ -99,14 +99,7 @@ class AlertManager:
             INSERT INTO alerts (type, ticker, condition, threshold, message, enabled)
             VALUES (?, ?, ?, ?, ?, ?)
         """,
-            (
-                alert.type,
-                alert.ticker,
-                alert.condition,
-                alert.threshold,
-                alert.message,
-                alert.enabled,
-            ),
+            (alert.type, alert.ticker, alert.condition, alert.threshold, alert.message, alert.enabled),
         )
 
         alert_id = cursor.lastrowid
@@ -116,7 +109,7 @@ class AlertManager:
         return alert_id
 
     def get_alerts(self, enabled_only: bool = True) -> List[Alert]:
-        """アラート一覧取得"""
+        """アラート一覧取征E""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
@@ -147,7 +140,7 @@ class AlertManager:
         return alerts
 
     def check_price_alert(self, ticker: str, current_price: float) -> List[Alert]:
-        """価格アラートチェック"""
+        """価格アラートチェチE��"""
         alerts = self.get_alerts()
         triggered_alerts = []
 
@@ -157,20 +150,11 @@ class AlertManager:
 
             should_trigger = False
 
-            if (
-                alert.condition == AlertCondition.ABOVE.value
-                and current_price > alert.threshold
-            ):
+            if alert.condition == AlertCondition.ABOVE.value and current_price > alert.threshold:
                 should_trigger = True
-            elif (
-                alert.condition == AlertCondition.BELOW.value
-                and current_price < alert.threshold
-            ):
+            elif alert.condition == AlertCondition.BELOW.value and current_price < alert.threshold:
                 should_trigger = True
-            elif (
-                alert.condition == AlertCondition.EQUALS.value
-                and abs(current_price - alert.threshold) < 0.01
-            ):
+            elif alert.condition == AlertCondition.EQUALS.value and abs(current_price - alert.threshold) < 0.01:
                 should_trigger = True
 
             if should_trigger:
@@ -179,10 +163,8 @@ class AlertManager:
 
         return triggered_alerts
 
-    def check_portfolio_alert(
-        self, total_equity: float, initial_capital: float
-    ) -> List[Alert]:
-        """ポートフォリオアラートチェック"""
+    def check_portfolio_alert(self, total_equity: float, initial_capital: float) -> List[Alert]:
+        """ポ�EトフォリオアラートチェチE��"""
         alerts = self.get_alerts()
         triggered_alerts = []
 
@@ -194,15 +176,9 @@ class AlertManager:
 
             should_trigger = False
 
-            if (
-                alert.condition == AlertCondition.ABOVE.value
-                and pnl_percent > alert.threshold
-            ):
+            if alert.condition == AlertCondition.ABOVE.value and pnl_percent > alert.threshold:
                 should_trigger = True
-            elif (
-                alert.condition == AlertCondition.BELOW.value
-                and pnl_percent < alert.threshold
-            ):
+            elif alert.condition == AlertCondition.BELOW.value and pnl_percent < alert.threshold:
                 should_trigger = True
 
             if should_trigger:
@@ -216,7 +192,7 @@ class AlertManager:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        # アラートを無効化
+        # アラートを無効匁E
         cursor.execute(
             """
             UPDATE alerts
@@ -249,7 +225,7 @@ class AlertManager:
         conn.close()
 
     def toggle_alert(self, alert_id: int, enabled: bool):
-        """アラート有効/無効切り替え"""
+        """アラート有効/無効刁E��替ぁE""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
@@ -266,7 +242,7 @@ class AlertManager:
         conn.close()
 
     def get_alert_history(self, limit: int = 100) -> pd.DataFrame:
-        """アラート履歴取得"""
+        """アラート履歴取征E""
         conn = sqlite3.connect(self.db_path)
 
         query = """
@@ -292,24 +268,24 @@ class AlertManager:
 
 
 if __name__ == "__main__":
-    # テスト
+    # チE��チE
     manager = AlertManager("test_alerts.db")
 
-    # 価格アラート作成
+    # 価格アラート作�E
     alert1 = Alert(
         type=AlertType.PRICE.value,
         ticker="7203.T",
         condition=AlertCondition.ABOVE.value,
         threshold=1500.0,
-        message="トヨタが1500円を超えました",
+        message="トヨタぁE500冁E��趁E��ました",
     )
     alert_id = manager.create_alert(alert1)
     print(f"Alert created: {alert_id}")
 
-    # アラートチェック
+    # アラートチェチE��
     triggered = manager.check_price_alert("7203.T", 1600.0)
     print(f"Triggered alerts: {len(triggered)}")
 
-    # 履歴取得
+    # 履歴取征E
     history = manager.get_alert_history()
     print(f"Alert history:\n{history}")

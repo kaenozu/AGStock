@@ -63,9 +63,7 @@ class HorizonExpertEnsemble:
             raise ValueError("No trained horizons available.")
         return np.sum(preds, axis=0)
 
-    def predict_interval(
-        self, df: pd.DataFrame, external_features: Optional[Dict] = None
-    ) -> Dict[int, tuple]:
+    def predict_interval(self, df: pd.DataFrame, external_features: Optional[Dict] = None) -> Dict[int, tuple]:
         """ホライズンごとの区間予測を返す。"""
         intervals: Dict[int, tuple] = {}
         for h, model in self.models.items():

@@ -1,4 +1,4 @@
-from typing import Any, Dict
+import datetime
 import logging
 
 import numpy as np
@@ -17,122 +17,6 @@ class FuturePredictor:
     def __init__(self):
         self.lookback = 60
         self.scaler = MinMaxScaler(feature_range=(0, 1))
-        self.model = None
-        self.params = self._load_optimized_params()
-
-    def _load_optimized_params(self) -> Dict[str, Any]:
-        """Load optimized parameters if they exist."""
-        try:
-            import os
-            import json
-            if os.path.exists("model_params.json"):
-                with open("model_params.json", "r", encoding="utf-8") as f:
-                    all_params = json.load(f)
-                    return all_params.get("lstm", {})
-        except Exception:
-            pass
-        return {}
-
-    def prepare_model(self, X, y):
-        """モデル準備"""
-
-    def fit(self, X, y):
-        """モデル学習"""
-        # X: (samples, features) DataFrame
-        # y: (samples,) Target values
-        try:
-            # Prepare data for LSTM (samples, lookback, features)
-            data_np = X.values if hasattr(X, "values") else X
-            target_np = y.values if hasattr(y, "values") else y
-
-            # Simple scaling
-            scaled_X = self.scaler.fit_transform(data_np)
-
-            # Create sequences
-            # Since X and y are aligned (X[t] -> y[t]), and we want to predict y[t] using X[t-lookback:t]
-            # But EnhancedEnsemblePredictor passes shifted y?
-            # y is shift(-1) of pct_change. So X[t] predicts y[t].
-            # For LSTM, we usually use sequence.
-
-            X_seq, y_seq = [], []
-            if len(scaled_X) <= self.lookback:
-                logger.warning("Not enough data for LSTM fit")
-                return
-
-            for i in range(self.lookback, len(scaled_X)):
-                X_seq.append(scaled_X[i - self.lookback:i])
-                y_seq.append(target_np[i])
-
-            X_seq, y_seq = np.array(X_seq), np.array(y_seq)
-
-            if len(X_seq) == 0:
-                return
-
-            self.model = Sequential()
-
-            # Use optimized params
-            hidden_dim = self.params.get("hidden_dim", 50)
-            num_layers = self.params.get("num_layers", 1)
-            dropout_rate = self.params.get("dropout", 0.2)
-            lr = self.params.get("learning_rate", 0.001)
-
-            for i in range(num_layers):
-                is_last = (i == num_layers - 1)
-                self.model.add(
-                    LSTM(
-                        units=hidden_dim,
-                        return_sequences=not is_last,
-                        input_shape=(
-                            X_seq.shape[1],
-                            X_seq.shape[2])))
-                self.model.add(Dropout(dropout_rate))
-
-            self.model.add(Dense(units=1))
-            self.model.compile(optimizer=Adam(learning_rate=lr), loss="mean_squared_error")
-
-            epochs = self.params.get("epochs", 5)
-            batch_size = self.params.get("batch_size", 32)
-            self.model.fit(X_seq, y_seq, epochs=epochs, batch_size=batch_size, verbose=0)
-
-        except Exception as e:
-            logger.error(f"FuturePredictor fit error: {e}")
-
-    def predict(self, X):
-        """予測実行"""
-        if self.model is None:
-            return np.zeros(len(X))
-
-        try:
-            data_np = X.values if hasattr(X, "values") else X
-            scaled_X = self.scaler.transform(data_np)
-
-            X_seq = []
-            # For prediction, we need to handle sequences.
-            # If X is provided for multiple points, we treat each as the end of a sequence?
-            # This is tricky without history.
-            # Assuming X contains history.
-            if len(scaled_X) <= self.lookback:
-                return np.zeros(len(X))
-
-            for i in range(len(scaled_X)):
-                if i < self.lookback:
-                    X_seq.append(np.zeros((self.lookback, scaled_X.shape[1])))  # Padding
-                else:
-                    X_seq.append(scaled_X[i - self.lookback:i])
-
-            X_seq = np.array(X_seq)
-            pred = self.model.predict(X_seq, verbose=0)
-            return pred.flatten()
-
-        except Exception as e:
-            logger.error(f"FuturePredictor predict error: {e}")
-            return np.zeros(len(X))
-
-    def predict_point(self, current_features):
-        """単一点予測"""
-        # 単一点といってもLSTMには履歴が必要
-        # current_featuresだけで予測は不可能
-        return 0.0
 
     def predict_trajectory(self, df: pd.DataFrame, days_ahead: int = 5) -> dict:
         """
@@ -183,7 +67,7 @@ class FuturePredictor:
 
             X, y = [], []
             for i in range(adjusted_lookback, len(scaled_data)):
-                X.append(scaled_data[i - adjusted_lookback: i])
+                X.append(scaled_data[i - adjusted_lookback : i])
                 y.append(scaled_data[i, 0])  # Target is Close price (index 0)
 
             X, y = np.array(X), np.array(y)

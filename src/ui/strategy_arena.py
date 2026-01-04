@@ -5,18 +5,14 @@ Allows users to compare multiple trading strategies on historical data.
 
 import logging
 
+import pandas as pd
 import streamlit as st
 
 from src.backtest_engine import HistoricalBacktester
 from src.constants import NIKKEI_225_TICKERS, TICKER_NAMES
 from src.strategies import MultiTimeframeStrategy  # New
 from src.strategies import SMACrossoverStrategy  # Corrected
-from src.strategies import (
-    BollingerBandsStrategy,
-    LightGBMStrategy,
-    MLStrategy,
-    RSIStrategy,
-)
+from src.strategies import BollingerBandsStrategy, LightGBMStrategy, MLStrategy, RSIStrategy
 
 # Try importing RL Strategy, but don't crash if missing deps
 try:
@@ -42,14 +38,9 @@ def render_strategy_arena():
 
         # Ticker Selection
         # Create a display list "Code: Name"
-        ticker_options = {
-            t: f"{t}: {TICKER_NAMES.get(t, 'Unknown')}" for t in NIKKEI_225_TICKERS
-        }
+        ticker_options = {t: f"{t}: {TICKER_NAMES.get(t, 'Unknown')}" for t in NIKKEI_225_TICKERS}
         selected_ticker = st.selectbox(
-            "銘柄選択",
-            options=list(ticker_options.keys()),
-            format_func=lambda x: ticker_options[x],
-            index=0,
+            "銘柄選択", options=list(ticker_options.keys()), format_func=lambda x: ticker_options[x], index=0
         )
 
         # Period Selection
@@ -58,24 +49,16 @@ def render_strategy_arena():
         # Strategy Selection
         st.markdown("### 参戦する戦略")
 
-        use_mtf = st.checkbox(
-            "Multi-Timeframe (New)", value=True, help="週足トレンドを考慮した高度な戦略"
-        )
+        use_mtf = st.checkbox("Multi-Timeframe (New)", value=True, help="週足トレンドを考慮した高度な戦略")
         use_lightgbm = st.checkbox("LightGBM (AI)", value=True)
-        auto_tune = st.checkbox(
-            "🧩 Auto-Tune LightGBM", value=False, disabled=not use_lightgbm
-        )
+        auto_tune = st.checkbox("🧩 Auto-Tune LightGBM", value=False, disabled=not use_lightgbm)
         use_ml_rf = st.checkbox("Random Forest (AI)", value=False)
-        use_rl = st.checkbox(
-            "Reinforcement Learning (AI)", value=HAS_RL, disabled=not HAS_RL
-        )
+        use_rl = st.checkbox("Reinforcement Learning (AI)", value=HAS_RL, disabled=not HAS_RL)
         use_rsi = st.checkbox("RSI (Technical)", value=False)
         use_bb = st.checkbox("Bollinger Bands", value=False)
         use_sma = st.checkbox("SMA Crossover (Baseline)", value=True)  # Renamed
 
-        start_btn = st.button(
-            "🔥 バトル開始！", type="primary", use_container_width=True
-        )
+        start_btn = st.button("🔥 バトル開始！", type="primary", use_container_width=True)
 
     # --- Main Area ---
     with col2:
@@ -83,12 +66,12 @@ def render_strategy_arena():
             st.info("👈 左側の設定を選んで「バトル開始」を押してください。")
             st.markdown(
                 """
-### 使い方
+            ### 使い方
             1. **銘柄**を選びます (例: トヨタ自動車)。
             2. **期間**を設定します (長期間ほど信頼性が高まります)。
             3. **比較したい戦略**にチェックを入れます。
             4. **バトル開始**ボタンをクリック！
-
+            
             **Update**: New! **Multi-Timeframe** 戦略が追加されました。週足トレンドを見てダマシを防ぎます。
             """
             )
@@ -106,34 +89,24 @@ def render_strategy_arena():
         if use_rl and HAS_RL:
             strategies.append((RLStrategy, {}))
         if use_rsi:
-            strategies.append(
-                (RSIStrategy, {"period": 14, "lower": 30, "upper": 70})
-            )  # Fixed params
+            strategies.append((RSIStrategy, {"period": 14, "lower": 30, "upper": 70}))  # Fixed params
         if use_bb:
             strategies.append((BollingerBandsStrategy, {}))
         if use_sma:
-            strategies.append(
-                (SMACrossoverStrategy, {"short_window": 5, "long_window": 20})
-            )
+            strategies.append((SMACrossoverStrategy, {"short_window": 5, "long_window": 20}))
 
         if not strategies:
             st.error("少なくとも1つの戦略を選択してください。")
             return
 
         # Run Backtest
-        with st.spinner(
-            f"{selected_ticker} の過去 {years} 年間のデータを分析中... AIが思考しています..."
-        ):
+        with st.spinner(f"{selected_ticker} の過去 {years} 年間のデータを分析中... AIが思考しています..."):
             try:
                 engine = HistoricalBacktester(initial_capital=1000000)
-                metrics_df, equity_df = engine.compare_strategies(
-                    selected_ticker, strategies, years=years
-                )
+                metrics_df, equity_df = engine.compare_strategies(selected_ticker, strategies, years=years)
 
                 if metrics_df.empty:
-                    st.error(
-                        "バックテスト結果が取得できませんでした。データ不足の可能性があります。"
-                    )
+                    st.error("バックテスト結果が取得できませんでした。データ不足の可能性があります。")
                     return
 
                 # --- Results Display ---
@@ -151,9 +124,7 @@ def render_strategy_arena():
 
                 # Highlight best performer
                 best_return = display_df["Total Return"].idxmax()
-                st.success(
-                    f"🏆 優勝: **{best_return}** (リターン: {display_df.loc[best_return, 'Total Return']:.1%})"
-                )
+                st.success(f"🏆 優勝: **{best_return}** (リターン: {display_df.loc[best_return, 'Total Return']:.1%})")
 
                 # Formatting
                 st.dataframe(
@@ -196,13 +167,9 @@ def render_strategy_arena():
                         )
 
                         if rl_ret > lgbm_ret:
-                            st.write(
-                                "🤖 **強化学習(RL)がLightGBMを上回りました！** AIの学習効果が出ています。"
-                            )
+                            st.write("🤖 **強化学習(RL)がLightGBMを上回りました！** AIの学習効果が出ています。")
                         else:
-                            st.write(
-                                "🤖 LightGBMの方が安定しています。RLはさらなる学習が必要かもしれません。"
-                            )
+                            st.write("🤖 LightGBMの方が安定しています。RLはさらなる学習が必要かもしれません。")
 
             except Exception as e:
                 import traceback

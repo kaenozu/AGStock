@@ -48,9 +48,50 @@ except ImportError:
 
 T = TypeVar("T")
 
+CRYPTO_PAIRS = [
+    "BTC-USD",
+    "ETH-USD",
+    "XRP-USD",
+    "SOL-USD",
+    "DOGE-USD",
+    "BNB-USD",
+    "ADA-USD",
+    "MATIC-USD",
+    "DOT-USD",
+    "LTC-USD",
+]
+
+FX_PAIRS = [
+    "USDJPY=X",
+    "EURUSD=X",
+    "GBPUSD=X",
+    "AUDUSD=X",
+    "USDCAD=X",
+    "USDCHF=X",
+    "EURJPY=X",
+    "GBPJPY=X",
+]
+
+JP_STOCKS = [
+    "7203.T",
+    "9984.T",
+    "6758.T",
+    "8035.T",
+    "6861.T",
+    "6098.T",
+    "4063.T",
+    "6367.T",
+    "6501.T",
+    "7974.T",
+    "9432.T",
+    "8306.T",
+    "7267.T",
+    "4502.T",
+    "6954.T",
+]
+
+
 # シングルトンキャッシュインスタンスの作成
-
-
 def _create_cache_instance():
     """キャッシュマネージャーのインスタンスを作成"""
     if HAS_PERSISTENT_CACHE and CacheManager is not None:
@@ -65,9 +106,7 @@ def _create_cache_instance():
 _cache_instance: Optional[CacheManager] = _create_cache_instance()
 _realtime_cache: Dict[str, tuple[float, pd.DataFrame]] = {}
 try:
-    _DEFAULT_REALTIME_TTL = int(
-        os.getenv("REALTIME_TTL_SECONDS", str(DEFAULT_REALTIME_TTL_SECONDS))
-    )
+    _DEFAULT_REALTIME_TTL = int(os.getenv("REALTIME_TTL_SECONDS", str(DEFAULT_REALTIME_TTL_SECONDS)))
 except Exception:
     _DEFAULT_REALTIME_TTL = DEFAULT_REALTIME_TTL_SECONDS
 
@@ -123,9 +162,7 @@ def _attempt_async_fetch(
         max_concurrent = 10
 
     async def _runner() -> Dict[str, pd.DataFrame]:
-        return await loader.fetch_multiple_async(
-            list(tickers), period, interval, max_concurrent=max_concurrent
-        )
+        return await loader.fetch_multiple_async(list(tickers), period, interval, max_concurrent=max_concurrent)
 
     try:
         return _run_coroutine(_runner)
@@ -177,11 +214,7 @@ def _download_and_cache_missing(
         raise DataLoadError(
             message=f"Failed to download data for tickers: {tickers}",
             ticker=",".join(tickers) if tickers else None,
-            details={
-                "period": period,
-                "interval": interval,
-                "original_error": str(exc),
-            },
+            details={"period": period, "interval": interval, "original_error": str(exc)},
         ) from exc
 
     if raw.empty:
@@ -253,12 +286,14 @@ def process_downloaded_data(
         # --- Strict Data Quality Check ---
         if len(df) < MINIMUM_DATA_POINTS:
             logger.warning(
-                f"Ticker {ticker} specifically excluded: insufficient data points ({len(df)} < {MINIMUM_DATA_POINTS})"
+                f"Ticker {ticker} specifically excluded: "
+                f"insufficient data points ({len(df)} < {MINIMUM_DATA_POINTS})"
             )
             continue
 
         # --- Outlier Clipping ---
-        # Clip daily returns > 20% (approx) to strictly avoid noise from bad data ticks
+        # Clip daily returns > 20% (approx) to strictly avoid
+        # noise from bad data ticks
         # Simple heuristic: If Close price changes by > 20% in one day AND reverts, it might be an error.
         # Here we just clip the high/low/close to ensure no single day creates massive gradients.
         # Note: This is a simple rigorous clip. Real market crash could be 20%, but reliable stocks rarely move that much.
@@ -281,6 +316,7 @@ def process_downloaded_data(
             # For now, we do NOT drop them to avoid breaking series continuity blindly,
             # but we will log it. The user request implies "clipping".
             # Let's simple clip columns if they exist.
+            pass
 
         if not df.empty:
             processed[ticker] = df
@@ -306,7 +342,6 @@ def parse_period(period: str) -> datetime:
 def _sanitize_price_history(df: pd.DataFrame) -> pd.DataFrame:
     """
     軽量なデータサニタイズ:
-        pass
     - 日付順ソート・重複除去
     - 未来日付の除外
     - 価格列の外れ値クリップ (1%/99%分位)
@@ -329,12 +364,10 @@ def _sanitize_price_history(df: pd.DataFrame) -> pd.DataFrame:
     if idx.tzinfo is not None:
         clean.index = idx.tz_convert(None)
 
-    now = pd.Timestamp.utcnow().tz_localize(None)
+    now = pd.Timestamp.utcnow()
     clean = clean[clean.index <= now + pd.Timedelta(minutes=1)]
 
-    price_cols = [
-        c for c in ["Open", "High", "Low", "Close", "Adj Close"] if c in clean.columns
-    ]
+    price_cols = [c for c in ["Open", "High", "Low", "Close", "Adj Close"] if c in clean.columns]
     for col in price_cols:
         try:
             q_low = clean[col].quantile(0.01)
@@ -378,9 +411,7 @@ def fetch_stock_data(
         if needs_refresh:
             need_refresh.append(ticker)
 
-    downloaded = _download_and_cache_missing(
-        need_refresh, period, interval, start_date, db
-    )
+    downloaded = _download_and_cache_missing(need_refresh, period, interval, start_date, db)
     result.update(downloaded)
 
     # Sanitize to avoid leaks/outliers
@@ -516,9 +547,7 @@ def fetch_market_summary() -> tuple[pd.DataFrame, Dict[str, Any]]:
     return summary_df, stats
 
 
-DEFAULT_BACKOFF = int(
-    os.getenv("REALTIME_BACKOFF_SECONDS", str(DEFAULT_REALTIME_BACKOFF_SECONDS))
-)
+DEFAULT_BACKOFF = int(os.getenv("REALTIME_BACKOFF_SECONDS", str(DEFAULT_REALTIME_BACKOFF_SECONDS)))
 
 
 @retry_with_backoff(retries=2, backoff_in_seconds=DEFAULT_BACKOFF)
@@ -563,14 +592,3 @@ def fetch_realtime_data(
     df.dropna(inplace=True)
     _realtime_cache[cache_key] = (now, df)
     return df.copy()
-
-
-# Re-export constants for backward compatibility
-__all__ = [
-    "CRYPTO_PAIRS",
-    "FX_PAIRS",
-    "JP_STOCKS",
-    "fetch_realtime_data",
-    "fetch_stock_data",
-    "process_downloaded_data",
-]

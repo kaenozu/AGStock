@@ -29,9 +29,7 @@ class WalkForwardBlender:
     - DriftMonitor で特徴分布の変化を検知し再学習判定
     """
 
-    def __init__(
-        self, n_splits: int = 4, horizon: int = 1, random_state: int = 42
-    ) -> None:
+    def __init__(self, n_splits: int = 4, horizon: int = 1, random_state: int = 42) -> None:
         self.n_splits = n_splits
         self.horizon = horizon
         self.meta_model = LinearRegression()
@@ -50,9 +48,7 @@ class WalkForwardBlender:
         external_features: Optional[Dict] = None,
         label_smoothing: float = 0.0,
     ) -> Tuple[np.ndarray, np.ndarray, pd.DataFrame]:
-        feats = generate_enhanced_features(
-            df.copy(), external_features=external_features
-        )
+        feats = generate_enhanced_features(df.copy(), external_features=external_features)
         feats = feats.sort_index()
         feats["target"] = feats[target_col].shift(-self.horizon)
         feats = feats.dropna()
@@ -69,14 +65,9 @@ class WalkForwardBlender:
     def _fit_base_models(self, X: np.ndarray, y: np.ndarray) -> Dict[str, object]:
         models: Dict[str, object] = {
             "lgbm": lgb.LGBMRegressor(
-                num_leaves=31,
-                learning_rate=0.05,
-                n_estimators=200,
-                random_state=self.random_state,
+                num_leaves=31, learning_rate=0.05, n_estimators=200, random_state=self.random_state
             ),
-            "rf": RandomForestRegressor(
-                n_estimators=200, max_depth=8, random_state=self.random_state, n_jobs=-1
-            ),
+            "rf": RandomForestRegressor(n_estimators=200, max_depth=8, random_state=self.random_state, n_jobs=-1),
             "lin": LinearRegression(),
         }
         try:
@@ -101,18 +92,10 @@ class WalkForwardBlender:
         models: Dict[str, object] = {}
         try:
             models["p20"] = lgb.LGBMRegressor(
-                objective="quantile",
-                alpha=0.2,
-                learning_rate=0.05,
-                n_estimators=200,
-                random_state=self.random_state,
+                objective="quantile", alpha=0.2, learning_rate=0.05, n_estimators=200, random_state=self.random_state
             )
             models["p80"] = lgb.LGBMRegressor(
-                objective="quantile",
-                alpha=0.8,
-                learning_rate=0.05,
-                n_estimators=200,
-                random_state=self.random_state,
+                objective="quantile", alpha=0.8, learning_rate=0.05, n_estimators=200, random_state=self.random_state
             )
             for m in models.values():
                 m.fit(X, y)
@@ -128,18 +111,13 @@ class WalkForwardBlender:
         label_smoothing: float = 0.05,
     ) -> Dict[str, float]:
         X, y, feats = self._prepare_xy(
-            df,
-            target_col=target_col,
-            external_features=external_features,
-            label_smoothing=label_smoothing,
+            df, target_col=target_col, external_features=external_features, label_smoothing=label_smoothing
         )
 
         # データ品質チェック
         self.quality_report = compute_quality_score(feats)
         if self.quality_report.score < 0.55:
-            raise ValueError(
-                f"Data quality too low (score={self.quality_report.score:.2f})"
-            )
+            raise ValueError(f"Data quality too low (score={self.quality_report.score:.2f})")
         if len(y) < self.n_splits + 5:
             raise ValueError("Insufficient rows for walk-forward blending.")
 
@@ -152,9 +130,7 @@ class WalkForwardBlender:
             y_train, y_val = y[train_idx], y[val_idx]
 
             base_models = self._fit_base_models(X_train, y_train)
-            val_preds = np.column_stack(
-                [m.predict(X_val) for m in base_models.values()]
-            )
+            val_preds = np.column_stack([m.predict(X_val) for m in base_models.values()])
             meta_X.append(val_preds)
             meta_y.append(y_val)
 
@@ -175,67 +151,38 @@ class WalkForwardBlender:
         logger.info("WalkForwardBlender trained: RMSE=%.4f, MAE=%.4f", rmse, mae)
         return self.metrics
 
-    def predict(
-        self, df: pd.DataFrame, external_features: Optional[Dict] = None
-    ) -> np.ndarray:
+    def predict(self, df: pd.DataFrame, external_features: Optional[Dict] = None) -> np.ndarray:
         if not self.base_models:
             raise ValueError("Model not trained. Call fit() first.")
-        feats = generate_enhanced_features(
-            df.copy(), external_features=external_features
-        )
+        feats = generate_enhanced_features(df.copy(), external_features=external_features)
         feats = feats.sort_index()
         feats = feats[self.feature_cols].fillna(method="ffill").fillna(method="bfill")
-        base_preds = np.column_stack(
-            [model.predict(feats.values) for model in self.base_models.values()]
-        )
+        base_preds = np.column_stack([model.predict(feats.values) for model in self.base_models.values()])
         return self.meta_model.predict(base_preds)
 
     def predict_interval(
-        self,
-        df: pd.DataFrame,
-        external_features: Optional[Dict] = None,
-        alpha: float = 0.2,
+        self, df: pd.DataFrame, external_features: Optional[Dict] = None, alpha: float = 0.2
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """下限・中央値・上限を返す。quantileモデルがなければ簡易幅で代替。"""
         median = self.predict(df, external_features=external_features)
         if self.quantile_models:
-            feats = generate_enhanced_features(
-                df.copy(), external_features=external_features
-            )
+            feats = generate_enhanced_features(df.copy(), external_features=external_features)
             feats = feats.sort_index()
-            feats = (
-                feats[self.feature_cols].fillna(method="ffill").fillna(method="bfill")
-            )
-            lower = (
-                self.quantile_models.get("p20").predict(feats.values)
-                if self.quantile_models.get("p20")
-                else median
-            )
-            upper = (
-                self.quantile_models.get("p80").predict(feats.values)
-                if self.quantile_models.get("p80")
-                else median
-            )
+            feats = feats[self.feature_cols].fillna(method="ffill").fillna(method="bfill")
+            lower = self.quantile_models.get("p20").predict(feats.values) if self.quantile_models.get("p20") else median
+            upper = self.quantile_models.get("p80").predict(feats.values) if self.quantile_models.get("p80") else median
             return lower, median, upper
 
         std_est = np.std(median) if len(median) > 1 else 0.0
         delta = 1.28 * std_est  # ~80% CI
         return median - delta, median, median + delta
 
-    def needs_retrain(
-        self, df: pd.DataFrame, external_features: Optional[Dict] = None
-    ) -> Tuple[bool, Dict]:
+    def needs_retrain(self, df: pd.DataFrame, external_features: Optional[Dict] = None) -> Tuple[bool, Dict]:
         """ドリフト監視に基づく再学習判定を返す。"""
         if not self.base_models:
             return True, {"reason": "untrained"}
-        feats = generate_enhanced_features(
-            df.copy(), external_features=external_features
-        )
+        feats = generate_enhanced_features(df.copy(), external_features=external_features)
         feats = feats.sort_index()
-        aligned = (
-            feats[self.feature_cols]
-            if self.feature_cols
-            else feats.select_dtypes(include=[np.number])
-        )
+        aligned = feats[self.feature_cols] if self.feature_cols else feats.select_dtypes(include=[np.number])
         result = self.drift_monitor.check(aligned)
         return result.drift_detected, result.details

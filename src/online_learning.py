@@ -25,11 +25,7 @@ class OnlineLearner:
     """
 
     def __init__(
-        self,
-        base_model,
-        update_frequency: str = "daily",
-        decay_rate: float = 0.95,
-        performance_threshold: float = 0.95,
+        self, base_model, update_frequency: str = "daily", decay_rate: float = 0.95, performance_threshold: float = 0.95
     ):
         """
         Args:
@@ -50,10 +46,7 @@ class OnlineLearner:
         logger.info(f"OnlineLearner initialized with {update_frequency} updates")
 
     def incremental_fit(
-        self,
-        X_new: pd.DataFrame,
-        y_new: pd.Series,
-        sample_weight: Optional[np.ndarray] = None,
+        self, X_new: pd.DataFrame, y_new: pd.Series, sample_weight: Optional[np.ndarray] = None
     ) -> None:
         """
         新しいデータで増分学習
@@ -72,23 +65,14 @@ class OnlineLearner:
             # LightGBMの場合
             if hasattr(self.base_model, "booster_"):
                 # 既存モデルを初期値として新しいデータで再訓練
-                self.base_model.fit(
-                    X_new,
-                    y_new,
-                    sample_weight=sample_weight,
-                    init_model=self.base_model.booster_,
-                )
+                self.base_model.fit(X_new, y_new, sample_weight=sample_weight, init_model=self.base_model.booster_)
             else:
                 # 通常の再訓練
                 self.base_model.fit(X_new, y_new, sample_weight=sample_weight)
 
             self.last_update = datetime.now()
             self.update_history.append(
-                {
-                    "timestamp": self.last_update,
-                    "n_samples": len(X_new),
-                    "avg_weight": sample_weight.mean(),
-                }
+                {"timestamp": self.last_update, "n_samples": len(X_new), "avg_weight": sample_weight.mean()}
             )
 
             logger.info(f"Model updated successfully at {self.last_update}")
@@ -117,9 +101,7 @@ class OnlineLearner:
 
         return weights
 
-    def evaluate_and_update(
-        self, X_test: pd.DataFrame, y_test: pd.Series
-    ) -> Dict[str, Any]:
+    def evaluate_and_update(self, X_test: pd.DataFrame, y_test: pd.Series) -> Dict[str, Any]:
         """
         モデルの性能評価と更新判断
 
@@ -137,26 +119,17 @@ class OnlineLearner:
 
         # 性能評価
         accuracy = accuracy_score(y_test, predictions)
-        precision = precision_score(
-            y_test, predictions, average="weighted", zero_division=0
-        )
+        precision = precision_score(y_test, predictions, average="weighted", zero_division=0)
         recall = recall_score(y_test, predictions, average="weighted", zero_division=0)
 
         # 履歴に追加
-        performance = {
-            "timestamp": datetime.now(),
-            "accuracy": accuracy,
-            "precision": precision,
-            "recall": recall,
-        }
+        performance = {"timestamp": datetime.now(), "accuracy": accuracy, "precision": precision, "recall": recall}
         self.performance_history.append(performance)
 
         # 更新が必要か判断
         needs_update = self._check_performance_degradation()
 
-        logger.info(
-            f"Performance: Accuracy={accuracy:.4f}, Precision={precision:.4f}, Recall={recall:.4f}"
-        )
+        logger.info(f"Performance: Accuracy={accuracy:.4f}, Precision={precision:.4f}, Recall={recall:.4f}")
         logger.info(f"Update needed: {needs_update}")
 
         return {
@@ -271,9 +244,7 @@ class OnlineLearner:
             "last_update": self.last_update,
             "recent_accuracy_avg": np.mean([p["accuracy"] for p in recent_performance]),
             "recent_accuracy_std": np.std([p["accuracy"] for p in recent_performance]),
-            "recent_precision_avg": np.mean(
-                [p["precision"] for p in recent_performance]
-            ),
+            "recent_precision_avg": np.mean([p["precision"] for p in recent_performance]),
             "recent_recall_avg": np.mean([p["recall"] for p in recent_performance]),
             "performance_trend": self._calculate_trend(),
         }

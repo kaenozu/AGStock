@@ -467,7 +467,7 @@ class Backtester:
         highest_prices,
         stop_loss,
         take_profit,
-        trailing_stop
+        trailing_stop,
     ):
         """Simulation loop extracted from run method to reduce complexity."""
         # Main simulation loop (skip last day – no next open price)

@@ -61,7 +61,7 @@ def run_morning_playbook(use_demo: bool = False) -> Dict:
         eq = demo_data.generate_equity_history(days=60)
         eq["return"] = eq["total_equity"].pct_change()
         win_rate = float((eq["return"] > 0).mean())
-        sharpe = float(eq["return"].mean() / (eq["return"].std() + 1e-6) * (252 ** 0.5))
+        sharpe = float(eq["return"].mean() / (eq["return"].std() + 1e-6) * (252**0.5))
     else:
         try:
             metrics = compute_metrics()
@@ -71,7 +71,7 @@ def run_morning_playbook(use_demo: bool = False) -> Dict:
             eq = demo_data.generate_equity_history(days=60)
             eq["return"] = eq["total_equity"].pct_change()
             win_rate = float((eq["return"] > 0).mean())
-            sharpe = float(eq["return"].mean() / (eq["return"].std() + 1e-6) * (252 ** 0.5))
+            sharpe = float(eq["return"].mean() / (eq["return"].std() + 1e-6) * (252**0.5))
 
     checklist = [
         f"現金比率: {kpis['cash'] / kpis['equity']:.0%} / エクスポージャー: {kpis['exposure']:.0%}",
@@ -98,9 +98,7 @@ def run_noon_playbook(use_demo: bool = False) -> Dict:
     sector_overweight = False
     if not positions.empty and "sector" in positions:
         sector_weights = (
-            positions.assign(value=positions["quantity"] * positions["current_price"])
-            .groupby("sector")["value"]
-            .sum()
+            positions.assign(value=positions["quantity"] * positions["current_price"]).groupby("sector")["value"].sum()
         )
         if kpis["equity"]:
             sector_overweight = (sector_weights / kpis["equity"]).max() > 0.4
