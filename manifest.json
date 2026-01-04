@@ -1,0 +1,71 @@
+{
+  "short_name": "AGStock",
+  "name": "AGStock - AI Stock Trading",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#667eea",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "description": "AI-powered stock trading system for individual investors",
+  "lang": "ja",
+  "categories": ["finance", "business", "productivity"],
+  "shortcuts": [
+    {
+      "name": "ダッシュボード",
+      "short_name": "ダッシュ",
+      "description": "ポートフォリオ概要",
+      "url": "/?page=dashboard",
+      "icons": [{ "src": "icons/dashboard.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "取引",
+      "short_name": "取引",
+      "description": "クイック取引",
+      "url": "/?page=trading",
+      "icons": [{ "src": "icons/trading.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "AIアシスタント",
+      "short_name": "AI",
+      "description": "AI投資アシスタント",
+      "url": "/?page=ai-assistant",
+      "icons": [{ "src": "icons/ai.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "デスクトップ表示"
+    },
+    {
+      "src": "screenshots/mobile.png",
+      "sizes": "375x667",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "モバイル表示"
+    }
+  ],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "focus-existing"]
+  }
+}
