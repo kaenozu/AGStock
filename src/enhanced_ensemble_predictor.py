@@ -17,11 +17,12 @@
 """
 
 import logging
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union, Any
 
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from tensorflow import keras
 
 from src.advanced_ensemble import create_model_diversity_ensemble
 from src.advanced_models import AdvancedModels
@@ -58,7 +59,7 @@ class EnhancedEnsemblePredictor:
     - より高精度な予測を実現
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.transformer_predictor = TransformerPredictor()
         self.advanced_models = AdvancedModels()
         self.lgbm_predictor = LGBMPredictor()
@@ -76,7 +77,9 @@ class EnhancedEnsemblePredictor:
         self.xai_framework = XAIFramework()
 
         # アンサンブル統合器
-        self.ensemble_strategy = "stacking"  # または "dynamic_weighting", "diversity" など
+        self.ensemble_strategy = (
+            "stacking"  # または "dynamic_weighting", "diversity" など
+        )
         self.advanced_ensemble = None
         self.diversity_ensemble = create_model_diversity_ensemble()
         self.hyperparameter_optimizer = MultiModelOptimizer()
@@ -89,7 +92,9 @@ class EnhancedEnsemblePredictor:
 
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    def _prepare_features(self, data: pd.DataFrame, ticker: str, fundamentals: Dict = None) -> pd.DataFrame:
+    def _prepare_features(
+        self, data: pd.DataFrame, ticker: str, fundamentals: Dict = None
+    ) -> pd.DataFrame:
         """
         予測に使用する特徴量を準備
         - 価格ベース特徴量
@@ -260,18 +265,26 @@ class EnhancedEnsemblePredictor:
             self.scenario_predictor,
             self.realtime_pipeline,
         ]
-        self.advanced_ensemble = StackingEnsemble(base_models=base_models, meta_model=meta_model)
+        self.advanced_ensemble = StackingEnsemble(
+            base_models=base_models, meta_model=meta_model
+        )
 
         # モデル全体の学習完了
         self.is_fitted = True
 
         # MLOpsマネージャーに学習済みモデルを登録（仮）
-        self.mlops_manager.log_model(self.advanced_ensemble, model_name=f"EnhancedEnsemble_{ticker}")
+        self.mlops_manager.log_model(
+            self.advanced_ensemble, model_name=f"EnhancedEnsemble_{ticker}"
+        )
 
         self.logger.info(f"EnhancedEnsemblePredictor fitted for {ticker}")
 
     def predict_trajectory(
-        self, data: pd.DataFrame, days_ahead: int = 5, ticker: str = "unknown", fundamentals: Dict = None
+        self,
+        data: pd.DataFrame,
+        days_ahead: int = 5,
+        ticker: str = "unknown",
+        fundamentals: Dict = None,
     ) -> Dict:
         """
         今後の価格変動を予測（軌跡）
@@ -318,7 +331,9 @@ class EnhancedEnsemblePredictor:
 
         # 3. 価格変動率から価格に変換（現在価格を基準）
         current_price = data["Close"].iloc[-1]
-        predicted_changes = ensemble_pred  # これは価格変動率の予測値（例: 0.01 は 1% 上昇）
+        predicted_changes = (
+            ensemble_pred  # これは価格変動率の予測値（例: 0.01 は 1% 上昇）
+        )
         predicted_price = current_price * (1 + predicted_changes)
 
         # 4. 方向性の判断（UP/DOWN/FLAT）
@@ -333,28 +348,40 @@ class EnhancedEnsemblePredictor:
         model_predictions = [pred for pred in prediction_details.values()]
         if len(model_predictions) > 1:
             std_dev = np.std(model_predictions, axis=0)
-            confidence = 1.0 / (1.0 + std_dev)  # 標準偏差が小さいほど信頼度が高い（簡略化）
+            confidence = 1.0 / (
+                1.0 + std_dev
+            )  # 標準偏差が小さいほど信頼度が高い（簡略化）
         else:
             confidence = 0.5  # 単一モデルの場合は中間の信頼度
 
         # 6. XAIによる説明可能性
         explanations = self.xai_framework.explain_prediction(
-            model=self.advanced_ensemble, X=current_features, prediction=predicted_changes
+            model=self.advanced_ensemble,
+            X=current_features,
+            prediction=predicted_changes,
         )
 
         # 7. ファンダメンタルズ評価
-        fundamental_score = self.fundamental_analyzer.analyze(ticker) if self.fundamental_analyzer else None
+        fundamental_score = (
+            self.fundamental_analyzer.analyze(ticker)
+            if self.fundamental_analyzer
+            else None
+        )
 
         # 8. リスク調整された予測（オプション）
         risk_adjusted_pred = (
-            self.risk_predictor.adjust_prediction(prediction=predicted_changes, features=current_features)
+            self.risk_predictor.adjust_prediction(
+                prediction=predicted_changes, features=current_features
+            )
             if self.risk_predictor
             else predicted_changes
         )
 
         # 9. シナリオ分析（オプション）
         scenario_analysis = (
-            self.scenario_predictor.analyze(features=current_features, base_prediction=predicted_changes)
+            self.scenario_predictor.analyze(
+                features=current_features, base_prediction=predicted_changes
+            )
             if self.scenario_predictor
             else None
         )
@@ -364,7 +391,9 @@ class EnhancedEnsemblePredictor:
         # ここでは簡略化し、ドリフト検出のみ
         drift_detected = False
         if self.concept_drift_detector:
-            drift_detected = self.concept_drift_detector.detect(X.iloc[-10:])  # 最新10点で検出
+            drift_detected = self.concept_drift_detector.detect(
+                X.iloc[-10:]
+            )  # 最新10点で検出
 
         result = {
             "predictions": [predicted_price],  # 現在の実装では単一の価格予測
@@ -374,7 +403,9 @@ class EnhancedEnsemblePredictor:
             "confidence": confidence,
             "details": {
                 "models_used": list(prediction_details.keys()),
-                "trend_votes": {k: "UP" if v > 0 else "DOWN" for k, v in prediction_details.items()},
+                "trend_votes": {
+                    k: "UP" if v > 0 else "DOWN" for k, v in prediction_details.items()
+                },
                 "explanations": explanations,
                 "fundamental": fundamental_score,
                 "risk_adjusted_prediction": risk_adjusted_pred,
@@ -436,7 +467,10 @@ class EnhancedEnsemblePredictor:
         from datetime import datetime
 
         today = datetime.now().date()
-        if self.last_retrain_date is None or (today - self.last_retrain_date).days >= self.retrain_interval:
+        if (
+            self.last_retrain_date is None
+            or (today - self.last_retrain_date).days >= self.retrain_interval
+        ):
             self.logger.info("Scheduled retraining.")
             # self.fit(...) を呼ぶ
             # self.fit(new_data, ticker, fundamentals) # 古いデータも含めて再学習
