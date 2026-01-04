@@ -15,7 +15,10 @@ from src.constants import (
     BACKTEST_DEFAULT_SLIPPAGE_RATE,
     BACKTEST_DEFAULT_STOP_LOSS_PCT,
     BACKTEST_DEFAULT_TAKE_PROFIT_PCT,
+    BACKTEST_MIN_TRAINING_PERIOD_DAYS,
+    BACKTEST_RETRAIN_PERIOD_DAYS,
 )
+from src.logger_config import logger
 from src.strategies.base import Order, OrderType, Strategy
 
 
@@ -39,9 +42,7 @@ class BacktestEngine:
         self.slippage = slippage
         self.allow_short = allow_short
 
-    def _size_position(
-        self, ticker: str, portfolio_value: float, exec_price: float
-    ) -> float:
+    def _size_position(self, ticker: str, portfolio_value: float, exec_price: float) -> float:
         """Calculate number of shares for a new position.
         Uses ``self.position_size`` which may be a float or a dict per ticker.
         """
@@ -100,9 +101,7 @@ class BacktestEngine:
                 signals_map[ticker] = pd.Series(0, index=df.index)
 
         # Unified index across all tickers
-        all_dates = sorted(
-            set().union(*[df.index for df in data_map.values() if df is not None])
-        )
+        all_dates = sorted(set().union(*[df.index for df in data_map.values() if df is not None]))
         full_index = pd.DatetimeIndex(all_dates)
 
         # Initialise state
@@ -112,22 +111,14 @@ class BacktestEngine:
         trades: List[Dict[str, Any]] = []
         portfolio_value_history: List[float] = []
         position_history: List[int] = []  # Track position state at each timestep
-        trailing_stop_levels: Dict[str, float] = {
-            t: 0.0 for t in data_map
-        }  # Track trailing stop per ticker
-        highest_prices: Dict[str, float] = {
-            t: 0.0 for t in data_map
-        }  # Track highest price since entry
+        trailing_stop_levels: Dict[str, float] = {t: 0.0 for t in data_map}  # Track trailing stop per ticker
+        highest_prices: Dict[str, float] = {t: 0.0 for t in data_map}  # Track highest price since entry
 
         # Align data and attach signals
         aligned_data: Dict[str, pd.DataFrame] = {}
         for ticker, df in data_map.items():
             aligned = df.reindex(full_index).ffill()
-            aligned["Signal"] = (
-                signals_map.get(ticker, pd.Series(0, index=df.index))
-                .reindex(full_index)
-                .fillna(0)
-            )
+            aligned["Signal"] = signals_map.get(ticker, pd.Series(0, index=df.index)).reindex(full_index).fillna(0)
             aligned_data[ticker] = aligned
 
         # Main simulation loop (skip last day – no next open price)
@@ -138,17 +129,13 @@ class BacktestEngine:
             for t in data_map:
                 if holdings[t] != 0 and not pd.isna(aligned_data[t]["Close"].iloc[i]):
                     if holdings[t] > 0:  # Long position
-                        current_portfolio_value += (
-                            holdings[t] * aligned_data[t]["Close"].iloc[i]
-                        )
+                        current_portfolio_value += holdings[t] * aligned_data[t]["Close"].iloc[i]
                     else:  # Short position
                         # Short value = entry_price * abs(shares) - current_price * abs(shares)
                         # Which simplifies to: (entry_price - current_price) * abs(shares)
                         entry_price_val = entry_prices[t]
                         current_price_val = aligned_data[t]["Close"].iloc[i]
-                        profit = (entry_price_val - current_price_val) * abs(
-                            holdings[t]
-                        )
+                        profit = (entry_price_val - current_price_val) * abs(holdings[t])
                         current_portfolio_value += profit
 
             for ticker, df in aligned_data.items():
@@ -169,9 +156,7 @@ class BacktestEngine:
                         # Update trailing stop level if set
                         if trailing_stop and trailing_stop > 0:
                             new_stop = highest_prices[ticker] * (1 - trailing_stop)
-                            trailing_stop_levels[ticker] = max(
-                                trailing_stop_levels[ticker], new_stop
-                            )
+                            trailing_stop_levels[ticker] = max(trailing_stop_levels[ticker], new_stop)
 
                         # Check trailing stop
                         if (
@@ -186,8 +171,7 @@ class BacktestEngine:
                                     "exit_date": full_index[i],
                                     "entry_price": entry,
                                     "exit_price": trailing_stop_levels[ticker],
-                                    "return": (trailing_stop_levels[ticker] - entry)
-                                    / entry,
+                                    "return": (trailing_stop_levels[ticker] - entry) / entry,
                                     "type": "Long",
                                     "reason": "Trailing Stop",
                                 }
@@ -201,9 +185,7 @@ class BacktestEngine:
                             continue
 
                         # Check take profit
-                        elif (
-                            take_profit and (today_high - entry) / entry >= take_profit
-                        ):
+                        elif take_profit and (today_high - entry) / entry >= take_profit:
                             take_profit_price = entry * (1 + take_profit)
                             trades.append(
                                 {
@@ -305,18 +287,12 @@ class BacktestEngine:
                         # Limit SELL: execute if price rises to or above limit
                         if today_sig.action.upper() == "BUY":
                             # Check if Low of next day <= limit price
-                            if (
-                                aligned_data[ticker]["Low"].iloc[i + 1]
-                                <= today_sig.price
-                            ):
+                            if aligned_data[ticker]["Low"].iloc[i + 1] <= today_sig.price:
                                 should_execute = True
                                 fill_price = min(today_sig.price, exec_price)
                         else:  # SELL
                             # Check if High of next day >= limit price
-                            if (
-                                aligned_data[ticker]["High"].iloc[i + 1]
-                                >= today_sig.price
-                            ):
+                            if aligned_data[ticker]["High"].iloc[i + 1] >= today_sig.price:
                                 should_execute = True
                                 fill_price = max(today_sig.price, exec_price)
                     elif today_sig.type == OrderType.STOP:
@@ -324,18 +300,12 @@ class BacktestEngine:
                         # Stop SELL: execute if price drops to or below stop
                         if today_sig.action.upper() == "BUY":
                             # Check if High of next day >= stop price
-                            if (
-                                aligned_data[ticker]["High"].iloc[i + 1]
-                                >= today_sig.price
-                            ):
+                            if aligned_data[ticker]["High"].iloc[i + 1] >= today_sig.price:
                                 should_execute = True
                                 fill_price = max(today_sig.price, exec_price)
                         else:  # SELL
                             # Check if Low of next day <= stop price
-                            if (
-                                aligned_data[ticker]["Low"].iloc[i + 1]
-                                <= today_sig.price
-                            ):
+                            if aligned_data[ticker]["Low"].iloc[i + 1] <= today_sig.price:
                                 should_execute = True
                                 fill_price = min(today_sig.price, exec_price)
 
@@ -347,9 +317,7 @@ class BacktestEngine:
                                 qty = (
                                     today_sig.quantity
                                     if today_sig.quantity
-                                    else self._size_position(
-                                        ticker, current_portfolio_value, fill_price
-                                    )
+                                    else self._size_position(ticker, current_portfolio_value, fill_price)
                                 )
                                 holdings[ticker] = qty
                                 entry_prices[ticker] = fill_price
@@ -357,9 +325,7 @@ class BacktestEngine:
                                 # Initialize trailing stop tracking
                                 highest_prices[ticker] = fill_price
                                 if trailing_stop and trailing_stop > 0:
-                                    trailing_stop_levels[ticker] = fill_price * (
-                                        1 - trailing_stop
-                                    )
+                                    trailing_stop_levels[ticker] = fill_price * (1 - trailing_stop)
                         # SELL action (close existing position)
                         elif today_sig.action.upper() == "SELL":
                             if holdings[ticker] != 0:
@@ -393,26 +359,20 @@ class BacktestEngine:
                 if not exit_executed and isinstance(today_sig, (int, np.integer)):
                     if holdings[ticker] == 0 and today_sig == 1:
                         # Open long position
-                        shares = self._size_position(
-                            ticker, current_portfolio_value, exec_price
-                        )
+                        shares = self._size_position(ticker, current_portfolio_value, exec_price)
                         holdings[ticker] = shares
                         entry_prices[ticker] = exec_price
                         cash -= shares * exec_price
                         # Initialize trailing stop tracking
                         highest_prices[ticker] = exec_price
                         if trailing_stop and trailing_stop > 0:
-                            trailing_stop_levels[ticker] = exec_price * (
-                                1 - trailing_stop
-                            )
+                            trailing_stop_levels[ticker] = exec_price * (1 - trailing_stop)
                     elif holdings[ticker] == 0 and today_sig == -1 and self.allow_short:
                         # Open short position
-                        shares = self._size_position(
-                            ticker, current_portfolio_value, exec_price
-                        )
+                        shares = self._size_position(ticker, current_portfolio_value, exec_price)
                         holdings[ticker] = -shares
                         entry_prices[ticker] = exec_price
-            # Cash unchanged for short entry (margin model)
+                        # Cash unchanged for short entry (margin model)
 
             # Record portfolio value and position state at end of day i
             # For short positions, calculate value correctly
@@ -420,15 +380,11 @@ class BacktestEngine:
             for t in data_map:
                 if holdings[t] != 0 and not pd.isna(aligned_data[t]["Close"].iloc[i]):
                     if holdings[t] > 0:  # Long position
-                        end_of_day_value += (
-                            holdings[t] * aligned_data[t]["Close"].iloc[i]
-                        )
+                        end_of_day_value += holdings[t] * aligned_data[t]["Close"].iloc[i]
                     else:  # Short position
                         entry_price_val = entry_prices[t]
                         current_price_val = aligned_data[t]["Close"].iloc[i]
-                        profit = (entry_price_val - current_price_val) * abs(
-                            holdings[t]
-                        )
+                        profit = (entry_price_val - current_price_val) * abs(holdings[t])
                         end_of_day_value += profit
             portfolio_value_history.append(end_of_day_value)
 
@@ -449,9 +405,7 @@ class BacktestEngine:
         for t in data_map:
             if holdings[t] != 0 and not pd.isna(aligned_data[t]["Close"].iloc[-1]):
                 if holdings[t] > 0:  # Long position
-                    final_portfolio_value += (
-                        holdings[t] * aligned_data[t]["Close"].iloc[-1]
-                    )
+                    final_portfolio_value += holdings[t] * aligned_data[t]["Close"].iloc[-1]
                 else:  # Short position
                     entry_price_val = entry_prices[t]
                     current_price_val = aligned_data[t]["Close"].iloc[-1]
@@ -462,9 +416,7 @@ class BacktestEngine:
         equity_curve_raw = pd.Series(portfolio_value_history, index=full_index)
         # Normalize equity curve to start at 1.0
         equity_curve = equity_curve_raw / self.initial_capital
-        total_return = (
-            final_portfolio_value - self.initial_capital
-        ) / self.initial_capital
+        total_return = (final_portfolio_value - self.initial_capital) / self.initial_capital
 
         # Simple performance metrics
         num_trades = len(trades)

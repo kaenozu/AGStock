@@ -14,14 +14,7 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.cidfonts import UnicodeCIDFont
-from reportlab.platypus import (
-    PageBreak,
-    Paragraph,
-    SimpleDocTemplate,
-    Spacer,
-    Table,
-    TableStyle,
-)
+from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 
 class TaxReportGenerator:
@@ -31,12 +24,10 @@ class TaxReportGenerator:
         # 日本語フォント登録
         try:
             pdfmetrics.registerFont(UnicodeCIDFont("HeiseiMin-W3"))
-        except BaseException:
+        except:
             pass
 
-    def generate_annual_report(
-        self, year: int, trades: pd.DataFrame, user_info: Dict
-    ) -> bytes:
+    def generate_annual_report(self, year: int, trades: pd.DataFrame, user_info: Dict) -> bytes:
         """
         年間取引報告書生成
 
@@ -55,11 +46,7 @@ class TaxReportGenerator:
 
         # タイトル
         title_style = ParagraphStyle(
-            "CustomTitle",
-            parent=styles["Heading1"],
-            fontSize=16,
-            textColor=colors.HexColor("#2E86AB"),
-            spaceAfter=30,
+            "CustomTitle", parent=styles["Heading1"], fontSize=16, textColor=colors.HexColor("#2E86AB"), spaceAfter=30
         )
 
         elements.append(Paragraph(f"<b>{year}年 年間取引報告書</b>", title_style))
@@ -99,9 +86,7 @@ class TaxReportGenerator:
         total_buy_amount = trades[trades["action"] == "BUY"]["amount"].sum()
         total_sell_amount = trades[trades["action"] == "SELL"]["amount"].sum()
 
-        realized_pnl = (
-            trades["realized_pnl"].sum() if "realized_pnl" in trades.columns else 0
-        )
+        realized_pnl = trades["realized_pnl"].sum() if "realized_pnl" in trades.columns else 0
 
         summary_data = [
             ["項目", "値"],
@@ -135,9 +120,7 @@ class TaxReportGenerator:
         elements.append(Paragraph("<b>取引明細</b>", styles["Heading2"]))
 
         detail_trades = trades.head(100).copy()
-        detail_trades["date"] = pd.to_datetime(detail_trades["timestamp"]).dt.strftime(
-            "%Y/%m/%d"
-        )
+        detail_trades["date"] = pd.to_datetime(detail_trades["timestamp"]).dt.strftime("%Y/%m/%d")
 
         detail_data = [["日付", "銘柄", "売買", "数量", "単価", "金額"]]
 
@@ -153,10 +136,7 @@ class TaxReportGenerator:
                 ]
             )
 
-        detail_table = Table(
-            detail_data,
-            colWidths=[25 * mm, 25 * mm, 15 * mm, 20 * mm, 25 * mm, 30 * mm],
-        )
+        detail_table = Table(detail_data, colWidths=[25 * mm, 25 * mm, 15 * mm, 20 * mm, 25 * mm, 30 * mm])
         detail_table.setStyle(
             TableStyle(
                 [
@@ -197,9 +177,7 @@ class TaxReportGenerator:
                     {
                         "銘柄コード": trade["ticker"],
                         "銘柄名": trade.get("ticker_name", trade["ticker"]),
-                        "売却日": pd.to_datetime(trade["timestamp"]).strftime(
-                            "%Y/%m/%d"
-                        ),
+                        "売却日": pd.to_datetime(trade["timestamp"]).strftime("%Y/%m/%d"),
                         "売却数量": trade["quantity"],
                         "売却単価": trade["price"],
                         "売却金額": trade["amount"],
@@ -215,9 +193,7 @@ class TaxReportGenerator:
         csv_str = df.to_csv(index=False, encoding="shift_jis")
         return csv_str
 
-    def generate_tax_summary(
-        self, year: int, total_profit: float, tax_info: Dict
-    ) -> bytes:
+    def generate_tax_summary(self, year: int, total_profit: float, tax_info: Dict) -> bytes:
         """
         税金サマリー生成
 
@@ -243,10 +219,7 @@ class TaxReportGenerator:
             ["項目", "金額"],
             ["譲渡所得", f"¥{total_profit:,.0f}"],
             ["所得税（15%）", f"¥{tax_info.get('income_tax', 0):,.0f}"],
-            [
-                "復興特別所得税（0.315%）",
-                f"¥{tax_info.get('reconstruction_tax', 0):,.0f}",
-            ],
+            ["復興特別所得税（0.315%）", f"¥{tax_info.get('reconstruction_tax', 0):,.0f}"],
             ["住民税（5%）", f"¥{tax_info.get('resident_tax', 0):,.0f}"],
             ["合計税額", f"¥{tax_info.get('total_tax', 0):,.0f}"],
             ["税引後利益", f"¥{tax_info.get('net_profit', 0):,.0f}"],
@@ -292,11 +265,7 @@ if __name__ == "__main__":
         }
     )
 
-    user_info = {
-        "name": "山田太郎",
-        "address": "東京都千代田区",
-        "birth_date": "1990/01/01",
-    }
+    user_info = {"name": "山田太郎", "address": "東京都千代田区", "birth_date": "1990/01/01"}
 
     # 年間報告書生成
     pdf = generator.generate_annual_report(2025, trades, user_info)

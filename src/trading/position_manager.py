@@ -1,15 +1,9 @@
 from typing import Dict, List
 
 import pandas as pd
-from tenacity import (
-    retry,  # _fetch_data_with_retry は SafetyChecks にある
-    stop_after_attempt,
-    wait_exponential,
-)
+from tenacity import retry, stop_after_attempt, wait_exponential  # _fetch_data_with_retry は SafetyChecks にある
 
-from src.data_loader import (
-    get_latest_price,
-)  # fetch_stock_data は SafetyChecks にあるので必要に応じてインポート
+from src.data_loader import get_latest_price  # fetch_stock_data は SafetyChecks にあるので必要に応じてインポート
 
 
 class PositionManager:
@@ -17,25 +11,19 @@ class PositionManager:
     保有ポジションの評価と管理、および損切り・利確シグナルの生成を行います。
     """
 
-    def __init__(
-        self, config: dict, paper_trader, logger, dynamic_stop_manager, risk_manager
-    ):
+    def __init__(self, config: dict, paper_trader, logger, dynamic_stop_manager, risk_manager):
         self.config = config
         self.pt = paper_trader
         self.logger = logger
         self.dynamic_stop_manager = dynamic_stop_manager
         self.risk_manager = risk_manager
 
-    @retry(
-        stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10)
-    )
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
     def _fetch_data_with_retry(self, tickers: List[str]) -> Dict:
         """
         リトライロジック付きでデータ取得
         """
-        from src.data_loader import (
-            fetch_stock_data,
-        )  # ここでインポートすることで循環参照を避ける
+        from src.data_loader import fetch_stock_data  # ここでインポートすることで循環参照を避ける
 
         try:
             self.logger.info(f"データ取得中... ({len(tickers)}銘柄)")
@@ -57,9 +45,7 @@ class PositionManager:
         if positions.empty:
             return []
 
-        tickers = [
-            pos.get("ticker") for _, pos in positions.iterrows() if pos.get("ticker")
-        ]
+        tickers = [pos.get("ticker") for _, pos in positions.iterrows() if pos.get("ticker")]
         if not tickers:
             return []
 
@@ -91,14 +77,10 @@ class PositionManager:
             self.dynamic_stop_manager.entry_prices[ticker] = entry_price
 
             new_stop = self.dynamic_stop_manager.update_stop(ticker, latest_price, df)
-            new_highest = self.dynamic_stop_manager.highest_prices.get(
-                ticker, latest_price
-            )
+            new_highest = self.dynamic_stop_manager.highest_prices.get(ticker, latest_price)
             self.pt.update_position_stop(ticker, new_stop, new_highest)
 
-            should_exit, exit_reason = self.dynamic_stop_manager.check_exit(
-                ticker, latest_price
-            )
+            should_exit, exit_reason = self.dynamic_stop_manager.check_exit(ticker, latest_price)
             if should_exit:
                 signals.append(
                     {
@@ -149,9 +131,7 @@ class PositionManager:
                 stop_loss_pct = ((stop_loss_price - entry_price) / entry_price) * 100
 
                 if latest_price <= stop_loss_price:
-                    self.logger.info(
-                        f"🛑 {ticker}: 動的ストップロス発動 ({stop_loss_pct:.1f}%)"
-                    )
+                    self.logger.info(f"🛑 {ticker}: 動的ストップロス発動 ({stop_loss_pct:.1f}%)")
                     signals.append(
                         {
                             "ticker": ticker,
@@ -170,9 +150,7 @@ class PositionManager:
                     trailing_stop_price = recent_high * 0.97
 
                     if latest_price <= trailing_stop_price:
-                        self.logger.info(
-                            f"📈 {ticker}: トレーリングストップ発動 (利益確定 +{unrealized_pct:.1f}%)"
-                        )
+                        self.logger.info(f"📈 {ticker}: トレーリングストップ発動 (利益確定 +{unrealized_pct:.1f}%)")
                         signals.append(
                             {
                                 "ticker": ticker,
@@ -187,9 +165,7 @@ class PositionManager:
                         continue
 
                 if unrealized_pct >= 20.0:
-                    self.logger.info(
-                        f"🎯 {ticker}: 目標利益達成 (+{unrealized_pct:.1f}%)"
-                    )
+                    self.logger.info(f"🎯 {ticker}: 目標利益達成 (+{unrealized_pct:.1f}%)")
                     signals.append(
                         {
                             "ticker": ticker,

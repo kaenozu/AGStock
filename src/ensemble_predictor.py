@@ -17,20 +17,23 @@
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
+import tensorflow as tf
 
+from src.advanced_ensemble import AdvancedEnsemble, create_model_diversity_ensemble
 from src.advanced_models import AdvancedModels
+
 # 新しい高度な機能のインポート
-from src.continual_learning import (ConceptDriftDetector,
-                                    ContinualLearningSystem)
+from src.continual_learning import ConceptDriftDetector, ContinualLearningSystem
 from src.data_loader import fetch_external_data
 from src.data_preprocessing import preprocess_for_prediction
 from src.enhanced_features import generate_enhanced_features
 from src.fundamental_analyzer import FundamentalAnalyzer
 from src.future_predictor import FuturePredictor
+from src.hyperparameter_optimizer import MultiModelOptimizer
 from src.lgbm_predictor import LGBMPredictor
 from src.mlops_manager import MLopsManager
 from src.multi_asset_analytics import MultiAssetPredictor
@@ -39,6 +42,7 @@ from src.realtime_analytics import RealTimeAnalyticsPipeline
 from src.risk_adjusted_prediction import RiskAdjustedPredictor
 from src.scenario_analyzer import ScenarioBasedPredictor
 from src.sentiment_analytics import SentimentEnhancedPredictor
+
 # 新しい実装のインポート
 from src.transformer_predictor import TransformerPredictor
 from src.xai_explainer import XAIFramework
@@ -200,7 +204,7 @@ class EnhancedEnsemblePredictor:
             return "short"
         perf["roll_mean"] = perf["return"].rolling(30, min_periods=5).mean()
         perf["roll_std"] = perf["return"].rolling(30, min_periods=5).std()
-        perf["sharpe"] = perf["roll_mean"] / (perf["roll_std"] + 1e-6) * (252 ** 0.5)
+        perf["sharpe"] = perf["roll_mean"] / (perf["roll_std"] + 1e-6) * (252**0.5)
         latest = perf["sharpe"].iloc[-1]
         if latest > 1.0:
             return "mid"  # 5日ホライズンのような中期を優先
@@ -461,19 +465,7 @@ class EnhancedEnsemblePredictor:
                 if drift_detected:
                     logger.warning(f"Concept drift detected for {ticker}!")
                     # ドリフト検出時の対応
-                    # モデルの再学習や重みの再調整ロジックを実装
-                    try:
-                        # 重みのリセット（より均等な重みに戻す）
-                        self.weights = np.ones(len(self.models)) / len(self.models)
-                        self.performance_history[ticker][-10:] = []  # 最近の性能履歴をクリア
-                        
-                        # 必要に応じてモデル再学習をトリガー
-                        if hasattr(self, 'retrain_callback'):
-                            self.retrain_callback(ticker, "concept_drift")
-                            
-                        logger.info(f"Adjusted weights for {ticker} due to concept drift")
-                    except Exception as e:
-                        logger.error(f"Failed to adjust weights for {ticker}: {e}")
+                    # TODO: モデルの再学習や重みの再調整ロジックを追加
 
             return {
                 "current_price": current_price,

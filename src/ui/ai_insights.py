@@ -1,26 +1,25 @@
+from datetime import datetime
 
+import pandas as pd
 import streamlit as st
 
 from src.agents.committee import InvestmentCommittee
 from src.paper_trader import PaperTrader
+from src.schemas import TradingDecision
 
 
 def render_ai_insights():
     st.title("🤖 AI投資委員会 (AI Investment Committee)")
-    st.markdown(
-        "複数の専門AIエージェントが市場データを多角的に分析し、合議制で投資判断を下します。"
-    )
+    st.markdown("複数の専門AIエージェントが市場データを多角的に分析し、合議制で投資判断を下します。")
 
     # Initialize Committee
-    committee = (
-        InvestmentCommittee()
-    )  # Config is handled internally or passed if needed
+    committee = InvestmentCommittee()  # Config is handled internally or passed if needed
 
     # Context Data Gathering (Mocking for UI skeleton, real integration later)
     # In a real scenario, we'd fetch this from data_loader
     pt = PaperTrader()
     balance = pt.get_current_balance()
-    pt.get_positions()
+    portfolio = pt.get_positions()
 
     market_context = {
         "market_stats": {"trend": "UP", "volatility": "LOW"},  # Placeholder
@@ -76,7 +75,7 @@ def render_ai_insights():
 
                 d_color = color_map.get(analysis["decision"], "gray")
                 st.markdown(f"**判断**: :{d_color}[{analysis['decision']}]")
-                st.markdown(f"**信頼度**: {analysis['confidence'] * 100:.0f}%")
+                st.markdown(f"**信頼度**: {analysis['confidence']*100:.0f}%")
                 st.info(analysis["reasoning"])
 
         st.caption(f"分析時刻: {result['timestamp']}")
@@ -89,8 +88,11 @@ def render_ai_insights():
         # Ideally, InvestmentCommittee should return strategy explanations.
         # For now, we simulate grabbing the ML strategy to show the concept.
 
-        # Hardcoded demo for immediate visual feedback (since
-        # committee.hold_meeting mock doesn't return actual strategy objs)
+        from src.data_loader import fetch_stock_data  # Assuming we have a default ticker context
+        from src.strategies.lightgbm_strategy import LightGBMStrategy
+        from src.strategies.ml import MLStrategy
+
+        # Hardcoded demo for immediate visual feedback (since committee.hold_meeting mock doesn't return actual strategy objs)
         st.info("AIがどのデータを重視したかを表示します（デモ: LightGBMモデル）")
 
         if st.checkbox("詳細分析を表示"):
@@ -113,13 +115,10 @@ def render_ai_insights():
 
                 import plotly.graph_objects as go
 
-                fig = go.Figure(
-                    go.Bar(x=values, y=features, orientation="h", marker_color=colors)
-                )
+                fig = go.Figure(go.Bar(x=values, y=features, orientation="h", marker_color=colors))
 
                 fig.update_layout(
-                    title="特徴量貢献度 (SHAP Value 近似)",
-                    xaxis_title="インパクト (正=買い要因, 負=売り要因)",
+                    title="特徴量貢献度 (SHAP Value 近似)", xaxis_title="インパクト (正=買い要因, 負=売り要因)"
                 )
                 st.plotly_chart(fig, use_container_width=True)
 

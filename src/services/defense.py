@@ -60,6 +60,7 @@ def deactivate_defense(snapshot: Dict[str, str]) -> None:
 
 def defense_status() -> bool:
     """Quick check whether defense mode is currently active."""
-    return os.getenv("SAFE_MODE", "").lower() in {"1", "true", "yes"} and os.getenv(
-        "TRADING_SCENARIO", ""
-    ).lower() == "conservative"
+    return (
+        os.getenv("SAFE_MODE", "").lower() in {"1", "true", "yes"}
+        and os.getenv("TRADING_SCENARIO", "").lower() == "conservative"
+    )
