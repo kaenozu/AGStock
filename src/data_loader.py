@@ -416,7 +416,7 @@ def fetch_stock_data(
             # キャッシュ読み込みに失敗した場合は、更新が必要とみなす
             need_refresh.append(ticker)
 
-try:
+    try:
         downloaded = _download_and_cache_missing(
             need_refresh, period, interval, start_date, db
         )
