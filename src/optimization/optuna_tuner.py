@@ -18,22 +18,29 @@ class OptunaTuner:
         self.n_trials = n_trials
         self.best_params = None
 
-    def optimize_lightgbm(self, X, y):
-        """Run optimization"""
-        logger.info("Starting Optuna optimization...")
+    def optimize_lightgbm(self, X, y, regime="normal"):
+        """Run optimization with regime-aware objectives."""
+        logger.info(f"Starting Optuna optimization (Regime: {regime})...")
+
+        # Define metric based on regime
+        metric = "accuracy"
+        if regime == "high_risk":
+            metric = "precision" # Minimize False Positives
+        elif regime == "growth":
+            metric = "recall"    # Capture all opportunities
 
         study = optuna.create_study(direction="maximize")
         study.optimize(
-            lambda trial: self._objective(trial, X, y), n_trials=self.n_trials
+            lambda trial: self._objective(trial, X, y, metric), n_trials=self.n_trials
         )
 
         self.best_params = study.best_params
         logger.info(f"Optimization finished. Best params: {self.best_params}")
-        logger.info(f"Best accuracy: {study.best_value}")
+        logger.info(f"Best score ({metric}): {study.best_value}")
 
         return self.best_params
 
-    def _objective(self, trial, X, y):
+    def _objective(self, trial, X, y, metric="accuracy"):
         """Objective function for LightGBM"""
         param = {
             "objective": "binary",
@@ -56,6 +63,6 @@ class OptunaTuner:
 
         # Use LightGBM scikit-learn API for easier CV integration
         model = lgb.LGBMClassifier(**param)
-        scores = cross_val_score(model, X, y, cv=cv, scoring="accuracy")
+        scores = cross_val_score(model, X, y, cv=cv, scoring=metric)
 
         return scores.mean()

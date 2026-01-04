@@ -61,6 +61,16 @@ class BacktestEngine:
         take_profit: float = BACKTEST_DEFAULT_TAKE_PROFIT_PCT,
         trailing_stop: Optional[float] = None,
     ) -> Dict[str, Any]:
+        """
+        Execute strategy(ies) on historical data with profiling.
+
+        Supports integer signals (1 for long entry, -1 for exit/short) and ``Order`` objects.
+        Trades are executed at the *next* day's open price.
+        """
+        # プロファイリングを開始
+        import cProfile
+        pr = cProfile.Profile()
+        pr.enable()
         """Execute strategy(ies) on historical data.
 
         Supports integer signals (1 for long entry, -1 for exit/short) and ``Order`` objects.
@@ -457,6 +467,17 @@ class BacktestEngine:
         else:
             # Multi-asset: return Dict
             result_signals = signals_map
+
+        # プロファイリングを終了
+        pr.disable()
+
+        # 結果を出力
+        import pstats
+        from io import StringIO
+        s = StringIO()
+        ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
+        ps.print_stats()
+        print(s.getvalue())
 
         return {
             "total_return": total_return,

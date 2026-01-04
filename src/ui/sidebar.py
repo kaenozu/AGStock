@@ -78,10 +78,23 @@ def render_sidebar():
             st.sidebar.error("🚨 市場急落警戒中")
             st.sidebar.caption(f"{crash_reason}")
 
+        # Divine Shield Status
+        guidance = getattr(rm, "oracle_guidance", None)
+        if guidance:
+            st.sidebar.info(f"✨ Divine Shield: {guidance['max_drawdown_adj']:.1f}x Defense")
+        
         # Display VaR (Mock or stored value if available)
-        st.sidebar.metric(label="予想最大損失率 (VaR)", value="2.8%", delta="-0.1%")
+        st.sidebar.metric(label="予想最大損失率 (VaR)", value=f"{rm.confidence_level*100:.1f}%", delta="Oracle-Adj")
     else:
         st.sidebar.warning("⚠️ リスク管理未初期化")
+
+    # --- Oracle 2026 Widget ---
+    st.sidebar.subheader("🔮 Oracle 2026")
+    try:
+        from src.ui.oracle_widget import render_oracle_sidebar
+        render_oracle_sidebar()
+    except Exception as e:
+        st.sidebar.info(f"Oracle: {e}")
 
     # --- Real-time Status ---
     st.sidebar.subheader("⚡ リアルタイム接続")

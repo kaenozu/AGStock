@@ -4,6 +4,8 @@ import pandas as pd
 import ta
 
 from .base import Strategy
+from src.oracle.oracle_2026 import Oracle2026
+
 
 
 class MLStrategy(Strategy):
@@ -12,6 +14,7 @@ class MLStrategy(Strategy):
         from sklearn.ensemble import RandomForestClassifier
 
         self.model = RandomForestClassifier(n_estimators=100, random_state=42)
+        self.oracle = Oracle2026()
         self.feature_names = ["RSI", "SMA_Ratio", "Volatility", "Ret_1", "Ret_5"]
 
     def explain_prediction(self, df: pd.DataFrame) -> Dict[str, float]:
@@ -72,20 +75,35 @@ class MLStrategy(Strategy):
         self.model.fit(X_train, y_train)
 
         # Predict
-        predictions = self.model.predict(X_test)
+        # Predict Probabilities instead of classes for finer control
+        probs = self.model.predict_proba(X_test)[:, 1] # Probability of Class 1 (Up)
+
+        # Oracle Risk Check
+        guidance = self.oracle.get_risk_guidance()
+        if guidance.get("safety_mode", False):
+            return pd.Series(0, index=df.index)
+
+        risk_buffer = guidance.get("var_buffer", 0.0)
+        threshold = 0.5 + risk_buffer # Base threshold 0.5 + risk adjustment
 
         signals = pd.Series(0, index=df.index)
         test_indices = X_test.index
-        pred_series = pd.Series(predictions, index=test_indices)
-        signals.loc[test_indices] = pred_series.apply(lambda x: 1 if x == 1 else -1)
+        
+        # Determine signals based on dynamic threshold
+        # 1 if prob > threshold, -1 if prob < 1-threshold (optional, keeping simpe for now)
+        pred_signals = [1 if p > threshold else -1 if p < (1 - threshold) else 0 for p in probs]
+        
+        signals.loc[test_indices] = pred_signals
 
         return signals
 
     def get_signal_explanation(self, signal: int) -> str:
         if signal == 1:
-            return (
-                "AI（ランダムフォレスト）が過去のパターンから「上昇」を予測しました。"
-            )
+            msg = "AI（ランダムフォレスト）が上昇を予測しました。"
+            guidance = self.oracle.get_risk_guidance()
+            if guidance.get("var_buffer", 0.0) > 0:
+                msg += " (Oracle警戒: 確信度閾値を引き上げています)"
+            return msg
         elif signal == -1:
             return (
                 "AI（ランダムフォレスト）が過去のパターンから「下落」を予測しました。"

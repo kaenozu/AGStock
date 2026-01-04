@@ -7,29 +7,10 @@ import pandas as pd
 
 from .base import Strategy
 
-try:
-    from src.features import add_advanced_features, add_macro_features
-except ImportError:
-    # Forward declaration or dummy if circular import
-    def add_advanced_features(df):
-        return df
-
-    def add_macro_features(df, macro):
-        return df
-
-
-try:
-    from src.data_loader import fetch_macro_data
-except ImportError:
-
-    def fetch_macro_data(period="5y"):
-        return {}
-
-
-try:
-    from src.optimization.optuna_tuner import OptunaTuner
-except ImportError:
-    OptunaTuner = None
+from src.features import add_advanced_features, add_macro_features
+from src.data_loader import fetch_macro_data
+from src.optimization.optuna_tuner import OptunaTuner
+from src.oracle.oracle_2026 import Oracle2026
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +25,7 @@ class LightGBMStrategy(Strategy):
         self.use_weekly = use_weekly
         self.best_params = None
         self.model = None
+        self.oracle = Oracle2026() # Sovereign Integrate
         self.default_positive_threshold = 0.60
         self.default_negative_threshold = 0.40
         self.feature_cols = [
@@ -192,6 +174,27 @@ class LightGBMStrategy(Strategy):
             logger.warning("LightGBM not installed. Returning empty signals.")
             return pd.Series(0, index=df.index)
 
+        # 0. Oracle Sovereign Check
+        guidance = self.oracle.get_risk_guidance()
+        if guidance.get("safety_mode", False):
+            # Absolute Defense: No signals allowed
+            return pd.Series(0, index=df.index)
+        
+        # Adjust threshold based on risk
+        risk_buffer = guidance.get("var_buffer", 0.0)
+        # Increase threshold for BUY (positive)
+        # e.g. 0.60 -> 0.62
+        current_pos_threshold = self.default_positive_threshold + risk_buffer
+        # Decrease threshold for SELL (negative) - Make it easier to sell? 
+        # Or maybe harder? Usually in high risk, we want to SELL faster if prediction is bad.
+        # But here signals are -1 for SELL. logic: probs < lower.
+        # So we should INCREASE lower threshold (make it closer to 0.5) or DECREASE (make it harder)?
+        # Actually in high risk, we want to AVOID bad trades.
+        # For SELL signals, maybe we want to be MORE sensitive (trigger exit earlier)?
+        # But 'signal -1' usually means Short Entry or Exit.
+        # Let's keep SELL logic neutral for now, focus on Filtering BUYs.
+        current_neg_threshold = self.default_negative_threshold
+
         # タイムゾーンの不一致を防ぐためにインデックスをtimezone-naiveにする
         if df.index.tz is not None:
             df = df.copy()
@@ -275,6 +278,20 @@ class LightGBMStrategy(Strategy):
             # Default params
             params = {"objective": "binary", "metric": "binary_logloss", "verbosity": -1, "seed": 42}
 
+            # Sovereign Evolution: Load Evolved Params
+            try:
+                import json
+                import os
+                config_path = "models/config/lightgbm_params_current.json"
+                if os.path.exists(config_path):
+                    with open(config_path, "r") as f:
+                        saved_config = json.load(f)
+                        if "params" in saved_config:
+                            params.update(saved_config["params"])
+                            # logger.debug("Loaded sovereign params.")
+            except Exception:
+                pass
+
             # Auto-Tune if enabled (and enough data)
             if self.auto_tune and len(train_df) > 200:
                 try:
@@ -293,7 +310,7 @@ class LightGBMStrategy(Strategy):
             self.model = lgb.train(params, train_data, num_boost_round=100)
 
             # Calibrate thresholds using recent training performance
-            calibrated_upper = self.default_positive_threshold
+            calibrated_upper = current_pos_threshold # Use oracle-adjusted as base
             calibrated_lower = self.default_negative_threshold
 
             calibration_size = max(50, int(len(train_df) * 0.2))
@@ -342,8 +359,14 @@ class LightGBMStrategy(Strategy):
         return signals
 
     def get_signal_explanation(self, signal: int) -> str:
+        guidance = self.oracle.get_risk_guidance()
+        risk_buffer = guidance.get("var_buffer", 0.0)
+        
         if signal == 1:
-            return "LightGBMモデルがマクロ経済指標やテクニカル指標を分析し、上昇確率が高いと判断しました。"
+            msg = "LightGBMモデルが上昇トレンドを検知しました。"
+            if risk_buffer > 0:
+                msg += f" (Oracle警戒中: 基準閾値を+{risk_buffer:.2f}引き上げて厳選しました)"
+            return msg
         elif signal == -1:
             return "LightGBMモデルがマクロ経済指標やテクニカル指標を分析し、下落リスクが高いと判断しました。"
         return "AIによる強い確信度は得られていません。"

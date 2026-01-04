@@ -51,6 +51,16 @@ from src.sentiment import SentimentAnalyzer
 from src.smart_notifier import SmartNotifier
 from src.strategies import CombinedStrategy, LightGBMStrategy, MLStrategy
 from src.utils.logger import get_logger, setup_logger
+from src.data.universe_manager import UniverseManager
+from src.utils.self_healing import SelfHealingEngine
+from src.utils.parameter_optimizer import ParameterOptimizer
+from src.data.whale_tracker import WhaleTracker
+from src.agents.ai_veto_agent import AIVetoAgent
+from src.agents.social_analyst import SocialAnalyst
+from src.agents.visual_oracle import VisualOracle
+from src.trading.portfolio_manager import PortfolioManager
+from src.utils.self_learning import SelfLearningPipeline
+from src.oracle.oracle_2026 import Oracle2026
 
 # Create logger
 logger = logging.getLogger(__name__)
@@ -123,7 +133,23 @@ class FullyAutomatedTrader:
             self.regime_detector = RegimeDetector()
             self.risk_manager = DynamicRiskManager(self.regime_detector)
             self.kelly_criterion = KellyCriterion()
-            self.dynamic_stop_manager = DynamicStopManager()
+self.dynamic_stop_manager = DynamicStopManager()
+            self.universe_manager = UniverseManager()
+            self.self_healing = SelfHealingEngine()
+            self.param_optimizer = ParameterOptimizer(self.config)
+            self.whale_tracker = WhaleTracker()
+            self.portfolio_manager = PortfolioManager()
+            self.learning_pipeline = SelfLearningPipeline(self.config)
+            self.ai_veto_agent = AIVetoAgent(self.config)
+            self.social_analyst = SocialAnalyst(self.config)
+            self.visual_oracle = VisualOracle(self.config)
+            self.oracle_2026 = Oracle2026() # Sovereign Update
+
+            self.log('Phase 73: Self-Learning Pipeline (Optima) initialized')
+            self.log('Phase 73: Social Heat Analyst initialized')
+            self.log('Phase 72: Portfolio Risk Parity Manager initialized')
+            self.log('Phase 5: WhaleTracker (Institutional Flow) initialized')
+            self.log('Phase 4: Global Selection & Self-Correction initialized')
             # self.advanced_risk = AdvancedRiskManager(self.config) # Class missing, disabled
             self.log("Phase 30-1 & 30-3: リアルタイム適応学習・高度リスク管理モジュール初期化完了")
         except Exception as e:
@@ -320,7 +346,16 @@ class FullyAutomatedTrader:
         else:
             self.log("VIX取得に失敗しました（キャッシュも無し）: ボラティリティチェックをスキップ", "WARNING")
 
-        # 3. 残高チェック
+        # 3. Oracle 2026 Sovereign Check
+        if hasattr(self, "oracle_2026"):
+            guidance = self.oracle_2026.get_risk_guidance()
+            if guidance.get("safety_mode"):
+                return False, f"Oracle 2026 強制停止: {guidance.get('oracle_message')}"
+            
+            # Apply dynamic adjustments (optional, or just log)
+            self.log(f"Oracle Guidance: {guidance.get('oracle_message')}")
+
+        # 4. 残高チェック
         if cash < 10000:  # 最低1万円
             return False, "現金残高が不足しています"
 

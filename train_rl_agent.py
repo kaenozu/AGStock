@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 def train_agent(ticker: str = "7203.T", episodes: int = 20, period: str = "2y"):
     logger.info(f"🚀 Starting RL Training for {ticker} over {period}...")
+    logger.info("🛡️ Sovereign Adaptive Learning: ENABLED (Retrospective Analysis Active)")
     
     # 1. Data Preparation
     # 1. Data Preparation

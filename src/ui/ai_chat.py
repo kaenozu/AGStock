@@ -114,6 +114,25 @@ def render_ai_chat():
                     # 3. Committee Decision (Placeholder for now)
                     committee_context = "No recent committee meeting held."
 
+                    # 4. Oracle 2026 Prophecies
+                    try:
+                        from src.oracle.oracle_2026 import Oracle2026
+                        oracle = Oracle2026()
+                        oracle_scenarios = oracle.speculate_scenarios()
+                        oracle_resilience = oracle.assess_portfolio_resilience([])
+                        oracle_context = f"Scenarios: {json.dumps(oracle_scenarios, ensure_ascii=False)}\nResilience: {json.dumps(oracle_resilience, ensure_ascii=False)}"
+                    except:
+                        oracle_context = "Oracle engine not available."
+
+                    # 5. 2025 Retrospective
+                    try:
+                        from src.sovereign_retrospective import SovereignRetrospective
+                        sr = SovereignRetrospective()
+                        retrospective_insights = sr.analyze_2025_failures()
+                        retro_context = json.dumps(retrospective_insights, ensure_ascii=False)
+                    except:
+                        retro_context = "Retrospective data not available."
+
                     # 4. Realtime Data
                     realtime_context = "No realtime data available."
                     if st.session_state.realtime_data:
@@ -134,6 +153,12 @@ def render_ai_chat():
 
 ## Realtime Data
                     {realtime_context}
+
+## Oracle 2026 (Future Scenarios)
+                    {oracle_context}
+
+## 2025 Retrospective (Past Failures & Evolution)
+                    {retro_context}
                     """
 
                     reasoner = get_llm_reasoner()

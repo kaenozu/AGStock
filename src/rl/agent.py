@@ -76,13 +76,34 @@ class DQNAgent:
         self.memory.append((state, action, reward, next_state, done))
 
     def act(self, state):
-        """行動を選択 (Epsilon-Greedy)"""
+        """行動を選択 (Epsilon-Greedy + Oracle Masking)"""
+        # Oracle Safety Check
+        oracle_mask = None
+        try:
+            from src.oracle.oracle_2026 import Oracle2026
+            oracle = Oracle2026()
+            guidance = oracle.get_risk_guidance()
+            
+            if guidance.get("safety_mode", False):
+                # Mask BUY action (action 1) - Agent can only HOLD or SELL
+                oracle_mask = [0, 2]  # Available actions in crisis
+        except Exception:
+            pass  # Oracle unavailable
+        
         if np.random.rand() <= self.epsilon:
+            if oracle_mask:
+                return random.choice(oracle_mask)
             return random.randrange(self.action_size)
 
         state_tensor = torch.FloatTensor(state).unsqueeze(0).to(self.device)
         with torch.no_grad():
             act_values = self.model(state_tensor)
+            
+            # Apply Oracle Mask if active
+            if oracle_mask:
+                # Set BUY Q-value to very negative
+                act_values[0][1] = float('-inf')
+                
         return torch.argmax(act_values).item()
 
     def replay(self):

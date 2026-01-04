@@ -113,6 +113,22 @@ class TradingEnvironment:
 
         reward = (step_return * 100) - vol_penalty
 
+        # Oracle 2026 Risk Shaping
+        # If Oracle is in safety mode, penalize BUY actions
+        try:
+            from src.oracle.oracle_2026 import Oracle2026
+            oracle = Oracle2026()
+            guidance = oracle.get_risk_guidance()
+            
+            if guidance.get("safety_mode", False):
+                if action == 1: # BUY during crisis
+                    reward -= 1.0 # Heavy penalty for buying during storm
+            elif guidance.get("var_buffer", 0.0) > 0:
+                if action == 1: # BUY during caution
+                    reward -= 0.3 # Mild deterrent
+        except Exception:
+            pass # Oracle unavailable, skip
+
         # Additional penalty for holding -5% drawdown to encourage stop-losses
         if self.shares_held > 0:
             drawdown = (next_price - self.entry_price) / self.entry_price

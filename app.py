@@ -90,7 +90,17 @@ except Exception as e:
 if "risk_manager" not in st.session_state:
     try:
         from src.advanced_risk import AdvancedRiskManager
-        st.session_state["risk_manager"] = AdvancedRiskManager()
+        from src.oracle.oracle_2026 import Oracle2026
+        
+        rm = AdvancedRiskManager()
+        oracle = Oracle2026()
+        
+        # Apply divine guidance on startup
+        guidance = oracle.get_risk_guidance()
+        rm.apply_oracle_guidance(guidance)
+        
+        st.session_state["risk_manager"] = rm
+        st.session_state["oracle_2026"] = oracle
         # Initialize warning flags
         st.session_state["risk_crash_warning"] = None
     except Exception as e:
@@ -122,7 +132,7 @@ def main():
     # Build tab labels with badges
     trading_badge = f" ({signal_count})" if signal_count > 0 else ""
 
-    tab_list = ["🏠 ダッシュボード", "📈 運用パフォーマンス", "🤖 AI分析センター", f"💼 トレーディング{trading_badge}", "🧪 戦略研究所", "🏆 シャドウ・トーナメント", "🚀 Mission Control"]
+    tab_list = ["🏠 ダッシュボード", "📈 運用パフォーマンス", "🤖 AI分析センター", f"💼 トレーディング{trading_badge}", "🧪 戦略研究所", "🏆 シャドウ・トーナメント", "🚀 Mission Control", "🏛️ Divine Hub"]
 
     tabs = st.tabs(tab_list)
 
@@ -159,6 +169,11 @@ def main():
     # 6. Mission Control
     with tabs[6]:
         render_mission_control()
+
+    # 7. Divine Hub (Year-in-Review and Oracle)
+    with tabs[7]:
+        from src.ui.divine_reflection import render_divine_reflection
+        render_divine_reflection()
 
     # 6. Real-time Monitor (Enhanced)
     with st.sidebar.expander("⚡ リアルタイム監視 (β)", expanded=True):
