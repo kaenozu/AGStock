@@ -641,6 +641,76 @@ class UnifiedDashboard:
             st.write("**🔒 セキュリティ設定**")
             two_factor = st.checkbox("二段階認証（デモ）", value=False)
 
+    def render_automation_tab(self):
+        """自動化設定タブのレンダリング"""
+        st.subheader("🤖 自動化運用・通知設定")
+        
+        # 1. AI朝刊（モーニング・ブリーフィング）
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write("### ☀️ モーニング・ブリーフィング")
+            st.info("毎朝 08:45 に今日の相場予報と注目銘柄をスマホへ届けます。")
+            if st.button("今すぐテスト送信"):
+                # 別プロセスで実行
+                os.system("python scripts/morning_briefing.py")
+                st.success("通知を送信しました。")
+        
+        with col2:
+            st.write("### ⚙️ 通知先設定")
+            # LINE Notify 設定
+            st.write("**LINE Notify**")
+            line_token = st.text_input("LINE Access Token", type="password", placeholder="LINE Notify トークンを入力")
+            if st.button("LINE設定を保存"):
+                self.save_notification_config("line", {"enabled": True, "token": line_token})
+                st.success("LINE設定を保存しました。")
+                
+            # Discord Webhook 設定
+            st.write("**Discord Webhook**")
+            discord_url = st.text_input("Discord Webhook URL", type="password", placeholder="https://discord.com/api/webhooks/...")
+            if st.button("Discord設定を保存"):
+                self.save_notification_config("discord", {"enabled": True, "webhook_url": discord_url})
+                st.success("Discord設定を保存しました。")
+
+        st.divider()
+        
+        # 2. モデル精度監視（ドリフト・チェック）
+        st.subheader("📊 AIモデル精度監視 (Model Monitoring)")
+        st.caption("時間の経過とともに予測精度が劣化（ドリフト）していないか確認します。")
+        
+        # ダミーデータ（本来はDBから取得）
+        dates = pd.date_range(end=datetime.now(), periods=10, freq="D")
+        accuracy = [0.65, 0.64, 0.66, 0.62, 0.61, 0.59, 0.58, 0.60, 0.57, 0.55]
+        
+        fig = px.line(x=dates, y=accuracy, title="予測精度の推移 (Accuracy Over Time)", labels={"x": "日付", "y": "精度"})
+        fig.add_hline(y=0.6, line_dash="dash", line_color="red", annotation_text="再学習推奨ライン")
+        st.plotly_chart(fig, use_container_width=True)
+        
+        if accuracy[-1] < 0.6:
+            st.warning("⚠️ 予測精度が低下しています。モデルの再学習を強く推奨します。")
+            if st.button("🚀 今すぐ全モデルを再学習 (Retrain All)"):
+                with st.spinner("最新データで再学習中..."):
+                    os.system("python scripts/retrain_system.py")
+                st.success("再学習が完了しました！")
+
+    def save_notification_config(self, platform: str, config: dict):
+        """通知設定をconfig.jsonに保存"""
+        try:
+            config_path = "config.json"
+            if os.path.exists(config_path):
+                with open(config_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+            else:
+                data = {}
+            
+            if "notification" not in data:
+                data["notification"] = {}
+            data["notification"][platform] = config
+            
+            with open(config_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4, ensure_ascii=False)
+        except Exception as e:
+            st.error(f"設定保存エラー: {e}")
+
     def run(self):
         """メイン実行"""
         # ページ設定
@@ -685,10 +755,11 @@ class UnifiedDashboard:
             self.t("ai_prediction"),
             self.t("community"),
             self.t("mobile"),
+            "🤖 自動化・AI朝刊",
             self.t("settings"),
         ]
 
-        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(tabs)
+        tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(tabs)
 
         with tab1:
             self.render_portfolio_tab()
@@ -704,8 +775,11 @@ class UnifiedDashboard:
 
         with tab5:
             self.render_mobile_features()
-
+            
         with tab6:
+            self.render_automation_tab()
+
+        with tab7:
             self.render_settings()
 
         # フッター
