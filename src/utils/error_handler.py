@@ -173,8 +173,8 @@ def autonomous_error_handler(name: str = "System", reraise: bool = False, notifi
                 if notification_enabled:
                     try:
                         # Attempt to notify via existing channels
-                        from agstock.src.smart_notifier import SmartNotifier
-                        from agstock.src.config import settings
+                        from src.smart_notifier import SmartNotifier
+                        from src.config import settings
 
                         notifier = SmartNotifier(settings.dict())
                         notifier.send_error_notification(module=name, error=str(e), stack=stack_trace[:500] + "...")
@@ -203,7 +203,7 @@ def diagnose_environment():
 
     # 2. Database Connectivity
     try:
-        from agstock.src.paths import STOCK_DATA_DB
+        from src.paths import STOCK_DATA_DB
 
         conn = sqlite3.connect(STOCK_DATA_DB)
         conn.execute("SELECT 1")
@@ -225,8 +225,8 @@ def diagnose_environment():
 def take_system_snapshot(module: str, function: str) -> str:
     """Saves a JSON snapshot of the system state for debugging."""
     try:
-        from agstock.src.paths import LOGS_DIR
-        from agstock.src.utils.state_engine import state_engine
+        from src.paths import LOGS_DIR
+        from src.utils.state_engine import state_engine
 
         snapshot_dir = LOGS_DIR / "snapshots"
         snapshot_dir.mkdir(parents=True, exist_ok=True)

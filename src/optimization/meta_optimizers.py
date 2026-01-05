@@ -10,7 +10,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score
 
-from agstock.src.features import add_advanced_features
+from src.features import add_advanced_features
 
 logger = logging.getLogger(__name__)
 
@@ -199,7 +199,7 @@ class HyperparameterOptimizer:
 
 if __name__ == "__main__":
     # Test run
-    from agstock.src.data_loader import fetch_stock_data
+    from src.data_loader import fetch_stock_data
 
     logging.basicConfig(level=logging.INFO)
 
@@ -217,7 +217,7 @@ if __name__ == "__main__":
         logger.info("Starting Transformer optimization...")
 
         try:
-            from agstock.src.transformer_model import TemporalFusionTransformer
+            from src.transformer_model import TemporalFusionTransformer
         except ImportError:
             logger.error("Transformer model not available")
             return {}

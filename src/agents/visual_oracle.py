@@ -5,7 +5,7 @@ import pandas as pd
 from typing import Dict, Any, Optional
 from datetime import datetime
 
-from agstock.src.llm_reasoner import get_llm_reasoner
+from src.llm_reasoner import get_llm_reasoner
 
 logger = logging.getLogger(__name__)
 

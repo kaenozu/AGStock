@@ -4,8 +4,8 @@ from typing import Any, Dict, List
 
 import numpy as np
 
-from agstock.src.data_loader import fetch_macro_data
-from agstock.src.llm_analyzer import LLMAnalyzer
+from src.data_loader import fetch_macro_data
+from src.llm_analyzer import LLMAnalyzer
 
 logger = logging.getLogger(__name__)
 

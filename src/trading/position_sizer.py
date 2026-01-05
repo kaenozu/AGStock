@@ -7,8 +7,8 @@ import logging
 from typing import Dict, Optional
 import numpy as np
 
-from agstock.src.kelly_criterion import KellyCriterion
-from agstock.src.types import TradeSignal, PortfolioPosition, MarketRegime
+from src.kelly_criterion import KellyCriterion
+from src.types import TradeSignal, PortfolioPosition, MarketRegime
 
 logger = logging.getLogger(__name__)
 

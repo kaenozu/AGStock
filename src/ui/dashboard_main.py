@@ -10,10 +10,10 @@ import os
 import pandas as pd
 import streamlit as st
 
-from agstock.src.constants import TICKER_NAMES
-from agstock.src.formatters import get_risk_level
-from agstock.src.paper_trader import PaperTrader
-from agstock.src.ui_components import display_best_pick_card, display_error_message, display_sentiment_gauge
+from src.constants import TICKER_NAMES
+from src.formatters import get_risk_level
+from src.paper_trader import PaperTrader
+from src.ui_components import display_best_pick_card, display_error_message, display_sentiment_gauge
 
 
 def render_market_scan_tab(sidebar_config):

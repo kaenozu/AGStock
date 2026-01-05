@@ -1,9 +1,9 @@
-from agstock.src.prompts.earnings_prompts import EARNINGS_ANALYSIS_SYSTEM_PROMPT
+from src.prompts.earnings_prompts import EARNINGS_ANALYSIS_SYSTEM_PROMPT
 import logging
 from typing import Dict
 
-from agstock.src.rag.pdf_loader import PDFLoader
-from agstock.src.llm_reasoner import get_llm_reasoner
+from src.rag.pdf_loader import PDFLoader
+from src.llm_reasoner import get_llm_reasoner
 
 logger = logging.getLogger(__name__)
 

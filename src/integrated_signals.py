@@ -9,9 +9,9 @@ from typing import Dict
 
 import pandas as pd
 
-from agstock.src.bert_sentiment import get_bert_analyzer
-from agstock.src.multi_timeframe import get_mtf_analyzer
-from agstock.src.strategies import CombinedStrategy
+from src.bert_sentiment import get_bert_analyzer
+from src.multi_timeframe import get_mtf_analyzer
+from src.strategies import CombinedStrategy
 
 logger = logging.getLogger(__name__)
 

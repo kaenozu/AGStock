@@ -43,8 +43,8 @@ def render_earnings_calendar():
     st.caption("決算発表前のポジション調整でサプライズリスクを回避")
 
     try:
-        from agstock.src.features.earnings_calendar import get_earnings_calendar
-        from agstock.src.paper_trader import PaperTrader
+        from src.features.earnings_calendar import get_earnings_calendar
+        from src.paper_trader import PaperTrader
 
         cal = get_earnings_calendar()
         pt = PaperTrader()
@@ -97,7 +97,7 @@ def render_sentiment_indicators():
     st.caption("Fear & Greed Index, VIX, Put/Call Ratioの統合分析")
 
     try:
-        from agstock.src.features.sentiment_indicators import get_sentiment_indicators
+        from src.features.sentiment_indicators import get_sentiment_indicators
 
         indicators = get_sentiment_indicators()
 
@@ -171,7 +171,7 @@ def render_sector_rotation():
     st.caption("景気サイクルに応じた最適セクターの提案")
 
     try:
-        from agstock.src.features.sector_rotation import get_sector_rotation
+        from src.features.sector_rotation import get_sector_rotation
 
         market = st.selectbox("市場選択", ["US", "JP"], index=0)
         sr = get_sector_rotation(market=market)
@@ -212,8 +212,8 @@ def render_tax_optimizer():
     st.caption("年末に向けた損益通算シミュレーション")
 
     try:
-        from agstock.src.features.tax_optimizer import get_tax_optimizer, HarvestingStrategy
-        from agstock.src.paper_trader import PaperTrader
+        from src.features.tax_optimizer import get_tax_optimizer, HarvestingStrategy
+        from src.paper_trader import PaperTrader
 
         # 戦略選択
         strategy_name = st.selectbox(
@@ -296,8 +296,8 @@ def render_drip_manager():
     st.caption("配当受領時に自動で再投資")
 
     try:
-        from agstock.src.features.drip import get_drip_manager, DRIPStrategy
-        from agstock.src.paper_trader import PaperTrader
+        from src.features.drip import get_drip_manager, DRIPStrategy
+        from src.paper_trader import PaperTrader
 
         # 戦略選択
         strategy_name = st.selectbox(

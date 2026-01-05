@@ -9,8 +9,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from agstock.src.formatters import format_currency, format_percentage
-from agstock.src.paper_trader import PaperTrader
+from src.formatters import format_currency, format_percentage
+from src.paper_trader import PaperTrader
 
 
 def generate_html_report(pt: PaperTrader, start_date: datetime, end_date: datetime) -> str:
@@ -234,7 +234,7 @@ def generate_positions_table(positions: pd.DataFrame) -> str:
 def send_to_line(report_summary: str):
     """LINE Notifyで送信"""
     try:
-        from agstock.src.smart_notifier import SmartNotifier
+        from src.smart_notifier import SmartNotifier
 
         SmartNotifier()
 

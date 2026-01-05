@@ -7,7 +7,7 @@ import logging
 
 import pandas as pd
 
-from agstock.src.neuro_evolution import get_neuro_evolution_engine
+from src.neuro_evolution import get_neuro_evolution_engine
 
 logger = logging.getLogger(__name__)
 

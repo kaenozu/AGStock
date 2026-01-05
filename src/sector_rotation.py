@@ -3,8 +3,8 @@ from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 
-from agstock.src.constants import CYCLE_SECTOR_MAP, SECTOR_ETFS, SECTOR_NAMES_JA
-from agstock.src.data_loader import fetch_stock_data
+from src.constants import CYCLE_SECTOR_MAP, SECTOR_ETFS, SECTOR_NAMES_JA
+from src.data_loader import fetch_stock_data
 
 logger = logging.getLogger(__name__)
 

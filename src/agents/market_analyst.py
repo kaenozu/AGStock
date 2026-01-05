@@ -2,10 +2,10 @@ from typing import Any, Dict
 
 import pandas as pd
 
-from agstock.src.agents.base_agent import BaseAgent
-from agstock.src.llm_reasoner import get_llm_reasoner
-from agstock.src.regime_detector import RegimeDetector
-from agstock.src.schemas import AgentAnalysis, TradingDecision
+from src.agents.base_agent import BaseAgent
+from src.llm_reasoner import get_llm_reasoner
+from src.regime_detector import RegimeDetector
+from src.schemas import AgentAnalysis, TradingDecision
 
 
 class MarketAnalyst(BaseAgent):

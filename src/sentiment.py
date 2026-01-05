@@ -4,7 +4,7 @@ from typing import Dict, List
 
 import feedparser
 
-from agstock.src.bert_sentiment import get_bert_analyzer
+from src.bert_sentiment import get_bert_analyzer
 
 
 class SentimentAnalyzer:

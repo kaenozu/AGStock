@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, List, Any
-from agstock.src.data.macro_loader import MacroLoader
-from agstock.src.strategies.hedging_manager import HedgingManager
+from src.data.macro_loader import MacroLoader
+from src.strategies.hedging_manager import HedgingManager
 
 logger = logging.getLogger(__name__)
 

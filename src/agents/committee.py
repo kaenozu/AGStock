@@ -3,22 +3,22 @@ from datetime import datetime
 import pandas as pd
 from typing import Any, Dict, List, Optional
 
-from agstock.src.agents.base_agent import BaseAgent
-from agstock.src.agents.market_analyst import MarketAnalyst
-from agstock.src.agents.risk_manager import RiskManager
-from agstock.src.agents.macro_analyst import MacroStrategist
-from agstock.src.enhanced_ensemble_predictor import EnhancedEnsemblePredictor
-from agstock.src.schemas import AgentAnalysis, AppConfig, TradingDecision
-from agstock.src.data.macro_loader import MacroLoader
-from agstock.src.agents.strategy_arena import StrategyArena
-from agstock.src.agents.agent_spawner import AgentSpawner
-from agstock.src.simulation.digital_twin import DigitalTwin
-from agstock.src.execution.news_shock_defense import NewsShockDefense
-from agstock.src.execution.position_sizer import PositionSizer
-from agstock.src.oracle.event_forecaster import EventForecaster
-from agstock.src.agents.shadow_council import ShadowCouncil
-from agstock.src.data.earnings_history import EarningsHistory
-from agstock.src.data.feedback_store import FeedbackStore
+from src.agents.base_agent import BaseAgent
+from src.agents.market_analyst import MarketAnalyst
+from src.agents.risk_manager import RiskManager
+from src.agents.macro_analyst import MacroStrategist
+from src.enhanced_ensemble_predictor import EnhancedEnsemblePredictor
+from src.schemas import AgentAnalysis, AppConfig, TradingDecision
+from src.data.macro_loader import MacroLoader
+from src.agents.strategy_arena import StrategyArena
+from src.agents.agent_spawner import AgentSpawner
+from src.simulation.digital_twin import DigitalTwin
+from src.execution.news_shock_defense import NewsShockDefense
+from src.execution.position_sizer import PositionSizer
+from src.oracle.event_forecaster import EventForecaster
+from src.agents.shadow_council import ShadowCouncil
+from src.data.earnings_history import EarningsHistory
+from src.data.feedback_store import FeedbackStore
 
 logger = logging.getLogger(__name__)
 
@@ -213,7 +213,7 @@ class InvestmentCommittee:
             data_context=f"Analyses: {analyses}\nForecast: {self.last_forecast}",
         )
         if council_result["consensus"] == "REJECT":
-            from agstock.src.schemas import TradingDecision
+            from src.schemas import TradingDecision
 
             final_decision = TradingDecision.HOLD
             rationale = "Shadow Council rejected: " + council_result["debate_log"]

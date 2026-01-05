@@ -1,6 +1,6 @@
 from sqlalchemy import Column, DateTime, Float, Integer, String, Text
 from sqlalchemy.sql import func
-from agstock.src.db.database import Base
+from src.db.database import Base
 
 
 class MarketScan(Base):

@@ -10,8 +10,8 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from agstock.src.drift_monitor import DriftMonitor
-from agstock.src.walkforward_blender import WalkForwardBlender
+from src.drift_monitor import DriftMonitor
+from src.walkforward_blender import WalkForwardBlender
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")

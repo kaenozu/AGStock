@@ -3,7 +3,7 @@ import os
 import sqlite3
 import pandas as pd
 from datetime import datetime
-from agstock.src.oracle.oracle_2026 import Oracle2026
+from src.oracle.oracle_2026 import Oracle2026
 
 logger = logging.getLogger(__name__)
 

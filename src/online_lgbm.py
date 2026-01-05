@@ -29,7 +29,7 @@ class OnlineLGBMPredictor:
         try:
             from lightgbm import LGBMClassifier
 
-            from agstock.src.online_learning import OnlineLearner
+            from src.online_learning import OnlineLearner
 
             # ベースモデル
             base_model = LGBMClassifier(
@@ -67,7 +67,7 @@ class OnlineLGBMPredictor:
                 return False
 
         try:
-            from agstock.src.features import add_advanced_features
+            from src.features import add_advanced_features
 
             # 特徴量準備
             df_features = add_advanced_features(df.copy())
@@ -123,7 +123,7 @@ def get_online_lgbm() -> OnlineLGBMPredictor:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    from agstock.src.data_loader import fetch_stock_data
+    from src.data_loader import fetch_stock_data
 
     data_map = fetch_stock_data(["7203.T"], period="2y")
     df = data_map.get("7203.T")

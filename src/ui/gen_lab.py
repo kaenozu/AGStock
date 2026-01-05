@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-from agstock.src.llm_reasoner import get_llm_reasoner
+from src.llm_reasoner import get_llm_reasoner
 
 STRATEGY_DIR = "src/strategies/custom"
 

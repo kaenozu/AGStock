@@ -1,7 +1,7 @@
 import optuna
 
-from agstock.src.backtester import Backtester
-from agstock.src.strategies import BollingerBandsStrategy, CombinedStrategy, RSIStrategy, SMACrossoverStrategy
+from src.backtester import Backtester
+from src.strategies import BollingerBandsStrategy, CombinedStrategy, RSIStrategy, SMACrossoverStrategy
 
 
 class Optimizer:

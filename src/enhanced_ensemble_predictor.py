@@ -256,7 +256,7 @@ class EnhancedEnsemblePredictor:
 
         # または、動的重み付け、多様性ベースのアンサンブル手法を使用
         # ここでは例として StackingEnsemble を使用
-        from agstock.src.advanced_ensemble import StackingEnsemble
+        from src.advanced_ensemble import StackingEnsemble
 
         base_models = [
             self.transformer_predictor,

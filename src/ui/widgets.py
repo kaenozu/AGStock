@@ -5,7 +5,7 @@ Modern, consistent components for the dashboard.
 
 import streamlit as st
 from typing import Optional, Callable
-from agstock.src.ui.design_system import DS
+from src.ui.design_system import DS
 
 
 def metric_card(

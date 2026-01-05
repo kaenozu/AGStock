@@ -6,7 +6,7 @@ import numpy as np
 import plotly.graph_objects as go
 import streamlit as st
 
-from agstock.src.options_pricing import OptionsCalculator, OptionStrategy
+from src.options_pricing import OptionsCalculator, OptionStrategy
 
 
 def render_options_pricing():

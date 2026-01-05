@@ -1,14 +1,14 @@
 import streamlit as st
 import os
 
-from agstock.src.ui.ai_chat import render_ai_chat
-from agstock.src.ui.committee_ui import render_committee_ui
-from agstock.src.ui.earnings_analyst import render_earnings_analyst  # Phase 28
-from agstock.src.ui.news_analyst import render_news_analyst
-from agstock.src.ui.risk_hedge_panel import render_risk_hedge_panel
-from agstock.src.rag.filing_watcher import FilingWatcher
-from agstock.src.data.feedback_store import FeedbackStore
-from agstock.src.data.earnings_history import EarningsHistory
+from src.ui.ai_chat import render_ai_chat
+from src.ui.committee_ui import render_committee_ui
+from src.ui.earnings_analyst import render_earnings_analyst  # Phase 28
+from src.ui.news_analyst import render_news_analyst
+from src.ui.risk_hedge_panel import render_risk_hedge_panel
+from src.rag.filing_watcher import FilingWatcher
+from src.data.feedback_store import FeedbackStore
+from src.data.earnings_history import EarningsHistory
 import pandas as pd
 import plotly.express as px
 
@@ -191,8 +191,8 @@ def render_executive_control():
 
     # --- NIGHTWATCH SECTION ---
     st.write("## 🦉 グローバル・ナイトウォッチ (Morning Memo)")
-    from agstock.src.data.us_market_monitor import USMarketMonitor
-    from agstock.src.reports.morning_strategy_memo import MorningStrategyMemo
+    from src.data.us_market_monitor import USMarketMonitor
+    from src.reports.morning_strategy_memo import MorningStrategyMemo
 
     col_nw1, col_nw2 = st.columns([1, 2])
     with col_nw1:
@@ -218,10 +218,10 @@ def render_executive_control():
 
     st.divider()
 
-    from agstock.src.agents.strategy_arena import StrategyArena
-    from agstock.src.data.macro_loader import MacroLoader
-    from agstock.src.execution.adaptive_rebalancer import AdaptiveRebalancer
-    from agstock.src.utils.tax_optimizer import TaxOptimizer
+    from src.agents.strategy_arena import StrategyArena
+    from src.data.macro_loader import MacroLoader
+    from src.execution.adaptive_rebalancer import AdaptiveRebalancer
+    from src.utils.tax_optimizer import TaxOptimizer
 
     col1, col2 = st.columns([1, 1])
 
@@ -261,7 +261,7 @@ def render_executive_control():
 
     # 1.5 Digital Twin Shadow Portfolios
     st.write("### 🧪 デジタルツイン・シミュレーション (もしもの軌跡)")
-    from agstock.src.simulation.digital_twin import DigitalTwin
+    from src.simulation.digital_twin import DigitalTwin
 
     twin = DigitalTwin()
     twin_perf = twin.get_twin_performance()
@@ -340,7 +340,7 @@ def render_executive_control():
 
     # 5. Strategy Evolution
     st.write("### 🧬 戦略自己進化 (Strategy Evolution)")
-    from agstock.src.evolution.strategy_generator import StrategyGenerator
+    from src.evolution.strategy_generator import StrategyGenerator
 
     col_ev1, col_ev2 = st.columns([1, 1])
     with col_ev1:
@@ -365,7 +365,7 @@ def render_executive_control():
 
     # 6. Live Shock Monitor
     st.write("### 📡 ライブ・ショックモニター (緊急防衛)")
-    from agstock.src.execution.news_shock_defense import NewsShockDefense
+    from src.execution.news_shock_defense import NewsShockDefense
 
     defense = NewsShockDefense()
 

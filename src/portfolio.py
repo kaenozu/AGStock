@@ -3,8 +3,8 @@ from typing import Any, Dict
 import numpy as np
 import pandas as pd
 
-from agstock.src.backtester import Backtester
-from agstock.src.strategies import Strategy
+from src.backtester import Backtester
+from src.strategies import Strategy
 
 
 class PortfolioManager:

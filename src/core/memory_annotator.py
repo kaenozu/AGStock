@@ -1,5 +1,5 @@
 import logging
-from agstock.src.core.experience_manager import ExperienceManager
+from src.core.experience_manager import ExperienceManager
 
 logger = logging.getLogger(__name__)
 

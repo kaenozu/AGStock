@@ -20,7 +20,7 @@ RSS_FEEDS = {
 
 
 try:
-    from agstock.src.cache_manager import CacheManager
+    from src.cache_manager import CacheManager
 
     HAS_CACHE = True
 except ImportError:

@@ -11,11 +11,11 @@ from typing import Any, Dict
 
 import pandas as pd
 
-from agstock.src.formatters import format_currency, format_date
-from agstock.src.llm_reasoner import LLMReasoner
-from agstock.src.moe_system import MixtureOfExperts
-from agstock.src.paper_trader import PaperTrader
-from agstock.src.prompts.reporting_prompts import GHOSTWRITER_REPORT_PROMPT
+from src.formatters import format_currency, format_date
+from src.llm_reasoner import LLMReasoner
+from src.moe_system import MixtureOfExperts
+from src.paper_trader import PaperTrader
+from src.prompts.reporting_prompts import GHOSTWRITER_REPORT_PROMPT
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +83,7 @@ class Ghostwriter:
             realized_pnl = float(weekly_trades["realized_pnl"].sum())
 
         # Market Regime
-        from agstock.src.dashboard_utils import get_market_regime
+        from src.dashboard_utils import get_market_regime
 
         regime_info = get_market_regime()
 

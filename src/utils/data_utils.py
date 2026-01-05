@@ -8,7 +8,7 @@ from typing import List, Optional
 import pandas as pd
 import numpy as np
 
-from agstock.src.exceptions import DataValidationError
+from src.exceptions import DataValidationError
 
 logger = logging.getLogger(__name__)
 

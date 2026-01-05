@@ -8,8 +8,8 @@ from typing import Any, Dict
 
 import pandas as pd
 
-from agstock.src.evolved_strategy import EvolvedStrategy
-from agstock.src.regime_detector import MarketRegimeDetector
+from src.evolved_strategy import EvolvedStrategy
+from src.regime_detector import MarketRegimeDetector
 
 logger = logging.getLogger(__name__)
 

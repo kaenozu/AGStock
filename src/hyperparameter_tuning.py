@@ -275,7 +275,7 @@ def optimize_all_models(df: pd.DataFrame, n_trials: int = 30) -> Dict[str, Dict[
     Returns:
         各モデルの最適パラメータ
     """
-    from agstock.src.features import add_advanced_features
+    from src.features import add_advanced_features
 
     # 特徴量を生成
     logger.info("Generating features...")

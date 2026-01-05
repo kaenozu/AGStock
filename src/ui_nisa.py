@@ -4,7 +4,7 @@ NISA Manager UI - NISA口座管理ダッシュボード
 
 import streamlit as st
 
-from agstock.src.nisa_manager import NISAManager, NISAType
+from src.nisa_manager import NISAManager, NISAType
 
 
 def render_nisa_manager():

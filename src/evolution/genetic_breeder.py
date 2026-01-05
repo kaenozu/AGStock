@@ -12,8 +12,8 @@ from typing import List, Optional, Tuple
 
 import google.generativeai as genai
 
-from agstock.src.agents.strategy_arena import StrategyArena
-from agstock.src.evolution.market_simulator import MarketSimulator
+from src.agents.strategy_arena import StrategyArena
+from src.evolution.market_simulator import MarketSimulator
 
 logger = logging.getLogger(__name__)
 

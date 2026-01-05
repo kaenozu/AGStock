@@ -7,8 +7,8 @@ import logging
 from typing import Dict
 import pandas as pd
 
-from agstock.src.data_loader import fetch_stock_data
-from agstock.src.exceptions import DataFetchError
+from src.data_loader import fetch_stock_data
+from src.exceptions import DataFetchError
 
 logger = logging.getLogger(__name__)
 

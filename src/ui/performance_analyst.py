@@ -1,6 +1,6 @@
 import streamlit as st
 import plotly.express as px
-from agstock.src.analytics import PortfolioAnalytics
+from src.analytics import PortfolioAnalytics
 
 
 def render_performance_analyst():

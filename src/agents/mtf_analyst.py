@@ -8,9 +8,9 @@ import logging
 from typing import Any, Dict
 
 
-from agstock.src.agents.base_agent import BaseAgent
-from agstock.src.multi_timeframe import MultiTimeframeAnalyzer
-from agstock.src.schemas import AgentAnalysis, TradingDecision
+from src.agents.base_agent import BaseAgent
+from src.multi_timeframe import MultiTimeframeAnalyzer
+from src.schemas import AgentAnalysis, TradingDecision
 
 logger = logging.getLogger(__name__)
 

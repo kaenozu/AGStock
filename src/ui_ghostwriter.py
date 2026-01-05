@@ -9,7 +9,7 @@ from typing import List
 
 import streamlit as st
 
-from agstock.src.ghostwriter import Ghostwriter
+from src.ghostwriter import Ghostwriter
 
 logger = logging.getLogger(__name__)
 

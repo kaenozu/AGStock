@@ -281,7 +281,7 @@ class LLMReasoner:
         5. 出力はPythonコードのみ（Markdownの ```python 等は不要）にしてください。
 
 ## テンプレート
-        from agstock.src.strategies.base import Strategy
+        from src.strategies.base import Strategy
         import pandas as pd
         import talib
 

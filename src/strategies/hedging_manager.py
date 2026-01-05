@@ -1,6 +1,6 @@
 import logging
 from typing import Dict, List, Any
-from agstock.src.schemas import TradingDecision
+from src.schemas import TradingDecision
 
 logger = logging.getLogger(__name__)
 

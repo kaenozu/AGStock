@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import logging
 from typing import Dict, List, Any
-from agstock.src.strategies.technical import RSIStrategy, BollingerBandsStrategy
+from src.strategies.technical import RSIStrategy, BollingerBandsStrategy
 
 logger = logging.getLogger(__name__)
 

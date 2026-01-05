@@ -234,7 +234,7 @@ def create_stacking_ensemble_from_strategies(df: pd.DataFrame, strategies: List)
     Returns:
         StackingEnsembleインスタンス
     """
-    from agstock.src.features import add_advanced_features
+    from src.features import add_advanced_features
 
     # 特徴量を生成
     add_advanced_features(df.copy())

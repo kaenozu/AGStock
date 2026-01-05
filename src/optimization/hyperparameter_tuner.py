@@ -243,7 +243,7 @@ class HyperparameterOptimizer:
 
         # Handle both df and (X, y)
         if isinstance(X_or_df, pd.DataFrame) and y is None:
-            from agstock.src.strategies_legacy import add_advanced_features
+            from src.strategies_legacy import add_advanced_features
 
             data = add_advanced_features(X_or_df).dropna()
             if len(data) < 20:

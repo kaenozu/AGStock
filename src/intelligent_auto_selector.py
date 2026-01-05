@@ -34,7 +34,7 @@ class IntelligentAutoSelector:
     def _initialize(self):
         """各コンポーネントを初期化"""
         try:
-            from agstock.src.enhanced_ensemble_predictor import EnhancedEnsemblePredictor
+            from src.enhanced_ensemble_predictor import EnhancedEnsemblePredictor
 
             self.ensemble_predictor = EnhancedEnsemblePredictor()
             logger.info("EnhancedEnsemblePredictor initialized with advanced models + RL + FinBERT")
@@ -42,7 +42,7 @@ class IntelligentAutoSelector:
             logger.error(f"Failed to init EnsemblePredictor: {e}")
 
         try:
-            from agstock.src.online_lgbm import get_online_lgbm
+            from src.online_lgbm import get_online_lgbm
 
             self.online_lgbm = get_online_lgbm()
             logger.info("Online Learning LightGBM initialized")
@@ -50,7 +50,7 @@ class IntelligentAutoSelector:
             logger.warning(f"Online Learning not available: {e}")
 
         try:
-            from agstock.src.meta_optimizer import get_meta_optimizer
+            from src.meta_optimizer import get_meta_optimizer
 
             self.meta_optimizer = get_meta_optimizer()
             logger.info("Meta Optimizer initialized")
@@ -59,7 +59,7 @@ class IntelligentAutoSelector:
 
         # Phase 50: Performance enhancers
         try:
-            from agstock.src.prediction_cache import get_prediction_cache
+            from src.prediction_cache import get_prediction_cache
 
             self.cache = get_prediction_cache()
             logger.info("Prediction Cache initialized (30min TTL)")
@@ -68,7 +68,7 @@ class IntelligentAutoSelector:
             logger.warning(f"Prediction Cache not available: {e}")
 
         try:
-            from agstock.src.ensemble_weight_optimizer import get_weight_optimizer
+            from src.ensemble_weight_optimizer import get_weight_optimizer
 
             self.weight_optimizer = get_weight_optimizer()
             logger.info("Ensemble Weight Optimizer initialized")
@@ -77,7 +77,7 @@ class IntelligentAutoSelector:
             logger.warning(f"Weight Optimizer not available: {e}")
 
         try:
-            from agstock.src.batch_inference import get_batch_engine
+            from src.batch_inference import get_batch_engine
 
             self.batch_engine = get_batch_engine()
             logger.info("Batch Inference Engine initialized")
@@ -87,7 +87,7 @@ class IntelligentAutoSelector:
 
         # Phase 51: Advanced enhancements
         try:
-            from agstock.src.external_data import get_external_data
+            from src.external_data import get_external_data
 
             self.external_data = get_external_data()
             logger.info("External Data Provider initialized")
@@ -95,7 +95,7 @@ class IntelligentAutoSelector:
             self.external_data = None
 
         try:
-            from agstock.src.lazy_loader import get_lazy_loader
+            from src.lazy_loader import get_lazy_loader
 
             self.lazy_loader = get_lazy_loader()
             logger.info("Lazy Model Loader initialized (6 models registered)")
@@ -103,7 +103,7 @@ class IntelligentAutoSelector:
             self.lazy_loader = None
 
         try:
-            from agstock.src.persistent_cache import get_persistent_cache
+            from src.persistent_cache import get_persistent_cache
 
             self.persistent_cache = get_persistent_cache()
             logger.info("Persistent Cache (SQLite) initialized")
@@ -111,7 +111,7 @@ class IntelligentAutoSelector:
             self.persistent_cache = None
 
         try:
-            from agstock.src.multi_task_learner import get_multi_task_predictor
+            from src.multi_task_learner import get_multi_task_predictor
 
             self.multi_task = get_multi_task_predictor()
             logger.info("Multi-Task Predictor initialized")
@@ -350,7 +350,7 @@ def get_auto_selector() -> IntelligentAutoSelector:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    from agstock.src.data_loader import fetch_stock_data
+    from src.data_loader import fetch_stock_data
 
     # テスト
     selector = get_auto_selector()

@@ -147,7 +147,7 @@ class RecoveryManager:
             True if rollback successful
         """
         try:
-            from agstock.src.paper_trader import PaperTrader
+            from src.paper_trader import PaperTrader
 
             PaperTrader()
             # Implementation would depend on trade tracking
@@ -170,13 +170,13 @@ class RecoveryManager:
 
         try:
             # Save state
-            from agstock.src.db_maintenance import DatabaseMaintenance
+            from src.db_maintenance import DatabaseMaintenance
 
             maintenance = DatabaseMaintenance()
             maintenance.backup_database(prefix="emergency")
 
             # Send alert
-            from agstock.src.anomaly_detector import AnomalyDetector
+            from src.anomaly_detector import AnomalyDetector
 
             detector = AnomalyDetector()
             detector.send_alert(
