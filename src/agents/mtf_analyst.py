@@ -8,9 +8,9 @@ import logging
 from typing import Any, Dict
 
 
-from src.agents.base_agent import BaseAgent
-from src.multi_timeframe import MultiTimeframeAnalyzer
-from src.schemas import AgentAnalysis, TradingDecision
+from agstock.src.agents.base_agent import BaseAgent
+from agstock.src.multi_timeframe import MultiTimeframeAnalyzer
+from agstock.src.schemas import AgentAnalysis, TradingDecision
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ class MTFAnalyst(BaseAgent):
                 agent_name=self.name,
                 decision=TradingDecision.HOLD,
                 reasoning="分析に必要な価格履歴データが提供されていません。",
-                confidence=0.0
+                confidence=0.0,
             )
 
         try:
@@ -50,7 +50,7 @@ class MTFAnalyst(BaseAgent):
                     agent_name=self.name,
                     decision=TradingDecision.HOLD,
                     reasoning=f"週足データが不足しています ({len(weekly_df)} weeks)。",
-                    confidence=0.3
+                    confidence=0.3,
                 )
 
             # Calculate MTF indicators
@@ -83,12 +83,7 @@ class MTFAnalyst(BaseAgent):
                 reasoning = "週足トレンドが不明確です。長期的な方向感が出るまで待機を推奨します。"
                 confidence = 0.5
 
-            return AgentAnalysis(
-                agent_name=self.name,
-                decision=decision,
-                reasoning=reasoning,
-                confidence=confidence
-            )
+            return AgentAnalysis(agent_name=self.name, decision=decision, reasoning=reasoning, confidence=confidence)
 
         except Exception as e:
             logger.error(f"MTF Analyst evaluation failed: {e}")
@@ -96,5 +91,5 @@ class MTFAnalyst(BaseAgent):
                 agent_name=self.name,
                 decision=TradingDecision.HOLD,
                 reasoning=f"分析エラーが発生しました: {str(e)}",
-                confidence=0.0
+                confidence=0.0,
             )

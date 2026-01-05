@@ -9,7 +9,7 @@ from typing import List
 
 import streamlit as st
 
-from src.ghostwriter import Ghostwriter
+from agstock.src.ghostwriter import Ghostwriter
 
 logger = logging.getLogger(__name__)
 
@@ -84,8 +84,9 @@ class GhostwriterUI:
             is_selected = str(file) == st.session_state.selected_report
             label = f"👉 {display_date}" if is_selected else f"📄 {display_date}"
 
-            if st.button(label, key=str(file), use_container_width=True,
-                         type="primary" if is_selected else "secondary"):
+            if st.button(
+                label, key=str(file), use_container_width=True, type="primary" if is_selected else "secondary"
+            ):
                 st.session_state.selected_report = str(file)
                 st.rerun()
 
@@ -123,7 +124,7 @@ class GhostwriterUI:
                     {st.markdown(content)}
                 </div>
                 """,
-                unsafe_allow_html=True
+                unsafe_allow_html=True,
             )
             # Since st.markdown(content) inside f-string actually renders and returns None,
             # it's better to just render it standardly or use a container with background styling.

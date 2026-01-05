@@ -5,7 +5,7 @@ import pandas as pd
 from typing import Dict, Any, Optional
 from datetime import datetime
 
-from src.llm_reasoner import get_llm_reasoner
+from agstock.src.llm_reasoner import get_llm_reasoner
 
 logger = logging.getLogger(__name__)
 
@@ -47,9 +47,7 @@ class VisualOracle:
             logger.error(f"Visual analysis failed for {ticker}: {e}")
             return {"error": str(e)}
 
-    def _generate_candlestick_chart(
-        self, ticker: str, df: pd.DataFrame
-    ) -> Optional[str]:
+    def _generate_candlestick_chart(self, ticker: str, df: pd.DataFrame) -> Optional[str]:
         """
         Generate a simple candlestick-like chart using matplotlib.
         (We use colored bars for simplicity if mplfinance is unavailable)

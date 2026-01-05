@@ -3,7 +3,7 @@ Meta Registry for Strategy-Regime Mapping.
 Defines which strategies are best suited for specific market conditions.
 """
 
-from src.strategies import (
+from agstock.src.strategies import (
     BollingerBandsStrategy,
     CombinedStrategy,
     DeepLearningStrategy,

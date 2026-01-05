@@ -11,10 +11,7 @@ def load_custom_strategies() -> list:
     # Adjust path to find 'custom' directory relative to this file
     # Provided structure is src/strategies/loader.py, so custom dir would be src/strategies/custom
     current_dir = os.path.dirname(__file__)
-    search_dirs = [
-        os.path.join(current_dir, "custom"),
-        os.path.join(current_dir, "evolved")
-    ]
+    search_dirs = [os.path.join(current_dir, "custom"), os.path.join(current_dir, "evolved")]
 
     for custom_dir in search_dirs:
         if not os.path.exists(custom_dir):
@@ -37,17 +34,11 @@ def load_custom_strategies() -> list:
                         spec.loader.exec_module(module)
 
                         for name, obj in inspect.getmembers(module):
-                            if (
-                                inspect.isclass(obj)
-                                and issubclass(obj, Strategy)
-                                and obj is not Strategy
-                            ):
+                            if inspect.isclass(obj) and issubclass(obj, Strategy) and obj is not Strategy:
                                 try:
                                     strategy_instance = obj()
                                     custom_strategies.append(strategy_instance)
-                                    print(
-                                        f"Loaded custom strategy: {strategy_instance.name}"
-                                    )
+                                    print(f"Loaded custom strategy: {strategy_instance.name}")
                                 except Exception as e:
                                     print(f"Failed to instantiate {name}: {e}")
                 except Exception as e:

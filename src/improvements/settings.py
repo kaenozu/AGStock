@@ -7,6 +7,7 @@ from typing import Any, Dict, Optional
 try:
     from pydantic_settings import BaseSettings
     from pydantic import Field, field_validator
+
     PYDANTIC_AVAILABLE = True
 except ImportError:
     # Fallback for environments without pydantic-settings
@@ -19,13 +20,16 @@ except ImportError:
 
     def field_validator(*args, **kwargs):
         """Fallback field_validator decorator"""
+
         def decorator(f):
             return f
+
         return decorator
 
 
 class RiskSettings:
     """リスク設定"""
+
     max_daily_loss_pct: float = -5.0
     max_position_size_pct: float = 10.0
     max_sector_exposure_pct: float = 35.0
@@ -36,6 +40,7 @@ class RiskSettings:
 
 class TradingSettings:
     """取引設定"""
+
     default_position_size_usd: float = 10000.0
     min_stock_price_threshold: float = 5.0
     max_positions: int = 20
@@ -44,6 +49,7 @@ class TradingSettings:
 
 class CacheSettings:
     """キャッシュ設定"""
+
     realtime_ttl_seconds: int = 30
     realtime_backoff_seconds: float = 1.0
     fundamental_ttl_hours: int = 24
@@ -52,6 +58,7 @@ class CacheSettings:
 
 class NotificationSettings:
     """通知設定"""
+
     line_notify_token: Optional[str] = None
     slack_webhook_url: Optional[str] = None
     discord_webhook_url: Optional[str] = None
@@ -60,6 +67,7 @@ class NotificationSettings:
 
 class AISettings:
     """АИ設定"""
+
     openai_api_key: Optional[str] = None
     gemini_api_key: Optional[str] = None
     analyst_model: str = "gpt-4-turbo-preview"
@@ -69,6 +77,7 @@ class AISettings:
 
 
 if PYDANTIC_AVAILABLE:
+
     class AGStockSettings(BaseSettings):
         """メイン設定クラス"""
 
@@ -143,6 +152,7 @@ if PYDANTIC_AVAILABLE:
             if v not in allowed:
                 raise ValueError(f"trading_scenario must be one of {allowed}")
             return v
+
 else:
     # Fallback class without Pydantic
     class AGStockSettings:

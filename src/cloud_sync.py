@@ -51,19 +51,13 @@ class CloudSyncManager:
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
             sync_results["portfolio"] = (
-                results[0]
-                if not isinstance(results[0], Exception)
-                else {"error": str(results[0])}
+                results[0] if not isinstance(results[0], Exception) else {"error": str(results[0])}
             )
             sync_results["market_data"] = (
-                results[1]
-                if not isinstance(results[1], Exception)
-                else {"error": str(results[1])}
+                results[1] if not isinstance(results[1], Exception) else {"error": str(results[1])}
             )
             sync_results["user_preferences"] = (
-                results[2]
-                if not isinstance(results[2], Exception)
-                else {"error": str(results[2])}
+                results[2] if not isinstance(results[2], Exception) else {"error": str(results[2])}
             )
 
             # 最終同期時刻を保存
@@ -179,9 +173,7 @@ class CloudSyncManager:
                     if response.status == 200:
                         return await response.json()
                     else:
-                        logger.warning(
-                            f"Remote portfolio fetch failed: {response.status}"
-                        )
+                        logger.warning(f"Remote portfolio fetch failed: {response.status}")
                         return {}
 
         except asyncio.TimeoutError:
@@ -202,19 +194,13 @@ class CloudSyncManager:
         # タイムスタンプでマージ
         for local_pos in local_positions:
             matching_remote = next(
-                (
-                    rp
-                    for rp in remote_positions
-                    if rp.get("ticker") == local_pos.get("ticker")
-                ),
+                (rp for rp in remote_positions if rp.get("ticker") == local_pos.get("ticker")),
                 None,
             )
 
             if matching_remote:
                 # より新しいデータを採用
-                if (matching_remote.get("timestamp") or "") > (
-                    local_pos.get("timestamp") or ""
-                ):
+                if (matching_remote.get("timestamp") or "") > (local_pos.get("timestamp") or ""):
                     merged_positions.append(matching_remote)
                 else:
                     merged_positions.append(local_pos)
@@ -244,9 +230,7 @@ class CloudSyncManager:
         except Exception as e:
             logger.error(f"Failed to save portfolio data: {e}")
 
-    async def fetch_market_data_updates(
-        self, last_sync: Optional[str]
-    ) -> Dict[str, Any]:
+    async def fetch_market_data_updates(self, last_sync: Optional[str]) -> Dict[str, Any]:
         """市場データの差分更新を取得"""
         if not last_sync:
             return {}

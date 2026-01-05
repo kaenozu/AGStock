@@ -1,5 +1,3 @@
-
-
 def render_cfo_panel():
     pass
     #     """

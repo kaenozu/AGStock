@@ -6,7 +6,7 @@ import numpy as np
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.options_pricing import OptionsCalculator, OptionStrategy
+from agstock.src.options_pricing import OptionsCalculator, OptionStrategy
 
 
 def render_options_pricing():
@@ -15,9 +15,7 @@ def render_options_pricing():
 
     calc = OptionsCalculator()
 
-    tab1, tab2, tab3 = st.tabs(
-        ["🔢 価格計算", "📊 Greeks分析", "🎯 戦略シミュレーション"]
-    )
+    tab1, tab2, tab3 = st.tabs(["🔢 価格計算", "📊 Greeks分析", "🎯 戦略シミュレーション"])
 
     with tab1:
         st.subheader("Black-Scholesモデル")
@@ -30,9 +28,7 @@ def render_options_pricing():
             volatility = st.slider("ボラティリティ (σ)", 0.1, 1.0, 0.3, 0.01)
 
         with col2:
-            expiry_days = st.number_input(
-                "満期までの日数", value=30, min_value=1, max_value=365
-            )
+            expiry_days = st.number_input("満期までの日数", value=30, min_value=1, max_value=365)
             risk_free_rate = st.slider("リスクフリーレート", 0.0, 0.1, 0.01, 0.001)
             option_type = st.radio("オプション種類", ["コール", "プット"])
 
@@ -40,9 +36,7 @@ def render_options_pricing():
         opt_type = "call" if option_type == "コール" else "put"
 
         if st.button("オプション価格を計算", type="primary"):
-            price = calc.black_scholes(
-                spot_price, strike_price, T, risk_free_rate, volatility, opt_type
-            )
+            price = calc.black_scholes(spot_price, strike_price, T, risk_free_rate, volatility, opt_type)
 
             st.success(f"**{option_type}オプション価格: ¥{price:,.2f}**")
 
@@ -55,9 +49,7 @@ def render_options_pricing():
                 payoffs = np.maximum(strike_price - prices, 0) - price
 
             fig = go.Figure()
-            fig.add_trace(
-                go.Scatter(x=prices, y=payoffs, mode="lines", name="ペイオフ")
-            )
+            fig.add_trace(go.Scatter(x=prices, y=payoffs, mode="lines", name="ペイオフ"))
             fig.add_hline(y=0, line_dash="dash", line_color="gray")
             fig.add_vline(
                 x=strike_price,
@@ -112,25 +104,19 @@ def render_options_pricing():
     with tab3:
         st.subheader("オプション戦略")
 
-        strategy_type = st.selectbox(
-            "戦略を選択", ["カバードコール", "プロテクティブプット", "ストラドル"]
-        )
+        strategy_type = st.selectbox("戦略を選択", ["カバードコール", "プロテクティブプット", "ストラドル"])
 
         if strategy_type == "カバードコール":
             col1, col2 = st.columns(2)
             with col1:
                 stock_price = st.number_input("保有株価", value=1500.0)
-                stock_qty = st.number_input(
-                    "保有株数", value=100, min_value=100, step=100
-                )
+                stock_qty = st.number_input("保有株数", value=100, min_value=100, step=100)
             with col2:
                 call_strike = st.number_input("コール行使価格", value=1600.0)
                 call_premium = st.number_input("コールプレミアム", value=30.0)
 
             if st.button("戦略分析"):
-                result = OptionStrategy.covered_call(
-                    stock_price, stock_qty, call_strike, call_premium
-                )
+                result = OptionStrategy.covered_call(stock_price, stock_qty, call_strike, call_premium)
 
                 col1, col2, col3 = st.columns(3)
                 col1.metric("最大利益", f"¥{result['max_profit']:,.0f}")
@@ -141,17 +127,13 @@ def render_options_pricing():
             col1, col2 = st.columns(2)
             with col1:
                 stock_price = st.number_input("保有株価", value=1500.0, key="pp_sp")
-                stock_qty = st.number_input(
-                    "保有株数", value=100, min_value=100, step=100, key="pp_qty"
-                )
+                stock_qty = st.number_input("保有株数", value=100, min_value=100, step=100, key="pp_qty")
             with col2:
                 put_strike = st.number_input("プット行使価格", value=1400.0)
                 put_premium = st.number_input("プットプレミアム", value=25.0)
 
             if st.button("戦略分析", key="pp_analyze"):
-                result = OptionStrategy.protective_put(
-                    stock_price, stock_qty, put_strike, put_premium
-                )
+                result = OptionStrategy.protective_put(stock_price, stock_qty, put_strike, put_premium)
 
                 col1, col2, col3 = st.columns(3)
                 col1.metric("最大利益", "無限大")
@@ -162,13 +144,9 @@ def render_options_pricing():
             col1, col2 = st.columns(2)
             with col1:
                 strike = st.number_input("行使価格", value=1500.0, key="straddle_k")
-                call_prem = st.number_input(
-                    "コールプレミアム", value=40.0, key="straddle_call"
-                )
+                call_prem = st.number_input("コールプレミアム", value=40.0, key="straddle_call")
             with col2:
-                put_prem = st.number_input(
-                    "プットプレミアム", value=35.0, key="straddle_put"
-                )
+                put_prem = st.number_input("プットプレミアム", value=35.0, key="straddle_put")
 
             if st.button("戦略分析", key="straddle_analyze"):
                 result = OptionStrategy.straddle(strike, call_prem, put_prem)

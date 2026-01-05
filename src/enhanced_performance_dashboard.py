@@ -3,15 +3,14 @@ Enhanced Performance Dashboard
 ベンチマーク比較機能を含む高度なパフォーマンスダッシュボード
 """
 
-
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.benchmark_comparator import BenchmarkComparator
-from src.design_tokens import Colors
-from src.formatters import format_percentage
-from src.paper_trader import PaperTrader
+from agstock.src.benchmark_comparator import BenchmarkComparator
+from agstock.src.design_tokens import Colors
+from agstock.src.formatters import format_percentage
+from agstock.src.paper_trader import PaperTrader
 
 
 def create_performance_dashboard():
@@ -26,9 +25,7 @@ def create_performance_dashboard():
     equity_history = pt.get_equity_history()
 
     if equity_history.empty:
-        st.info(
-            "📈 取引履歴がありません。Paper Tradingを開始してデータを蓄積してください。"
-        )
+        st.info("📈 取引履歴がありません。Paper Tradingを開始してデータを蓄積してください。")
         return
 
     # ベンチマーク選択
@@ -74,14 +71,10 @@ def create_performance_dashboard():
             portfolio_returns = equity_recent["equity"].pct_change().dropna()
 
             # ベンチマークデータ取得
-            benchmark_data = comparator.fetch_benchmark_data(
-                selected_benchmark, period=f"{period_days}d"
-            )
+            benchmark_data = comparator.fetch_benchmark_data(selected_benchmark, period=f"{period_days}d")
 
             if benchmark_data is None or benchmark_data.empty:
-                st.error(
-                    "ベンチマークデータの取得に失敗しました。ネットワーク接続を確認してください。"
-                )
+                st.error("ベンチマークデータの取得に失敗しました。ネットワーク接続を確認してください。")
                 return
 
             benchmark_returns = benchmark_data["Close"].pct_change().dropna()
@@ -96,9 +89,7 @@ def create_performance_dashboard():
             benchmark_returns_aligned = benchmark_returns.loc[common_dates]
 
             # 比較レポート生成
-            report = comparator.generate_comparison_report(
-                portfolio_returns_aligned, selected_benchmark
-            )
+            report = comparator.generate_comparison_report(portfolio_returns_aligned, selected_benchmark)
 
         except Exception as e:
             st.error(f"分析エラー: {str(e)}")
@@ -112,9 +103,7 @@ def create_performance_dashboard():
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        portfolio_total_return = (
-            equity_recent["equity"].iloc[-1] / equity_recent["equity"].iloc[0] - 1
-        )
+        portfolio_total_return = equity_recent["equity"].iloc[-1] / equity_recent["equity"].iloc[0] - 1
         st.metric(
             "ポートフォリオ",
             format_percentage(portfolio_total_return, decimals=2),
@@ -131,9 +120,7 @@ def create_performance_dashboard():
     with col3:
         alpha = report["alpha"]
         alpha_color = "green" if alpha > 0 else "red"
-        st.metric(
-            "アルファ (α)", f"{alpha:+.2f}%", help="ベンチマークを上回る超過リターン"
-        )
+        st.metric("アルファ (α)", f"{alpha:+.2f}%", help="ベンチマークを上回る超過リターン")
         st.markdown(f":{alpha_color}[{'市場超過' if alpha > 0 else '市場未達'}]")
 
     with col4:
@@ -173,9 +160,7 @@ def create_performance_dashboard():
 
     with col7:
         active_return = report["active_return"]
-        st.metric(
-            "アクティブリターン", f"{active_return:+.2f}%", help="ベンチマークとの差"
-        )
+        st.metric("アクティブリターン", f"{active_return:+.2f}%", help="ベンチマークとの差")
 
     st.divider()
 
@@ -298,28 +283,20 @@ def create_performance_dashboard():
     recommendations = []
 
     if report["alpha"] < 0:
-        recommendations.append(
-            "⚠️ アルファがマイナスです。戦略の見直しを検討してください。"
-        )
+        recommendations.append("⚠️ アルファがマイナスです。戦略の見直しを検討してください。")
     else:
         recommendations.append("✅ ベンチマークを上回るパフォーマンスです。")
 
     if report["information_ratio"] < 0.5:
-        recommendations.append(
-            "💡 情報比率が低めです。リスクに見合ったリターンが得られているか確認しましょう。"
-        )
+        recommendations.append("💡 情報比率が低めです。リスクに見合ったリターンが得られているか確認しましょう。")
 
     if report["beta"] > 1.5:
-        recommendations.append(
-            "⚠️ ベータが高く、市場変動の影響を大きく受けます。リスク許容度を確認してください。"
-        )
+        recommendations.append("⚠️ ベータが高く、市場変動の影響を大きく受けます。リスク許容度を確認してください。")
     elif report["beta"] < 0.5:
         recommendations.append("💡 ベータが低く、保守的なポートフォリオです。")
 
     if report["tracking_error"] > 0.1:
-        recommendations.append(
-            "📊 ベンチマークとの乖離が大きいです。意図的なアクティブ運用か確認しましょう。"
-        )
+        recommendations.append("📊 ベンチマークとの乖離が大きいです。意図的なアクティブ運用か確認しましょう。")
 
     if not recommendations:
         recommendations.append("✅ 現状維持で問題ありません。")

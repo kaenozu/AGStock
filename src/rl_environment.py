@@ -4,7 +4,7 @@ from typing import Any, Dict, Tuple
 import numpy as np
 import pandas as pd
 
-from src.sovereign_retrospective import SovereignRetrospective
+from agstock.src.sovereign_retrospective import SovereignRetrospective
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class TradingEnvironment:
         self.df = df.reset_index(drop=True)
         self.initial_balance = initial_balance
         self.commission_rate = 0.001  # 0.1%
-        
+
         # Sovereign Adaptive Learning integration
         self.retrospective = SovereignRetrospective()
         self.retrospective.analyze_2025_failures()
@@ -44,14 +44,10 @@ class TradingEnvironment:
         # State space size (calculated dynamically based on features)
         # Position(1) + PnL(1) + Features
         self.feature_cols = [
-            c
-            for c in df.columns
-            if c not in ["Date", "Open", "High", "Low", "Close", "Volume", "Target"]
+            c for c in df.columns if c not in ["Date", "Open", "High", "Low", "Close", "Volume", "Target"]
         ]
         # 数値カラムのみ
-        self.feature_cols = (
-            df[self.feature_cols].select_dtypes(include=[np.number]).columns.tolist()
-        )
+        self.feature_cols = df[self.feature_cols].select_dtypes(include=[np.number]).columns.tolist()
         self.state_size = 2 + len(self.feature_cols)
 
         self.reset()
@@ -120,7 +116,7 @@ class TradingEnvironment:
         pnl_ratio = 0.0
         if self.position == 1:
             pnl_ratio = (current_price - self.entry_price) / self.entry_price
-            
+
         reward += self.retrospective.get_reward_bias({"pnl_ratio": pnl_ratio, "step": self.current_step})
 
         # ステップ進行

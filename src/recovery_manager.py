@@ -49,9 +49,7 @@ class RecoveryManager:
                     logger.error(f"Failed after {retries} attempts: {e}")
                     raise
 
-                logger.warning(
-                    f"Attempt {attempt + 1} failed: {e}. Retrying in {delay}s..."
-                )
+                logger.warning(f"Attempt {attempt + 1} failed: {e}. Retrying in {delay}s...")
                 time.sleep(delay)
                 delay *= backoff_factor
 
@@ -83,18 +81,11 @@ class RecoveryManager:
 
                 except Exception:
                     # Increment failure count
-                    self.failure_count[service_name] = (
-                        self.failure_count.get(service_name, 0) + 1
-                    )
+                    self.failure_count[service_name] = self.failure_count.get(service_name, 0) + 1
 
                     # Open circuit if threshold exceeded
-                    if (
-                        self.failure_count[service_name]
-                        >= self.circuit_breaker_threshold
-                    ):
-                        self.circuit_open_until[service_name] = (
-                            time.time() + self.circuit_breaker_timeout
-                        )
+                    if self.failure_count[service_name] >= self.circuit_breaker_threshold:
+                        self.circuit_open_until[service_name] = time.time() + self.circuit_breaker_timeout
                         logger.error(f"Circuit breaker opened for {service_name}")
 
                     raise
@@ -156,7 +147,7 @@ class RecoveryManager:
             True if rollback successful
         """
         try:
-            from src.paper_trader import PaperTrader
+            from agstock.src.paper_trader import PaperTrader
 
             PaperTrader()
             # Implementation would depend on trade tracking
@@ -179,13 +170,13 @@ class RecoveryManager:
 
         try:
             # Save state
-            from src.db_maintenance import DatabaseMaintenance
+            from agstock.src.db_maintenance import DatabaseMaintenance
 
             maintenance = DatabaseMaintenance()
             maintenance.backup_database(prefix="emergency")
 
             # Send alert
-            from src.anomaly_detector import AnomalyDetector
+            from agstock.src.anomaly_detector import AnomalyDetector
 
             detector = AnomalyDetector()
             detector.send_alert(
@@ -213,9 +204,7 @@ def auto_retry(max_retries: int = 3):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            return recovery_manager.retry_with_backoff(
-                lambda: func(*args, **kwargs), max_retries=max_retries
-            )
+            return recovery_manager.retry_with_backoff(lambda: func(*args, **kwargs), max_retries=max_retries)
 
         return wrapper
 

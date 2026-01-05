@@ -69,9 +69,7 @@ def retry(
                     attempt += 1
 
                     if attempt >= max_attempts:
-                        logger.error(
-                            f"{func.__name__} failed after {max_attempts} attempts: {e}"
-                        )
+                        logger.error(f"{func.__name__} failed after {max_attempts} attempts: {e}")
                         raise
 
                     logger.warning(
@@ -196,10 +194,7 @@ def get_user_friendly_message(exception: Exception, context: str = "") -> dict:
         ErrorCategory.VALIDATION: {
             "title": "バリデーションエラー",
             "message": "入力値が不正です。",
-            "suggestion": (
-                "• 入力値を確認してください\n"
-                "• 必須項目が入力されているか確認してください"
-            ),
+            "suggestion": ("• 入力値を確認してください\n" "• 必須項目が入力されているか確認してください"),
         },
         ErrorCategory.EXTERNAL_API: {
             "title": "外部APIエラー",
@@ -250,9 +245,7 @@ def network_retry(func: Callable) -> Callable:
 
 def api_retry(func: Callable) -> Callable:
     """API呼び出し用のリトライデコレータ（5回、長めの待機）"""
-    return retry(max_attempts=5, delay=2.0, backoff=2.0, exceptions=(Exception,))(
-        func
-    )  # 広範囲のエラーをリトライ
+    return retry(max_attempts=5, delay=2.0, backoff=2.0, exceptions=(Exception,))(func)  # 広範囲のエラーをリトライ
 
 
 # エラーログヘルパー

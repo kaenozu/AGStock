@@ -8,9 +8,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.constants import NIKKEI_225_TICKERS, TICKER_NAMES
-from src.data_loader import fetch_stock_data
-from src.portfolio import PortfolioManager
+from agstock.src.constants import NIKKEI_225_TICKERS, TICKER_NAMES
+from agstock.src.data_loader import fetch_stock_data
+from agstock.src.portfolio import PortfolioManager
 
 
 def render_portfolio_panel(sidebar_config, strategies):
@@ -42,9 +42,7 @@ def render_portfolio_panel(sidebar_config, strategies):
     selected_portfolio = st.multiselect(
         "ポートフォリオに組み入れる銘柄を選択 (3つ以上推奨)",
         options=available_tickers,
-        default=available_tickers[:5]
-        if len(available_tickers) >= 5
-        else available_tickers,
+        default=available_tickers[:5] if len(available_tickers) >= 5 else available_tickers,
         format_func=lambda x: f"{x} - {TICKER_NAMES.get(x, '')}",
     )
 
@@ -97,9 +95,7 @@ def render_portfolio_panel(sidebar_config, strategies):
                             index=default_strat_index,
                             key=f"strat_{ticker}",
                         )
-                        pf_strategies[ticker] = next(
-                            s for s in strategies if s.name == selected_strat_name
-                        )
+                        pf_strategies[ticker] = next(s for s in strategies if s.name == selected_strat_name)
 
                 st.divider()
 
@@ -120,24 +116,16 @@ def render_portfolio_panel(sidebar_config, strategies):
                         st.success("最適化完了")
 
                         st.write("推奨配分比率:")
-                        w_df = pd.DataFrame.from_dict(
-                            weights, orient="index", columns=["Weight"]
-                        )
-                        w_df["Weight"] = w_df["Weight"].apply(
-                            lambda x: f"{x * 100:.1f}%"
-                        )
+                        w_df = pd.DataFrame.from_dict(weights, orient="index", columns=["Weight"])
+                        w_df["Weight"] = w_df["Weight"].apply(lambda x: f"{x * 100:.1f}%")
                         st.dataframe(w_df.T)
 
                 pf_res = pm.simulate_portfolio(data_map_pf, pf_strategies, weights)
 
                 if pf_res:
                     col1, col2 = st.columns(2)
-                    col1.metric(
-                        "トータルリターン", f"{pf_res['total_return'] * 100:.1f}%"
-                    )
-                    col2.metric(
-                        "最大ドローダウン", f"{pf_res['max_drawdown'] * 100:.1f}%"
-                    )
+                    col1.metric("トータルリターン", f"{pf_res['total_return'] * 100:.1f}%")
+                    col2.metric("最大ドローダウン", f"{pf_res['max_drawdown'] * 100:.1f}%")
 
                     fig_pf = go.Figure()
                     fig_pf.add_trace(
@@ -156,6 +144,4 @@ def render_portfolio_panel(sidebar_config, strategies):
                     )
                     st.plotly_chart(fig_pf, use_container_width=True)
                 else:
-                    st.error(
-                        "シミュレーションに失敗しました。データが不足している可能性があります。"
-                    )
+                    st.error("シミュレーションに失敗しました。データが不足している可能性があります。")

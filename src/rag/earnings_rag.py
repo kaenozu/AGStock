@@ -50,9 +50,7 @@ class EarningsRAG:
                 logger.warning("No Gemini API key found. RAG will not work properly.")
                 self.embeddings = None
             else:
-                self.embeddings = GoogleGenerativeAIEmbeddings(
-                    model="models/embedding-001", google_api_key=api_key
-                )
+                self.embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=api_key)
                 logger.info("Initialized Gemini embeddings")
         except Exception as e:
             logger.error(f"Failed to initialize embeddings: {e}")
@@ -123,9 +121,7 @@ class EarningsRAG:
             logger.error(f"Failed to index document: {e}")
             return False
 
-    def query(
-        self, question: str, n_results: int = 5, filter_doc_id: str = None
-    ) -> List[Dict[str, Any]]:
+    def query(self, question: str, n_results: int = 5, filter_doc_id: str = None) -> List[Dict[str, Any]]:
         """
         質問に関連するチャンクを検索
 
@@ -164,12 +160,8 @@ class EarningsRAG:
                     formatted_results.append(
                         {
                             "text": results["documents"][0][i],
-                            "metadata": results["metadatas"][0][i]
-                            if results["metadatas"]
-                            else {},
-                            "distance": results["distances"][0][i]
-                            if results["distances"]
-                            else None,
+                            "metadata": results["metadatas"][0][i] if results["metadatas"] else {},
+                            "distance": results["distances"][0][i] if results["distances"] else None,
                         }
                     )
 

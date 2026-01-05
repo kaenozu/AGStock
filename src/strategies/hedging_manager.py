@@ -1,6 +1,6 @@
 import logging
 from typing import Dict, List, Any
-from src.schemas import TradingDecision
+from agstock.src.schemas import TradingDecision
 
 logger = logging.getLogger(__name__)
 
@@ -31,9 +31,7 @@ class HedgingManager:
         ],
     }
 
-    def evaluate_hedging_needs(
-        self, macro_data: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+    def evaluate_hedging_needs(self, macro_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Analyzes macro score and suggests hedges if instability is high.
         """
@@ -45,9 +43,7 @@ class HedgingManager:
 
         # Trigger logic: Macro Score < 40 or VIX > 25
         if macro_score < 40 or vix_val > 25:
-            logger.warning(
-                f"High risk detected (Macro: {macro_score}, VIX: {vix_val}). Proposing hedges."
-            )
+            logger.warning(f"High risk detected (Macro: {macro_score}, VIX: {vix_val}). Proposing hedges.")
 
             # Propose 1-2 hedge symbols
             region = "JP"  # Default to JP for this context
@@ -77,9 +73,7 @@ class HedgingManager:
         macro_score = macro_data.get("macro_score", 100)
 
         if macro_score < 35 and original_decision == TradingDecision.BUY:
-            logger.info(
-                f"Downgrading BUY to HOLD for {ticker} due to extreme macro risk."
-            )
+            logger.info(f"Downgrading BUY to HOLD for {ticker} due to extreme macro risk.")
             return TradingDecision.HOLD
 
         return original_decision

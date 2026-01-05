@@ -48,6 +48,4 @@ def __init__(self):
 
 
 def broadcast_insight(self, ticker: str, sentiment: float, rationale: str):
-    logger.info(
-        f"📡 [SWARM] Broadcasting insight: {ticker}={sentiment:.2f} | {rationale[:30]}..."
-    )
+    logger.info(f"📡 [SWARM] Broadcasting insight: {ticker}={sentiment:.2f} | {rationale[:30]}...")

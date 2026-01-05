@@ -6,7 +6,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.data_loader import fetch_stock_data
+from agstock.src.data_loader import fetch_stock_data
 
 
 def render_realtime_monitor():
@@ -19,9 +19,7 @@ def render_realtime_monitor():
     tickers = [t.strip() for t in tickers_input.split(",")]
 
     # 更新間隔
-    st.selectbox(
-        "更新間隔", [30, 60, 120, 300], format_func=lambda x: f"{x}秒"
-    )
+    st.selectbox("更新間隔", [30, 60, 120, 300], format_func=lambda x: f"{x}秒")
 
     col1, col2 = st.columns(2)
 
@@ -76,9 +74,7 @@ def render_realtime_monitor():
             close_col = df["Close"]
             if hasattr(close_col, "columns"):
                 # MultiIndex の場合
-                close_values = (
-                    close_col.iloc[:, 0] if close_col.shape[1] > 0 else close_col
-                )
+                close_values = close_col.iloc[:, 0] if close_col.shape[1] > 0 else close_col
             else:
                 close_values = close_col
 
@@ -107,9 +103,7 @@ def render_realtime_monitor():
             if "Volume" in df.columns:
                 volume_col = df["Volume"]
                 if hasattr(volume_col, "columns"):
-                    volume_values = (
-                        volume_col.iloc[:, 0] if volume_col.shape[1] > 0 else volume_col
-                    )
+                    volume_values = volume_col.iloc[:, 0] if volume_col.shape[1] > 0 else volume_col
                 else:
                     volume_values = volume_col
 
@@ -137,7 +131,5 @@ def render_realtime_monitor():
         alert_price = st.number_input("価格", value=1500.0, step=10.0)
 
         if st.button("アラートを設定"):
-            st.success(
-                f"アラート設定: {alert_ticker} が ¥{alert_price:,.0f} を{alert_type}通知"
-            )
+            st.success(f"アラート設定: {alert_ticker} が ¥{alert_price:,.0f} を{alert_type}通知")
             st.info("※ アラート機能はバックグラウンドプロセスで動作します。")

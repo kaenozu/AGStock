@@ -1,0 +1,67 @@
+{
+  "timestamp": "2026-01-04T20:49:33.076278",
+  "security_status": {
+    "security_level": "enhanced",
+    "encryption": {
+      "algorithm": "Kyber-512 (Post-Quantum)",
+      "status": "active",
+      "keys_active": 0
+    },
+    "threat_monitoring": {
+      "status": "active",
+      "threats_detected": 3,
+      "threats_resolved": 0,
+      "resolution_rate": 0.0
+    },
+    "anomaly_detection": {
+      "status": "active",
+      "users_monitored": 1,
+      "models_active": 0
+    },
+    "recent_audit_events": [
+      {
+        "timestamp": "2026-01-04T20:49:33.075090",
+        "user_id": "trader_001",
+        "action": "authentication_success",
+        "details": "normal"
+      }
+    ]
+  },
+  "dashboard": {
+    "summary": {
+      "total_events": 3,
+      "resolved_events": 0,
+      "resolution_rate": 0.0,
+      "active_threats": 3
+    },
+    "threat_distribution": {
+      "critical": 1,
+      "high": 1,
+      "medium": 1,
+      "low": 0
+    },
+    "event_type_distribution": {
+      "unauthorized_access": 1,
+      "anomaly_detected": 1,
+      "brute_force": 1
+    },
+    "average_resolution_time": 0,
+    "encryption_status": {
+      "algorithm": "Kyber-512",
+      "keys_generated": 3,
+      "encryption_enabled": true
+    },
+    "anomaly_detection": {
+      "users_monitored": 1,
+      "models_active": 0
+    }
+  },
+  "audit_events": [
+    {
+      "timestamp": "2026-01-04T20:49:33.075090",
+      "user_id": "trader_001",
+      "action": "authentication_success",
+      "details": "normal"
+    }
+  ]
+}

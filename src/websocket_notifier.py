@@ -77,16 +77,10 @@ class WebSocketManager:
 
             elif message_type == "ping":
                 # 生存確認
-                await websocket.send(
-                    json.dumps(
-                        {"type": "pong", "timestamp": datetime.now().isoformat()}
-                    )
-                )
+                await websocket.send(json.dumps({"type": "pong", "timestamp": datetime.now().isoformat()}))
 
         except json.JSONDecodeError:
-            await websocket.send(
-                json.dumps({"type": "error", "message": "Invalid JSON format"})
-            )
+            await websocket.send(json.dumps({"type": "error", "message": "Invalid JSON format"}))
 
     async def handle_subscription(self, websocket, subscription):
         """通知購読を処理"""
@@ -256,9 +250,7 @@ class RealTimeNotifier:
             },
         )
 
-    async def send_system_notification(
-        self, message: str, notification_type: str = "info"
-    ):
+    async def send_system_notification(self, message: str, notification_type: str = "info"):
         """システム通知を送信"""
         await self.ws_manager.send_notification(
             "system",
@@ -297,9 +289,7 @@ class NotificationUI:
         col1, col2, col3 = st.columns(3)
 
         with col1:
-            all_sub = st.checkbox(
-                "すべての通知", value="all" in self.active_subscriptions
-            )
+            all_sub = st.checkbox("すべての通知", value="all" in self.active_subscriptions)
             if all_sub != ("all" in self.active_subscriptions):
                 if all_sub:
                     self.active_subscriptions.add("all")
@@ -307,9 +297,7 @@ class NotificationUI:
                     self.active_subscriptions.discard("all")
 
         with col2:
-            trade_sub = st.checkbox(
-                "取引通知", value="trade" in self.active_subscriptions
-            )
+            trade_sub = st.checkbox("取引通知", value="trade" in self.active_subscriptions)
             if trade_sub != ("trade" in self.active_subscriptions):
                 if trade_sub:
                     self.active_subscriptions.add("trade")
@@ -317,9 +305,7 @@ class NotificationUI:
                     self.active_subscriptions.discard("trade")
 
         with col3:
-            alert_sub = st.checkbox(
-                "市場アラート", value="market" in self.active_subscriptions
-            )
+            alert_sub = st.checkbox("市場アラート", value="market" in self.active_subscriptions)
             if alert_sub != ("market" in self.active_subscriptions):
                 if alert_sub:
                     self.active_subscriptions.add("market")
@@ -502,11 +488,7 @@ def show_realtime_notifications_page():
 
         with col3:
             if st.button("⚠️ 市場アラートテスト"):
-                asyncio.run(
-                    realtime_notifier.send_system_notification(
-                        "テスト: 市場に重要な変化があります", "warning"
-                    )
-                )
+                asyncio.run(realtime_notifier.send_system_notification("テスト: 市場に重要な変化があります", "warning"))
 
 
 if __name__ == "__main__":

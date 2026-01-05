@@ -41,9 +41,7 @@ class PortfolioManager:
         weights = {t: v / total_inv_vol for t, v in inv_vols.items()}
         return weights
 
-    def analyze_correlations(
-        self, price_history: Dict[str, pd.DataFrame]
-    ) -> pd.DataFrame:
+    def analyze_correlations(self, price_history: Dict[str, pd.DataFrame]) -> pd.DataFrame:
         """
         Calculate correlation matrix for given tickers.
         """
@@ -58,9 +56,7 @@ class PortfolioManager:
         returns_df = pd.DataFrame(returns_dict).dropna()
         return returns_df.corr()
 
-    def get_diversification_suggestions(
-        self, holdings: List[str], price_history: Dict[str, pd.DataFrame]
-    ) -> List[str]:
+    def get_diversification_suggestions(self, holdings: List[str], price_history: Dict[str, pd.DataFrame]) -> List[str]:
         """
         Identify highly correlated pairs and suggest reductions.
         """

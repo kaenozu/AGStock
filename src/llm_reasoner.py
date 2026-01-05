@@ -59,21 +59,15 @@ class LLMReasoner:
                 def is_valid(k):
                     return k and k != "YOUR_API_KEY_HERE" and not k.startswith("YOUR_")
 
-                self.gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv(
-                    "GOOGLE_API_KEY"
-                )  # From ENV
+                self.gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")  # From ENV
                 if not self.gemini_api_key:
-                    k = config.get("gemini_api_key") or config.get("gemini", {}).get(
-                        "api_key"
-                    )
+                    k = config.get("gemini_api_key") or config.get("gemini", {}).get("api_key")
                     if is_valid(k):
                         self.gemini_api_key = k
 
                 self.openai_api_key = os.getenv("OPENAI_API_KEY")
                 if not self.openai_api_key:
-                    k = config.get("openai_api_key") or config.get(
-                        "ai_committee", {}
-                    ).get("api_key")
+                    k = config.get("openai_api_key") or config.get("ai_committee", {}).get("api_key")
                     if is_valid(k):
                         self.openai_api_key = k
 
@@ -143,9 +137,7 @@ class LLMReasoner:
     def analyze_image(self, image_path: str, prompt: str) -> Dict[str, Any]:
         """画像分析 (マルチモーダル)"""
         if self.provider != "gemini":
-            logger.warning(
-                f"Vision analysis is only supported for Gemini. Current: {self.provider}"
-            )
+            logger.warning(f"Vision analysis is only supported for Gemini. Current: {self.provider}")
             return self._get_fallback_response("Vision not supported for this provider")
 
         try:
@@ -159,9 +151,7 @@ class LLMReasoner:
             logger.error(f"Image analysis error: {e}")
             return self._get_fallback_response(str(e))
 
-    def analyze_market_impact(
-        self, news_text: str, market_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def analyze_market_impact(self, news_text: str, market_data: Dict[str, Any]) -> Dict[str, Any]:
         """ニュースと市場データからインパクトを分析"""
         prompt = self._create_prompt(news_text, market_data)
 
@@ -172,9 +162,7 @@ class LLMReasoner:
         else:
             return self._call_ollama(prompt, json_mode=True)
 
-    def chat_with_context(
-        self, user_message: str, history: list, context_data: str
-    ) -> str:
+    def chat_with_context(self, user_message: str, history: list, context_data: str) -> str:
         """コンテキストを考慮してチャット応答を生成"""
         system_prompt = f"""
         あなたはAI投資システムの高度なアシスタント「Ghostwriter」です。
@@ -206,9 +194,7 @@ class LLMReasoner:
 
         news_text = ""
         for i, item in enumerate(news_list):
-            news_text += (
-                f"{i + 1}. {item.get('title', '')} ({item.get('published', '')})\n"
-            )
+            news_text += f"{i + 1}. {item.get('title', '')} ({item.get('published', '')})\n"
 
         prompt = f"""
         あなたはAIヘッジファンドのチーフアナリストです。
@@ -276,9 +262,7 @@ class LLMReasoner:
         else:
             return self._call_ollama(prompt, json_mode=True)
 
-    def generate_strategy_code(
-        self, description: str, class_name: str = "CustomGenStrategy"
-    ) -> str:
+    def generate_strategy_code(self, description: str, class_name: str = "CustomGenStrategy") -> str:
         """ユーザーの説明に基づいて戦略コード(Python)を生成"""
         prompt = f"""
         あなたはPythonのエキスパートであり、定量的トレーディングのスペシャリストです。
@@ -297,7 +281,7 @@ class LLMReasoner:
         5. 出力はPythonコードのみ（Markdownの ```python 等は不要）にしてください。
 
 ## テンプレート
-        from src.strategies.base import Strategy
+        from agstock.src.strategies.base import Strategy
         import pandas as pd
         import talib
 

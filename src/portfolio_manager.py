@@ -52,9 +52,7 @@ class PortfolioManager:
             if ticker in correlation_matrix.index:
                 correlations = correlation_matrix.loc[ticker, current_portfolio]
                 if (correlations > self.max_correlation).any():
-                    logger.warning(
-                        f"Rejecting {ticker}: High correlation with existing portfolio"
-                    )
+                    logger.warning(f"Rejecting {ticker}: High correlation with existing portfolio")
                     return False
 
         # 2. Sector Check
@@ -62,23 +60,15 @@ class PortfolioManager:
             sector = self.sector_map.get(ticker)
             if sector:
                 sector_counts = [self.sector_map.get(t) for t in current_portfolio]
-                sector_exposure = (
-                    sector_counts.count(sector) / len(current_portfolio)
-                    if current_portfolio
-                    else 0
-                )
+                sector_exposure = sector_counts.count(sector) / len(current_portfolio) if current_portfolio else 0
 
                 if sector_exposure >= self.max_sector_exposure:
-                    logger.warning(
-                        f"Rejecting {ticker}: Sector limit reached for {sector}"
-                    )
+                    logger.warning(f"Rejecting {ticker}: Sector limit reached for {sector}")
                     return False
 
         return True
 
-    def calculate_portfolio_volatility(
-        self, weights: Dict[str, float], cov_matrix: pd.DataFrame
-    ) -> float:
+    def calculate_portfolio_volatility(self, weights: Dict[str, float], cov_matrix: pd.DataFrame) -> float:
         """
         Calculate portfolio volatility.
         """

@@ -1,8 +1,8 @@
 import pandas as pd
 import streamlit as st
 
-from src.analysis.pdf_reader import EarningsAnalyzer, PDFExtractor
-from src.rag.pdf_loader import PDFLoader
+from agstock.src.analysis.pdf_reader import EarningsAnalyzer, PDFExtractor
+from agstock.src.rag.pdf_loader import PDFLoader
 
 
 def render_earnings_analyst():

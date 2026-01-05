@@ -19,6 +19,7 @@ JP_TAX_RATE = 0.20315  # 20.315% (所得税15.315% + 住民税5%)
 
 class HarvestingStrategy(Enum):
     """ハーベスティング戦略"""
+
     AGGRESSIVE = "aggressive"  # 積極的に損失確定
     BALANCED = "balanced"  # バランス型
     CONSERVATIVE = "conservative"  # 保守的
@@ -27,6 +28,7 @@ class HarvestingStrategy(Enum):
 @dataclass
 class TaxLot:
     """税務ロット（購入単位）"""
+
     ticker: str
     purchase_date: datetime
     quantity: int
@@ -41,6 +43,7 @@ class TaxLot:
 @dataclass
 class HarvestRecommendation:
     """ハーベスティング推奨"""
+
     ticker: str
     action: str  # "HARVEST_LOSS", "HARVEST_GAIN", "HOLD"
     quantity: int
@@ -110,20 +113,14 @@ class TaxOptimizer:
         tax_lots = self._create_tax_lots(positions)
 
         # 未実現損益の集計
-        total_unrealized_gains = sum(
-            lot.unrealized_pnl for lot in tax_lots if lot.unrealized_pnl > 0
-        )
-        total_unrealized_losses = sum(
-            lot.unrealized_pnl for lot in tax_lots if lot.unrealized_pnl < 0
-        )
+        total_unrealized_gains = sum(lot.unrealized_pnl for lot in tax_lots if lot.unrealized_pnl > 0)
+        total_unrealized_losses = sum(lot.unrealized_pnl for lot in tax_lots if lot.unrealized_pnl < 0)
 
         # 推定税額
         estimated_tax = max(0, realized_gains_ytd + total_unrealized_gains) * self.tax_rate
 
         # ハーベスティング推奨
-        recommendations = self._generate_recommendations(
-            tax_lots, realized_gains_ytd
-        )
+        recommendations = self._generate_recommendations(tax_lots, realized_gains_ytd)
 
         # 税金削減ポテンシャル
         potential_tax_savings = abs(total_unrealized_losses) * self.tax_rate
@@ -188,22 +185,21 @@ class TaxOptimizer:
 
             holding_days = (now - purchase_date).days
             unrealized_pnl = (current_price - cost_basis) * quantity
-            unrealized_pnl_pct = (
-                (current_price - cost_basis) / cost_basis * 100
-                if cost_basis > 0 else 0
-            )
+            unrealized_pnl_pct = (current_price - cost_basis) / cost_basis * 100 if cost_basis > 0 else 0
 
-            tax_lots.append(TaxLot(
-                ticker=ticker,
-                purchase_date=purchase_date,
-                quantity=quantity,
-                cost_basis=cost_basis,
-                current_price=current_price,
-                unrealized_pnl=unrealized_pnl,
-                unrealized_pnl_pct=unrealized_pnl_pct,
-                holding_days=holding_days,
-                is_long_term=holding_days >= 365,
-            ))
+            tax_lots.append(
+                TaxLot(
+                    ticker=ticker,
+                    purchase_date=purchase_date,
+                    quantity=quantity,
+                    cost_basis=cost_basis,
+                    current_price=current_price,
+                    unrealized_pnl=unrealized_pnl,
+                    unrealized_pnl_pct=unrealized_pnl_pct,
+                    holding_days=holding_days,
+                    is_long_term=holding_days >= 365,
+                )
+            )
 
         return tax_lots
 
@@ -216,16 +212,11 @@ class TaxOptimizer:
         recommendations = []
 
         # 損失ロットを抽出（損失額の大きい順）
-        loss_lots = sorted(
-            [lot for lot in tax_lots if lot.unrealized_pnl < 0],
-            key=lambda x: x.unrealized_pnl
-        )
+        loss_lots = sorted([lot for lot in tax_lots if lot.unrealized_pnl < 0], key=lambda x: x.unrealized_pnl)
 
         # 利益ロットを抽出
         gain_lots = sorted(
-            [lot for lot in tax_lots if lot.unrealized_pnl > 0],
-            key=lambda x: x.unrealized_pnl,
-            reverse=True
+            [lot for lot in tax_lots if lot.unrealized_pnl > 0], key=lambda x: x.unrealized_pnl, reverse=True
         )
 
         # 戦略に応じた閾値
@@ -254,16 +245,18 @@ class TaxOptimizer:
             tax_impact = lot.unrealized_pnl * self.tax_rate
             replacement = self.REPLACEMENT_MAP.get(lot.ticker)
 
-            recommendations.append(HarvestRecommendation(
-                ticker=lot.ticker,
-                action="HARVEST_LOSS",
-                quantity=lot.quantity,
-                current_price=lot.current_price,
-                unrealized_pnl=lot.unrealized_pnl,
-                tax_impact=tax_impact,
-                reason=f"{lot.unrealized_pnl_pct:.1f}%の損失。税金削減効果: ¥{abs(tax_impact):,.0f}",
-                replacement_ticker=replacement,
-            ))
+            recommendations.append(
+                HarvestRecommendation(
+                    ticker=lot.ticker,
+                    action="HARVEST_LOSS",
+                    quantity=lot.quantity,
+                    current_price=lot.current_price,
+                    unrealized_pnl=lot.unrealized_pnl,
+                    tax_impact=tax_impact,
+                    reason=f"{lot.unrealized_pnl_pct:.1f}%の損失。税金削減効果: ¥{abs(tax_impact):,.0f}",
+                    replacement_ticker=replacement,
+                )
+            )
             harvested_count += 1
 
         # 利益確定推奨（実現損失がある場合）
@@ -271,15 +264,17 @@ class TaxOptimizer:
             for lot in gain_lots:
                 if lot.unrealized_pnl <= abs(realized_gains_ytd):
                     tax_impact = lot.unrealized_pnl * self.tax_rate
-                    recommendations.append(HarvestRecommendation(
-                        ticker=lot.ticker,
-                        action="HARVEST_GAIN",
-                        quantity=lot.quantity,
-                        current_price=lot.current_price,
-                        unrealized_pnl=lot.unrealized_pnl,
-                        tax_impact=tax_impact,
-                        reason="実現損失と相殺可能。実質税金: ¥0",
-                    ))
+                    recommendations.append(
+                        HarvestRecommendation(
+                            ticker=lot.ticker,
+                            action="HARVEST_GAIN",
+                            quantity=lot.quantity,
+                            current_price=lot.current_price,
+                            unrealized_pnl=lot.unrealized_pnl,
+                            tax_impact=tax_impact,
+                            reason="実現損失と相殺可能。実質税金: ¥0",
+                        )
+                    )
                     break
 
         return recommendations
@@ -326,9 +321,7 @@ class TaxOptimizer:
             "tax_after": tax_after,
             "tax_savings": tax_savings,
             "replacement_ticker": self.REPLACEMENT_MAP.get(ticker),
-            "wash_sale_end_date": (
-                datetime.now() + pd.Timedelta(days=self.wash_sale_days)
-            ).strftime("%Y-%m-%d"),
+            "wash_sale_end_date": (datetime.now() + pd.Timedelta(days=self.wash_sale_days)).strftime("%Y-%m-%d"),
         }
 
     def get_year_end_summary(self, positions: List[Dict]) -> Dict[str, Any]:
@@ -349,9 +342,7 @@ class TaxOptimizer:
 _optimizer: Optional[TaxOptimizer] = None
 
 
-def get_tax_optimizer(
-    strategy: HarvestingStrategy = HarvestingStrategy.BALANCED
-) -> TaxOptimizer:
+def get_tax_optimizer(strategy: HarvestingStrategy = HarvestingStrategy.BALANCED) -> TaxOptimizer:
     """シングルトンインスタンスを取得"""
     global _optimizer
     if _optimizer is None:

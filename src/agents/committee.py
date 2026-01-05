@@ -3,22 +3,22 @@ from datetime import datetime
 import pandas as pd
 from typing import Any, Dict, List, Optional
 
-from src.agents.base_agent import BaseAgent
-from src.agents.market_analyst import MarketAnalyst
-from src.agents.risk_manager import RiskManager
-from src.agents.macro_analyst import MacroStrategist
-from src.enhanced_ensemble_predictor import EnhancedEnsemblePredictor
-from src.schemas import AgentAnalysis, AppConfig, TradingDecision
-from src.data.macro_loader import MacroLoader
-from src.agents.strategy_arena import StrategyArena
-from src.agents.agent_spawner import AgentSpawner
-from src.simulation.digital_twin import DigitalTwin
-from src.execution.news_shock_defense import NewsShockDefense
-from src.execution.position_sizer import PositionSizer
-from src.oracle.event_forecaster import EventForecaster
-from src.agents.shadow_council import ShadowCouncil
-from src.data.earnings_history import EarningsHistory
-from src.data.feedback_store import FeedbackStore
+from agstock.src.agents.base_agent import BaseAgent
+from agstock.src.agents.market_analyst import MarketAnalyst
+from agstock.src.agents.risk_manager import RiskManager
+from agstock.src.agents.macro_analyst import MacroStrategist
+from agstock.src.enhanced_ensemble_predictor import EnhancedEnsemblePredictor
+from agstock.src.schemas import AgentAnalysis, AppConfig, TradingDecision
+from agstock.src.data.macro_loader import MacroLoader
+from agstock.src.agents.strategy_arena import StrategyArena
+from agstock.src.agents.agent_spawner import AgentSpawner
+from agstock.src.simulation.digital_twin import DigitalTwin
+from agstock.src.execution.news_shock_defense import NewsShockDefense
+from agstock.src.execution.position_sizer import PositionSizer
+from agstock.src.oracle.event_forecaster import EventForecaster
+from agstock.src.agents.shadow_council import ShadowCouncil
+from agstock.src.data.earnings_history import EarningsHistory
+from agstock.src.data.feedback_store import FeedbackStore
 
 logger = logging.getLogger(__name__)
 
@@ -113,7 +113,7 @@ class InvestmentCommittee:
                         "ensemble_decision": ensemble_decision,
                         "confidence": raw_pred.get("confidence_score", 0.0),
                         "components": raw_pred.get("ensemble_signals", {}),
-                        "market_regime": raw_pred.get("market_regime", "UNKNOWN")
+                        "market_regime": raw_pred.get("market_regime", "UNKNOWN"),
                     }
                 except Exception as e:
                     logger.warning(f"Failed to run predictor in committee: {e}")
@@ -124,7 +124,7 @@ class InvestmentCommittee:
                 "ensemble_decision": "UNKNOWN",
                 "confidence": 0.0,
                 "components": {},
-                "market_regime": "UNKNOWN"
+                "market_regime": "UNKNOWN",
             }
 
         data["prediction_report"] = pred_report
@@ -142,7 +142,7 @@ class InvestmentCommittee:
             decision=result["final_decision"],
             rationale=result["rationale"],
             current_price=signal_data.get("price", 0.0),
-            raw_data=data
+            raw_data=data,
         )
 
         return TradingDecision(result["final_decision"])
@@ -183,7 +183,9 @@ class InvestmentCommittee:
         if recent_failures:
             kb_text += "\n【最近の全体的な失敗事例】\n"
             for f in recent_failures:
-                kb_text += f"- {f['ticker']} ({f['timestamp'][:10]}): {f['rationale'][:50]}... -> 結果: {f['outcome']}\n"
+                kb_text += (
+                    f"- {f['ticker']} ({f['timestamp'][:10]}): {f['rationale'][:50]}... -> 結果: {f['outcome']}\n"
+                )
 
         if kb_text:
             data["lessons_learned"] = kb_text
@@ -208,12 +210,13 @@ class InvestmentCommittee:
         council_result = self.shadow_council.hold_debate(
             ticker=ticker,
             proposed_action=final_decision.value,
-            data_context=f"Analyses: {analyses}\nForecast: {self.last_forecast}"
+            data_context=f"Analyses: {analyses}\nForecast: {self.last_forecast}",
         )
-        if council_result['consensus'] == 'REJECT':
-            from src.schemas import TradingDecision
+        if council_result["consensus"] == "REJECT":
+            from agstock.src.schemas import TradingDecision
+
             final_decision = TradingDecision.HOLD
-            rationale = "Shadow Council rejected: " + council_result['debate_log']
+            rationale = "Shadow Council rejected: " + council_result["debate_log"]
 
         result = {
             "timestamp": datetime.now().isoformat(),
@@ -221,7 +224,7 @@ class InvestmentCommittee:
             "final_decision": final_decision.value,
             "rationale": rationale,
             "participants": [a.name for a in all_agents],
-            "spawned_agents": [a.name for a in spawned_agents]
+            "spawned_agents": [a.name for a in spawned_agents],
         }
 
         # 3. Shadow Simulation (Digital Twin)
@@ -253,8 +256,10 @@ class InvestmentCommittee:
             {
                 "agent": "MarketAnalyst",
                 "avatar": "📈",
-                "message": (f"Analyzing {ticker}... My Technical/Fundamental models suggest: "
-                            f"{ma_analysis.decision.value}.\nReason: {ma_analysis.reasoning}"),
+                "message": (
+                    f"Analyzing {ticker}... My Technical/Fundamental models suggest: "
+                    f"{ma_analysis.decision.value}.\nReason: {ma_analysis.reasoning}"
+                ),
                 "decision": ma_analysis.decision.value,
             }
         )
@@ -273,8 +278,10 @@ class InvestmentCommittee:
             {
                 "agent": "RiskManager",
                 "avatar": "🛡️",
-                "message": (f"I have reviewed the risk profile. I {response_tone} with the analyst.\n"
-                            f"My assessment: {rm_analysis.decision.value}.\nRisk Factors: {rm_analysis.reasoning}"),
+                "message": (
+                    f"I have reviewed the risk profile. I {response_tone} with the analyst.\n"
+                    f"My assessment: {rm_analysis.decision.value}.\nRisk Factors: {rm_analysis.reasoning}"
+                ),
                 "decision": rm_analysis.decision.value,
             }
         )
@@ -297,8 +304,10 @@ class InvestmentCommittee:
             {
                 "agent": "Chairperson",
                 "avatar": "🏛️",
-                "message": (f"After hearing all perspectives (Technical, Risk, and Macro), "
-                            f"the committee rules: {final_decision.value}.\nRationale: {rationale}"),
+                "message": (
+                    f"After hearing all perspectives (Technical, Risk, and Macro), "
+                    f"the committee rules: {final_decision.value}.\nRationale: {rationale}"
+                ),
                 "decision": final_decision.value,
             }
         )

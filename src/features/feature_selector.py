@@ -64,13 +64,9 @@ class SHAPFeatureSelector:
         self.feature_importance = dict(zip(X.columns, mean_shap))
 
         # Select top N features
-        sorted_features = sorted(
-            self.feature_importance.items(), key=lambda x: x[1], reverse=True
-        )
+        sorted_features = sorted(self.feature_importance.items(), key=lambda x: x[1], reverse=True)
 
-        self.selected_features = [
-            feat for feat, _ in sorted_features[: self.n_features]
-        ]
+        self.selected_features = [feat for feat, _ in sorted_features[: self.n_features]]
 
         logger.info(f"Selected {len(self.selected_features)} features")
         logger.info(f"Top 5 features: {self.selected_features[:5]}")
@@ -140,9 +136,7 @@ class BorutaFeatureSelector:
             logger.info("Running Boruta feature selection...")
 
             # Train RandomForest
-            rf = RandomForestRegressor(
-                n_estimators=100, random_state=self.random_state, n_jobs=-1
-            )
+            rf = RandomForestRegressor(n_estimators=100, random_state=self.random_state, n_jobs=-1)
 
             # Boruta
             boruta = BorutaPy(

@@ -84,11 +84,7 @@ class PortfolioOptimizer:
         # Calculate metrics
         portfolio_ret = (optimal_weights * mean_returns).sum()
         portfolio_vol = np.sqrt(optimal_weights @ cov_matrix @ optimal_weights)
-        sharpe = (
-            (portfolio_ret - self.risk_free_rate) / portfolio_vol
-            if portfolio_vol > 0
-            else 0
-        )
+        sharpe = (portfolio_ret - self.risk_free_rate) / portfolio_vol if portfolio_vol > 0 else 0
 
         return {
             "weights": optimal_weights,
@@ -132,11 +128,7 @@ class PortfolioOptimizer:
         mean_returns = returns.mean() * 252
         portfolio_ret = (weights_series * mean_returns).sum()
         portfolio_vol = np.sqrt(weights @ cov_matrix @ weights)
-        sharpe = (
-            (portfolio_ret - self.risk_free_rate) / portfolio_vol
-            if portfolio_vol > 0
-            else 0
-        )
+        sharpe = (portfolio_ret - self.risk_free_rate) / portfolio_vol if portfolio_vol > 0 else 0
 
         return {
             "weights": weights_series,
@@ -189,12 +181,8 @@ class PortfolioOptimizer:
         omega = np.diag(np.diag(P @ (tau * cov_matrix) @ P.T))
 
         # Posterior returns
-        M_inv = np.linalg.inv(
-            np.linalg.inv(tau * cov_matrix) + P.T @ np.linalg.inv(omega) @ P
-        )
-        posterior_returns = M_inv @ (
-            np.linalg.inv(tau * cov_matrix) @ pi + P.T @ np.linalg.inv(omega) @ Q
-        )
+        M_inv = np.linalg.inv(np.linalg.inv(tau * cov_matrix) + P.T @ np.linalg.inv(omega) @ P)
+        posterior_returns = M_inv @ (np.linalg.inv(tau * cov_matrix) @ pi + P.T @ np.linalg.inv(omega) @ Q)
 
         # Optimize with posterior returns
         try:
@@ -202,8 +190,7 @@ class PortfolioOptimizer:
 
             weights = cp.Variable(len(returns.columns))
             objective = cp.Maximize(
-                posterior_returns @ weights
-                - 0.5 * risk_aversion * cp.quad_form(weights, cov_matrix.values)
+                posterior_returns @ weights - 0.5 * risk_aversion * cp.quad_form(weights, cov_matrix.values)
             )
             constraints = [cp.sum(weights) == 1, weights >= 0]
 
@@ -222,11 +209,7 @@ class PortfolioOptimizer:
         # Calculate metrics
         portfolio_ret = (optimal_weights * posterior_returns).sum()
         portfolio_vol = np.sqrt(optimal_weights @ cov_matrix @ optimal_weights)
-        sharpe = (
-            (portfolio_ret - self.risk_free_rate) / portfolio_vol
-            if portfolio_vol > 0
-            else 0
-        )
+        sharpe = (portfolio_ret - self.risk_free_rate) / portfolio_vol if portfolio_vol > 0 else 0
 
         return {
             "weights": optimal_weights,
@@ -236,9 +219,7 @@ class PortfolioOptimizer:
             "posterior_returns": pd.Series(posterior_returns, index=returns.columns),
         }
 
-    def efficient_frontier(
-        self, returns: pd.DataFrame, n_points: int = 50
-    ) -> pd.DataFrame:
+    def efficient_frontier(self, returns: pd.DataFrame, n_points: int = 50) -> pd.DataFrame:
         """
         Calculate efficient frontier.
 

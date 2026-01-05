@@ -21,46 +21,46 @@ import pandas as pd
 # リトライロジック
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-from src.agents.committee import InvestmentCommittee
-from src.backup_manager import BackupManager
-from src.cache_config import install_cache
-from src.constants import (
+from agstock.src.agents.committee import InvestmentCommittee
+from agstock.src.backup_manager import BackupManager
+from agstock.src.cache_config import install_cache
+from agstock.src.constants import (
     DEFAULT_VOLATILITY_SYMBOL,
     FALLBACK_VOLATILITY_SYMBOLS,
     NIKKEI_225_TICKERS,
     SP500_TICKERS,
     STOXX50_TICKERS,
 )
-from src.data_loader import (
+from agstock.src.data_loader import (
     CRYPTO_PAIRS,
     FX_PAIRS,
     fetch_fundamental_data,
     fetch_stock_data,
     get_latest_price,
 )
-from src.dynamic_risk_manager import DynamicRiskManager
-from src.dynamic_stop import DynamicStopManager
-from src.execution import ExecutionEngine
-from src.kelly_criterion import KellyCriterion
-from src.paper_trader import PaperTrader
+from agstock.src.dynamic_risk_manager import DynamicRiskManager
+from agstock.src.dynamic_stop import DynamicStopManager
+from agstock.src.execution import ExecutionEngine
+from agstock.src.kelly_criterion import KellyCriterion
+from agstock.src.paper_trader import PaperTrader
 
 # New Features from feat-add-position-guards
-from src.regime_detector import RegimeDetector
-from src.schemas import AppConfig, TradingDecision
-from src.sentiment import SentimentAnalyzer
-from src.smart_notifier import SmartNotifier
-from src.strategies import CombinedStrategy, LightGBMStrategy, MLStrategy
-from src.utils.logger import get_logger, setup_logger
-from src.data.universe_manager import UniverseManager
-from src.utils.self_healing import SelfHealingEngine
-from src.utils.parameter_optimizer import ParameterOptimizer
-from src.data.whale_tracker import WhaleTracker
-from src.agents.ai_veto_agent import AIVetoAgent
-from src.agents.social_analyst import SocialAnalyst
-from src.agents.visual_oracle import VisualOracle
-from src.trading.portfolio_manager import PortfolioManager
-from src.utils.self_learning import SelfLearningPipeline
-from src.oracle.oracle_2026 import Oracle2026
+from agstock.src.regime_detector import RegimeDetector
+from agstock.src.schemas import AppConfig, TradingDecision
+from agstock.src.sentiment import SentimentAnalyzer
+from agstock.src.smart_notifier import SmartNotifier
+from agstock.src.strategies import CombinedStrategy, LightGBMStrategy, MLStrategy
+from agstock.src.utils.logger import get_logger, setup_logger
+from agstock.src.data.universe_manager import UniverseManager
+from agstock.src.utils.self_healing import SelfHealingEngine
+from agstock.src.utils.parameter_optimizer import ParameterOptimizer
+from agstock.src.data.whale_tracker import WhaleTracker
+from agstock.src.agents.ai_veto_agent import AIVetoAgent
+from agstock.src.agents.social_analyst import SocialAnalyst
+from agstock.src.agents.visual_oracle import VisualOracle
+from agstock.src.trading.portfolio_manager import PortfolioManager
+from agstock.src.utils.self_learning import SelfLearningPipeline
+from agstock.src.oracle.oracle_2026 import Oracle2026
 
 # Create logger
 logger = logging.getLogger(__name__)
@@ -133,7 +133,7 @@ class FullyAutomatedTrader:
             self.regime_detector = RegimeDetector()
             self.risk_manager = DynamicRiskManager(self.regime_detector)
             self.kelly_criterion = KellyCriterion()
-self.dynamic_stop_manager = DynamicStopManager()
+            self.dynamic_stop_manager = DynamicStopManager()
             self.universe_manager = UniverseManager()
             self.self_healing = SelfHealingEngine()
             self.param_optimizer = ParameterOptimizer(self.config)
@@ -143,13 +143,13 @@ self.dynamic_stop_manager = DynamicStopManager()
             self.ai_veto_agent = AIVetoAgent(self.config)
             self.social_analyst = SocialAnalyst(self.config)
             self.visual_oracle = VisualOracle(self.config)
-            self.oracle_2026 = Oracle2026() # Sovereign Update
+            self.oracle_2026 = Oracle2026()  # Sovereign Update
 
-            self.log('Phase 73: Self-Learning Pipeline (Optima) initialized')
-            self.log('Phase 73: Social Heat Analyst initialized')
-            self.log('Phase 72: Portfolio Risk Parity Manager initialized')
-            self.log('Phase 5: WhaleTracker (Institutional Flow) initialized')
-            self.log('Phase 4: Global Selection & Self-Correction initialized')
+            self.log("Phase 73: Self-Learning Pipeline (Optima) initialized")
+            self.log("Phase 73: Social Heat Analyst initialized")
+            self.log("Phase 72: Portfolio Risk Parity Manager initialized")
+            self.log("Phase 5: WhaleTracker (Institutional Flow) initialized")
+            self.log("Phase 4: Global Selection & Self-Correction initialized")
             # self.advanced_risk = AdvancedRiskManager(self.config) # Class missing, disabled
             self.log("Phase 30-1 & 30-3: リアルタイム適応学習・高度リスク管理モジュール初期化完了")
         except Exception as e:
@@ -351,7 +351,7 @@ self.dynamic_stop_manager = DynamicStopManager()
             guidance = self.oracle_2026.get_risk_guidance()
             if guidance.get("safety_mode"):
                 return False, f"Oracle 2026 強制停止: {guidance.get('oracle_message')}"
-            
+
             # Apply dynamic adjustments (optional, or just log)
             self.log(f"Oracle Guidance: {guidance.get('oracle_message')}")
 
@@ -690,6 +690,30 @@ self.dynamic_stop_manager = DynamicStopManager()
             ("ML Random Forest", MLStrategy()),  # デフォルト引数を使用
             ("Combined", CombinedStrategy()),
         ]
+
+        # Phase 124: Neural Link Override
+        try:
+            if os.path.exists("models/config/evolved_strategy_params.json"):
+                with open("models/config/evolved_strategy_params.json", "r") as f:
+                    evo = json.load(f)
+                self.log(f"🧬 Neural Link: Overriding with '{evo.get('name')}'")
+
+                # Evolved Strategy Instance
+                new_combined = CombinedStrategy(
+                    rsi_period=evo.get("rsi_period", 14),
+                    bb_length=evo.get("bb_window", 20),
+                    bb_std=evo.get("bb_dev", 2.0),
+                )
+                # Replace Combined strategy
+                strategies = [s for s in strategies if s[0] != "Combined"]
+                strategies.append(("Combined (Evolved)", new_combined))
+
+                # Risk Manager Update
+                if self.risk_manager and hasattr(self.risk_manager, "current_params"):
+                    self.risk_manager.current_params["take_profit"] = evo.get("take_profit_pct", 0.10)
+                    self.risk_manager.current_params["stop_loss"] = evo.get("stop_loss_pct", 0.05)
+        except Exception as e:
+            self.log(f"Neural Link Error: {e}", "WARNING")
 
         signals: List[Dict[str, Any]] = []
 

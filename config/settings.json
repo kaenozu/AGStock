@@ -1,0 +1,91 @@
+{
+    "app": {
+        "name": "AGStock",
+        "version": "3.0.0",
+        "mode": "production",
+        "debug": false,
+        "log_level": "INFO"
+    },
+    "database": {
+        "type": "sqlite",
+        "path": "data/agstock.db",
+        "backup_interval_hours": 24,
+        "max_history_days": 365
+    },
+    "trading": {
+        "enabled": false,
+        "paper_trading": true,
+        "max_positions": 10,
+        "max_daily_trades": 5,
+        "default_order_type": "market",
+        "risk_per_trade": 0.02,
+        "stop_loss_percent": 0.05,
+        "take_profit_percent": 0.10
+    },
+    "ai": {
+        "model": "ensemble",
+        "confidence_threshold": 0.7,
+        "agents": {
+            "technical": {"enabled": true, "weight": 0.3},
+            "fundamental": {"enabled": true, "weight": 0.3},
+            "sentiment": {"enabled": true, "weight": 0.2},
+            "risk": {"enabled": true, "weight": 0.2}
+        },
+        "prediction_horizon_days": [1, 5, 10, 30]
+    },
+    "market": {
+        "update_interval_seconds": 60,
+        "symbols": ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META", "NVDA", "JPM", "V", "JNJ"],
+        "indices": ["S&P 500", "NASDAQ", "NIKKEI", "FTSE", "HSI"],
+        "currencies": ["USD/JPY", "EUR/USD", "GBP/USD", "USD/CHF"],
+        "commodities": ["Gold", "Crude Oil", "Silver"]
+    },
+    "notifications": {
+        "enabled": true,
+        "email": {
+            "enabled": false,
+            "smtp_server": "",
+            "smtp_port": 587,
+            "sender_email": "",
+            "receiver_emails": []
+        },
+        "slack": {
+            "enabled": false,
+            "webhook_url": ""
+        },
+        "alert_thresholds": {
+            "price_change_percent": 5.0,
+            "portfolio_drop_percent": 3.0,
+            "daily_loss_percent": 2.0
+        }
+    },
+    "security": {
+        "encryption": "kyber-512",
+        "api_keys_encrypted": true,
+        "mfa_enabled": false,
+        "rate_limit": {
+            "requests_per_minute": 60,
+            "burst": 10
+        },
+        "audit_log_enabled": true
+    },
+    "api": {
+        "host": "0.0.0.0",
+        "port": 8000,
+        "cors_origins": ["*"],
+        "api_key": "",
+        "docs_enabled": true
+    },
+    "defi": {
+        "enabled": true,
+        "protocols": ["uniswap_v3", "aave", "compound"],
+        "max_protocols": 5,
+        "auto_compound": false
+    },
+    "personalization": {
+        "genetic_algorithm": true,
+        "behavioral_analysis": true,
+        "risk_tolerance": "moderate",
+        "investment_horizon_years": 5
+    }
+}

@@ -73,9 +73,7 @@ class AdvancedFeaturesV2:
             logger.error(f"Wavelet feature error: {e}")
             return df
 
-    def add_fft_features(
-        self, df: pd.DataFrame, column: str = "Close", window: int = 30
-    ) -> pd.DataFrame:
+    def add_fft_features(self, df: pd.DataFrame, column: str = "Close", window: int = 30) -> pd.DataFrame:
         """
         FFTによる周期性抽出（ローリングウィンドウ）
 
@@ -113,9 +111,7 @@ class AdvancedFeaturesV2:
             # ローリング適用 (計算コスト削減のため、ステップを大きくするか、重要なポイントのみ計算も検討)
             # ここではシンプルにローリング適用
 
-            df[f"{column}_FFT_Amp"] = (
-                df[column].rolling(window=window).apply(get_fft_stats, raw=True)
-            )
+            df[f"{column}_FFT_Amp"] = df[column].rolling(window=window).apply(get_fft_stats, raw=True)
 
             return df
 
@@ -123,9 +119,7 @@ class AdvancedFeaturesV2:
             logger.error(f"FFT feature error: {e}")
             return df
 
-    def add_sector_correlation(
-        self, df: pd.DataFrame, ticker: str, sector_tickers: List[str] = None
-    ) -> pd.DataFrame:
+    def add_sector_correlation(self, df: pd.DataFrame, ticker: str, sector_tickers: List[str] = None) -> pd.DataFrame:
         """
         セクター相関特徴量（実装予定）
         今回はプレースホルダーとして、市場全体（日経平均など）との相関を追加することを想定

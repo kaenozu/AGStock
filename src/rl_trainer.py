@@ -10,10 +10,10 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
-from src.data_loader import fetch_stock_data
-from src.features import add_advanced_features
-from src.rl_agent import DQNAgent
-from src.rl_environment import TradingEnvironment
+from agstock.src.data_loader import fetch_stock_data
+from agstock.src.features import add_advanced_features
+from agstock.src.rl_agent import DQNAgent
+from agstock.src.rl_environment import TradingEnvironment
 
 logger = logging.getLogger(__name__)
 
@@ -146,9 +146,7 @@ class RLTrainer:
         df = self.prepare_data()
         self.env = TradingEnvironment(df)
 
-        self.agent = DQNAgent(
-            state_size=self.env.state_size, action_size=self.env.action_space_size
-        )
+        self.agent = DQNAgent(state_size=self.env.state_size, action_size=self.env.action_space_size)
         self.agent.load(MODEL_PATH)
         self.agent.epsilon = 0.0  # 推論時は探索しない
 

@@ -1,6 +1,6 @@
 import streamlit as st
 
-from src.services.playbook_runner import run_close_playbook, run_morning_playbook, run_noon_playbook
+from agstock.src.services.playbook_runner import run_close_playbook, run_morning_playbook, run_noon_playbook
 
 
 def _render_result(result: dict):

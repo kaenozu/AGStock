@@ -1,10 +1,9 @@
-
 import logging
 from typing import Dict, Any
-from src.agents.base_agent import BaseAgent
-from src.schemas import AgentAnalysis, TradingDecision
-from src.llm_reasoner import get_llm_reasoner
-from src.news_collector import get_news_collector
+from agstock.src.agents.base_agent import BaseAgent
+from agstock.src.schemas import AgentAnalysis, TradingDecision
+from agstock.src.llm_reasoner import get_llm_reasoner
+from agstock.src.news_collector import get_news_collector
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +45,7 @@ class SocialAnalyst(BaseAgent):
         return self._create_response(
             decision=decision,
             confidence=min(score / 10.0, 1.0),
-            reasoning=f"Social Heat: {score:.1f}/10, Sentiment: {sentiment}. {heat_data.get('reasoning', '')}"
+            reasoning=f"Social Heat: {score:.1f}/10, Sentiment: {sentiment}. {heat_data.get('reasoning', '')}",
         )
 
     def analyze_heat(self, ticker: str) -> Dict[str, Any]:

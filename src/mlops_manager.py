@@ -1,9 +1,9 @@
 """
-機械学習運用 (MLOps) 改喁E��ジュール
+機械学習運用 (MLOps) 改善モジュール
 
-- モチE��バ�Eジョン管琁E
-- A/BチE��トフレームワーク
-- モニタリングとアラーチE
+- モデルバージョン管理
+- A/Bテストフレームワーク
+- モニタリングとアラート
 """
 
 import asyncio
@@ -38,18 +38,18 @@ warnings.filterwarnings("ignore")
 
 logger = logging.getLogger(__name__)
 
-# MLOps用チE�Eタベ�Eスのパス
+# MLOps用データベースのパス
 MLOPS_DB_PATH = "data/mlops.db"
 
 
 def init_mlops_db():
-    """MLOpsチE�Eタベ�Eスの初期匁E""
+    """MLOpsデータベースの初期化"""
     os.makedirs(os.path.dirname(MLOPS_DB_PATH), exist_ok=True)
 
     conn = sqlite3.connect(MLOPS_DB_PATH)
     cursor = conn.cursor()
 
-    # モチE��バ�EジョンチE�Eブル
+    # モデルバージョンテーブル
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS model_versions (
@@ -95,7 +95,7 @@ def init_mlops_db():
     """
     )
 
-    # A/BチE��ト結果チE�Eブル
+    # A/Bテスト結果テーブル
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS ab_test_results (
@@ -134,7 +134,7 @@ def init_mlops_db():
 
 @dataclass
 class ModelMetadata:
-    """モチE��メタチE�Eタ"""
+    """モデルメタデータ"""
 
     model_name: str
     version: str
@@ -149,7 +149,7 @@ class ModelMetadata:
 
 
 class ModelRegistry:
-    """モチE��レジストリ"""
+    """モデルレジストリ"""
 
     def __init__(self, registry_path: str = "models/registry"):
         self.registry_path = Path(registry_path)
@@ -157,14 +157,14 @@ class ModelRegistry:
         init_mlops_db()
 
     def save_model(self, model: Any, model_name: str, version: str, metadata: Dict[str, Any] = None) -> ModelMetadata:
-        """モチE��の保存とメタチE�Eタ登録"""
-        # モチE��パスの準備
+        """モデルの保存とメタデータ登録"""
+        # モデルパスの準備
         model_dir = self.registry_path / model_name / version
         model_dir.mkdir(parents=True, exist_ok=True)
 
         artifact_path = str(model_dir / f"{model_name}.pkl")
 
-        # モチE��の保孁E
+        # モデルの保存
         if isinstance(model, keras.Model):
             model_path = str(model_dir / f"{model_name}.h5")
             model.save(model_path)
@@ -173,10 +173,10 @@ class ModelRegistry:
             with open(artifact_path, "wb") as f:
                 pickle.dump(model, f)
 
-        # ハッシュの計箁E
+        # ハッシュの計算
         model_hash = self._calculate_hash(artifact_path)
 
-        # メタチE�Eタの作�E
+        # メタデータの作成
         if metadata is None:
             metadata = {}
 
@@ -193,19 +193,19 @@ class ModelRegistry:
             tags=metadata.get("tags", []),
         )
 
-        # JSONメタチE�Eタファイルの保孁E
+        # JSONメタデータファイルの保存
         metadata_path = model_dir / f"{model_name}_metadata.json"
         with open(metadata_path, "w", encoding="utf-8") as f:
             json.dump(asdict(model_metadata), f, indent=2, ensure_ascii=False)
 
-        # チE�Eタベ�Eスに登録
+        # データベースに登録
         self._register_model_in_db(model_metadata)
 
         logger.info(f"Model {model_name} v{version} registered with hash {model_hash}")
         return model_metadata
 
     def load_model(self, model_name: str, version: str = None) -> Tuple[Any, ModelMetadata]:
-        """モチE��の読み込み"""
+        """モデルの読み込み"""
         if version is None:
             version = self._get_latest_version(model_name)
 
@@ -216,7 +216,7 @@ class ModelRegistry:
             metadata_dict = json.load(f)
         metadata = ModelMetadata(**metadata_dict)
 
-        # モチE��の読み込み
+        # モデルの読み込み
         if metadata.artifact_path.endswith(".h5"):
             model = keras.models.load_model(metadata.artifact_path)
         else:
@@ -226,7 +226,7 @@ class ModelRegistry:
         return model, metadata
 
     def _calculate_hash(self, file_path: str) -> str:
-        """ファイルのハッシュを計箁E""
+        """ファイルのハッシュを計算"""
         hash_sha256 = hashlib.sha256()
         with open(file_path, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):
@@ -234,7 +234,7 @@ class ModelRegistry:
         return hash_sha256.hexdigest()
 
     def _get_latest_version(self, model_name: str) -> str:
-        """最新バ�Eジョンを取征E""
+        """最新バージョンを取得"""
         model_dir = self.registry_path / model_name
         if not model_dir.exists():
             raise ValueError(f"Model {model_name} does not exist")
@@ -243,12 +243,12 @@ class ModelRegistry:
         if not versions:
             raise ValueError(f"No versions found for model {model_name}")
 
-        # バ�Eジョンを日時頁E��並び替え（仮に日時形式が使われてぁE��と仮定！E
+        # バージョンを日時順に並び替え（仮に日時形式が使われていると仮定）
         versions.sort(reverse=True)
         return versions[0]
 
     def _register_model_in_db(self, metadata: ModelMetadata):
-        """チE�Eタベ�EスにモチE��惁E��を登録"""
+        """データベースにモデル情報を登録"""
         conn = sqlite3.connect(MLOPS_DB_PATH)
         cursor = conn.cursor()
 
@@ -272,7 +272,7 @@ class ModelRegistry:
         conn.close()
 
     def list_models(self, model_name: str = None) -> List[ModelMetadata]:
-        """モチE��一覧の取征E""
+        """モデル一覧の取得"""
         conn = sqlite3.connect(MLOPS_DB_PATH)
 
         if model_name:
@@ -289,13 +289,13 @@ class ModelRegistry:
             metadata = ModelMetadata(
                 model_name=row["model_name"],
                 version=row["version"],
-                created_by="system",  # 保存時に追加する忁E��あめE
+                created_by="system",  # 保存時に追加する必要あり
                 creation_timestamp=row["creation_timestamp"],
                 metrics=json.loads(row["metrics"]) if row["metrics"] else {},
-                parameters={},  # 保存時に追加する忁E��あめE
-                dependencies=[],  # 保存時に追加する忁E��あめE
+                parameters={},  # 保存時に追加する必要あり
+                dependencies=[],  # 保存時に追加する必要あり
                 artifact_path=row["artifact_path"],
-                hash="",  # 保存時に追加する忁E��あめE
+                hash="",  # 保存時に追加する必要あり
                 tags=json.loads(row["tags"]) if row["tags"] else [],
             )
             models.append(metadata)
@@ -304,7 +304,7 @@ class ModelRegistry:
 
 
 class ABTestFramework:
-    """A/BチE��トフレームワーク"""
+    """A/Bテストフレームワーク"""
 
     def __init__(self, model_registry: ModelRegistry):
         self.model_registry = model_registry
@@ -319,18 +319,18 @@ class ABTestFramework:
         test_data: Tuple[np.ndarray, np.ndarray],
         metrics_to_compare: List[str] = ["mse", "mae"],
     ) -> Dict[str, Any]:
-        """A/BチE��ト�E実衁E""
+        """A/Bテストの実行"""
         X_test, y_test = test_data
 
-        # モチE��Aの読み込みと予測
-        model_a, metadata_a = self.model_registry.load_model("ensemble_model", model_a_version)  # 仮のモチE��吁E
+        # モデルAの読み込みと予測
+        model_a, metadata_a = self.model_registry.load_model("ensemble_model", model_a_version)  # 仮のモデル名
         pred_a = model_a.predict(X_test) if hasattr(model_a, "predict") else np.zeros(len(X_test))
 
-        # モチE��Bの読み込みと予測
+        # モデルBの読み込みと予測
         model_b, metadata_b = self.model_registry.load_model("ensemble_model", model_b_version)
         pred_b = model_b.predict(X_test) if hasattr(model_b, "predict") else np.zeros(len(X_test))
 
-        # 持E���E計箁E
+        # 指標の計算
         results = {}
         for metric in metrics_to_compare:
             if metric == "mse":
@@ -349,14 +349,14 @@ class ABTestFramework:
             results[f"model_b_{metric}"] = float(score_b)
             results[f"{metric}_difference"] = float(score_b - score_a)
 
-        # 優位モチE��の判定！ESEなどでは値が小さぁE��が優れてぁE���E�E
+        # 優位モデルの判定（MSEなどでは値が小さい方が優れている）
         winner = "tie"
-        if results["mse_difference"] < 0:  # Bの方がMSEが小さぁE= 優れてぁE��
+        if results["mse_difference"] < 0:  # Bの方がMSEが小さい = 優れている
             winner = "B"
-        elif results["mse_difference"] > 0:  # Aの方がMSEが小さぁE= 優れてぁE��
+        elif results["mse_difference"] > 0:  # Aの方がMSEが小さい = 優れている
             winner = "A"
 
-        # 結果をデータベ�Eスに保孁E
+        # 結果をデータベースに保存
         self._save_ab_test_result(test_name, model_a_version, model_b_version, results, len(y_test), winner)
 
         return {
@@ -378,7 +378,7 @@ class ABTestFramework:
         sample_size: int,
         winner: str,
     ):
-        """A/BチE��ト結果をデータベ�Eスに保孁E""
+        """A/Bテスト結果をデータベースに保存"""
         conn = sqlite3.connect(self.test_results_db_path)
         cursor = conn.cursor()
 
@@ -393,7 +393,7 @@ class ABTestFramework:
                 model_a_version,
                 model_b_version,
                 datetime.now().isoformat(),
-                "mse",  # ダミ�E、実際には褁E��持E��を保存すめE
+                "mse",  # ダミー、実際には複数指標を保存する
                 results.get("model_a_mse", 0.0),
                 results.get("model_b_mse", 0.0),
                 sample_size,
@@ -405,7 +405,7 @@ class ABTestFramework:
         conn.close()
 
     def get_test_history(self, test_name: str = None) -> pd.DataFrame:
-        """チE��ト履歴の取征E""
+        """テスト履歴の取得"""
         conn = sqlite3.connect(self.test_results_db_path)
 
         if test_name:
@@ -420,7 +420,7 @@ class ABTestFramework:
 
 
 class MonitoringSystem:
-    """モニタリングシスチE��"""
+    """モニタリングシステム"""
 
     def __init__(self):
         self.alerts_db_path = MLOPS_DB_PATH
@@ -430,11 +430,11 @@ class MonitoringSystem:
         self.alert_callbacks = []
 
     def set_performance_threshold(self, metric_name: str, threshold: float, direction: str = "lower"):
-        """パフォーマンス閾値の設定！Eower: 小さぁE��が良ぁE��upper: 大きい方が良ぁE��E""
+        """パフォーマンス閾値の設定（lower: 小さい方が良い、upper: 大きい方が良い）"""
         self.performance_thresholds[metric_name] = {"threshold": threshold, "direction": direction}
 
     def check_performance_degradation(self, model_name: str, current_metrics: Dict[str, float]) -> List[Dict[str, Any]]:
-        """性能低下�E検�E"""
+        """性能低下の検出"""
         alerts = []
 
         for metric_name, value in current_metrics.items():
@@ -442,7 +442,7 @@ class MonitoringSystem:
                 threshold_info = self.performance_thresholds[metric_name]
 
                 if threshold_info["direction"] == "lower":
-                    # 小さぁE��が良ぁE��標（侁E MSE�E�E
+                    # 小さい方が良い指標（例: MSE）
                     if value > threshold_info["threshold"]:
                         alert = {
                             "type": "performance_degradation",
@@ -455,7 +455,7 @@ class MonitoringSystem:
                         }
                         alerts.append(alert)
                 else:
-                    # 大きい方が良ぁE��標（侁E accuracy�E�E
+                    # 大きい方が良い指標（例: accuracy）
                     if value < threshold_info["threshold"]:
                         alert = {
                             "type": "performance_degradation",
@@ -468,7 +468,7 @@ class MonitoringSystem:
                         }
                         alerts.append(alert)
 
-        # アラートをチE�Eタベ�Eスに保孁E
+        # アラートをデータベースに保存
         for alert in alerts:
             self._save_alert(alert)
 
@@ -477,8 +477,8 @@ class MonitoringSystem:
     def detect_model_drift(
         self, model_predictions: np.ndarray, historical_predictions: np.ndarray, threshold: float = 0.05
     ) -> bool:
-        """モチE��ドリフトの検�E"""
-        # 簡単な刁E��E��輁E��ELダイバ�Eジェンスまた�EJSダイバ�Eジェンス�E�E
+        """モデルドリフトの検出"""
+        # 簡単な分布比較（KLダイバージェンスまたはJSダイバージェンス）
         if len(model_predictions) == 0 or len(historical_predictions) == 0:
             return False
 
@@ -488,7 +488,7 @@ class MonitoringSystem:
             np.std(historical_predictions) + 1e-8
         )
 
-        # コルモゴロチEスミルノフ検宁E
+        # コルモゴロフ-スミルノフ検定
         from scipy import stats
 
         statistic, p_value = stats.ks_2samp(pred_current, pred_historical)
@@ -502,12 +502,12 @@ class MonitoringSystem:
     def detect_data_drift(
         self, current_data: np.ndarray, reference_data: np.ndarray, threshold: float = 0.05
     ) -> Dict[str, Any]:
-        """チE�Eタドリフトの検�E"""
+        """データドリフトの検出"""
         detection_results = {}
 
-        # 吁E��統計的検宁E
+        # 各種統計的検定
         if len(current_data) > 0 and len(reference_data) > 0:
-            # コルモゴロチEスミルノフ検宁E
+            # コルモゴロフ-スミルノフ検定
             from scipy import stats
 
             statistic, p_value = stats.ks_2samp(current_data.flatten(), reference_data.flatten())
@@ -522,7 +522,7 @@ class MonitoringSystem:
         return detection_results
 
     def _save_alert(self, alert: Dict[str, Any]):
-        """アラートをチE�Eタベ�Eスに保孁E""
+        """アラートをデータベースに保存"""
         conn = sqlite3.connect(self.alerts_db_path)
         cursor = conn.cursor()
 
@@ -539,18 +539,18 @@ class MonitoringSystem:
         conn.close()
 
     def get_recent_alerts(self, hours: int = 24, resolved: bool = False) -> pd.DataFrame:
-        """最近�Eアラートを取征E""
+        """最近のアラートを取得"""
         conn = sqlite3.connect(self.alerts_db_path)
 
         if resolved:
             query = """
-                SELECT * FROM monitoring_alerts
+                SELECT * FROM monitoring_alerts 
                 WHERE timestamp >= ? AND resolved = 1
                 ORDER BY timestamp DESC
             """
         else:
             query = """
-                SELECT * FROM monitoring_alerts
+                SELECT * FROM monitoring_alerts 
                 WHERE timestamp >= ? AND resolved = 0
                 ORDER BY timestamp DESC
             """
@@ -562,13 +562,13 @@ class MonitoringSystem:
         return df
 
     def resolve_alert(self, alert_id: int):
-        """アラート�E解決"""
+        """アラートの解決"""
         conn = sqlite3.connect(self.alerts_db_path)
         cursor = conn.cursor()
 
         cursor.execute(
             """
-            UPDATE monitoring_alerts
+            UPDATE monitoring_alerts 
             SET resolved = 1, resolved_timestamp = ?
             WHERE id = ?
         """,
@@ -583,11 +583,11 @@ class MonitoringSystem:
         self.alert_callbacks.append(callback)
 
     def trigger_alert(self, alert: Dict[str, Any]):
-        """アラート�E発甁E""
-        # チE�Eタベ�Eスに保孁E
+        """アラートの発生"""
+        # データベースに保存
         self._save_alert(alert)
 
-        # 登録されたコールバックを実衁E
+        # 登録されたコールバックを実行
         for callback in self.alert_callbacks:
             try:
                 callback(alert)
@@ -596,19 +596,19 @@ class MonitoringSystem:
 
 
 class MLopsManager:
-    """MLOps管琁E��ラス"""
+    """MLOps管理クラス"""
 
     def __init__(self):
         self.model_registry = ModelRegistry()
-        self.ab_testing = A / BTestFramework(self.model_registry)
+        self.ab_testing = ABTestFramework(self.model_registry)
         self.monitoring = MonitoringSystem()
 
-        # MLflowの初期匁E
-        mlflow.set_tracking_uri("sqlite:///mlruns.db")  # フイルベ�EスのMLflow
+        # MLflowの初期化
+        mlflow.set_tracking_uri("sqlite:///mlruns.db")  # フイルベースのMLflow
         mlflow.set_experiment("AGStock_Model_Training")
 
     def start_experiment(self, experiment_name: str, description: str = "") -> str:
-        """実験�E開姁E""
+        """実験の開始"""
         with mlflow.start_run(run_name=experiment_name):
             mlflow.log_param("experiment_name", experiment_name)
             mlflow.log_param("description", description)
@@ -617,12 +617,12 @@ class MLopsManager:
             return mlflow.active_run().info.run_id
 
     def log_model_with_mlflow(self, model: Any, model_name: str, X_sample: np.ndarray, conda_env: str = None):
-        """MLflowを用ぁE��モチE��の記録"""
+        """MLflowを用いたモデルの記録"""
         signature = infer_signature(
             X_sample, model.predict(X_sample) if hasattr(model, "predict") else np.zeros(len(X_sample))
         )
 
-        # conda環墁E��ァイルの作�E
+        # conda環境ファイルの作成
         if conda_env is None:
             conda_env = self._create_conda_env_file()
 
@@ -632,7 +632,7 @@ class MLopsManager:
             )
 
     def _create_conda_env_file(self) -> str:
-        """conda環墁E��ァイルの作�E"""
+        """conda環境ファイルの作成"""
         env_path = "environment.yml"
         env_spec = {
             "name": "agstock_env",
@@ -659,14 +659,14 @@ class MLopsManager:
         return env_path
 
     def monitor_model_performance(self, model: Any, X_test: np.ndarray, y_test: np.ndarray, model_name: str):
-        """モチE��パフォーマンスのモニタリング"""
-        # 予測の実衁E
+        """モデルパフォーマンスのモニタリング"""
+        # 予測の実行
         if hasattr(model, "predict"):
             y_pred = model.predict(X_test)
         else:
             y_pred = np.zeros(len(y_test))
 
-        # 持E���E計箁E
+        # 指標の計算
         mse = np.mean((y_test - y_pred) ** 2)
         mae = np.mean(np.abs(y_test - y_pred))
         rmse = np.sqrt(mse)
@@ -678,13 +678,13 @@ class MLopsManager:
             for metric_name, value in metrics.items():
                 mlflow.log_metric(metric_name, value)
 
-        # MLOpsモニタリングシスチE��でアラートをチェチE��
+        # MLOpsモニタリングシステムでアラートをチェック
         alerts = self.monitoring.check_performance_degradation(model_name, metrics)
 
         return {"metrics": metrics, "alerts": alerts, "timestamp": datetime.now().isoformat()}
 
     def run_model_comparison(self, models: Dict[str, Any], X_test: np.ndarray, y_test: np.ndarray) -> Dict[str, Any]:
-        """褁E��モチE��の比輁E""
+        """複数モデルの比較"""
         results = {}
 
         for model_name, model in models.items():
@@ -693,7 +693,7 @@ class MLopsManager:
             else:
                 y_pred = np.zeros(len(y_test))
 
-            # 持E���E計箁E
+            # 指標の計算
             mse = np.mean((y_test - y_pred) ** 2)
             mae = np.mean(np.abs(y_test - y_pred))
             rmse = np.sqrt(mse)
@@ -704,29 +704,29 @@ class MLopsManager:
 
 
 if __name__ == "__main__":
-    # チE��ト用コーチE
+    # テスト用コード
     logging.basicConfig(level=logging.INFO)
 
-    # MLOpsマネージャーの初期匁E
+    # MLOpsマネージャーの初期化
     mlops = MLopsManager()
 
-    # モチE��モチE��の作�E
+    # モックモデルの作成
     import tensorflow as tf
     from tensorflow import keras
 
     model = keras.Sequential([keras.layers.Dense(10, activation="relu", input_shape=(10,)), keras.layers.Dense(1)])
     model.compile(optimizer="adam", loss="mse")
 
-    # ダミ�EチE�Eタ
+    # ダミーデータ
     X = np.random.random((100, 10)).astype(np.float32)
     y = np.random.random((100, 1)).astype(np.float32)
     X_test = np.random.random((20, 10)).astype(np.float32)
     y_test = np.random.random((20, 1)).astype(np.float32)
 
-    # モチE��学翁E
+    # モデル学習
     model.fit(X, y, epochs=1, verbose=0)
 
-    # モチE��のレジストリ保孁E
+    # モデルのレジストリ保存
     metadata = {
         "metrics": {"mse": 0.01, "mae": 0.05},
         "parameters": {"epochs": 1, "optimizer": "adam"},
@@ -736,27 +736,27 @@ if __name__ == "__main__":
     model_meta = mlops.model_registry.save_model(model, "test_model", "v1.0.0", metadata)
     print(f"Model registered: {model_meta.model_name} v{model_meta.version}")
 
-    # A/BチE��ト�E実衁E
+    # A/Bテストの実行
     model2 = keras.Sequential([keras.layers.Dense(5, activation="relu", input_shape=(10,)), keras.layers.Dense(1)])
     model2.compile(optimizer="adam", loss="mse")
     model2.fit(X, y, epochs=1, verbose=0)
 
     model_meta2 = mlops.model_registry.save_model(model2, "test_model", "v1.0.1", metadata)
 
-    # モチE��の読み込みとA/BチE��ト�E実衁E
+    # モデルの読み込みとA/Bテストの実行
     try:
         test_result = mlops.ab_testing.run_ab_test(
             "model_comparison_test", "v1.0.0", "v1.0.1", (X_test, y_test), ["mse", "mae", "rmse"]
         )
         print(f"A/B test result: {test_result}")
     except Exception as e:
-        print(f"A/B test failed: {e}")  # モチE��名が一致しなぁE��め失敗する可能性あり
+        print(f"A/B test failed: {e}")  # モデル名が一致しないため失敗する可能性あり
 
     # パフォーマンスモニタリング
     performance_result = mlops.monitor_model_performance(model, X_test, y_test, "test_model")
     print(f"Performance monitoring: {performance_result}")
 
-    # モチE��比輁E
+    # モデル比較
     models = {"model_v1": model, "model_v2": model2}
     comparison_result = mlops.run_model_comparison(models, X_test, y_test)
     print(f"Model comparison: {comparison_result}")

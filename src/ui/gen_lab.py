@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-from src.llm_reasoner import get_llm_reasoner
+from agstock.src.llm_reasoner import get_llm_reasoner
 
 STRATEGY_DIR = "src/strategies/custom"
 
@@ -8,9 +8,7 @@ STRATEGY_DIR = "src/strategies/custom"
 def render_gen_lab():
     """Gemini 2.0 Generative Strategy Lab"""
     st.header("✨ Generative Lab (Powered by Gemini 2.0)")
-    st.caption(
-        "自然言語で投資戦略を記述すると、AIが即座にPythonコードを生成・実装します。"
-    )
+    st.caption("自然言語で投資戦略を記述すると、AIが即座にPythonコードを生成・実装します。")
 
     reasoner = get_llm_reasoner()
 
@@ -31,23 +29,17 @@ def render_gen_lab():
 
         col1, col2 = st.columns([1, 2])
         with col1:
-            class_name_input = st.text_input(
-                "戦略クラス名 (英語)", value="MyGeminiStrategy"
-            )
+            class_name_input = st.text_input("戦略クラス名 (英語)", value="MyGeminiStrategy")
 
         submitted = st.form_submit_button("🚀 戦略を生成する")
 
     if submitted and prompt_text:
         with st.spinner("Gemini 2.0 is thinking... (Generating Code)"):
             try:
-                generated_code = reasoner.generate_strategy_code(
-                    prompt_text, class_name_input
-                )
+                generated_code = reasoner.generate_strategy_code(prompt_text, class_name_input)
 
                 # Simple cleanup if markdown blocks remain (though prompt asks not to)
-                cleaned_code = generated_code.replace("```python", "").replace(
-                    "```", ""
-                )
+                cleaned_code = generated_code.replace("```python", "").replace("```", "")
 
                 st.session_state["gen_code"] = cleaned_code
                 st.session_state["gen_class"] = class_name_input

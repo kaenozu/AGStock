@@ -66,15 +66,9 @@ class DataPreprocessor:
             return df_with_indicators
 
         # 移動平均
-        df_with_indicators["SMA_5"] = (
-            df_with_indicators["Close"].rolling(window=5).mean()
-        )
-        df_with_indicators["SMA_20"] = (
-            df_with_indicators["Close"].rolling(window=20).mean()
-        )
-        df_with_indicators["SMA_50"] = (
-            df_with_indicators["Close"].rolling(window=50).mean()
-        )
+        df_with_indicators["SMA_5"] = df_with_indicators["Close"].rolling(window=5).mean()
+        df_with_indicators["SMA_20"] = df_with_indicators["Close"].rolling(window=20).mean()
+        df_with_indicators["SMA_50"] = df_with_indicators["Close"].rolling(window=50).mean()
 
         # RSI
         delta = df_with_indicators["Close"].diff()
@@ -94,12 +88,8 @@ class DataPreprocessor:
         exp1 = df_with_indicators["Close"].ewm(span=12).mean()
         exp2 = df_with_indicators["Close"].ewm(span=26).mean()
         df_with_indicators["MACD"] = exp1 - exp2
-        df_with_indicators["MACD_signal"] = (
-            df_with_indicators["MACD"].ewm(span=9).mean()
-        )
-        df_with_indicators["MACD_hist"] = (
-            df_with_indicators["MACD"] - df_with_indicators["MACD_signal"]
-        )
+        df_with_indicators["MACD_signal"] = df_with_indicators["MACD"].ewm(span=9).mean()
+        df_with_indicators["MACD_hist"] = df_with_indicators["MACD"] - df_with_indicators["MACD_signal"]
 
         return df_with_indicators
 
@@ -127,9 +117,7 @@ class DataPreprocessor:
 
         return df_normalized
 
-    def preprocess(
-        self, df: pd.DataFrame, add_indicators: bool = True, normalize: bool = False
-    ) -> pd.DataFrame:
+    def preprocess(self, df: pd.DataFrame, add_indicators: bool = True, normalize: bool = False) -> pd.DataFrame:
         """データの前処理を一括して実行
 
         Args:
@@ -189,9 +177,7 @@ class MultiTickerDataProcessor:
                 processed_data[ticker] = df
                 continue
 
-            processed_df = self.preprocessor.preprocess(
-                df, add_indicators=add_indicators, normalize=normalize
-            )
+            processed_df = self.preprocessor.preprocess(df, add_indicators=add_indicators, normalize=normalize)
             processed_data[ticker] = processed_df
 
         return processed_data

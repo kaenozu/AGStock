@@ -10,7 +10,7 @@ from typing import Dict, Any
 
 import google.generativeai as genai
 
-from src.rag.earnings_rag import EarningsRAG
+from agstock.src.rag.earnings_rag import EarningsRAG
 
 logger = logging.getLogger(__name__)
 
@@ -102,19 +102,14 @@ class EarningsAnalyzer:
             logger.info("Using RAG to retrieve relevant context")
 
             # 重要な質問で検索
-            key_questions = [
-                "売上高と利益の推移は？",
-                "主要な事業トピックは？",
-                "リスク要因は？",
-                "今後の見通しは？"
-            ]
+            key_questions = ["売上高と利益の推移は？", "主要な事業トピックは？", "リスク要因は？", "今後の見通しは？"]
 
             for question in key_questions:
                 results = rag_engine.query(question, n_results=2, filter_doc_id=doc_id)
                 if results:
                     context_parts.append(f"【{question}】")
                     for r in results:
-                        context_parts.append(r['text'])
+                        context_parts.append(r["text"])
                     context_parts.append("")
         else:
             # RAG未使用の場合は全文を使用（制限あり）
@@ -130,7 +125,7 @@ class EarningsAnalyzer:
             context_parts.append("【財務データ】")
             for i, table in enumerate(tables[:3]):  # 最初の3つのテーブルのみ
                 context_parts.append(f"テーブル{i + 1}:")
-                context_parts.append(table.to_string() if hasattr(table, 'to_string') else str(table))
+                context_parts.append(table.to_string() if hasattr(table, "to_string") else str(table))
                 context_parts.append("")
 
         return "\n".join(context_parts)
@@ -230,7 +225,7 @@ JSONのみを返してください。説明文は不要です。
                 "recommendation": "HOLD",
                 "confidence": 0.5,
                 "reasoning": "分析に失敗しました",
-                "raw_response": response_text
+                "raw_response": response_text,
             }
 
     def quick_summary(self, pdf_data: Dict[str, Any]) -> str:
@@ -288,10 +283,7 @@ if __name__ == "__main__":
         - 為替変動による影響
         - 競合他社の新製品投入
         """,
-        "metadata": {
-            "company": "サンプル株式会社",
-            "date": "2024-11-01"
-        }
+        "metadata": {"company": "サンプル株式会社", "date": "2024-11-01"},
     }
 
     # 分析実行

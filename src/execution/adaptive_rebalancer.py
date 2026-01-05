@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, List, Any
-from src.data.macro_loader import MacroLoader
-from src.strategies.hedging_manager import HedgingManager
+from agstock.src.data.macro_loader import MacroLoader
+from agstock.src.strategies.hedging_manager import HedgingManager
 
 logger = logging.getLogger(__name__)
 
@@ -34,9 +34,7 @@ class AdaptiveRebalancer:
 
         # 3. Adjust Existing Positions (De-risking)
         if macro_score < 45:
-            logger.warning(
-                f"Macro Score {macro_score:.1f} is low. Evaluating portfolio trimming."
-            )
+            logger.warning(f"Macro Score {macro_score:.1f} is low. Evaluating portfolio trimming.")
             for pos in portfolio.get("positions", []):
                 ticker = pos.get("ticker")
                 profit_pct = pos.get("profit_pct", 0.0)

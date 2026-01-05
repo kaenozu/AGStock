@@ -16,9 +16,7 @@ from src.realtime import RealtimeDataClient
 def render_ai_chat():
     """Renders the Ghostwriter chat interface."""
     st.header("💬 AI Chat (Ghostwriter with Context)")
-    st.write(
-        "AGStockのアシスタント「Ghostwriter」が、市場動向とポートフォリオについてお答えします。"
-    )
+    st.write("AGStockのアシスタント「Ghostwriter」が、市場動向とポートフォリオについてお答えします。")
 
     # 1. Initialize Chat History
     if "messages" not in st.session_state:
@@ -35,20 +33,20 @@ def render_ai_chat():
     if "realtime_client" not in st.session_state:
         st.session_state.realtime_client = RealtimeDataClient()
         st.session_state.realtime_data = {}
-        
+
         # Start client in separate thread
         def start_client():
             asyncio.run(st.session_state.realtime_client.connect())
-        
+
         client_thread = threading.Thread(target=start_client, daemon=True)
         client_thread.start()
-        
+
         # Register data handler
         async def handle_market_data(data):
             st.session_state.realtime_data = data
             # Force Streamlit to rerun to update UI
-            st.experimental_rerun()
-        
+            st.rerun()
+
         st.session_state.realtime_client.register_data_handler("market_data", handle_market_data)
 
     # 2. Display Chat Messages
@@ -117,6 +115,7 @@ def render_ai_chat():
                     # 4. Oracle 2026 Prophecies
                     try:
                         from src.oracle.oracle_2026 import Oracle2026
+
                         oracle = Oracle2026()
                         oracle_scenarios = oracle.speculate_scenarios()
                         oracle_resilience = oracle.assess_portfolio_resilience([])
@@ -127,6 +126,7 @@ def render_ai_chat():
                     # 5. 2025 Retrospective
                     try:
                         from src.sovereign_retrospective import SovereignRetrospective
+
                         sr = SovereignRetrospective()
                         retrospective_insights = sr.analyze_2025_failures()
                         retro_context = json.dumps(retrospective_insights, ensure_ascii=False)
@@ -171,20 +171,37 @@ def render_ai_chat():
                     )
 
                     message_placeholder.markdown(response)
-                    st.session_state.messages.append(
-                        {"role": "assistant", "content": response}
-                    )
+                    st.session_state.messages.append({"role": "assistant", "content": response})
+                    
+                    # Divine Voice Synthesis
+                    if st.session_state.get("enable_divine_voice", False):
+                        with st.spinner("神託を音声に変換中..."):
+                            try:
+                                from gtts import gTTS
+                                import io
+                                
+                                # 短すぎる場合はスキップ、長すぎる場合は冒頭のみなど調整可
+                                tts_text = response[:500] # 長すぎるとAPI制限やUX低下の恐れがあるため制限
+                                
+                                tts = gTTS(text=tts_text, lang='ja')
+                                mp3_fp = io.BytesIO()
+                                tts.write_to_fp(mp3_fp)
+                                st.audio(mp3_fp, format='audio/mp3', autoplay=True)
+                            except Exception as e:
+                                st.error(f"音声合成エラー（Divine Voice）: {e}")
 
                 except Exception as e:
                     error_msg = f"申し訳ありません、エラーが発生しました: {str(e)}"
                     message_placeholder.error(error_msg)
-                    st.session_state.messages.append(
-                        {"role": "assistant", "content": error_msg}
-                    )
+                    st.session_state.messages.append({"role": "assistant", "content": error_msg})
 
-        st.experimental_rerun()
+        st.rerun()
 
     # 4. Add Realtime Data Display
+    with st.sidebar:
+        st.divider()
+        st.session_state["enable_divine_voice"] = st.toggle("🔊 Divine Voice (音声読み上げ)", value=False)
+        
     if st.session_state.realtime_data:
         st.sidebar.subheader("📡 リアルタイム市場データ")
         realtime_data = st.session_state.realtime_data.get("data", {})

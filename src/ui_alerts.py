@@ -4,7 +4,7 @@ UI Alerts - アラート管理のUI
 
 import streamlit as st
 
-from src.alert_manager import Alert, AlertCondition, AlertManager, AlertType
+from agstock.src.alert_manager import Alert, AlertCondition, AlertManager, AlertType
 
 
 def render_alerts_tab():
@@ -77,9 +77,7 @@ def render_create_alert(manager: AlertManager):
         # 価格アラート
         ticker = st.text_input("銘柄コード", value="7203.T")
 
-        condition = st.selectbox(
-            "条件", [AlertCondition.ABOVE.value, AlertCondition.BELOW.value]
-        )
+        condition = st.selectbox("条件", [AlertCondition.ABOVE.value, AlertCondition.BELOW.value])
 
         threshold = st.number_input("閾値（円）", value=1000.0, step=10.0)
 
@@ -102,9 +100,7 @@ def render_create_alert(manager: AlertManager):
 
     elif alert_type == AlertType.PORTFOLIO.value:
         # ポートフォリオアラート
-        condition = st.selectbox(
-            "条件", [AlertCondition.ABOVE.value, AlertCondition.BELOW.value]
-        )
+        condition = st.selectbox("条件", [AlertCondition.ABOVE.value, AlertCondition.BELOW.value])
 
         threshold = st.number_input("閾値（%）", value=5.0, step=0.5)
 

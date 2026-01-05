@@ -11,7 +11,7 @@ import os
 import pandas as pd
 import streamlit as st
 
-from src.data.feedback_store import FeedbackStore
+from agstock.src.data.feedback_store import FeedbackStore
 
 logger = logging.getLogger(__name__)
 
@@ -26,11 +26,7 @@ def render() -> None:
 
     st.markdown("---")
 
-    tab_vision, tab_synapse, tab_wisdom = st.tabs([
-        "👁️ Vision (Scanner)",
-        "🧠 Synapse (Live Logs)",
-        "🗣️ Voice (Wisdom)"
-    ])
+    tab_vision, tab_synapse, tab_wisdom = st.tabs(["👁️ Vision (Scanner)", "🧠 Synapse (Live Logs)", "🗣️ Voice (Wisdom)"])
 
     with tab_vision:
         render_scanner_vision()
@@ -64,8 +60,8 @@ def render_scanner_vision():
         # Dashboard KPIs
         cols = st.columns(3)
         cols[0].metric("Total Candidates", len(df))
-        cols[1].metric("Highest Confidence", f"{df['confidence'].max() * 100:.1f}%" if 'confidence' in df else "N/A")
-        cols[2].metric("Buy Signals", len(df[df['action'] == 'BUY']) if 'action' in df else 0)
+        cols[1].metric("Highest Confidence", f"{df['confidence'].max() * 100:.1f}%" if "confidence" in df else "N/A")
+        cols[2].metric("Buy Signals", len(df[df["action"] == "BUY"]) if "action" in df else 0)
 
         # Signal Table
         st.dataframe(
@@ -122,16 +118,19 @@ def render_wisdom_library():
     try:
         # Use existing sqlite logic from Dashboard or direct if not implemented
         import sqlite3
+
         with sqlite3.connect(store.db_path) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT ticker, lesson_learned, reflection_log, timestamp
                 FROM decision_feedback
                 WHERE lesson_learned IS NOT NULL
                 ORDER BY timestamp DESC
                 LIMIT 10
-            """)
+            """
+            )
             wisdom = [dict(row) for row in cursor.fetchall()]
 
         if not wisdom:
@@ -143,7 +142,7 @@ def render_wisdom_library():
                 st.markdown(f"### 💡 {item['ticker']} - {item['timestamp'][:10]}")
                 st.info(f"**Lesson**: {item['lesson_learned']}")
                 with st.expander("詳細な分析ログを表示"):
-                    st.write(item['reflection_log'])
+                    st.write(item["reflection_log"])
                 st.markdown("---")
 
     except Exception as e:

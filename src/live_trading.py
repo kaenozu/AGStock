@@ -9,10 +9,10 @@ import numpy as np
 import pandas as pd
 import yfinance as yf
 
-from src.broker import Broker
-from src.broker import Position as BrokerPosition
-from src.constants import DEFAULT_VOLATILITY_SYMBOL, FALLBACK_VOLATILITY_SYMBOLS
-from src.strategies import Order, OrderType, Strategy
+from agstock.src.broker import Broker
+from agstock.src.broker import Position as BrokerPosition
+from agstock.src.constants import DEFAULT_VOLATILITY_SYMBOL, FALLBACK_VOLATILITY_SYMBOLS
+from agstock.src.strategies import Order, OrderType, Strategy
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -180,7 +180,7 @@ class LiveTradingEngine:
 
         # Initialize RiskGuard
         if enable_risk_guard:
-            from src.risk_guard import RiskGuard
+            from agstock.src.risk_guard import RiskGuard
 
             self.risk_guard = RiskGuard(
                 initial_portfolio_value=initial_portfolio_value,
@@ -194,7 +194,7 @@ class LiveTradingEngine:
     def fetch_realtime_data(self, ticker: str) -> Optional[pd.DataFrame]:
         # This will be replaced by the actual data_loader function
         # For now, we import it inside the method to avoid circular imports if any
-        from src.data_loader import fetch_realtime_data
+        from agstock.src.data_loader import fetch_realtime_data
 
         return fetch_realtime_data(ticker)
 

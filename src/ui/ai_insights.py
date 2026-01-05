@@ -3,9 +3,9 @@ from datetime import datetime
 import pandas as pd
 import streamlit as st
 
-from src.agents.committee import InvestmentCommittee
-from src.paper_trader import PaperTrader
-from src.schemas import TradingDecision
+from agstock.src.agents.committee import InvestmentCommittee
+from agstock.src.paper_trader import PaperTrader
+from agstock.src.schemas import TradingDecision
 
 
 def render_ai_insights():
@@ -88,9 +88,9 @@ def render_ai_insights():
         # Ideally, InvestmentCommittee should return strategy explanations.
         # For now, we simulate grabbing the ML strategy to show the concept.
 
-        from src.data_loader import fetch_stock_data  # Assuming we have a default ticker context
-        from src.strategies.lightgbm_strategy import LightGBMStrategy
-        from src.strategies.ml import MLStrategy
+        from agstock.src.data_loader import fetch_stock_data  # Assuming we have a default ticker context
+        from agstock.src.strategies.lightgbm_strategy import LightGBMStrategy
+        from agstock.src.strategies.ml import MLStrategy
 
         # Hardcoded demo for immediate visual feedback (since committee.hold_meeting mock doesn't return actual strategy objs)
         st.info("AIがどのデータを重視したかを表示します（デモ: LightGBMモデル）")

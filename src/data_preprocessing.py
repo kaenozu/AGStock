@@ -25,9 +25,7 @@ warnings.filterwarnings("ignore")
 logger = logging.getLogger(__name__)
 
 
-def detect_outliers_isolation_forest(
-    df: pd.DataFrame, cols: List[str], contamination: float = 0.1
-) -> pd.Series:
+def detect_outliers_isolation_forest(df: pd.DataFrame, cols: List[str], contamination: float = 0.1) -> pd.Series:
     """
     Isolation Forestを用いた異常値検出
 
@@ -47,9 +45,7 @@ def detect_outliers_isolation_forest(
     return outlier_labels == -1
 
 
-def detect_outliers_statistical(
-    df: pd.DataFrame, cols: List[str], z_threshold: float = 3.0
-) -> pd.DataFrame:
+def detect_outliers_statistical(df: pd.DataFrame, cols: List[str], z_threshold: float = 3.0) -> pd.DataFrame:
     """
     統計的アプローチによる異常値検出（Zスコアベース）
 
@@ -73,9 +69,7 @@ def detect_outliers_statistical(
     return outlier_flags
 
 
-def detect_outliers_modified_zscore(
-    df: pd.DataFrame, cols: List[str], threshold: float = 3.5
-) -> pd.DataFrame:
+def detect_outliers_modified_zscore(df: pd.DataFrame, cols: List[str], threshold: float = 3.5) -> pd.DataFrame:
     """
     修正Zスコアによる異常値検出（中央値ベース）
 
@@ -96,16 +90,12 @@ def detect_outliers_modified_zscore(
         median = df[col].median()
         mad = np.median(np.abs(df[col] - median))
         modified_z_score = 0.6745 * (df[col] - median) / mad
-        outlier_flags[f"{col}_modified_z_outlier"] = (
-            np.abs(modified_z_score) > threshold
-        )
+        outlier_flags[f"{col}_modified_z_outlier"] = np.abs(modified_z_score) > threshold
 
     return outlier_flags
 
 
-def remove_outliers(
-    df: pd.DataFrame, outlier_cols: List[str], method: str = "drop"
-) -> pd.DataFrame:
+def remove_outliers(df: pd.DataFrame, outlier_cols: List[str], method: str = "drop") -> pd.DataFrame:
     """
     異常値の除去
 
@@ -170,9 +160,7 @@ def advanced_missing_value_handling(df: pd.DataFrame) -> pd.DataFrame:
                 # OHLCVデータの場合は、特別な補完方法を適用
                 if col in ["Open", "High", "Low", "Close"]:
                     # 前の値で補完（前日終値を当日始値に、など）
-                    df_out[col] = (
-                        df_out[col].fillna(method="ffill").fillna(method="bfill")
-                    )
+                    df_out[col] = df_out[col].fillna(method="ffill").fillna(method="bfill")
                 elif col == "Volume":
                     # 出来高は0で補完（取引がなかったとみなす）
                     df_out[col] = df_out[col].fillna(0)
@@ -209,11 +197,7 @@ def prevent_data_leakage(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[str]]:
     leaked_cols = []
 
     # ターゲット変数に基づくリークを検出
-    target_cols = [
-        col
-        for col in df_out.columns
-        if "Target" in col or "Return" in col or "Future" in col
-    ]
+    target_cols = [col for col in df_out.columns if "Target" in col or "Return" in col or "Future" in col]
 
     for col in df_out.columns:
         if col in target_cols:
@@ -292,9 +276,7 @@ class TimeSeriesScaler:
         return self.fit(df, cols).transform(df)
 
 
-def augment_time_series_data(
-    df: pd.DataFrame, noise_factor: float = 0.01
-) -> pd.DataFrame:
+def augment_time_series_data(df: pd.DataFrame, noise_factor: float = 0.01) -> pd.DataFrame:
     """
     時系列データの拡張
 
@@ -321,9 +303,7 @@ def augment_time_series_data(
     return df_combined
 
 
-def implement_walk_forward_validation(
-    df: pd.DataFrame, n_splits: int = 5
-) -> List[Tuple[pd.DataFrame, pd.DataFrame]]:
+def implement_walk_forward_validation(df: pd.DataFrame, n_splits: int = 5) -> List[Tuple[pd.DataFrame, pd.DataFrame]]:
     """
     ウォークフォワード検証の実装
 
@@ -339,9 +319,7 @@ def implement_walk_forward_validation(
         if "Date" in df.columns:
             df = df.set_index(pd.to_datetime(df["Date"]))
         else:
-            raise ValueError(
-                "DataFrame must have a Date column or DatetimeIndex for walk-forward validation"
-            )
+            raise ValueError("DataFrame must have a Date column or DatetimeIndex for walk-forward validation")
 
     # 時系列分割
     tscv = TimeSeriesSplit(n_splits=n_splits)
@@ -404,9 +382,7 @@ def apply_target_encoding_with_cv(
     return df_out
 
 
-def preprocess_for_prediction(
-    df: pd.DataFrame, target_col: str = "Close"
-) -> Tuple[pd.DataFrame, TimeSeriesScaler]:
+def preprocess_for_prediction(df: pd.DataFrame, target_col: str = "Close") -> Tuple[pd.DataFrame, TimeSeriesScaler]:
     """
     予測用のデータ前処理
 
@@ -455,9 +431,7 @@ def preprocess_for_prediction(
     if target_col in numeric_cols:
         numeric_cols.remove(target_col)
 
-    outlier_flags = detect_outliers_statistical(
-        df_out, numeric_cols[:5]
-    )  # 最初の5カラムだけ処理
+    outlier_flags = detect_outliers_statistical(df_out, numeric_cols[:5])  # 最初の5カラムだけ処理
     outlier_cols = [col for col in outlier_flags.columns if col.endswith("_outlier")]
     df_out = remove_outliers(df_out, outlier_cols, method="interpolate")
 
@@ -470,9 +444,7 @@ def preprocess_for_prediction(
     if target_col in numeric_cols:
         numeric_cols.remove(target_col)
 
-    scaler_cols = [
-        col for col in df_out.columns if col in numeric_cols and col not in leaked_cols
-    ]
+    scaler_cols = [col for col in df_out.columns if col in numeric_cols and col not in leaked_cols]
     scaler = TimeSeriesScaler(method="robust")
     df_out = scaler.fit_transform(df_out, scaler_cols)
 
@@ -484,9 +456,7 @@ def preprocess_for_prediction(
         else:
             logger.warning("Date column not found, using default index")
 
-    logger.info(
-        f"Preprocessing completed. Shape: {df_out.shape}, Removed leaked columns: {leaked_cols}"
-    )
+    logger.info(f"Preprocessing completed. Shape: {df_out.shape}, Removed leaked columns: {leaked_cols}")
 
     return df_out, scaler
 
@@ -518,7 +488,7 @@ def prepare_ml_dataset(
 
     X, y = [], []
     for i in range(sequence_length, len(X_data) - forecast_horizon + 1):
-        X.append(X_data[i - sequence_length: i])
+        X.append(X_data[i - sequence_length : i])
         y.append(y_data[i + forecast_horizon - 1])  # 1ステップ先予測
 
     return np.array(X, dtype=np.float32), np.array(y, dtype=np.float32)
@@ -548,22 +518,16 @@ if __name__ == "__main__":
     dummy_data.loc[100, "Volume"] = 100000000  # 非常に大きな出来高
 
     print(f"Original data shape: {dummy_data.shape}")
-    print(
-        f"Original data with outliers:\n{dummy_data[['Close', 'Volume']].iloc[[49, 50, 51, 99, 100, 101]]}"
-    )
+    print(f"Original data with outliers:\n{dummy_data[['Close', 'Volume']].iloc[[49, 50, 51, 99, 100, 101]]}")
 
     # 前処理の実行
     processed_data, scaler = preprocess_for_prediction(dummy_data)
 
     print(f"\nProcessed data shape: {processed_data.shape}")
-    print(
-        f"Processed data:\n{processed_data[['Close', 'Volume']].iloc[[49, 50, 51, 99, 100, 101]]}"
-    )
+    print(f"Processed data:\n{processed_data[['Close', 'Volume']].iloc[[49, 50, 51, 99, 100, 101]]}")
 
     # ウォークフォワード検証のテスト
-    splits = implement_walk_forward_validation(
-        processed_data.set_index("Date"), n_splits=3
-    )
+    splits = implement_walk_forward_validation(processed_data.set_index("Date"), n_splits=3)
     print(f"\nWalk-forward validation created {len(splits)} splits")
     for i, (train, test) in enumerate(splits):
         print(
@@ -589,9 +553,5 @@ if __name__ == "__main__":
 
     # ターゲットエンコーディングのテスト
     dummy_data["Category"] = np.random.choice(["A", "B", "C"], size=len(dummy_data))
-    encoded_data = apply_target_encoding_with_cv(
-        dummy_data, "Close", ["Category"], cv_folds=3
-    )
-    print(
-        f"\nTarget encoded columns: {[col for col in encoded_data.columns if 'encoded' in col]}"
-    )
+    encoded_data = apply_target_encoding_with_cv(dummy_data, "Close", ["Category"], cv_folds=3)
+    print(f"\nTarget encoded columns: {[col for col in encoded_data.columns if 'encoded' in col]}")

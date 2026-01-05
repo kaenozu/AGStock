@@ -78,13 +78,9 @@ class PortfolioAnalyzer:
 
         # 相対パフォーマンス（ベンチマーク比較）
         benchmark_return = 6.2  # TOPIXやS&P500など
-        performance_metrics["alpha"] = (
-            performance_metrics["annual_return"] - benchmark_return
-        )
+        performance_metrics["alpha"] = performance_metrics["annual_return"] - benchmark_return
         performance_metrics["beta"] = 1.05
-        performance_metrics["information_ratio"] = (
-            performance_metrics["alpha"] / 4.5
-        )  # トラッキングエラー
+        performance_metrics["information_ratio"] = performance_metrics["alpha"] / 4.5  # トラッキングエラー
 
         return performance_metrics
 
@@ -121,9 +117,7 @@ class PortfolioAnalyzer:
         }
 
         # リスクレベル評価
-        var_ratio = abs(
-            risk_metrics["value_at_risk"]["var_95"]
-        ) / self._calculate_total_value(portfolio_data)
+        var_ratio = abs(risk_metrics["value_at_risk"]["var_95"]) / self._calculate_total_value(portfolio_data)
         if var_ratio > 0.05:
             risk_level = "高"
         elif var_ratio > 0.03:
@@ -341,9 +335,7 @@ class PortfolioAnalyzer:
     def _calculate_total_value(self, portfolio_data: Dict) -> float:
         """総資産価値を計算"""
         # 実際の計算ロジックに置き換え
-        return sum(
-            position.get("market_value", 0) for position in portfolio_data.values()
-        )
+        return sum(position.get("market_value", 0) for position in portfolio_data.values())
 
     def create_analysis_charts(self, analysis_result: Dict) -> Dict[str, go.Figure]:
         """
@@ -358,17 +350,13 @@ class PortfolioAnalyzer:
         charts = {}
 
         # パフォーマンスチャート
-        charts["performance"] = self._create_performance_chart(
-            analysis_result["performance"]
-        )
+        charts["performance"] = self._create_performance_chart(analysis_result["performance"])
 
         # リスクチャート
         charts["risk"] = self._create_risk_chart(analysis_result["risk"])
 
         # 分散化チャート
-        charts["diversification"] = self._create_diversification_chart(
-            analysis_result["diversification"]
-        )
+        charts["diversification"] = self._create_diversification_chart(analysis_result["diversification"])
 
         # セクター配チャート
         sector_analysis = self.analyze_sector_allocation({})
@@ -544,9 +532,7 @@ def show_portfolio_analysis():
             st.metric("リスクレベル", result["risk"]["overall_risk_level"])
 
         # 詳細分析
-        tab1, tab2, tab3, tab4 = st.tabs(
-            ["📈 パフォーマンス", "⚠️ リスク", "🔄 分散化", "💡 改善提案"]
-        )
+        tab1, tab2, tab3, tab4 = st.tabs(["📈 パフォーマンス", "⚠️ リスク", "🔄 分散化", "💡 改善提案"])
 
         with tab1:
             st.plotly_chart(charts["performance"], use_container_width=True)
@@ -568,9 +554,7 @@ def show_portfolio_analysis():
             st.subheader("改善提案")
 
             for i, rec in enumerate(result["recommendations"], 1):
-                priority_color = {"high": "🔴", "medium": "🟡", "low": "🟢"}[
-                    rec["priority"]
-                ]
+                priority_color = {"high": "🔴", "medium": "🟡", "low": "🟢"}[rec["priority"]]
 
                 st.markdown(f"### {priority_color} 提案 {i}: {rec['title']}")
                 st.markdown(f"**説明**: {rec['description']}")

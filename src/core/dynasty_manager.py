@@ -84,9 +84,9 @@ class DynastyManager:
         """Returns a majestic summary for the daily report."""
         obj = self.state.get("current_objective", "UNKNOWN")
         score = self.state.get("legacy_score", 0.0)
-        established = datetime.fromisoformat(
-            self.state.get("established_at", datetime.now().isoformat())
-        ).strftime("%Y-%m-%d")
+        established = datetime.fromisoformat(self.state.get("established_at", datetime.now().isoformat())).strftime(
+            "%Y-%m-%d"
+        )
         return f"""
 【王朝の現状（Dynasty Briefing）】
 名称: {self.state.get('dynasty_name', 'Unknown Dynasty')}

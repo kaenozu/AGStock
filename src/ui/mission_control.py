@@ -11,7 +11,7 @@ from pathlib import Path
 import streamlit as st
 import pandas as pd
 
-from src.paper_trader import PaperTrader
+from agstock.src.paper_trader import PaperTrader
 
 
 def render_mission_control():
@@ -101,9 +101,7 @@ def render_mission_control():
                 healing_logs = [
                     line
                     for line in recent_lines
-                    if "Self-Healing" in line
-                    or "AI Healing" in line
-                    or "Auto-Adjustment" in line
+                    if "Self-Healing" in line or "AI Healing" in line or "Auto-Adjustment" in line
                 ]
 
                 if healing_logs:
@@ -151,9 +149,7 @@ def render_mission_control():
             if not history.empty:
                 # Last 7 days
                 history["date"] = pd.to_datetime(history["timestamp"]).dt.date
-                recent = history[
-                    history["date"] >= (datetime.now().date() - timedelta(days=7))
-                ]
+                recent = history[history["date"] >= (datetime.now().date() - timedelta(days=7))]
 
                 # Calculate daily stats
                 daily_stats = []
@@ -161,9 +157,7 @@ def render_mission_control():
                     day_trades = recent[recent["date"] == date]
                     sells = day_trades[day_trades["action"] == "SELL"]
 
-                    daily_stats.append(
-                        {"Date": date, "Trades": len(day_trades), "Closed": len(sells)}
-                    )
+                    daily_stats.append({"Date": date, "Trades": len(day_trades), "Closed": len(sells)})
 
                 if daily_stats:
                     df = pd.DataFrame(daily_stats)

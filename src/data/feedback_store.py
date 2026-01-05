@@ -107,21 +107,9 @@ class FeedbackStore:
                         # Determine Outcome
                         outcome = "NEUTRAL"
                         if decision == "BUY":
-                            outcome = (
-                                "SUCCESS"
-                                if return_1w > 0.02
-                                else "FAILURE"
-                                if return_1w < -0.01
-                                else "NEUTRAL"
-                            )
+                            outcome = "SUCCESS" if return_1w > 0.02 else "FAILURE" if return_1w < -0.01 else "NEUTRAL"
                         elif decision == "SELL":
-                            outcome = (
-                                "SUCCESS"
-                                if return_1w < -0.02
-                                else "FAILURE"
-                                if return_1w > 0.01
-                                else "NEUTRAL"
-                            )
+                            outcome = "SUCCESS" if return_1w < -0.02 else "FAILURE" if return_1w > 0.01 else "NEUTRAL"
 
                         cursor.execute(
                             """
@@ -135,9 +123,7 @@ class FeedbackStore:
         except Exception as e:
             logger.error(f"Failed to update outcomes: {e}")
 
-    def get_lessons_for_ticker(
-        self, ticker: str, limit: int = 5
-    ) -> List[Dict[str, Any]]:
+    def get_lessons_for_ticker(self, ticker: str, limit: int = 5) -> List[Dict[str, Any]]:
         """Retrieves past lessons learned for a specific ticker or similar setups."""
         try:
             with sqlite3.connect(self.db_path) as conn:

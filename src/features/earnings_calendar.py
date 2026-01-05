@@ -45,12 +45,14 @@ class EarningsCalendar:
                 if earnings_date:
                     days_until = (earnings_date - now).days
                     if 0 <= days_until <= self.lookforward_days:
-                        results.append({
-                            "ticker": ticker,
-                            "earnings_date": earnings_date,
-                            "days_until": days_until,
-                            "risk_level": self._calculate_risk_level(days_until),
-                        })
+                        results.append(
+                            {
+                                "ticker": ticker,
+                                "earnings_date": earnings_date,
+                                "days_until": days_until,
+                                "risk_level": self._calculate_risk_level(days_until),
+                            }
+                        )
             except Exception as e:
                 logger.warning(f"Failed to get earnings for {ticker}: {e}")
                 continue
@@ -137,9 +139,9 @@ class EarningsCalendar:
         # リスクレベルに応じた推奨比率
         reduction_map = {
             "CRITICAL": 0.25,  # 75%削減
-            "HIGH": 0.5,       # 50%削減
-            "MEDIUM": 0.75,    # 25%削減
-            "LOW": 1.0,        # 削減なし
+            "HIGH": 0.5,  # 50%削減
+            "MEDIUM": 0.75,  # 25%削減
+            "LOW": 1.0,  # 削減なし
         }
 
         multiplier = reduction_map.get(risk_level, 1.0)
@@ -192,17 +194,17 @@ class EarningsCalendar:
             total_risk += weight * risk_weights.get(risk_level, 0)
 
             if risk_level in ["CRITICAL", "HIGH"]:
-                should_reduce, new_weight, reason = self.should_reduce_position(
-                    ticker, weight
-                )
+                should_reduce, new_weight, reason = self.should_reduce_position(ticker, weight)
                 if should_reduce:
-                    recommendations.append({
-                        "ticker": ticker,
-                        "action": "REDUCE",
-                        "current_weight": weight,
-                        "recommended_weight": new_weight,
-                        "reason": reason,
-                    })
+                    recommendations.append(
+                        {
+                            "ticker": ticker,
+                            "action": "REDUCE",
+                            "current_weight": weight,
+                            "recommended_weight": new_weight,
+                            "reason": reason,
+                        }
+                    )
 
         return {
             "total_risk_exposure": total_risk,

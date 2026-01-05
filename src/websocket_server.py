@@ -40,9 +40,7 @@ class WebSocketManager:
         self.notification_queue = asyncio.Queue()
         self.is_running = False
 
-    async def register_client(
-        self, websocket, user_id: str, subscriptions: List[str] = None
-    ):
+    async def register_client(self, websocket, user_id: str, subscriptions: List[str] = None):
         """
         クライアントを登録
 
@@ -83,9 +81,7 @@ class WebSocketManager:
 
         logger.info(f"User {user_id} disconnected")
 
-    async def send_notification_to_user(
-        self, user_id: str, notification: NotificationMessage
-    ):
+    async def send_notification_to_user(self, user_id: str, notification: NotificationMessage):
         """
         特定ユーザーに通知を送信
 
@@ -116,17 +112,13 @@ class WebSocketManager:
                             }
                         )
                     )
-                    logger.debug(
-                        f"Notification sent to user {user_id}: {notification.title}"
-                    )
+                    logger.debug(f"Notification sent to user {user_id}: {notification.title}")
                 except websockets.exceptions.ConnectionClosed:
                     await self.unregister_client(user_id)
                 except Exception as e:
                     logger.error(f"Error sending notification to {user_id}: {e}")
 
-    async def broadcast_notification(
-        self, notification: NotificationMessage, target_users: List[str] = None
-    ):
+    async def broadcast_notification(self, notification: NotificationMessage, target_users: List[str] = None):
         """
         通知をブロードキャスト
 
@@ -157,9 +149,7 @@ class WebSocketManager:
         while self.is_running:
             try:
                 # キューから通知を取得
-                notification = await asyncio.wait_for(
-                    self.notification_queue.get(), timeout=1.0
-                )
+                notification = await asyncio.wait_for(self.notification_queue.get(), timeout=1.0)
 
                 # 即時配信
                 await self.broadcast_notification(notification)
@@ -206,9 +196,7 @@ class WebSocketManager:
         return {
             "total_connections": len(self.active_connections),
             "users_by_subscription": {
-                sub: len(users)
-                for sub, users in self.user_subscriptions.items()
-                for user in users
+                sub: len(users) for sub, users in self.user_subscriptions.items() for user in users
             },
             "queue_size": self.notification_queue.qsize(),
             "is_running": self.is_running,
@@ -437,17 +425,13 @@ class WebSocketServer:
 
                 if data["type"] == "register":
                     # ユーザー登録
-                    await self.websocket_manager.register_client(
-                        websocket, data["user_id"], data.get("subscriptions")
-                    )
+                    await self.websocket_manager.register_client(websocket, data["user_id"], data.get("subscriptions"))
 
                 elif data["type"] == "subscribe":
                     # 購読更新
                     user_id = data.get("user_id")
                     if user_id and user_id in self.websocket_manager.user_subscriptions:
-                        self.websocket_manager.user_subscriptions[user_id].update(
-                            data["subscriptions"]
-                        )
+                        self.websocket_manager.user_subscriptions[user_id].update(data["subscriptions"])
 
                 elif data["type"] == "ping":
                     # Ping応答
@@ -456,9 +440,7 @@ class WebSocketServer:
                 elif data["type"] == "get_status":
                     # 状態要求
                     status = self.websocket_manager.get_connection_stats()
-                    await websocket.send(
-                        json.dumps({"type": "status_response", "data": status})
-                    )
+                    await websocket.send(json.dumps({"type": "status_response", "data": status}))
 
         except websockets.exceptions.ConnectionClosed:
             logger.info(f"Connection closed: {websocket.remote_address}")
@@ -503,14 +485,10 @@ class WebSocketServer:
         """
         while self.websocket_manager.is_running:
             stats = self.websocket_manager.get_connection_stats()
-            logger.info(
-                f"Connections: {stats['total_connections']}, Queue: {stats['queue_size']}"
-            )
+            logger.info(f"Connections: {stats['total_connections']}, Queue: {stats['queue_size']}")
             await asyncio.sleep(60)
 
-    async def send_custom_notification(
-        self, notification: NotificationMessage, target_users: List[str] = None
-    ):
+    async def send_custom_notification(self, notification: NotificationMessage, target_users: List[str] = None):
         """
         カスタム通知を送信
 

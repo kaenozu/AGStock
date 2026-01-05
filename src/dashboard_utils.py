@@ -9,8 +9,8 @@ import time
 import pandas as pd
 import streamlit as st
 
-from src.data_loader import fetch_stock_data
-from src.paper_trader import PaperTrader
+from agstock.src.data_loader import fetch_stock_data
+from agstock.src.paper_trader import PaperTrader
 import os
 
 
@@ -98,9 +98,7 @@ def get_multi_timeframe_trends(ticker: str) -> dict:
             return {"short": "up", "medium": "neutral", "long": "up"}
 
         # Fetch data (1 year to calculate long term MA)
-        data_map = fetch_stock_data(
-            [ticker], period="2y"
-        )  # Fetch a bit more to be safe
+        data_map = fetch_stock_data([ticker], period="2y")  # Fetch a bit more to be safe
         if ticker not in data_map or data_map[ticker].empty:
             return {"short": "neutral", "medium": "neutral", "long": "neutral"}
 
@@ -112,19 +110,9 @@ def get_multi_timeframe_trends(ticker: str) -> dict:
 
         # Calculate SMAs
         sma5 = close.rolling(window=5).mean().iloc[-1]
-        sma20 = (
-            close.rolling(window=20).mean().iloc[-1]
-            if len(close) >= 20
-            else close.mean()
-        )
-        sma60 = (
-            close.rolling(window=60).mean().iloc[-1]
-            if len(close) >= 60
-            else close.mean()
-        )
-        sma200 = (
-            close.rolling(window=200).mean().iloc[-1] if len(close) >= 200 else sma60
-        )
+        sma20 = close.rolling(window=20).mean().iloc[-1] if len(close) >= 20 else close.mean()
+        sma60 = close.rolling(window=60).mean().iloc[-1] if len(close) >= 60 else close.mean()
+        sma200 = close.rolling(window=200).mean().iloc[-1] if len(close) >= 200 else sma60
 
         current_price = close.iloc[-1]
 

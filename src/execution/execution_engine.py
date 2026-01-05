@@ -6,9 +6,9 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 
-from src.paper_trader import PaperTrader
-from src.data_loader import fetch_fundamental_data, fetch_external_data
-from src.utils.health import quick_health_check
+from agstock.src.paper_trader import PaperTrader
+from agstock.src.data_loader import fetch_fundamental_data, fetch_external_data
+from agstock.src.utils.health import quick_health_check
 
 logger = logging.getLogger(__name__)
 
@@ -351,13 +351,25 @@ class ExecutionEngine:
 
                         success = _retry_trade(
                             lambda: self.pt.execute_trade(
-                                ticker, "BUY", qty, price, reason=f"{reason} (Conf: {confidence:.2f})", initial_stop_price=initial_stop
+                                ticker,
+                                "BUY",
+                                qty,
+                                price,
+                                reason=f"{reason} (Conf: {confidence:.2f})",
+                                initial_stop_price=initial_stop,
                             )
                         )
                         if success:
                             logger.info(f"EXECUTED: BUY {qty} {ticker} @ {price} (Stop: {initial_stop:.2f})")
                             executed_trades.append(
-                                {"ticker": ticker, "action": "BUY", "quantity": qty, "price": price, "reason": reason, "stop_price": initial_stop}
+                                {
+                                    "ticker": ticker,
+                                    "action": "BUY",
+                                    "quantity": qty,
+                                    "price": price,
+                                    "reason": reason,
+                                    "stop_price": initial_stop,
+                                }
                             )
                         else:
                             logger.warning(f"FAILED: BUY {ticker} (Insufficient funds?)")

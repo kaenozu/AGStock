@@ -81,9 +81,7 @@ class PortfolioManager(BaseManager):
             if ticker in correlation_matrix.index:
                 try:
                     correlations = correlation_matrix.loc[ticker, current_portfolio]
-                    high_corr = correlations[
-                        correlations > self.constraints.max_correlation
-                    ]
+                    high_corr = correlations[correlations > self.constraints.max_correlation]
 
                     if not high_corr.empty:
                         reason = f"High correlation with {high_corr.index.tolist()}"
@@ -114,9 +112,7 @@ class PortfolioManager(BaseManager):
 
         return sector_count / len(portfolio)
 
-    def calculate_portfolio_volatility(
-        self, weights: Dict[str, float], cov_matrix: pd.DataFrame
-    ) -> float:
+    def calculate_portfolio_volatility(self, weights: Dict[str, float], cov_matrix: pd.DataFrame) -> float:
         """
         ポートフォリオボラティリティを計算
 
@@ -175,9 +171,7 @@ class PortfolioManager(BaseManager):
 
         # セクター分散
         if self.sector_map:
-            sectors = [
-                self.sector_map.get(t) for t in portfolio if t in self.sector_map
-            ]
+            sectors = [self.sector_map.get(t) for t in portfolio if t in self.sector_map]
             unique_sectors = len(set(sectors))
             sector_score = min(unique_sectors / 10, 1.0)
         else:

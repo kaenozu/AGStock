@@ -10,8 +10,8 @@ from datetime import datetime
 from typing import Dict, Any
 
 import pandas as pd
-from src.paper_trader import PaperTrader
-from src.llm_reasoner import get_llm_reasoner
+from agstock.src.paper_trader import PaperTrader
+from agstock.src.llm_reasoner import get_llm_reasoner
 
 logger = logging.getLogger(__name__)
 
@@ -138,18 +138,14 @@ class DailyReviewer:
 
             adjustments["stop_loss_pct"] = new_stop_loss
             adjustments["take_profit_pct"] = new_take_profit
-            adjustments[
-                "reason"
-            ] = f"Low win rate ({win_rate:.1f}%) - Tightening risk management"
+            adjustments["reason"] = f"Low win rate ({win_rate:.1f}%) - Tightening risk management"
 
         elif win_rate > 70.0 and daily_pnl > 0:
             # Excellent performance: Relax stop loss slightly, keep take profit
             new_stop_loss = min(current_stop_loss * 1.1, 0.05)  # Max 5%
 
             adjustments["stop_loss_pct"] = new_stop_loss
-            adjustments[
-                "reason"
-            ] = f"High win rate ({win_rate:.1f}%) - Allowing more room"
+            adjustments["reason"] = f"High win rate ({win_rate:.1f}%) - Allowing more room"
 
         elif daily_pnl < 0:
             # Losing day: Be more conservative
@@ -157,9 +153,7 @@ class DailyReviewer:
             new_max_trades = max(max_daily_trades - 1, 2)  # Min 2 trades
 
             adjustments["max_daily_trades"] = new_max_trades
-            adjustments[
-                "reason"
-            ] = f"Negative P&L (¥{daily_pnl:.0f}) - Reducing trade frequency"
+            adjustments["reason"] = f"Negative P&L (¥{daily_pnl:.0f}) - Reducing trade frequency"
 
         return adjustments
 
@@ -185,9 +179,7 @@ class DailyReviewer:
             config["auto_trading"] = auto_trading
 
             # Backup old config
-            backup_path = (
-                f"{self.config_path}.backup.{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            )
+            backup_path = f"{self.config_path}.backup.{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             with open(backup_path, "w", encoding="utf-8") as f:
                 json.dump(config, f, indent=2, ensure_ascii=False)
 
@@ -204,9 +196,7 @@ class DailyReviewer:
             logger.error(f"Failed to apply adjustments: {e}")
             return False
 
-    def generate_daily_journal(
-        self, metrics: Dict[str, Any], adjustments: Dict[str, Any]
-    ) -> str:
+    def generate_daily_journal(self, metrics: Dict[str, Any], adjustments: Dict[str, Any]) -> str:
         """Generate AI-powered daily journal using Gemini 2.0."""
         prompt = f"""
         あなたはAGStock自律トレーディングシステムのAIアナリストです。
@@ -242,9 +232,7 @@ class DailyReviewer:
 
         # 1. Calculate metrics
         metrics = self.calculate_daily_metrics()
-        logger.info(
-            f"📊 Metrics: Win Rate={metrics.get('win_rate', 0):.1f}%, P&L=¥{metrics.get('daily_pnl', 0):,.0f}"
-        )
+        logger.info(f"📊 Metrics: Win Rate={metrics.get('win_rate', 0):.1f}%, P&L=¥{metrics.get('daily_pnl', 0):,.0f}")
 
         # 2. Determine adjustments
         adjustments = self.adjust_parameters(metrics)
@@ -267,12 +255,8 @@ class DailyReviewer:
             with open(journal_path, "w", encoding="utf-8") as f:
                 f.write("=== AGStock Daily Journal ===\n")
                 f.write(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
-                f.write(
-                    f"Metrics:\n{json.dumps(metrics, indent=2, ensure_ascii=False)}\n\n"
-                )
-                f.write(
-                    f"Adjustments:\n{json.dumps(adjustments, indent=2, ensure_ascii=False)}\n\n"
-                )
+                f.write(f"Metrics:\n{json.dumps(metrics, indent=2, ensure_ascii=False)}\n\n")
+                f.write(f"Adjustments:\n{json.dumps(adjustments, indent=2, ensure_ascii=False)}\n\n")
                 f.write(f"AI Journal:\n{journal}\n")
 
             logger.info(f"📝 Journal saved: {journal_path}")

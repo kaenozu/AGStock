@@ -29,9 +29,7 @@ class WalkForwardValidator:
         self.test_period_days = test_period_days
         self.step_days = step_days
 
-    def split_time_series(
-        self, df: pd.DataFrame, date_column: str = "Date"
-    ) -> List[Tuple[pd.DataFrame, pd.DataFrame]]:
+    def split_time_series(self, df: pd.DataFrame, date_column: str = "Date") -> List[Tuple[pd.DataFrame, pd.DataFrame]]:
         """
         Create train/test splits for walk-forward validation.
 
@@ -150,9 +148,7 @@ class WalkForwardValidator:
         all_actuals = np.array(all_actuals)
 
         metrics = {
-            "directional_accuracy": directional_correct / total_predictions
-            if total_predictions > 0
-            else 0,
+            "directional_accuracy": directional_correct / total_predictions if total_predictions > 0 else 0,
             "mape": mean_absolute_percentage_error(all_actuals, all_predictions),
             "mae": np.mean(np.abs(all_actuals - all_predictions)),
             "rmse": np.sqrt(np.mean((all_actuals - all_predictions) ** 2)),
@@ -163,9 +159,7 @@ class WalkForwardValidator:
         # Calculate Sharpe ratio (if predictions are returns)
         if total_predictions > 0:
             returns = all_predictions
-            sharpe = (
-                np.mean(returns) / (np.std(returns) + 1e-10) * np.sqrt(252)
-            )  # Annualized
+            sharpe = np.mean(returns) / (np.std(returns) + 1e-10) * np.sqrt(252)  # Annualized
             metrics["sharpe_ratio"] = sharpe
 
         logger.info(
@@ -206,7 +200,7 @@ class WalkForwardValidator:
         # Start with minimum training size
         for i in range(min_train_size, len(df), self.step_days):
             train_df = df.iloc[:i]
-            test_df = df.iloc[i: i + self.test_period_days]
+            test_df = df.iloc[i : i + self.test_period_days]
 
             if test_df.empty:
                 break
@@ -237,16 +231,12 @@ class WalkForwardValidator:
         all_actuals = np.array(all_actuals)
 
         metrics = {
-            "directional_accuracy": directional_correct / total_predictions
-            if total_predictions > 0
-            else 0,
+            "directional_accuracy": directional_correct / total_predictions if total_predictions > 0 else 0,
             "mape": mean_absolute_percentage_error(all_actuals, all_predictions),
             "mae": np.mean(np.abs(all_actuals - all_predictions)),
             "total_predictions": total_predictions,
         }
 
-        logger.info(
-            f"Expanding window validation: Directional Accuracy={metrics['directional_accuracy']:.2%}"
-        )
+        logger.info(f"Expanding window validation: Directional Accuracy={metrics['directional_accuracy']:.2%}")
 
         return metrics

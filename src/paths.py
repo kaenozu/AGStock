@@ -45,6 +45,7 @@ HEADLESS_TRADER_LOG = LOGS_DIR / "headless_trader.log"
 CONFIG_JSON = BASE_DIR / "config.json"
 CONFIG_YAML = BASE_DIR / "config.yaml"
 
+
 def get_db_path(name: str) -> str:
     """Utility to get a database path by name (backwards compatibility)."""
     db_map = {

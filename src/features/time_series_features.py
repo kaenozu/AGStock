@@ -47,9 +47,7 @@ def add_lag_features(
             df_out[f"{col}_return_{lag}"] = df_out[col].pct_change(lag)
 
             # 対数リターン
-            df_out[f"{col}_log_return_{lag}"] = np.log(
-                df_out[col] / df_out[col].shift(lag)
-            )
+            df_out[f"{col}_log_return_{lag}"] = np.log(df_out[col] / df_out[col].shift(lag))
 
     return df_out
 
@@ -106,11 +104,7 @@ def add_advanced_technical_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     df_out = df.copy()
 
-    if (
-        "High" not in df_out.columns
-        or "Low" not in df_out.columns
-        or "Close" not in df_out.columns
-    ):
+    if "High" not in df_out.columns or "Low" not in df_out.columns or "Close" not in df_out.columns:
         return df_out
 
     # ATR (Average True Range) - ボラティリティ
@@ -250,9 +244,7 @@ def add_volatility_regime(df: pd.DataFrame, window: int = 20) -> pd.DataFrame:
         else:
             return 2  # 高ボラティリティ
 
-    df_out["Volatility_Regime"] = df_out["Historical_Volatility"].apply(
-        classify_volatility
-    )
+    df_out["Volatility_Regime"] = df_out["Historical_Volatility"].apply(classify_volatility)
 
     # ボラティリティの変化率
     df_out["Volatility_Change"] = df_out["Historical_Volatility"].pct_change()
@@ -282,9 +274,7 @@ def add_momentum_features(df: pd.DataFrame) -> pd.DataFrame:
     try:
         # ROC (Rate of Change)
         for period in [5, 10, 20]:
-            df_out[f"ROC_{period}"] = ta.momentum.ROCIndicator(
-                close=df_out["Close"], window=period
-            ).roc()
+            df_out[f"ROC_{period}"] = ta.momentum.ROCIndicator(close=df_out["Close"], window=period).roc()
 
         # Stochastic Oscillator
         stoch = ta.momentum.StochasticOscillator(

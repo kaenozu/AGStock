@@ -161,9 +161,7 @@ class MetricsCollector:
 
         logger.debug(f"Business metric {name} recorded with value {value}")
 
-    def get_metric(
-        self, name: str, labels: Optional[Dict[str, str]] = None
-    ) -> Optional[Metric]:
+    def get_metric(self, name: str, labels: Optional[Dict[str, str]] = None) -> Optional[Metric]:
         """メトリクスを取得
 
         Args:
@@ -298,9 +296,7 @@ def record_business_metric(
     collector.record_business_metric(name, value, labels, description)
 
 
-def get_metric_value(
-    name: str, labels: Optional[Dict[str, str]] = None
-) -> Optional[Union[int, float, list]]:
+def get_metric_value(name: str, labels: Optional[Dict[str, str]] = None) -> Optional[Union[int, float, list]]:
     """グローバルメトリクスコレクターからメトリクスの値を取得
 
     Args:
@@ -315,9 +311,7 @@ def get_metric_value(
     return metric.value if metric else None
 
 
-def time_execution(
-    metric_name: str, labels: Optional[Dict[str, str]] = None, description: str = ""
-):
+def time_execution(metric_name: str, labels: Optional[Dict[str, str]] = None, description: str = ""):
     """実行時間を計測するデコレーター
 
     Args:

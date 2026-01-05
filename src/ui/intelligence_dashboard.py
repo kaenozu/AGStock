@@ -10,8 +10,8 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-from src.data.feedback_store import FeedbackStore
-from src.agents.strategy_arena import StrategyArena
+from agstock.src.data.feedback_store import FeedbackStore
+from agstock.src.agents.strategy_arena import StrategyArena
 
 
 def render_intelligence_dashboard():
@@ -32,7 +32,7 @@ def render_intelligence_dashboard():
             "risk_manager": "🛡️ Risk Manager",
             "macro_strategist": "🌐 Macro Strategist",
             "vision_pred": "👁️ Vision Analyst",
-            "social_pred": "💬 Social Analyst"
+            "social_pred": "💬 Social Analyst",
         }
 
         plot_data = []
@@ -56,7 +56,7 @@ def render_intelligence_dashboard():
             color="Accuracy (%)",
             color_continuous_scale="Viridis",
             text_auto=".1f",
-            title="Agent Historical Accuracy"
+            title="Agent Historical Accuracy",
         )
         fig.update_layout(template="plotly_dark", height=400)
         st.plotly_chart(fig, use_container_width=True)
@@ -69,18 +69,18 @@ def render_intelligence_dashboard():
     weights = arena.get_weights()
 
     if weights:
-        st.markdown("直近のパフォーマンスに基づき、各エージェントの意見が合議体でどれだけ重視されているか（メリットシステム）を示します。")
+        st.markdown(
+            "直近のパフォーマンスに基づき、各エージェントの意見が合議体でどれだけ重視されているか（メリットシステム）を示します。"
+        )
         names = list(weights.keys())
         vals = list(weights.values())
 
-        fig_weight = go.Figure(go.Bar(
-            x=vals, y=names, orientation="h",
-            marker=dict(color=vals, colorscale="Blues")
-        ))
+        fig_weight = go.Figure(go.Bar(x=vals, y=names, orientation="h", marker=dict(color=vals, colorscale="Blues")))
         fig_weight.update_layout(
-            template="plotly_dark", height=300,
+            template="plotly_dark",
+            height=300,
             title="Current Decision Weights",
-            xaxis_title="Weight Multiplier (Multi-Armed Bandit)"
+            xaxis_title="Weight Multiplier (Multi-Armed Bandit)",
         )
         st.plotly_chart(fig_weight, use_container_width=True)
 
@@ -91,12 +91,14 @@ def render_intelligence_dashboard():
         with sqlite3.connect(store.db_path) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT timestamp, ticker, decision, outcome, return_1w, lesson_learned, reflection_log
                 FROM decision_feedback
                 WHERE lesson_learned IS NOT NULL
                 ORDER BY timestamp DESC LIMIT 10
-            """)
+            """
+            )
             lessons = [dict(row) for row in cursor.fetchall()]
 
         if lessons:
@@ -141,9 +143,7 @@ def render_rl_monitor():
             st.markdown("強化学習エージェントが過去のシミュレーション環境でどれだけ成長したかを示します。")
 
             # Learning Curve
-            fig = px.line(df, x="episode", y="pnl_pct",
-                          title="Learning Curve (PNL % per Episode)",
-                          markers=True)
+            fig = px.line(df, x="episode", y="pnl_pct", title="Learning Curve (PNL % per Episode)", markers=True)
             fig.update_layout(template="plotly_dark", height=350)
             st.plotly_chart(fig, use_container_width=True)
 
@@ -155,7 +155,9 @@ def render_rl_monitor():
         except Exception as e:
             st.error(f"RLログの読み込みに失敗しました: {e}")
     else:
-        st.info("RLエージェントの学習ログが見つかりません。`python train_rl_agent.py` を実行して学習を開始してください。")
+        st.info(
+            "RLエージェントの学習ログが見つかりません。`python train_rl_agent.py` を実行して学習を開始してください。"
+        )
 
 
 if __name__ == "__main__":

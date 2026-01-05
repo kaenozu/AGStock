@@ -5,8 +5,8 @@ import datetime
 import pandas as pd
 from typing import Dict, Any, List
 
-from src.optimization import MultiModelOptimizer
-from src.data_loader import fetch_stock_data
+from agstock.src.optimization import MultiModelOptimizer
+from agstock.src.data_loader import fetch_stock_data
 
 logger = logging.getLogger(__name__)
 
@@ -47,15 +47,11 @@ class SelfLearningPipeline:
 
         return True
 
-    def run_optimization(
-        self, tickers: List[str] = ["7203.T", "^GSPC"], days: int = 365
-    ):
+    def run_optimization(self, tickers: List[str] = ["7203.T", "^GSPC"], days: int = 365):
         """
         Run the full optimization process.
         """
-        logger.info(
-            f"🚀 Starting Self-Learning Optimization for {len(tickers)} tickers..."
-        )
+        logger.info(f"🚀 Starting Self-Learning Optimization for {len(tickers)} tickers...")
 
         # Use fetch_stock_data
         period = f"{days}d"
@@ -65,7 +61,7 @@ class SelfLearningPipeline:
         for ticker, df in data_dict.items():
             if df is not None and not df.empty:
                 # Basic feature engineering (simulated for training data preparation)
-                from src.features import add_advanced_features
+                from agstock.src.features import add_advanced_features
 
                 df = add_advanced_features(df)
                 df.dropna(inplace=True)
@@ -82,8 +78,7 @@ class SelfLearningPipeline:
         features = [
             c
             for c in combined_df.columns
-            if c
-            not in ["Close", "High", "Low", "Open", "Volume", "Return_1d", "Return_5d"]
+            if c not in ["Close", "High", "Low", "Open", "Volume", "Return_1d", "Return_5d"]
         ]
         X = combined_df[features].values
         # Target: Next day return
@@ -91,9 +86,7 @@ class SelfLearningPipeline:
 
         # 1. Optimize
         logger.info("Running Optuna optimization...")
-        best_params = self.optimizer.optimize_all_models(
-            X, y, model_types=["lstm", "lgbm"], n_trials_per_model=20
-        )
+        best_params = self.optimizer.optimize_all_models(X, y, model_types=["lstm", "lgbm"], n_trials_per_model=20)
 
         # 2. Save Params
         self.save_params(best_params)
@@ -102,9 +95,7 @@ class SelfLearningPipeline:
         with open(self.last_run_file, "w") as f:
             f.write(datetime.datetime.now().isoformat())
 
-        logger.info(
-            f"✅ Self-Learning Complete. Best params saved to {self.params_path}"
-        )
+        logger.info(f"✅ Self-Learning Complete. Best params saved to {self.params_path}")
         return best_params
 
     def save_params(self, params: Dict[str, Any]):

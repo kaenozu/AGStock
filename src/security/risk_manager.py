@@ -86,12 +86,8 @@ class CircuitBreaker:
                 if self.cooldown_count >= self.max_cooldowns:
                     self.state = TradingState.EMERGENCY_STOP
                     self.trigger_time = datetime.now()
-                    logger.critical(
-                        f"最大クールダウン回数に達したため緊急停止: {reason}"
-                    )
-                    log_security_event(
-                        "EMERGENCY_STOP", {"reason": f"Max cooldowns: {reason}"}
-                    )
+                    logger.critical(f"最大クールダウン回数に達したため緊急停止: {reason}")
+                    log_security_event("EMERGENCY_STOP", {"reason": f"Max cooldowns: {reason}"})
                     return True
                 else:
                     self.state = TradingState.CIRCUIT_BREAKER
@@ -112,18 +108,13 @@ class CircuitBreaker:
                 return True, "警告状態ですが取引可能"
 
             elif self.state == TradingState.CIRCUIT_BREAKER:
-                if (
-                    self.trigger_time
-                    and datetime.now() - self.trigger_time > self.cooldown_period
-                ):
+                if self.trigger_time and datetime.now() - self.trigger_time > self.cooldown_period:
                     self.state = TradingState.NORMAL
                     self.trigger_time = None
                     logger.info("サーキットブレーカーが解除されました")
                     return True, "サーキットブレーカー解除"
                 else:
-                    remaining = self.cooldown_period - (
-                        datetime.now() - self.trigger_time
-                    )
+                    remaining = self.cooldown_period - (datetime.now() - self.trigger_time)
                     return False, f"サーキットブレーカー作動中 (残り: {remaining})"
 
             elif self.state == TradingState.EMERGENCY_STOP:
@@ -162,9 +153,7 @@ class RiskManager:
             "trade_cooldown_minutes": 5,
         }
 
-    def evaluate_trade_risk(
-        self, ticker: str, action: str, quantity: int, price: float
-    ) -> Tuple[bool, str, RiskLevel]:
+    def evaluate_trade_risk(self, ticker: str, action: str, quantity: int, price: float) -> Tuple[bool, str, RiskLevel]:
         """取引リスクを評価"""
         with self._lock:
             try:
@@ -182,9 +171,7 @@ class RiskManager:
 
                 # リスクレベルに基づく判定
                 if risk_level == RiskLevel.CRITICAL:
-                    self.circuit_breaker.trigger(
-                        f"クリティカルリスク: {ticker}", risk_level
-                    )
+                    self.circuit_breaker.trigger(f"クリティカルリスク: {ticker}", risk_level)
                     return False, "クリティカルリスク - 取引拒否", risk_level
 
                 elif risk_level == RiskLevel.HIGH:
@@ -200,9 +187,7 @@ class RiskManager:
                 logger.error(f"取引リスク評価エラー: {e}")
                 return False, f"リスク評価エラー: {e}", RiskLevel.CRITICAL
 
-    def _validate_trade_params(
-        self, ticker: str, action: str, quantity: int, price: float
-    ) -> bool:
+    def _validate_trade_params(self, ticker: str, action: str, quantity: int, price: float) -> bool:
         """取引パラメータを検証"""
         if not ticker or len(ticker) > 10:
             return False
@@ -218,9 +203,7 @@ class RiskManager:
 
         return True
 
-    def _calculate_trade_risk(
-        self, ticker: str, action: str, quantity: int, price: float
-    ) -> RiskLevel:
+    def _calculate_trade_risk(self, ticker: str, action: str, quantity: int, price: float) -> RiskLevel:
         """取引リスクを計算"""
         risk_factors = []
 
@@ -270,9 +253,7 @@ class RiskManager:
             try:
                 # 日次取引回数
                 if trade_result.get("timestamp"):
-                    trade_date = datetime.fromisoformat(
-                        trade_result["timestamp"]
-                    ).date()
+                    trade_date = datetime.fromisoformat(trade_result["timestamp"]).date()
                     today = datetime.now().date()
 
                     if trade_date == today:
@@ -351,9 +332,7 @@ class RiskManager:
                 "daily_pnl": self.metrics.daily_pnl,
                 "consecutive_losses": self.metrics.consecutive_losses,
                 "vix_level": self.metrics.vix_level,
-                "last_trade_time": self.metrics.last_trade_time.isoformat()
-                if self.metrics.last_trade_time
-                else None,
+                "last_trade_time": self.metrics.last_trade_time.isoformat() if self.metrics.last_trade_time else None,
                 "recent_alerts": [
                     {
                         "level": alert.level.value,

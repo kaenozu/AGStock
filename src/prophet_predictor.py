@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from prophet import Prophet
 
-from src.base_predictor import BasePredictor
+from .base_predictor import BasePredictor
 
 logger = logging.getLogger(__name__)
 
@@ -41,9 +41,7 @@ class ProphetPredictor(BasePredictor):
 
         prophet_df = pd.DataFrame({"ds": ds, "y": y_values})
 
-        self.model = Prophet(
-            daily_seasonality=False, weekly_seasonality=False, yearly_seasonality=False
-        )
+        self.model = Prophet(daily_seasonality=False, weekly_seasonality=False, yearly_seasonality=False)
 
         import io
         import sys
@@ -92,9 +90,7 @@ class ProphetPredictor(BasePredictor):
         """
         try:
             if df is None or df.empty or len(df) < 30:
-                return {
-                    "error": f"データ不足 (データ数: {len(df) if df is not None else 0})"
-                }
+                return {"error": f"データ不足 (データ数: {len(df) if df is not None else 0})"}
 
             # 1. Prophet用にデータを整形
             # Prophet requires 'ds' (datetime) and 'y' (value) columns

@@ -14,9 +14,7 @@ class PositionSizer:
         self.max_position_pct = max_position_pct
         self.default_win_rate = default_win_rate
 
-    def calculate_size(
-        self, ticker: str, total_equity: float, win_rate: float = None
-    ) -> Dict[str, Any]:
+    def calculate_size(self, ticker: str, total_equity: float, win_rate: float = None) -> Dict[str, Any]:
         """
         Uses Kelly Criterion: f* = (bp - q) / b
         f* = Fraction of capital to bet

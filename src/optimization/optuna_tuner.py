@@ -25,14 +25,12 @@ class OptunaTuner:
         # Define metric based on regime
         metric = "accuracy"
         if regime == "high_risk":
-            metric = "precision" # Minimize False Positives
+            metric = "precision"  # Minimize False Positives
         elif regime == "growth":
-            metric = "recall"    # Capture all opportunities
+            metric = "recall"  # Capture all opportunities
 
         study = optuna.create_study(direction="maximize")
-        study.optimize(
-            lambda trial: self._objective(trial, X, y, metric), n_trials=self.n_trials
-        )
+        study.optimize(lambda trial: self._objective(trial, X, y, metric), n_trials=self.n_trials)
 
         self.best_params = study.best_params
         logger.info(f"Optimization finished. Best params: {self.best_params}")

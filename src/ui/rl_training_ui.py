@@ -4,8 +4,8 @@ import numpy as np
 import streamlit as st
 import logging
 
-from src.rl.environment import TradingEnvironment
-from src.rl.agent import DQNAgent
+from agstock.src.rl.environment import TradingEnvironment
+from agstock.src.rl.agent import DQNAgent
 
 logger = logging.getLogger(__name__)
 
@@ -69,9 +69,7 @@ def run_training_session(episodes, initial_balance, transaction_cost):
     # 1. Init Data & Env
     with st.spinner("環境を構築中..."):
         df = generate_demo_market_data()
-        env = TradingEnvironment(
-            df, initial_balance=initial_balance, transaction_cost_pct=transaction_cost
-        )
+        env = TradingEnvironment(df, initial_balance=initial_balance, transaction_cost_pct=transaction_cost)
 
         # Init Agent
         try:
@@ -117,9 +115,7 @@ def run_training_session(episodes, initial_balance, transaction_cost):
         progress = (e + 1) / episodes
         progress_bar.progress(progress)
 
-        status_text.markdown(
-            f"**Episode {e + 1}/{episodes}** | Epsilon: `{agent.epsilon:.2f}`"
-        )
+        status_text.markdown(f"**Episode {e + 1}/{episodes}** | Epsilon: `{agent.epsilon:.2f}`")
 
         # Update Chart (Dual Axis ideally, but Streamlit line_chart is simple)
         # We plot Rewards

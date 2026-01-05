@@ -10,10 +10,10 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.constants import TICKER_NAMES
-from src.dashboard_utils import check_and_execute_missed_trades
-from src.formatters import format_currency
-from src.paper_trader import PaperTrader
+from agstock.src.constants import TICKER_NAMES
+from agstock.src.dashboard_utils import check_and_execute_missed_trades
+from agstock.src.formatters import format_currency
+from agstock.src.paper_trader import PaperTrader
 
 # ページ設定
 st.set_page_config(
@@ -146,11 +146,7 @@ def show_main_dashboard():
     for proc in psutil.process_iter(["pid", "name", "cmdline"]):
         try:
             cmdline = proc.info["cmdline"]
-            if (
-                cmdline
-                and "python" in cmdline[0]
-                and "fully_automated_trader.py" in " ".join(cmdline)
-            ):
+            if cmdline and "python" in cmdline[0] and "fully_automated_trader.py" in " ".join(cmdline):
                 is_trading_running = True
                 break
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
@@ -160,9 +156,7 @@ def show_main_dashboard():
 
     with col1:
         if is_trading_running:
-            st.warning(
-                "⚠️ 自動取引プログラムが実行中です。完了までそのままお待ちください。"
-            )
+            st.warning("⚠️ 自動取引プログラムが実行中です。完了までそのままお待ちください。")
             st.markdown(
                 """
             <div class="card" style="background: #e0f2fe; border: 2px solid #3b82f6; animation: pulse 2s infinite;">
@@ -298,9 +292,7 @@ def show_main_dashboard():
 
         if os.path.exists("logs/auto_trader.log"):
             try:
-                with open(
-                    "logs/auto_trader.log", "r", encoding="utf-8", errors="ignore"
-                ) as f:
+                with open("logs/auto_trader.log", "r", encoding="utf-8", errors="ignore") as f:
                     lines = f.readlines()
                     for line in reversed(lines[-100:]):  # 最後の100行を逆順で確認
                         if "検出シグナル数:" in line or "signal" in line.lower():
@@ -313,9 +305,7 @@ def show_main_dashboard():
                                 break
                         if "自動トレーダー" in line and "終了" in line:
                             # 実行時刻を抽出
-                            time_match = re.search(
-                                r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\]", line
-                            )
+                            time_match = re.search(r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\]", line)
                             if time_match:
                                 last_run_time = time_match.group(1)
             except Exception:
@@ -402,9 +392,7 @@ def show_main_dashboard():
             ]
         )
 
-        fig.update_layout(
-            showlegend=False, height=250, margin=dict(l=20, r=20, t=20, b=20)
-        )
+        fig.update_layout(showlegend=False, height=250, margin=dict(l=20, r=20, t=20, b=20))
 
         st.plotly_chart(fig, use_container_width=True)
 
@@ -498,18 +486,14 @@ def show_main_dashboard():
                     )
 
                     if result.returncode == 0:
-                        st.success(
-                            "✅ 取引完了！ページを更新して結果を確認してください。"
-                        )
+                        st.success("✅ 取引完了！ページを更新して結果を確認してください。")
                         st.balloons()
                         time.sleep(2)
                         st.experimental_rerun()
                     else:
                         st.error(f"❌ エラーが発生しました: {result.stderr}")
                 except subprocess.TimeoutExpired:
-                    st.warning(
-                        "⏱️ 処理に時間がかかっています。バックグラウンドで実行中です。"
-                    )
+                    st.warning("⏱️ 処理に時間がかかっています。バックグラウンドで実行中です。")
                 except Exception as e:
                     st.error(f"❌ エラー: {e}")
 
@@ -637,9 +621,7 @@ def show_settings_page():
     # リスク設定
     st.subheader("🎯 リスク設定")
 
-    risk_level = st.radio(
-        "リスク許容度を選択", ["安全重視（推奨）", "バランス", "積極的"], index=0
-    )
+    risk_level = st.radio("リスク許容度を選択", ["安全重視（推奨）", "バランス", "積極的"], index=0)
 
     if risk_level == "安全重視（推奨）":
         st.success("✅ 損失を最小限に抑えます。初心者におすすめです。")

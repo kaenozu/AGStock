@@ -52,16 +52,18 @@ class AvatarCouncil:
         personas = []
         for i in range(self.avatar_count):
             arch = random.choice(self.ARCHETYPES)
-            personas.append({
-                "id": f"AV-{(i + 1):03d}",
-                "name": f"{arch} #{i + 1}",
-                "trait": arch,
-                "weight": 1.0,
-                "accuracy_score": 0.5,
-                "vote_history": [],
-                "risk_appetite": random.uniform(0.1, 1.0),
-                "pending_votes": []
-            })
+            personas.append(
+                {
+                    "id": f"AV-{(i + 1):03d}",
+                    "name": f"{arch} #{i + 1}",
+                    "trait": arch,
+                    "weight": 1.0,
+                    "accuracy_score": 0.5,
+                    "vote_history": [],
+                    "risk_appetite": random.uniform(0.1, 1.0),
+                    "pending_votes": [],
+                }
+            )
         self._save_state(personas)
         return personas
 
@@ -112,16 +114,14 @@ class AvatarCouncil:
                 "score": score,
                 "weight": p["weight"],
                 "stance": stance,
-                "quote": self._generate_quote(p["trait"], stance)
+                "quote": self._generate_quote(p["trait"], stance),
             }
             detailed_votes.append(vote_obj)
 
             # Record for future feedback
-            p.setdefault("pending_votes", []).append({
-                "ticker": ticker,
-                "stance": stance,
-                "timestamp": datetime.now().isoformat()
-            })
+            p.setdefault("pending_votes", []).append(
+                {"ticker": ticker, "stance": stance, "timestamp": datetime.now().isoformat()}
+            )
 
         self._save_state(self.personas)
 
@@ -139,7 +139,7 @@ class AvatarCouncil:
             "avg_score": consensus_score,
             "clusters": clusters,
             "sample_shouts": [v["quote"] for v in detailed_votes[:3]],
-            "all_votes": detailed_votes
+            "all_votes": detailed_votes,
         }
 
     def update_meritocracy(self, ticker: str, outcome: str):

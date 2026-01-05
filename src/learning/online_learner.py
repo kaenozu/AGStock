@@ -110,9 +110,7 @@ class OnlineLearner:
 
     def should_retrain(self) -> bool:
         """Check if model should be retrained."""
-        return self.drift_detected or (
-            self.sample_count - self.last_retrain >= self.retrain_interval
-        )
+        return self.drift_detected or (self.sample_count - self.last_retrain >= self.retrain_interval)
 
     def get_stats(self) -> Dict[str, Any]:
         """Get learning statistics."""
@@ -120,10 +118,6 @@ class OnlineLearner:
             "sample_count": self.sample_count,
             "last_retrain": self.last_retrain,
             "drift_detected": self.drift_detected,
-            "recent_error": np.mean(list(self.performance_history)[-50:])
-            if self.performance_history
-            else 0,
-            "avg_error": np.mean(self.performance_history)
-            if self.performance_history
-            else 0,
+            "recent_error": np.mean(list(self.performance_history)[-50:]) if self.performance_history else 0,
+            "avg_error": np.mean(self.performance_history) if self.performance_history else 0,
         }

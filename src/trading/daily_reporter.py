@@ -11,13 +11,13 @@ from typing import Any, Dict
 import google.generativeai as genai
 import pandas as pd
 
-from src.data.feedback_store import FeedbackStore
-from src.data_loader import fetch_stock_data
-from src.evolution.genetic_optimizer import GeneticOptimizer
-from src.evolution.strategy_generator import StrategyGenerator
-from src.feedback_loop import DailyReviewer
-from src.paper_trader import PaperTrader
-from src.smart_notifier import SmartNotifier
+from agstock.src.data.feedback_store import FeedbackStore
+from agstock.src.data_loader import fetch_stock_data
+from agstock.src.evolution.genetic_optimizer import GeneticOptimizer
+from agstock.src.evolution.strategy_generator import StrategyGenerator
+from agstock.src.feedback_loop import DailyReviewer
+from agstock.src.paper_trader import PaperTrader
+from agstock.src.smart_notifier import SmartNotifier
 
 logger = logging.getLogger(__name__)
 
@@ -75,11 +75,9 @@ class DailyReporter:
         # Construct Summary
         signals_info = []
         for _, trade in today_trades.iterrows():
-            signals_info.append({
-                "action": trade["action"],
-                "ticker": trade["ticker"],
-                "price": trade.get("price", 0.0)
-            })
+            signals_info.append(
+                {"action": trade["action"], "ticker": trade["ticker"], "price": trade.get("price", 0.0)}
+            )
 
         summary = {
             "date": today.strftime("%Y-%m-%d"),

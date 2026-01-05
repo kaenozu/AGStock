@@ -15,9 +15,9 @@ from typing import Dict, List
 
 import streamlit as st
 
-from src.anomaly_detector import AnomalyDetector
-from src.formatters import format_currency, format_percentage
-from src.paper_trader import PaperTrader
+from agstock.src.anomaly_detector import AnomalyDetector
+from agstock.src.formatters import format_currency, format_percentage
+from agstock.src.paper_trader import PaperTrader
 
 # ページ設定はmainブロックに移動しました
 
@@ -130,9 +130,7 @@ def check_portfolio_health(pt: PaperTrader) -> Dict:
         "issues": [],
         "warnings": [],
         "total_positions": len(positions),
-        "cash_ratio": balance["cash"] / balance["total_equity"]
-        if balance["total_equity"] > 0
-        else 0,
+        "cash_ratio": balance["cash"] / balance["total_equity"] if balance["total_equity"] > 0 else 0,
     }
 
     if positions.empty:
@@ -148,18 +146,12 @@ def check_portfolio_health(pt: PaperTrader) -> Dict:
             health_status["status"] = "CRITICAL"
             health_status["issues"].append(f"{ticker}: {pnl_pct:.1f}% (損切り検討)")
         elif pnl_pct < -5:  # -5%以上の含み損
-            health_status["status"] = (
-                "WARNING"
-                if health_status["status"] == "HEALTHY"
-                else health_status["status"]
-            )
+            health_status["status"] = "WARNING" if health_status["status"] == "HEALTHY" else health_status["status"]
             health_status["warnings"].append(f"{ticker}: {pnl_pct:.1f}% (要注意)")
 
     # 現金比率チェック
     if health_status["cash_ratio"] < 0.1:  # 現金10%未満
-        health_status["warnings"].append(
-            f"現金比率が低い ({health_status['cash_ratio']:.1%})"
-        )
+        health_status["warnings"].append(f"現金比率が低い ({health_status['cash_ratio']:.1%})")
 
     return health_status
 
@@ -176,9 +168,7 @@ def get_top_signals(limit: int = 3) -> List[Dict]:
             signals = scan_data.get("signals", [])
 
             # 信頼度でソート
-            signals_sorted = sorted(
-                signals, key=lambda x: x.get("confidence", 0), reverse=True
-            )
+            signals_sorted = sorted(signals, key=lambda x: x.get("confidence", 0), reverse=True)
 
             return signals_sorted[:limit]
         else:
@@ -221,8 +211,7 @@ def get_action_items(pt: PaperTrader, health_status: Dict) -> List[Dict]:
     top_signals = get_top_signals(3)
     if top_signals:
         signal_items = [
-            f"{s['ticker']}: {s.get('strategy', 'AI')} (信頼度{s.get('confidence', 0):.0%})"
-            for s in top_signals
+            f"{s['ticker']}: {s.get('strategy', 'AI')} (信頼度{s.get('confidence', 0):.0%})" for s in top_signals
         ]
         actions.append(
             {
@@ -303,9 +292,7 @@ def render_dashboard(pt: PaperTrader = None):
         )
 
     with col2:
-        total_return = (
-            balance["total_equity"] - pt.initial_capital
-        ) / pt.initial_capital
+        total_return = (balance["total_equity"] - pt.initial_capital) / pt.initial_capital
         color = "#10b981" if total_return >= 0 else "#ef4444"
         st.markdown(
             f"""
@@ -441,9 +428,7 @@ def render_dashboard(pt: PaperTrader = None):
     col_a, col_b = st.columns(2)
 
     with col_a:
-        if st.button(
-            "📊 詳細レポート", use_container_width=True, key="morning_report_btn"
-        ):
+        if st.button("📊 詳細レポート", use_container_width=True, key="morning_report_btn"):
             st.info("週次レポートを生成します...")
             # weekly_report_html.pyを実行
             import subprocess
@@ -451,9 +436,7 @@ def render_dashboard(pt: PaperTrader = None):
             subprocess.Popen(["python", "weekly_report_html.py"])
 
     with col_b:
-        if st.button(
-            "🔄 市場スキャン", use_container_width=True, key="morning_scan_btn"
-        ):
+        if st.button("🔄 市場スキャン", use_container_width=True, key="morning_scan_btn"):
             st.info("市場スキャンを開始します...")
             # daily_scan.pyを実行
             import subprocess

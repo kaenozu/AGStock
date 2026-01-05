@@ -80,7 +80,7 @@ class DynamicEnsemble:
             return
 
         # 直近の履歴を取得
-        recent_history = self.history[-self.window_size:]
+        recent_history = self.history[-self.window_size :]
 
         scores = {name: 0.0 for name in self.weights.keys()}
 
@@ -103,9 +103,7 @@ class DynamicEnsemble:
         total_score = sum(max(0, s) for s in scores.values())
 
         if total_score > 0:
-            new_weights = {
-                name: max(0, score) / total_score for name, score in scores.items()
-            }
+            new_weights = {name: max(0, score) / total_score for name, score in scores.items()}
 
             # EMAでウェイトを更新
             for name in self.weights:

@@ -4,11 +4,11 @@ AI Market Report UI Renderer
 
 import streamlit as st
 
-from src.ai_analyst import AIAnalyst
-from src.data_loader import fetch_stock_data
-from src.paper_trader import PaperTrader
-from src.prompts import MARKET_REPORT_SYSTEM_PROMPT
-from src.regime_detector import MarketRegimeDetector
+from agstock.src.ai_analyst import AIAnalyst
+from agstock.src.data_loader import fetch_stock_data
+from agstock.src.paper_trader import PaperTrader
+from agstock.src.prompts import MARKET_REPORT_SYSTEM_PROMPT
+from agstock.src.regime_detector import MarketRegimeDetector
 
 
 def render_ai_report_tab():

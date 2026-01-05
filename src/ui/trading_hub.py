@@ -1,20 +1,16 @@
 import streamlit as st
 
-from src.ui.portfolio_panel import render_portfolio_panel
-from src.ui.trading_panel import render_trading_panel
-from src.ui_renderers import render_market_scan_tab
+from agstock.src.ui.portfolio_panel import render_portfolio_panel
+from agstock.src.ui.trading_panel import render_trading_panel
+from agstock.src.ui_renderers import render_market_scan_tab
 
 
 def render_trading_hub(sidebar_config, strategies):
     """Renders the consolidated Trading Action Hub"""
     st.header("💼 トレーディング・デスク (Action)")
-    st.caption(
-        "市場スキャンからポートフォリオ管理、発注まで、取引に関するアクションを行います。"
-    )
+    st.caption("市場スキャンからポートフォリオ管理、発注まで、取引に関するアクションを行います。")
 
-    tabs = st.tabs(
-        ["📊 市場スキャン", "📈 ポートフォリオ", "📝 ペーパートレード (発注)"]
-    )
+    tabs = st.tabs(["📊 市場スキャン", "📈 ポートフォリオ", "📝 ペーパートレード (発注)"])
 
     with tabs[0]:
         # Use the full implementation from ui_renderers

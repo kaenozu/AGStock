@@ -154,21 +154,15 @@ class CacheManager:
 class RateLimiter:
     """APIレートリミッター"""
 
-    def __init__(
-        self, max_requests_per_second: int = 10, max_requests_per_minute: int = 100
-    ):
+    def __init__(self, max_requests_per_second: int = 10, max_requests_per_minute: int = 100):
         self.max_rps = max_requests_per_second
         self.max_rpm = max_requests_per_minute
 
         self._requests_per_second = queue.Queue(maxsize=max_requests_per_second)
         self._requests_per_minute = queue.Queue(maxsize=max_requests_per_minute)
 
-        self._second_thread = threading.Thread(
-            target=self._reset_second_counter, daemon=True
-        )
-        self._minute_thread = threading.Thread(
-            target=self._reset_minute_counter, daemon=True
-        )
+        self._second_thread = threading.Thread(target=self._reset_second_counter, daemon=True)
+        self._minute_thread = threading.Thread(target=self._reset_minute_counter, daemon=True)
 
         self._second_thread.start()
         self._minute_thread.start()
@@ -306,15 +300,11 @@ class AsyncAPIClient:
             except (aiohttp.ClientError, asyncio.TimeoutError) as e:
                 if attempt == request.retry_count:
                     self.error_count += 1
-                    raise PerformanceError(
-                        f"APIリクエスト失敗: {e}", metric="api_error"
-                    )
+                    raise PerformanceError(f"APIリクエスト失敗: {e}", metric="api_error")
 
                 # リトライ待機
                 await asyncio.sleep(2**attempt)
-                logger.warning(
-                    f"APIリクエストリトライ ({attempt + 1}/{request.retry_count}): {e}"
-                )
+                logger.warning(f"APIリクエストリトライ ({attempt + 1}/{request.retry_count}): {e}")
 
     async def _parse_response(self, response: aiohttp.ClientResponse) -> Any:
         """レスポンスをパース"""
@@ -334,18 +324,12 @@ class AsyncAPIClient:
 
     def get_stats(self) -> Dict[str, Any]:
         """統計情報を取得"""
-        avg_response_time = (
-            self.total_response_time / self.request_count
-            if self.request_count > 0
-            else 0
-        )
+        avg_response_time = self.total_response_time / self.request_count if self.request_count > 0 else 0
 
         return {
             "request_count": self.request_count,
             "error_count": self.error_count,
-            "error_rate": self.error_count / self.request_count
-            if self.request_count > 0
-            else 0,
+            "error_rate": self.error_count / self.request_count if self.request_count > 0 else 0,
             "avg_response_time": avg_response_time,
             "cache_stats": self.cache_manager.get_stats(),
         }
@@ -533,11 +517,7 @@ def batch_process(batch_size: int = 10):
                 for i in range(0, len(items), batch_size):
                     batch = items[i : i + batch_size]
                     batch_result = await func(batch, *args[1:], **kwargs)
-                    results.extend(
-                        batch_result
-                        if isinstance(batch_result, list)
-                        else [batch_result]
-                    )
+                    results.extend(batch_result if isinstance(batch_result, list) else [batch_result])
 
                 return results
             else:

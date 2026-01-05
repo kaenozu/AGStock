@@ -202,7 +202,8 @@ class KeyboardShortcuts:
         """ショートカットヘルプボタンをレンダリング"""
         with st.sidebar:
             with st.expander("⌨️ ショートカット", expanded=False):
-                st.markdown("""
+                st.markdown(
+                    """
                 | キー | アクション |
                 |------|----------|
                 | `Ctrl+1~7` | タブ切替 |
@@ -211,4 +212,5 @@ class KeyboardShortcuts:
                 | `H` | ホーム |
                 | `J/K` | スクロール |
                 | `?` | ヘルプ |
-                """)
+                """
+                )

@@ -38,10 +38,7 @@ class ExternalDataProvider:
             if not hist.empty:
                 indicators["usdjpy"] = {
                     "current": hist["Close"].iloc[-1],
-                    "change_1d": (hist["Close"].iloc[-1] / hist["Close"].iloc[-2] - 1)
-                    * 100
-                    if len(hist) > 1
-                    else 0,
+                    "change_1d": (hist["Close"].iloc[-1] / hist["Close"].iloc[-2] - 1) * 100 if len(hist) > 1 else 0,
                 }
 
             # 米国10年国債利回り
@@ -50,9 +47,7 @@ class ExternalDataProvider:
             if not hist.empty:
                 indicators["us_10yr_yield"] = {
                     "current": hist["Close"].iloc[-1],
-                    "change_1d": hist["Close"].iloc[-1] - hist["Close"].iloc[-2]
-                    if len(hist) > 1
-                    else 0,
+                    "change_1d": hist["Close"].iloc[-1] - hist["Close"].iloc[-2] if len(hist) > 1 else 0,
                 }
 
             # VIX（恐怖指数）
@@ -62,11 +57,7 @@ class ExternalDataProvider:
                 indicators["vix"] = {
                     "current": hist["Close"].iloc[-1],
                     "level": (
-                        "high"
-                        if hist["Close"].iloc[-1] > 25
-                        else "normal"
-                        if hist["Close"].iloc[-1] > 15
-                        else "low"
+                        "high" if hist["Close"].iloc[-1] > 25 else "normal" if hist["Close"].iloc[-1] > 15 else "low"
                     ),
                 }
 
@@ -76,10 +67,7 @@ class ExternalDataProvider:
             if not hist.empty:
                 indicators["gold"] = {
                     "current": hist["Close"].iloc[-1],
-                    "change_1d": (hist["Close"].iloc[-1] / hist["Close"].iloc[-2] - 1)
-                    * 100
-                    if len(hist) > 1
-                    else 0,
+                    "change_1d": (hist["Close"].iloc[-1] / hist["Close"].iloc[-2] - 1) * 100 if len(hist) > 1 else 0,
                 }
 
             # 原油価格
@@ -88,10 +76,7 @@ class ExternalDataProvider:
             if not hist.empty:
                 indicators["oil"] = {
                     "current": hist["Close"].iloc[-1],
-                    "change_1d": (hist["Close"].iloc[-1] / hist["Close"].iloc[-2] - 1)
-                    * 100
-                    if len(hist) > 1
-                    else 0,
+                    "change_1d": (hist["Close"].iloc[-1] / hist["Close"].iloc[-2] - 1) * 100 if len(hist) > 1 else 0,
                 }
 
             return indicators

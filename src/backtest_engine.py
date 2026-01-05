@@ -2,9 +2,9 @@ from typing import Any, Dict, Type
 
 import pandas as pd
 
-from src.backtester import Backtester
-from src.data_loader import fetch_stock_data
-from src.strategies import Strategy
+from .backtester import Backtester
+from .data_loader import fetch_stock_data
+from .strategies import Strategy
 
 
 class HistoricalBacktester:
@@ -51,9 +51,7 @@ class HistoricalBacktester:
         # Resample to yearly
         yearly_equity = equity_curve.resample("Y").last()
         # Add start value
-        start_series = pd.Series(
-            [1.0], index=[equity_curve.index[0] - pd.Timedelta(days=1)]
-        )
+        start_series = pd.Series([1.0], index=[equity_curve.index[0] - pd.Timedelta(days=1)])
         yearly_equity_combined = pd.concat([start_series, yearly_equity])
 
         annual_returns = yearly_equity_combined.pct_change().dropna()
@@ -77,9 +75,7 @@ class HistoricalBacktester:
 
         return results
 
-    def compare_strategies(
-        self, ticker: str, strategies: list, years: int = 10
-    ) -> tuple[pd.DataFrame, pd.DataFrame]:
+    def compare_strategies(self, ticker: str, strategies: list, years: int = 10) -> tuple[pd.DataFrame, pd.DataFrame]:
         """
         Runs multiple strategies and returns comparison metrics and equity curves.
 

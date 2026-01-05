@@ -78,9 +78,7 @@ class PerformanceMonitor:
         conn.commit()
         conn.close()
 
-    def track_execution_time(
-        self, function_name: str, duration: float, status: str = "success"
-    ):
+    def track_execution_time(self, function_name: str, duration: float, status: str = "success"):
         """
         実行時間を記録
 
@@ -260,9 +258,7 @@ class PerformanceMonitor:
                 "api_calls": {
                     "total": api_stats[0] if api_stats[0] else 0,
                     "successful": api_stats[1] if api_stats[1] else 0,
-                    "success_rate": (api_stats[1] / api_stats[0] * 100)
-                    if api_stats[0] and api_stats[0] > 0
-                    else 0,
+                    "success_rate": (api_stats[1] / api_stats[0] * 100) if api_stats[0] and api_stats[0] > 0 else 0,
                 },
             }
 

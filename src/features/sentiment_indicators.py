@@ -16,7 +16,8 @@ logger = logging.getLogger(__name__)
 
 
 class MarketSentiment(Enum):
-    """ 市場センチメントレベル"""
+    """市場センチメントレベル"""
+
     EXTREME_FEAR = "Extreme Fear"
     FEAR = "Fear"
     NEUTRAL = "Neutral"
@@ -27,6 +28,7 @@ class MarketSentiment(Enum):
 @dataclass
 class SentimentData:
     """センチメントデータコンテナ"""
+
     fear_greed_index: Optional[float] = None
     fear_greed_label: Optional[str] = None
     vix_current: Optional[float] = None
@@ -48,7 +50,7 @@ class SentimentIndicators:
     VIX_SYMBOLS = {
         "spot": "^VIX",
         "futures_1m": "VX=F",  # 第1限月
-        "futures_2m": "VXc2",   # 第2限月
+        "futures_2m": "VXc2",  # 第2限月
     }
 
     # Put/Call Ratio関連
@@ -111,9 +113,7 @@ class SentimentIndicators:
     def _fetch_fear_greed(self) -> Tuple[Optional[float], Optional[str]]:
         """СNN Fear & Greed Indexを取得"""
         try:
-            headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-            }
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
             response = requests.get(self.FEAR_GREED_URL, headers=headers, timeout=10)
 
             if response.status_code == 200:
@@ -195,9 +195,7 @@ class SentimentIndicators:
 
         return None
 
-    def _calculate_overall_sentiment(
-        self, data: SentimentData
-    ) -> MarketSentiment:
+    def _calculate_overall_sentiment(self, data: SentimentData) -> MarketSentiment:
         """統合センチメントを算出"""
         scores = []
 

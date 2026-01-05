@@ -58,9 +58,7 @@ class ParallelBacktester:
             return pd.DataFrame()
 
     @staticmethod
-    def _run_single_backtest(
-        ticker: str, strategy, data: pd.DataFrame, params: Dict
-    ) -> Dict:
+    def _run_single_backtest(ticker: str, strategy, data: pd.DataFrame, params: Dict) -> Dict:
         """
         単一バックテスト実行
 
@@ -78,7 +76,7 @@ class ParallelBacktester:
             signals = strategy.generate_signals(data)
 
             # バックテスト実行
-            from src.backtester import Backtester
+            from agstock.src.backtester import Backtester
 
             backtester = Backtester(
                 initial_capital=params.get("initial_capital", 1000000),
@@ -136,8 +134,8 @@ class ParallelBacktester:
 
             # ウォークフォワードウィンドウ生成
             for i in range(0, len(data) - train_size - test_size, test_size):
-                train_data = data.iloc[i: i + train_size]
-                test_data = data.iloc[i + train_size: i + train_size + test_size]
+                train_data = data.iloc[i : i + train_size]
+                test_data = data.iloc[i + train_size : i + train_size + test_size]
 
                 tasks.append((ticker, strategy, train_data, test_data, i, kwargs))
 
@@ -164,11 +162,9 @@ class ParallelBacktester:
             # テスト
             signals = strategy.generate_signals(test_data)
 
-            from src.backtester import Backtester
+            from agstock.src.backtester import Backtester
 
-            backtester = Backtester(
-                initial_capital=params.get("initial_capital", 1000000)
-            )
+            backtester = Backtester(initial_capital=params.get("initial_capital", 1000000))
 
             result = backtester.run(test_data, signals)
 
@@ -188,8 +184,8 @@ class ParallelBacktester:
 
 def benchmark_backtest_speed():
     """バックテスト速度ベンチマーク"""
-    from src.data_loader import fetch_stock_data
-    from src.strategies import SMACrossoverStrategy
+    from agstock.src.data_loader import fetch_stock_data
+    from agstock.src.strategies import SMACrossoverStrategy
 
     # テストデータ
     tickers = ["7203.T", "9984.T", "6758.T", "8035.T", "6861.T"]
@@ -203,9 +199,7 @@ def benchmark_backtest_speed():
     for ticker in tickers:
         if ticker in data_map:
             for strategy in strategies:
-                result = ParallelBacktester._run_single_backtest(
-                    ticker, strategy, data_map[ticker], {}
-                )
+                result = ParallelBacktester._run_single_backtest(ticker, strategy, data_map[ticker], {})
                 results_single.append(result)
     single_time = time.time() - start
 

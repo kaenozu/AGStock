@@ -15,6 +15,7 @@ load_dotenv()
 
 class TradingSettings(BaseSettings):
     """Trading-specific configurations."""
+
     max_daily_trades: int = Field(5, description="Maximum number of trades per day")
     daily_loss_limit_pct: float = Field(-5.0, description="Daily loss limit in percentage")
     max_position_size: float = Field(0.2, description="Max position size as fraction of portfolio")
@@ -33,6 +34,7 @@ class TradingSettings(BaseSettings):
 
 class AICommitteeSettings(BaseSettings):
     """AI Committee settings."""
+
     enabled: bool = True
     model_name: str = "gemini-2.0-flash-exp"
     confidence_threshold: float = 0.7
@@ -41,6 +43,7 @@ class AICommitteeSettings(BaseSettings):
 
 class SystemSettings(BaseSettings):
     """System-wide infrastructure settings."""
+
     gemini_api_key: Optional[SecretStr] = Field(None, validation_alias="GEMINI_API_KEY")
     data_dir: Path = Path("data")
     db_path: Path = Path("data/stock_data.db")
@@ -65,11 +68,13 @@ class SystemSettings(BaseSettings):
 
 class RiskManagementSettings(BaseSettings):
     """Risk management settings."""
+
     max_position_size: float = 0.2
 
 
 class Config(BaseSettings):
     """Root Configuration Object."""
+
     trading: TradingSettings = Field(default_factory=TradingSettings)
     ai: AICommitteeSettings = Field(default_factory=AICommitteeSettings)
     system: SystemSettings = Field(default_factory=SystemSettings)
@@ -108,6 +113,7 @@ class Config(BaseSettings):
 # Singleton wrapper for backward compatibility
 class ConfigSingleton:
     """Singleton wrapper for Config."""
+
     _instance: Optional["ConfigSingleton"] = None
     _config: dict = {}  # Legacy storage
     _pydantic_config: Optional[Config] = None

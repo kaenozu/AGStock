@@ -4,7 +4,7 @@ from typing import Dict, List
 
 import feedparser
 
-from src.bert_sentiment import get_bert_analyzer
+from agstock.src.bert_sentiment import get_bert_analyzer
 
 
 class SentimentAnalyzer:
@@ -39,9 +39,7 @@ class SentimentAnalyzer:
                         {
                             "title": title,
                             "link": entry.link,
-                            "published": entry.get(
-                                "published", str(datetime.datetime.now())
-                            ),
+                            "published": entry.get("published", str(datetime.datetime.now())),
                             "summary": entry.get("summary", ""),
                         }
                     )
@@ -159,9 +157,7 @@ class SentimentAnalyzer:
         Returns:
             List of dictionaries containing timestamp, score, label, news_count
         """
-        cutoff_date = (
-            datetime.datetime.now() - datetime.timedelta(days=days)
-        ).isoformat()
+        cutoff_date = (datetime.datetime.now() - datetime.timedelta(days=days)).isoformat()
 
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()

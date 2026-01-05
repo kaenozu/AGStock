@@ -111,9 +111,7 @@ class ErrorRecovery:
                         raise
 
                     delay = base_delay * (backoff_factor**attempt)
-                    logger.warning(
-                        f"Attempt {attempt + 1} failed: {e}. Retrying in {delay}s..."
-                    )
+                    logger.warning(f"Attempt {attempt + 1} failed: {e}. Retrying in {delay}s...")
                     time.sleep(delay)
 
             return None
@@ -135,9 +133,7 @@ class ErrorRecovery:
             try:
                 return func(*args, **kwargs)
             except Exception as e:
-                logger.error(
-                    f"Function {func.__name__} failed: {e}. Using fallback value."
-                )
+                logger.error(f"Function {func.__name__} failed: {e}. Using fallback value.")
                 return fallback_value
 
         return wrapper
@@ -207,9 +203,7 @@ class ErrorHandler:
 
     def _log_error(self, error_info: Dict[str, Any]):
         """エラーをログ記録"""
-        log_message = (
-            f"Error: {error_info['error_type']} - {error_info['error_message']}"
-        )
+        log_message = f"Error: {error_info['error_type']} - {error_info['error_message']}"
 
         if error_info["severity"] == "critical":
             logger.critical(log_message)
@@ -418,9 +412,7 @@ def streamlit_error_boundary(func):
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            error_handler.handle_error(
-                e, ErrorCategory.SYSTEM, ErrorSeverity.HIGH, {"function": func.__name__}
-            )
+            error_handler.handle_error(e, ErrorCategory.SYSTEM, ErrorSeverity.HIGH, {"function": func.__name__})
             st.error("エラーが発生しました。ページを更新してください。")
 
     return wrapper

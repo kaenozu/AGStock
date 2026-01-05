@@ -13,9 +13,7 @@ class ParameterOptimizer:
     def __init__(self, base_config: Dict[str, Any]):
         self.config = base_config
 
-    def optimize_parameters(
-        self, performance_data: Dict[str, Any], market_vix: float
-    ) -> Dict[str, Any]:
+    def optimize_parameters(self, performance_data: Dict[str, Any], market_vix: float) -> Dict[str, Any]:
         """
         Dynamically adjusts parameters.
         Logic:
@@ -37,9 +35,7 @@ class ParameterOptimizer:
         # Performance adjustment
         if win_rate > 0.6:
             take_profit = 0.15  # Be more aggressive if winning
-            logger.info(
-                f"Aggressive take-profit enabled due to high win-rate ({win_rate:.1%})"
-            )
+            logger.info(f"Aggressive take-profit enabled due to high win-rate ({win_rate:.1%})")
 
         return {
             "stop_loss_pct": stop_loss,

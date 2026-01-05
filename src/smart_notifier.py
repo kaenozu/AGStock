@@ -18,7 +18,7 @@ import pandas as pd
 import requests
 from matplotlib.figure import Figure
 
-from src.notifier import Notifier
+from agstock.src.notifier import Notifier
 
 
 class SmartNotifier(Notifier):

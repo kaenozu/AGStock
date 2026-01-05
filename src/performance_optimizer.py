@@ -93,9 +93,7 @@ class PerformanceOptimizer:
     def get_stats(self) -> dict:
         """統計情報取得"""
         total_requests = self.stats["cache_hits"] + self.stats["cache_misses"]
-        hit_rate = (
-            self.stats["cache_hits"] / total_requests if total_requests > 0 else 0
-        )
+        hit_rate = self.stats["cache_hits"] / total_requests if total_requests > 0 else 0
 
         return {
             "cache_hits": self.stats["cache_hits"],
@@ -114,7 +112,7 @@ class BatchProcessor:
         results = {}
 
         for i in range(0, len(items), batch_size):
-            batch = items[i: i + batch_size]
+            batch = items[i : i + batch_size]
             try:
                 batch_results = fetch_func(batch)
                 results.update(batch_results)

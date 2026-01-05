@@ -282,7 +282,7 @@ class PaperTrader:
 
         fallback_prices: Dict[str, float] = {}
         if use_realtime_fallback:
-            from src.data_loader import fetch_realtime_data
+            from agstock.src.data_loader import fetch_realtime_data
 
             for t in df["ticker"].tolist():
                 try:

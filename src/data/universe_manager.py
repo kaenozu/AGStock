@@ -4,7 +4,7 @@ import yfinance as yf
 from typing import List
 import google.generativeai as genai
 import os
-from src.constants import NIKKEI_225_TICKERS, SP500_TICKERS
+from agstock.src.constants import NIKKEI_225_TICKERS, SP500_TICKERS
 
 logger = logging.getLogger(__name__)
 
@@ -69,12 +69,10 @@ class UniverseManager:
         # Optimization: Process in chunks of 50 to avoid URL length issues
         chunk_size = 50
         for i in range(0, len(ticker_list), chunk_size):
-            chunk = ticker_list[i: i + chunk_size]
+            chunk = ticker_list[i : i + chunk_size]
             try:
                 # Batch download: significantly faster
-                data = yf.download(chunk, period="1mo", progress=False, threads=True)[
-                    "Close"
-                ]
+                data = yf.download(chunk, period="1mo", progress=False, threads=True)["Close"]
 
                 # Check trend for each ticker in the chunk
                 # data columns are tickers. If single ticker, it's Series, handle carefully.
@@ -124,7 +122,5 @@ class UniverseManager:
         ai_tickers = [t.strip() for t in response.text.split(",") if t.strip()]
 
         # Validate ai_tickers are in our original list or valid
-        valid_tickers = [
-            t for t in ai_tickers if t in candidates or "." in t or len(t) <= 5
-        ]
+        valid_tickers = [t for t in ai_tickers if t in candidates or "." in t or len(t) <= 5]
         return valid_tickers[:limit]

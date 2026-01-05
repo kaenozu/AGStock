@@ -116,9 +116,7 @@ class CodeAnalyzer:
             return False
 
         # サードパーティライブラリは除外
-        if any(
-            exclude in str(file_path) for exclude in ["site-packages", ".venv", "venv"]
-        ):
+        if any(exclude in str(file_path) for exclude in ["site-packages", ".venv", "venv"]):
             return False
 
         return True
@@ -141,14 +139,10 @@ class CodeAnalyzer:
 
         for violation in self.violations:
             # 深刻度別集計
-            severity_count[violation.severity] = (
-                severity_count.get(violation.severity, 0) + 1
-            )
+            severity_count[violation.severity] = severity_count.get(violation.severity, 0) + 1
 
             # タイプ別集計
-            type_count[violation.violation_type] = (
-                type_count.get(violation.violation_type, 0) + 1
-            )
+            type_count[violation.violation_type] = type_count.get(violation.violation_type, 0) + 1
 
             # 影響ファイル
             files_affected.add(violation.file_path)
@@ -181,30 +175,20 @@ class CodeAnalyzer:
 
         type_count = {}
         for violation in self.violations:
-            type_count[violation.violation_type] = (
-                type_count.get(violation.violation_type, 0) + 1
-            )
+            type_count[violation.violation_type] = type_count.get(violation.violation_type, 0) + 1
 
         # 最も多い違反タイプに基づく推奨
         if type_count:
             most_common = max(type_count.items(), key=lambda x: x[1])
 
             if most_common[0] == "function_name":
-                recommendations.append(
-                    "関数名はsnake_caseを使用してください（例: calculate_price）"
-                )
+                recommendations.append("関数名はsnake_caseを使用してください（例: calculate_price）")
             elif most_common[0] == "class_name":
-                recommendations.append(
-                    "クラス名はPascalCaseを使用してください（例: PriceCalculator）"
-                )
+                recommendations.append("クラス名はPascalCaseを使用してください（例: PriceCalculator）")
             elif most_common[0] == "variable_name":
-                recommendations.append(
-                    "変数名はsnake_caseを使用してください（例: current_price）"
-                )
+                recommendations.append("変数名はsnake_caseを使用してください（例: current_price）")
             elif most_common[0] == "constant_name":
-                recommendations.append(
-                    "定数名はUPPER_CASEを使用してください（例: MAX_PRICE）"
-                )
+                recommendations.append("定数名はUPPER_CASEを使用してください（例: MAX_PRICE）")
 
         # 全般的な推奨
         recommendations.extend(
@@ -221,9 +205,7 @@ class CodeAnalyzer:
 class ASTAnalyzer(ast.NodeVisitor):
     """AST分析クラス"""
 
-    def __init__(
-        self, file_path: str, naming_rules: Dict[str, NamingStyle], excluded_names: set
-    ):
+    def __init__(self, file_path: str, naming_rules: Dict[str, NamingStyle], excluded_names: set):
         self.file_path = file_path
         self.naming_rules = naming_rules
         self.excluded_names = excluded_names
@@ -232,9 +214,7 @@ class ASTAnalyzer(ast.NodeVisitor):
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         """関数定義を訪問"""
         if node.name not in self.excluded_names:
-            self._check_name(
-                node.name, "function_name", node.lineno, self.naming_rules["function"]
-            )
+            self._check_name(node.name, "function_name", node.lineno, self.naming_rules["function"])
 
         # プライベートメソッドチェック
         if node.name.startswith("_") and not node.name.startswith("__"):
@@ -250,18 +230,14 @@ class ASTAnalyzer(ast.NodeVisitor):
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
         """非同期関数定義を訪問"""
         if node.name not in self.excluded_names:
-            self._check_name(
-                node.name, "function_name", node.lineno, self.naming_rules["function"]
-            )
+            self._check_name(node.name, "function_name", node.lineno, self.naming_rules["function"])
 
         self.generic_visit(node)
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
         """クラス定義を訪問"""
         if node.name not in self.excluded_names:
-            self._check_name(
-                node.name, "class_name", node.lineno, self.naming_rules["class"]
-            )
+            self._check_name(node.name, "class_name", node.lineno, self.naming_rules["class"])
 
         self.generic_visit(node)
 
@@ -300,9 +276,7 @@ class ASTAnalyzer(ast.NodeVisitor):
 
         self.generic_visit(node)
 
-    def _check_name(
-        self, name: str, name_type: str, line_no: int, expected_style: NamingStyle
-    ) -> None:
+    def _check_name(self, name: str, name_type: str, line_no: int, expected_style: NamingStyle) -> None:
         """名前をチェック"""
         if self._is_valid_name(name, expected_style):
             return
@@ -418,16 +392,12 @@ class CodeRefactorer:
 
         return False
 
-    def _fix_naming_violations(
-        self, content: str, violations: List[NamingViolation]
-    ) -> str:
+    def _fix_naming_violations(self, content: str, violations: List[NamingViolation]) -> str:
         """命名規則違反を修正"""
         lines = content.split("\n")
 
         # 行番号でソート（後ろから処理するため）
-        violations_sorted = sorted(
-            violations, key=lambda v: v.line_number, reverse=True
-        )
+        violations_sorted = sorted(violations, key=lambda v: v.line_number, reverse=True)
 
         for violation in violations_sorted:
             if violation.line_number <= len(lines):
@@ -466,16 +436,8 @@ class CodeRefactorer:
 
         # インポートをソート
         if import_lines:
-            import_statements = [
-                line
-                for line in import_lines
-                if line.strip().startswith(("import ", "from "))
-            ]
-            import_comments = [
-                line
-                for line in import_lines
-                if not line.strip().startswith(("import ", "from "))
-            ]
+            import_statements = [line for line in import_lines if line.strip().startswith(("import ", "from "))]
+            import_comments = [line for line in import_lines if not line.strip().startswith(("import ", "from "))]
 
             import_statements.sort()
 
@@ -517,9 +479,7 @@ class CodingStandardEnforcer:
             "require_type_hints": True,
         }
 
-    def enforce_standards(
-        self, directory: str, auto_fix: bool = False
-    ) -> Dict[str, Any]:
+    def enforce_standards(self, directory: str, auto_fix: bool = False) -> Dict[str, Any]:
         """コーディング規約を強制"""
         logger.info(f"コーディング規約チェック開始: {directory}")
 

@@ -82,9 +82,7 @@ class AdaptiveEnsemble:
 
         # Keep only recent history
         if len(self.performance_history[model_name]) > self.lookback_period:
-            self.performance_history[model_name] = self.performance_history[model_name][
-                -self.lookback_period:
-            ]
+            self.performance_history[model_name] = self.performance_history[model_name][-self.lookback_period :]
 
     def calculate_weights(self, regime: Optional[str] = None) -> Dict[str, float]:
         """
@@ -116,9 +114,7 @@ class AdaptiveEnsemble:
 
         # Normalize performance weights
         total_perf = sum(performance_weights.values())
-        performance_weights = {
-            k: v / total_perf for k, v in performance_weights.items()
-        }
+        performance_weights = {k: v / total_perf for k, v in performance_weights.items()}
 
         # Combine base weights and performance weights (70% base, 30% performance)
         final_weights = {}

@@ -186,9 +186,7 @@ def create_transformer_objective(X: np.ndarray, y: np.ndarray, cv_folds: int = 3
             # Transformerモデルの構築（簡単なMulti-Head Attentionモデル）
             inputs = keras.Input(shape=X_train.shape[1:])
 
-            x = keras.layers.MultiHeadAttention(
-                num_heads=num_heads, key_dim=hidden_size // num_heads
-            )(inputs, inputs)
+            x = keras.layers.MultiHeadAttention(num_heads=num_heads, key_dim=hidden_size // num_heads)(inputs, inputs)
             x = keras.layers.Dropout(dropout)(x)
 
             # 残差接続
@@ -233,27 +231,21 @@ def create_transformer_objective(X: np.ndarray, y: np.ndarray, cv_folds: int = 3
     return objective
 
 
-def optimize_lstm_params(
-    X: np.ndarray, y: np.ndarray, n_trials: int = 30
-) -> Dict[str, Any]:
+def optimize_lstm_params(X: np.ndarray, y: np.ndarray, n_trials: int = 30) -> Dict[str, Any]:
     """LSTMモデルのハイパーパラメータを最適化"""
     objective = create_lstm_objective(X, y)
     optimizer = HyperparameterOptimizer(objective, n_trials=n_trials)
     return optimizer.optimize()
 
 
-def optimize_lgbm_params(
-    X: np.ndarray, y: np.ndarray, n_trials: int = 30
-) -> Dict[str, Any]:
+def optimize_lgbm_params(X: np.ndarray, y: np.ndarray, n_trials: int = 30) -> Dict[str, Any]:
     """LightGBMモデルのハイパーパラメータを最適化"""
     objective = create_lgbm_objective(X, y)
     optimizer = HyperparameterOptimizer(objective, n_trials=n_trials)
     return optimizer.optimize()
 
 
-def optimize_transformer_params(
-    X: np.ndarray, y: np.ndarray, n_trials: int = 30
-) -> Dict[str, Any]:
+def optimize_transformer_params(X: np.ndarray, y: np.ndarray, n_trials: int = 30) -> Dict[str, Any]:
     """Transformerモデルのハイパーパメータを最適化"""
     objective = create_transformer_objective(X, y)
     optimizer = HyperparameterOptimizer(objective, n_trials=n_trials)
@@ -293,17 +285,11 @@ class MultiModelOptimizer:
             logger.info(f"Optimizing {model_type} model...")
 
             if model_type == "lstm":
-                self.best_params[model_type] = optimize_lstm_params(
-                    X, y, n_trials=n_trials_per_model
-                )
+                self.best_params[model_type] = optimize_lstm_params(X, y, n_trials=n_trials_per_model)
             elif model_type == "lgbm":
-                self.best_params[model_type] = optimize_lgbm_params(
-                    X, y, n_trials=n_trials_per_model
-                )
+                self.best_params[model_type] = optimize_lgbm_params(X, y, n_trials=n_trials_per_model)
             elif model_type == "transformer":
-                self.best_params[model_type] = optimize_transformer_params(
-                    X, y, n_trials=n_trials_per_model
-                )
+                self.best_params[model_type] = optimize_transformer_params(X, y, n_trials=n_trials_per_model)
 
             logger.info(f"Completed optimization for {model_type}")
 
@@ -315,9 +301,7 @@ def create_dynamic_optimizer():
 
     class DynamicOptimizer:
         def __init__(self):
-            self.market_regime = (
-                "normal"  # normal, high_volatility, low_volatility, trending
-            )
+            self.market_regime = "normal"  # normal, high_volatility, low_volatility, trending
             self.model_performance_history = {}
 
         def update_regime(self, volatility: float, trend_strength: float):

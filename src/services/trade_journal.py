@@ -9,7 +9,7 @@ from typing import Dict
 import pandas as pd
 
 from src import demo_data
-from src.paper_trader import PaperTrader
+from agstock.src.paper_trader import PaperTrader
 
 
 def _load_data(use_demo: bool):

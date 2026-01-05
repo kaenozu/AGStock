@@ -9,9 +9,9 @@ from typing import Dict
 
 import pandas as pd
 
-from src.bert_sentiment import get_bert_analyzer
-from src.multi_timeframe import get_mtf_analyzer
-from src.strategies import CombinedStrategy
+from agstock.src.bert_sentiment import get_bert_analyzer
+from agstock.src.multi_timeframe import get_mtf_analyzer
+from agstock.src.strategies import CombinedStrategy
 
 logger = logging.getLogger(__name__)
 
@@ -34,9 +34,7 @@ class SignalIntegrator:
             "sentiment": 0.1,
         }
 
-    def analyze(
-        self, df: pd.DataFrame, ticker: str, ai_prediction: float = 0.0
-    ) -> Dict:
+    def analyze(self, df: pd.DataFrame, ticker: str, ai_prediction: float = 0.0) -> Dict:
         """
         Analyze the latest data to generate a final signal.
 
@@ -76,13 +74,9 @@ class SignalIntegrator:
         ai_score = (ai_prediction - 0.5) * 2
 
         if ai_score > 0.4:
-            reasons.append(
-                f"AIモデルが上昇を予測しています (確信度: {ai_prediction:.1%})"
-            )
+            reasons.append(f"AIモデルが上昇を予測しています (確信度: {ai_prediction:.1%})")
         elif ai_score < -0.4:
-            reasons.append(
-                f"AIモデルが下落を予測しています (確信度: {1 - ai_prediction:.1%})"
-            )
+            reasons.append(f"AIモデルが下落を予測しています (確信度: {1 - ai_prediction:.1%})")
 
         # 3. Multi-Timeframe Analysis (Score: -1 to 1)
         mtf_res = self.mtf_analyzer.analyze(df)
@@ -135,9 +129,7 @@ class SignalIntegrator:
             action = "SELL"
 
         # Calculate Confidence (Absolute score normalized)
-        confidence = min(
-            abs(final_score) / 0.8, 1.0
-        )  # 0.8 as a "very strong" threshold
+        confidence = min(abs(final_score) / 0.8, 1.0)  # 0.8 as a "very strong" threshold
 
         return {
             "action": action,

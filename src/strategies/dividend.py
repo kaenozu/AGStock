@@ -3,7 +3,7 @@ import pandas as pd
 from .base import Strategy
 
 
-from src.oracle.oracle_2026 import Oracle2026
+from ..oracle.oracle_2026 import Oracle2026
 from .base import Strategy
 
 
@@ -29,7 +29,7 @@ class DividendStrategy(Strategy):
 
         # Oracle Guidance
         guidance = self.oracle.get_risk_guidance()
-        
+
         # 1. Safety Mode: Stop Buying
         if guidance.get("safety_mode", False):
             return pd.Series(0, index=df.index)
@@ -50,11 +50,11 @@ class DividendStrategy(Strategy):
     def get_signal_explanation(self, signal: int) -> str:
         guidance = self.oracle.get_risk_guidance()
         adjusted_min_yield = self.min_yield + guidance.get("var_buffer", 0.0)
-        
+
         if signal == 1:
             base_msg = f"配当利回りがOracle調整後基準({adjusted_min_yield * 100:.1f}%)を上回っています。"
             if guidance.get("var_buffer", 0.0) > 0:
                 base_msg += " (市場リスク上昇に伴い基準引き上げ中)"
             return base_msg
-            
+
         return "配当利回りは基準以下です。"

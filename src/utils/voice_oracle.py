@@ -1,5 +1,3 @@
-
-
 class VoiceOracle:
     #     """
     #     Provides vocalization capabilities to AGStock.

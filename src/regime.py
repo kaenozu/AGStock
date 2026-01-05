@@ -60,9 +60,7 @@ class RegimeDetector:
         gold_df = macro_data.get("GOLD")
 
         if vix_df is None or sp500_df is None:
-            logger.warning(
-                "VIX or SP500 data is missing. Cannot calculate regime features."
-            )
+            logger.warning("VIX or SP500 data is missing. Cannot calculate regime features.")
             return pd.DataFrame()
 
         # データを日付で整列
@@ -87,14 +85,9 @@ class RegimeDetector:
 
         # 4. イールドカーブ（10Y - 2Y）
         if us10y_df is not None and us02y_df is not None:
-            common_dates = all_dates.intersection(us10y_df.index).intersection(
-                us02y_df.index
-            )
+            common_dates = all_dates.intersection(us10y_df.index).intersection(us02y_df.index)
             if len(common_dates) > 0:
-                yield_curve = (
-                    us10y_df.loc[common_dates, "Close"]
-                    - us02y_df.loc[common_dates, "Close"]
-                )
+                yield_curve = us10y_df.loc[common_dates, "Close"] - us02y_df.loc[common_dates, "Close"]
                 # Reindex to match all_dates
                 yield_curve = yield_curve.reindex(all_dates, method="ffill")
             else:
@@ -189,9 +182,7 @@ class RegimeDetector:
 
         self.regime_labels = new_labels
 
-    def predict_current_regime(
-        self, macro_data: Dict[str, pd.DataFrame]
-    ) -> Tuple[int, str, Dict]:
+    def predict_current_regime(self, macro_data: Dict[str, pd.DataFrame]) -> Tuple[int, str, Dict]:
         """
         現在の市場レジームを予測する。
 
@@ -225,9 +216,7 @@ class RegimeDetector:
 
         return int(cluster_id), regime_label, feature_values
 
-    def get_regime_history(
-        self, macro_data: Dict[str, pd.DataFrame], days: int = 90
-    ) -> pd.DataFrame:
+    def get_regime_history(self, macro_data: Dict[str, pd.DataFrame], days: int = 90) -> pd.DataFrame:
         """
         過去のレジーム履歴を取得する。
 
@@ -254,9 +243,7 @@ class RegimeDetector:
 
         # 予測
         regime_ids = self.kmeans.predict(scaled_features)
-        regime_names = [
-            self.regime_labels.get(rid, f"Regime {rid}") for rid in regime_ids
-        ]
+        regime_names = [self.regime_labels.get(rid, f"Regime {rid}") for rid in regime_ids]
 
         history_df = pd.DataFrame(
             {

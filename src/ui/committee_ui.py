@@ -7,10 +7,10 @@ import time
 
 import streamlit as st
 
-from src.agents.committee import InvestmentCommittee
-from src.data_loader import fetch_market_summary
-from src.paper_trader import PaperTrader
-from src.data.macro_loader import MacroLoader
+from agstock.src.agents.committee import InvestmentCommittee
+from agstock.src.data_loader import fetch_market_summary
+from agstock.src.paper_trader import PaperTrader
+from agstock.src.data.macro_loader import MacroLoader
 
 
 def render_committee_ui():
@@ -47,8 +47,15 @@ def render_committee_ui():
 
             mc1, mc2 = st.columns(2)
             with mc1:
-                st.metric("VIX", f"{macro['vix']['value']:.1f}", f"{macro['vix']['change_pct']:+.1f}%", delta_color="inverse")
-                st.metric("米10年債", f"{macro['yield_10y']['value']:.2f}%", f"{macro['yield_10y']['change_pct']:+.1f}%", delta_color="inverse")
+                st.metric(
+                    "VIX", f"{macro['vix']['value']:.1f}", f"{macro['vix']['change_pct']:+.1f}%", delta_color="inverse"
+                )
+                st.metric(
+                    "米10年債",
+                    f"{macro['yield_10y']['value']:.2f}%",
+                    f"{macro['yield_10y']['change_pct']:+.1f}%",
+                    delta_color="inverse",
+                )
             with mc2:
                 st.metric("USD/JPY", f"{macro['usdjpy']['value']:.2f}", f"{macro['usdjpy']['change_pct']:+.1f}%")
                 st.metric("SOX指数", f"{macro['sox']['value']:.0f}", f"{macro['sox']['change_pct']:+.1f}%")
@@ -63,7 +70,7 @@ def render_committee_ui():
                     committee = InvestmentCommittee()
 
                     # Fetch actual data for Regime Detection
-                    from src.data_loader import fetch_stock_data
+                    from agstock.src.data_loader import fetch_stock_data
 
                     market_data_dict = fetch_stock_data([ticker_input], period="1y")
                     # Extract DataFrame from dict
@@ -87,7 +94,7 @@ def render_committee_ui():
                             )
 
                     # Visualize Regime if possible
-                    from src.regime_detector import RegimeDetector
+                    from agstock.src.regime_detector import RegimeDetector
 
                     regime_det = RegimeDetector()
                     if market_df is not None and not market_df.empty:

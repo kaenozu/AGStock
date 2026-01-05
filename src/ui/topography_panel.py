@@ -1,5 +1,3 @@
-
-
 def render_topography_panel():
     pass
     #     """

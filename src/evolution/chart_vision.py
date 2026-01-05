@@ -52,12 +52,8 @@ class ChartVisionEngine:
 
             # Add simple SMAs for visual context
             plt.plot(
-                df_tail.index,
-                df_tail["Close"].rolling(
-                    window=20).mean(),
-                label="20 SMA",
-                color="orange",
-                alpha=0.7)
+                df_tail.index, df_tail["Close"].rolling(window=20).mean(), label="20 SMA", color="orange", alpha=0.7
+            )
 
             plt.title(f"{ticker} Technical Layout", color="white")
             plt.grid(True, alpha=0.2)
@@ -95,13 +91,11 @@ class ChartVisionEngine:
             """
 
             # 3. Call Gemini
-            response = self.model.generate_content([
-                prompt,
-                {"mime_type": "image/png", "data": image_bytes}
-            ])
+            response = self.model.generate_content([prompt, {"mime_type": "image/png", "data": image_bytes}])
 
             # 4. Parse
             import json
+
             text = response.text.replace("```json", "").replace("```", "").strip()
             return json.loads(text)
 

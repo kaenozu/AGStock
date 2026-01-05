@@ -38,9 +38,7 @@ def setup_logging(
     if json_format:
         formatter = JsonFormatter()
     else:
-        formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
     def _already_has(handler_type, stream=None, filename=None):
         for h in logger.handlers:

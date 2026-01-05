@@ -53,9 +53,7 @@ class ScaledDotProductAttention(layers.Layer):
         V = tf.transpose(V, [0, 2, 1, 3])
 
         # Attention scores
-        scores = tf.matmul(Q, K, transpose_b=True) / tf.math.sqrt(
-            tf.cast(self.d_k, tf.float32)
-        )
+        scores = tf.matmul(Q, K, transpose_b=True) / tf.math.sqrt(tf.cast(self.d_k, tf.float32))
 
         if mask is not None:
             scores += mask * -1e9
@@ -143,7 +141,7 @@ class VariableSelectionNetwork(layers.Layer):
         # Apply gates to inputs
         outputs = []
         for i in range(self.n_inputs):
-            output = v[:, :, i: i + 1, :] * x[i]
+            output = v[:, :, i : i + 1, :] * x[i]
             outputs.append(output)
 
         outputs = tf.reduce_sum(outputs, axis=2)  # [batch, time, units]
@@ -245,14 +243,14 @@ class TemporalFusionTransformer(keras.Model):
         # Variable selection
         if self.input_size > 1:
             # Split features for variable selection (simplified approach)
-            input_list = [inputs[:, :, i: i + 1] for i in range(inputs.shape[2])]
+            input_list = [inputs[:, :, i : i + 1] for i in range(inputs.shape[2])]
             x = self.var_selection(input_list)
         else:
             x = inputs
 
         # Split into encoder and decoder parts
         encoder_input = x[:, : -self.forecast_horizon, :]
-        decoder_input = x[:, -self.forecast_horizon:, :]
+        decoder_input = x[:, -self.forecast_horizon :, :]
 
         # Encode
         encoded = self.encoder(encoder_input)
@@ -282,11 +280,7 @@ class TemporalFusionTransformer(keras.Model):
         """
         # 価格変動率をターゲットとする
         df_target = df.copy()
-        df_target["Target"] = (
-            df_target["Close"]
-            .pct_change(periods=forecast_horizon)
-            .shift(-forecast_horizon)
-        )
+        df_target["Target"] = df_target["Close"].pct_change(periods=forecast_horizon).shift(-forecast_horizon)
         df_target.dropna(inplace=True)
 
         # 特徴量の選択
@@ -296,8 +290,8 @@ class TemporalFusionTransformer(keras.Model):
 
         X, y = [], []
         for i in range(sequence_length, len(features) - forecast_horizon):
-            X.append(features[i - sequence_length: i])
-            y.append(targets[i: i + forecast_horizon])
+            X.append(features[i - sequence_length : i])
+            y.append(targets[i : i + forecast_horizon])
 
         return np.array(X, dtype=np.float32), np.array(y, dtype=np.float32)
 
@@ -318,9 +312,7 @@ class TemporalFusionTransformer(keras.Model):
             batch_size=kwargs.get("batch_size", 32),
             validation_split=kwargs.get("validation_split", 0.2),
             verbose=kwargs.get("verbose", 1),
-            callbacks=[
-                keras.callbacks.EarlyStopping(patience=10, restore_best_weights=True)
-            ],
+            callbacks=[keras.callbacks.EarlyStopping(patience=10, restore_best_weights=True)],
         )
 
         return history

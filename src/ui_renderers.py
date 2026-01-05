@@ -3,8 +3,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.constants import MARKETS, TICKER_NAMES
-from src.performance import PerformanceAnalyzer
+from agstock.src.constants import MARKETS, TICKER_NAMES
+from agstock.src.performance import PerformanceAnalyzer
 
 
 @st.cache_data
@@ -184,7 +184,7 @@ def render_performance_tab(ticker_group, selected_market, custom_tickers, curren
 
     if st.button("ヒートマップを生成", type="primary"):
         with st.spinner("データ取得中..."):
-            from src.data_loader import fetch_stock_data
+            from agstock.src.data_loader import fetch_stock_data
 
             # Get tickers based on selection
             if ticker_group == "カスタム入力":
@@ -239,9 +239,9 @@ def render_paper_trading_tab():
     """
     ペーパートレーディングタブのレンダリングロジック
     """
-    from src.data_loader import fetch_stock_data
-    from src.formatters import format_currency
-    from src.paper_trader import PaperTrader
+    from agstock.src.data_loader import fetch_stock_data
+    from agstock.src.formatters import format_currency
+    from agstock.src.paper_trader import PaperTrader
 
     st.header("ペーパートレーディング (仮想売買)")
     st.write("リアルタイムの株価データを用いて、仮想資金でトレードの練習ができます。")
@@ -365,12 +365,12 @@ def render_market_scan_tab(
     import json
     import os
 
-    from src.backtester import Backtester
-    from src.data_loader import fetch_fundamental_data, fetch_stock_data, get_latest_price
-    from src.formatters import get_risk_level
-    from src.paper_trader import PaperTrader
-    from src.sentiment import SentimentAnalyzer
-    from src.ui_components import display_best_pick_card, display_error_message, display_sentiment_gauge
+    from agstock.src.backtester import Backtester
+    from agstock.src.data_loader import fetch_fundamental_data, fetch_stock_data, get_latest_price
+    from agstock.src.formatters import get_risk_level
+    from agstock.src.paper_trader import PaperTrader
+    from agstock.src.sentiment import SentimentAnalyzer
+    from agstock.src.ui_components import display_best_pick_card, display_error_message, display_sentiment_gauge
 
     st.header("市場全体スキャン")
     st.write("指定した銘柄群に対して全戦略をバックテストし、有望なシグナルを検出します。")
@@ -417,7 +417,7 @@ def render_market_scan_tab(
         # === Display Macro Indicators ===
         with st.expander("🌍 マクロ経済指標", expanded=True):
             try:
-                from src.data_loader import fetch_external_data
+                from agstock.src.data_loader import fetch_external_data
 
                 macro_data = fetch_external_data(period="5d")
 
@@ -690,7 +690,7 @@ def render_market_scan_tab(
         # === Macro Indicators ===
         with st.expander("🌍 マクロ経済指標", expanded=True):
             try:
-                from src.data_loader import fetch_external_data
+                from agstock.src.data_loader import fetch_external_data
 
                 macro_data = fetch_external_data(period="5d")
 
@@ -938,8 +938,8 @@ def render_realtime_monitoring_tab(ticker_group, selected_market, custom_tickers
 
     import pandas as pd
 
-    from src.constants import MARKETS
-    from src.streaming_pipeline import get_streaming_pipeline
+    from agstock.src.constants import MARKETS
+    from agstock.src.streaming_pipeline import get_streaming_pipeline
 
     st.header("📡 リアルタイム市場監視")
     st.write("市場データをリアルタイムで監視し、AIが継続的に予測を行います。")
@@ -995,7 +995,7 @@ def render_realtime_monitoring_tab(ticker_group, selected_market, custom_tickers
             # ここではシンプルに1回実行してsleepしてrerunするパターン
 
             # 1. データ取得（擬似リアルタイム）
-            from src.data_loader import fetch_stock_data
+            from agstock.src.data_loader import fetch_stock_data
 
             # 最新データ取得
             current_data = fetch_stock_data(target_tickers, period="1d", interval="1m")
@@ -1066,7 +1066,7 @@ def render_xai_section(model, X_test, ticker_name):
     """
     import streamlit as st
 
-    from src.xai import get_xai_manager
+    from agstock.src.xai import get_xai_manager
 
     st.markdown("---")
     st.header(f"🔬 AI予測の根拠分析 (XAI) - {ticker_name}")
@@ -1111,7 +1111,7 @@ def render_integrated_signal(df, ticker, ai_prediction=0.0):
     """
     統合シグナル分析結果を表示する
     """
-    from src.integrated_signals import get_signal_integrator
+    from agstock.src.integrated_signals import get_signal_integrator
 
     st.subheader("🧩 AI総合判断 (Integrated Signal)")
 

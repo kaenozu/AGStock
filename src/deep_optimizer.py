@@ -22,9 +22,7 @@ class DeepOptimizer:
         self.timeout = timeout
         self.best_params = {}
 
-    def optimize_lstm(
-        self, df: pd.DataFrame, target_col: str = "Close"
-    ) -> Dict[str, Any]:
+    def optimize_lstm(self, df: pd.DataFrame, target_col: str = "Close") -> Dict[str, Any]:
         """
         LSTMモデルの最適化
 
@@ -86,14 +84,10 @@ class DeepOptimizer:
         def objective(trial):
             {
                 "hidden_size": trial.suggest_int("hidden_size", 32, 128),
-                "num_attention_heads": trial.suggest_categorical(
-                    "num_attention_heads", [2, 4, 8]
-                ),
+                "num_attention_heads": trial.suggest_categorical("num_attention_heads", [2, 4, 8]),
                 "dropout": trial.suggest_float("dropout", 0.0, 0.3),
                 "num_encoder_layers": trial.suggest_int("num_encoder_layers", 1, 3),
-                "learning_rate": trial.suggest_float(
-                    "learning_rate", 1e-4, 1e-2, log=True
-                ),
+                "learning_rate": trial.suggest_float("learning_rate", 1e-4, 1e-2, log=True),
             }
 
             try:

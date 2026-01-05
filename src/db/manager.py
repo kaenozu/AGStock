@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from src.db.database import SessionLocal
-from src.db.models import MarketScan, TradeLog, CouncilVote, SystemEvent
+from agstock.src.db.database import SessionLocal
+from agstock.src.db.models import MarketScan, TradeLog, CouncilVote, SystemEvent
 import logging
 
 logger = logging.getLogger(__name__)
@@ -15,9 +15,7 @@ class DatabaseManager:
     def __init__(self):
         self.db: Session = SessionLocal()
 
-    def log_scan(
-        self, ticker: str, signal: int, confidence: float, reasoning: str, technicals: dict = None
-    ):
+    def log_scan(self, ticker: str, signal: int, confidence: float, reasoning: str, technicals: dict = None):
         try:
             rsi = technicals.get("RSI") if technicals else None
             sma_20 = technicals.get("SMA_20") if technicals else None
@@ -88,9 +86,7 @@ class DatabaseManager:
         """Calculates cumulative PnL for each strategy."""
         try:
             results = (
-                self.db.query(TradeLog.strategy_name, func.sum(TradeLog.pnl))
-                .group_by(TradeLog.strategy_name)
-                .all()
+                self.db.query(TradeLog.strategy_name, func.sum(TradeLog.pnl)).group_by(TradeLog.strategy_name).all()
             )
             return {row[0]: float(row[1]) for row in results}
         except Exception as e:

@@ -156,9 +156,7 @@ class LazyLoader:
 
                 self._modules[module_name] = module
                 self._load_times[module_name] = time.time() - start_time
-                logger.info(
-                    f"Loaded {module_name} in {self._load_times[module_name]:.2f}s"
-                )
+                logger.info(f"Loaded {module_name} in {self._load_times[module_name]:.2f}s")
 
             except Exception as e:
                 logger.error(f"Failed to load {module_name}: {e}")

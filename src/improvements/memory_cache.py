@@ -18,6 +18,7 @@ T = TypeVar("T")
 @dataclass
 class CacheEntry:
     """キャッシュエントリ"""
+
     value: Any
     expires_at: Optional[float] = None
     created_at: float = field(default_factory=time.time)
@@ -67,6 +68,7 @@ class MemoryCache:
 
     def _start_cleanup_thread(self):
         """クリーンアップスレッドを開始"""
+
         def cleanup_loop():
             while not self._stop_cleanup.wait(self.cleanup_interval):
                 self._cleanup_expired()
@@ -222,6 +224,7 @@ class MemoryCache:
     def keys(self, pattern: str = "*") -> List[str]:
         """Redis互換: キー一覧を取得"""
         import fnmatch
+
         with self._lock:
             return [k for k in self._cache.keys() if fnmatch.fnmatch(k, pattern)]
 
@@ -265,6 +268,7 @@ def cached(
         key_prefix: キーのプレフィックス
         key_builder: カスタムキービルダー
     """
+
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         cache = get_memory_cache()
 

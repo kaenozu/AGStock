@@ -1,6 +1,6 @@
 import streamlit as st
 import plotly.express as px
-from src.analytics import PortfolioAnalytics
+from agstock.src.analytics import PortfolioAnalytics
 
 
 def render_performance_analyst():
@@ -20,9 +20,7 @@ def render_performance_analyst():
     with col1:
         st.metric("\u7dcf\u8cc7\u7523", f"\u00a5{summary['current_equity']:,.0f}")
     with col2:
-        st.metric(
-            "\u7d2f\u8a08\u53ce\u76ca\u7387", f"{summary['total_return_pct']:.2f}%"
-        )
+        st.metric("\u7d2f\u8a08\u53ce\u76ca\u7387", f"{summary['total_return_pct']:.2f}%")
     with col3:
         st.metric(
             "\u6700\u5927\u30c9\u30ed\u30fc\u30c0\u30a6\u30f3",
@@ -57,9 +55,7 @@ def render_performance_analyst():
     st.plotly_chart(fig_dd, use_container_width=True)
 
     # 4. Monthly Heatmap
-    st.markdown(
-        "### \ud83d\uddd3\ufe0f \u6708\u6b21\u53ce\u76ca\u30d2\u30fc\u30c8\u30de\u30c3\u30d7 (%)"
-    )
+    st.markdown("### \ud83d\uddd3\ufe0f \u6708\u6b21\u53ce\u76ca\u30d2\u30fc\u30c8\u30de\u30c3\u30d7 (%)")
     monthly_ret = analytics.get_monthly_returns()
     if not monthly_ret.empty:
         fig_heat = px.imshow(
@@ -72,6 +68,4 @@ def render_performance_analyst():
         )
         st.plotly_chart(fig_heat, use_container_width=True)
     else:
-        st.info(
-            "\u6708\u6b21\u53ce\u76ca\u30c7\u30fc\u30bf\u304c\u4e0d\u8db3\u3057\u3066\u3044\u307e\u3059\u3002"
-        )
+        st.info("\u6708\u6b21\u53ce\u76ca\u30c7\u30fc\u30bf\u304c\u4e0d\u8db3\u3057\u3066\u3044\u307e\u3059\u3002")

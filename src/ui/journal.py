@@ -1,6 +1,6 @@
 import streamlit as st
 
-from src.services.trade_journal import generate_journal
+from agstock.src.services.trade_journal import generate_journal
 
 
 def render_trade_journal():

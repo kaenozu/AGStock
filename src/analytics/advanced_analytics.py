@@ -59,7 +59,7 @@ class AdvancedAnalytics:
                 "var_95": float(var_95),
                 "cvar_95": float(cvar_95),
                 "skewness": float(returns.skew()),
-                "kurtosis": float(returns.kurtosis())
+                "kurtosis": float(returns.kurtosis()),
             }
         except Exception as e:
             logger.error(f"Failed to calculate risk metrics: {e}")
@@ -95,7 +95,7 @@ class AdvancedAnalytics:
                 "beta": float(beta),
                 "tracking_error": float(te),
                 "information_ratio": float(ir),
-                "correlation": float(p_ret.corr(b_ret))
+                "correlation": float(p_ret.corr(b_ret)),
             }
         except Exception as e:
             logger.error(f"Performance attribution failed: {e}")
@@ -118,8 +118,9 @@ class AdvancedAnalytics:
 
         return {s: (v / total_val * 100) for s, v in sector_map.items()}
 
-    def generate_monte_carlo(self, returns: pd.Series, initial_value: float,
-                             days: int = 252, simulations: int = 1000) -> Dict[str, Any]:
+    def generate_monte_carlo(
+        self, returns: pd.Series, initial_value: float, days: int = 252, simulations: int = 1000
+    ) -> Dict[str, Any]:
         """Runs a Monte Carlo simulation for future portfolio projection."""
         if returns.empty:
             return {}
@@ -140,7 +141,7 @@ class AdvancedAnalytics:
             "median_projection": float(np.median(results)),
             "percentile_5": float(np.percentile(results, 5)),
             "percentile_95": float(np.percentile(results, 95)),
-            "loss_probability": float((results < initial_value).mean())
+            "loss_probability": float((results < initial_value).mean()),
         }
 
 

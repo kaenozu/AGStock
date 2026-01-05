@@ -19,9 +19,7 @@ class PortfolioManagerV2:
     def __init__(self, risk_free_rate: float = 0.01):
         self.risk_free_rate = risk_free_rate
 
-    def optimize_portfolio(
-        self, price_data: Dict[str, pd.DataFrame], lookback_days: int = 252
-    ) -> Dict[str, float]:
+    def optimize_portfolio(self, price_data: Dict[str, pd.DataFrame], lookback_days: int = 252) -> Dict[str, float]:
         """
         シャープレシオ最大化によるポートフォリオ最適化
 
@@ -47,9 +45,7 @@ class PortfolioManagerV2:
         df_closes = df_closes.fillna(method="ffill").dropna(axis=1)
 
         if df_closes.empty or len(df_closes.columns) < 2:
-            return {
-                col: 1.0 if i == 0 else 0.0 for i, col in enumerate(df_closes.columns)
-            }
+            return {col: 1.0 if i == 0 else 0.0 for i, col in enumerate(df_closes.columns)}
 
         # 日次リターン
         returns = df_closes.pct_change().dropna()
@@ -64,9 +60,7 @@ class PortfolioManagerV2:
         def neg_sharpe_ratio(weights):
             weights = np.array(weights)
             portfolio_return = np.sum(mean_returns * weights)
-            portfolio_volatility = np.sqrt(
-                np.dot(weights.T, np.dot(cov_matrix, weights))
-            )
+            portfolio_volatility = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))
             sharpe = (portfolio_return - self.risk_free_rate) / portfolio_volatility
             return -sharpe
 
@@ -101,16 +95,12 @@ class PortfolioManagerV2:
                 # 正規化（削除した分を再配分）
                 total = sum(optimized_weights.values())
                 if total > 0:
-                    optimized_weights = {
-                        k: v / total for k, v in optimized_weights.items()
-                    }
+                    optimized_weights = {k: v / total for k, v in optimized_weights.items()}
 
                 return optimized_weights
             else:
                 logger.warning(f"Portfolio optimization failed: {result.message}")
-                return {
-                    tick: 1.0 / num_assets for tick in mean_returns.index
-                }  # 均等配分
+                return {tick: 1.0 / num_assets for tick in mean_returns.index}  # 均等配分
 
         except Exception as e:
             logger.error(f"Optimization error: {e}")

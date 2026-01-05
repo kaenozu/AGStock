@@ -36,9 +36,7 @@ def render_mobile_nav():
             st.rerun()
 
     with col2:
-        if st.button(
-            "💼", key="mobile_trading", help="トレーディング", use_container_width=True
-        ):
+        if st.button("💼", key="mobile_trading", help="トレーディング", use_container_width=True):
             st.session_state.selected_tab = 1
             st.rerun()
 
@@ -99,7 +97,7 @@ def render_mobile_quick_stats():
 
     try:
         # Get portfolio data
-        from src.paper_trader import PaperTrader
+        from agstock.src.paper_trader import PaperTrader
 
         pt = PaperTrader()
 
@@ -164,9 +162,7 @@ def toggle_mobile_mode():
     st.sidebar.markdown("---")
     st.sidebar.subheader("📱 表示モード")
 
-    new_mode = st.sidebar.checkbox(
-        "モバイル表示", value=is_mobile, help="モバイル最適化表示を切り替え"
-    )
+    new_mode = st.sidebar.checkbox("モバイル表示", value=is_mobile, help="モバイル最適化表示を切り替え")
 
     if new_mode != is_mobile:
         st.session_state.is_mobile = new_mode

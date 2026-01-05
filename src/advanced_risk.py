@@ -55,7 +55,7 @@ class AdvancedRiskManager:
             self.max_daily_loss_pct *= guidance.get("max_drawdown_adj", 1.0)
             # VaRの信頼水準を調整（バッファを追加してより保守的に）
             self.confidence_level = max(0.01, self.confidence_level - guidance.get("var_buffer", 0.0))
-            
+
     def check_drawdown_protection(self, paper_trader, logger):
         """
         ドローダウン保護をチェック
@@ -93,14 +93,18 @@ class AdvancedRiskManager:
             # 危険なため、現在のポジションをすべて売却するシグナルを生成
             signals = []
             current_positions = paper_trader.get_positions()
-for ticker in current_positions.index:
-                signals.append({
-                    "ticker": ticker,
-                    "action": "SELL",
-                    "reason": (f"Oracle-Enhanced Drawdown protection triggered. Daily loss: {daily_change_pct:.2f}% "
-                               f"exceeded threshold: {self.max_daily_loss_pct:.2f}%"),
-                    "strategy": "Drawdown Protection"
-                })
+            for ticker in current_positions.index:
+                signals.append(
+                    {
+                        "ticker": ticker,
+                        "action": "SELL",
+                        "reason": (
+                            f"Oracle-Enhanced Drawdown protection triggered. Daily loss: {daily_change_pct:.2f}% "
+                            f"exceeded threshold: {self.max_daily_loss_pct:.2f}%"
+                        ),
+                        "strategy": "Drawdown Protection",
+                    }
+                )
 
             logger.warning(
                 f"Drawdown protection triggered. Daily loss: {daily_change_pct:.2f}% exceeded threshold: {self.max_daily_loss_pct:.2f}%"

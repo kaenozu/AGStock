@@ -1,7 +1,7 @@
 import logging
-from src.paper_trader import PaperTrader
-from src.data.feedback_store import FeedbackStore
-from src.agents.macro_agent import MacroAgent
+from agstock.src.paper_trader import PaperTrader
+from agstock.src.data.feedback_store import FeedbackStore
+from agstock.src.agents.macro_agent import MacroAgent
 
 logger = logging.getLogger(__name__)
 

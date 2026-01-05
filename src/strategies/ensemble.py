@@ -21,8 +21,8 @@ class EnsembleStrategy(Strategy):
         # Load EnsembleVoter - doing it inside __init__ to avoid circular imports if needed,
         # but standard import is better if structure allows.
         try:
-            from src.ensemble import EnsembleVoter
-            from src.regime import RegimeDetector
+            from agstock.src.ensemble import EnsembleVoter
+            from agstock.src.regime import RegimeDetector
         except ImportError:
             # Fallbacks or pass
             pass
@@ -60,8 +60,8 @@ class EnsembleStrategy(Strategy):
 
         if self.enable_regime_detection:
             try:
-                from src.data_loader import fetch_macro_data
-                from src.regime import RegimeDetector
+                from agstock.src.data_loader import fetch_macro_data
+                from agstock.src.regime import RegimeDetector
 
                 # マクロデータを取得してRegimeDetectorを訓練
                 macro_data = fetch_macro_data(period="5y")
@@ -88,8 +88,8 @@ class EnsembleStrategy(Strategy):
         # 0. Regime Detection & Weight Adjustment
         if self.enable_regime_detection and self.regime_detector:
             try:
-                from src.data_loader import fetch_macro_data
-                from src.regime import RegimeDetector
+                from agstock.src.data_loader import fetch_macro_data
+                from agstock.src.regime import RegimeDetector
 
                 macro_data = fetch_macro_data(period="1y")
                 regime_id, regime_label, features = self.regime_detector.predict_current_regime(macro_data)

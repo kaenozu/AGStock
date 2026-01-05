@@ -28,9 +28,7 @@ class RateLimiter:
     """
 
     # Predefined limits for different services
-    YAHOO_FINANCE_LIMIT = RateLimitConfig(
-        max_calls=2000, time_window=3600, name="Yahoo Finance"
-    )
+    YAHOO_FINANCE_LIMIT = RateLimitConfig(max_calls=2000, time_window=3600, name="Yahoo Finance")
     GEMINI_API_LIMIT = RateLimitConfig(max_calls=60, time_window=60, name="Gemini API")
 
     def __init__(self, config: RateLimitConfig):
@@ -86,14 +84,10 @@ class RateLimiter:
             # Wait a bit before retrying
             sleep_time = min(wait_time, 1.0)
             if sleep_time > 0:
-                logger.debug(
-                    f"{self.config.name}: Rate limited, waiting {sleep_time:.1f}s"
-                )
+                logger.debug(f"{self.config.name}: Rate limited, waiting {sleep_time:.1f}s")
                 time.sleep(sleep_time)
 
-    def execute_with_limit(
-        self, func: Callable, *args, timeout: Optional[float] = 30.0, **kwargs
-    ) -> Any:
+    def execute_with_limit(self, func: Callable, *args, timeout: Optional[float] = 30.0, **kwargs) -> Any:
         """
         Execute a function with rate limiting.
         Waits if necessary, returns None if timeout.
@@ -153,9 +147,7 @@ class RateLimiterManager:
                     config = RateLimiter.GEMINI_API_LIMIT
                 else:
                     # Default: 100 calls per minute
-                    config = RateLimitConfig(
-                        max_calls=100, time_window=60, name=service
-                    )
+                    config = RateLimitConfig(max_calls=100, time_window=60, name=service)
 
                 self._limiters[service] = RateLimiter(config)
 
@@ -164,10 +156,7 @@ class RateLimiterManager:
     def get_all_stats(self) -> Dict[str, Dict[str, Any]]:
         """Get statistics for all rate limiters."""
         with self._lock:
-            return {
-                service: limiter.get_stats()
-                for service, limiter in self._limiters.items()
-            }
+            return {service: limiter.get_stats() for service, limiter in self._limiters.items()}
 
 
 # Global singleton

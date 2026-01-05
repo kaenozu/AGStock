@@ -142,7 +142,7 @@ class PortfolioRebalancer:
 
     def _calculate_region_ratios(self, positions: pd.DataFrame, total_equity: float) -> Dict[str, float]:
         """地域別の比率を計算"""
-        from src.constants import NIKKEI_225_TICKERS, SP500_TICKERS, STOXX50_TICKERS
+        from agstock.src.constants import NIKKEI_225_TICKERS, SP500_TICKERS, STOXX50_TICKERS
 
         japan_value = 0
         us_value = 0

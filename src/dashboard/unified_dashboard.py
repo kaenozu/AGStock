@@ -14,10 +14,10 @@ from pathlib import Path
 
 import streamlit as st
 
-from src.anomaly_detector import AnomalyDetector
-from src.formatters import format_currency, format_percentage
-from src.paper_trader import PaperTrader
-from src.performance_optimizer import optimizer
+from agstock.src.anomaly_detector import AnomalyDetector
+from agstock.src.formatters import format_currency, format_percentage
+from agstock.src.paper_trader import PaperTrader
+from agstock.src.performance_optimizer import optimizer
 
 # ページ設定
 st.set_page_config(
@@ -110,9 +110,7 @@ def show_quick_stats():
         )
 
     with col2:
-        total_return = (
-            balance["total_equity"] - pt.initial_capital
-        ) / pt.initial_capital
+        total_return = (balance["total_equity"] - pt.initial_capital) / pt.initial_capital
         color = "#10b981" if total_return >= 0 else "#ef4444"
         st.markdown(
             f"""
@@ -244,16 +242,12 @@ def main():
     st.markdown("---")
 
     # タブ構成
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(
-        ["🏠 ホーム", "🌅 朝活", "📊 週末戦略", "⚙️ 設定", "📈 詳細分析"]
-    )
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["🏠 ホーム", "🌅 朝活", "📊 週末戦略", "⚙️ 設定", "📈 詳細分析"])
 
     # タブ1: ホーム
     with tab1:
         # 初めての方へ（目立つように）
-        st.info(
-            "👋 **初めての方へ:** まずは `START_HERE.md` を読んでください！3ステップで始められます。"
-        )
+        st.info("👋 **初めての方へ:** まずは `START_HERE.md` を読んでください！3ステップで始められます。")
 
         with st.expander("🎯 今すぐ始める3ステップ", expanded=True):
             st.markdown(
@@ -313,9 +307,7 @@ def main():
                 recent = history.tail(5)
                 for idx, trade in recent.iterrows():
                     action_emoji = "🟢" if trade["action"] == "BUY" else "🔴"
-                    st.caption(
-                        f"{action_emoji} {trade['ticker']} - {trade['action']} - {trade.get('quantity', 0)}株"
-                    )
+                    st.caption(f"{action_emoji} {trade['ticker']} - {trade['action']} - {trade.get('quantity', 0)}株")
             else:
                 st.info("取引履歴がありません")
 
@@ -402,9 +394,7 @@ def main():
                 st.markdown(f"**リスク許容度:** {profile.get('risk_tolerance', 'N/A')}")
 
             if "capital" in config:
-                st.markdown(
-                    f"**初期資金:** {format_currency(config['capital'].get('initial_capital', 0))}"
-                )
+                st.markdown(f"**初期資金:** {format_currency(config['capital'].get('initial_capital', 0))}")
 
             if "auto_trading" in config:
                 auto = config["auto_trading"]

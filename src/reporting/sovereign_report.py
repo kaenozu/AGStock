@@ -3,16 +3,17 @@ import os
 import sqlite3
 import pandas as pd
 from datetime import datetime
-from src.oracle.oracle_2026 import Oracle2026
+from agstock.src.oracle.oracle_2026 import Oracle2026
 
 logger = logging.getLogger(__name__)
+
 
 class SovereignReporter:
     """
     Sovereign Reporter: システムのパフォーマンス、AI委員会の決議、
     およびOracleの預言を統合した聖域報告書を生成する。
     """
-    
+
     def __init__(self, db_path: str = "data/agstock.db"):
         self.db_path = db_path
         self.oracle = Oracle2026()
@@ -20,7 +21,7 @@ class SovereignReporter:
     def generate_report(self) -> str:
         """月次/週次の聖域報告書をMarkdown形式で生成する。"""
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
+
         # 1. データの取得
         try:
             conn = sqlite3.connect(self.db_path)
@@ -36,9 +37,9 @@ class SovereignReporter:
             return f"Error: Could not load data for report. {e}"
 
         # 2. パフォーマンス要約
-        total_pnl = trade_logs['pnl'].sum() if not trade_logs.empty else 0
-        win_rate = (len(trade_logs[trade_logs['pnl'] > 0]) / len(trade_logs) * 100) if not trade_logs.empty else 0
-        
+        total_pnl = trade_logs["pnl"].sum() if not trade_logs.empty else 0
+        win_rate = (len(trade_logs[trade_logs["pnl"] > 0]) / len(trade_logs) * 100) if not trade_logs.empty else 0
+
         # 3. Oracleの預言
         scenarios = self.oracle.speculate_scenarios()
         resilience = self.oracle.assess_portfolio_resilience([])
@@ -92,11 +93,11 @@ AI投資委員会（Council of Avatars）による最近の議決事項です。
         """報告書をファイルとして保存する。"""
         if not filename:
             filename = f"reports/sovereign_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
-        
+
         os.makedirs("reports", exist_ok=True)
         content = self.generate_report()
         with open(filename, "w", encoding="utf-8") as f:
             f.write(content)
-        
+
         logger.info(f"Sovereign Report saved to {filename}")
         return filename

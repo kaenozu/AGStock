@@ -1,14 +1,14 @@
 import streamlit as st
 import os
 
-from src.ui.ai_chat import render_ai_chat
-from src.ui.committee_ui import render_committee_ui
-from src.ui.earnings_analyst import render_earnings_analyst  # Phase 28
-from src.ui.news_analyst import render_news_analyst
-from src.ui.risk_hedge_panel import render_risk_hedge_panel
-from src.rag.filing_watcher import FilingWatcher
-from src.data.feedback_store import FeedbackStore
-from src.data.earnings_history import EarningsHistory
+from agstock.src.ui.ai_chat import render_ai_chat
+from agstock.src.ui.committee_ui import render_committee_ui
+from agstock.src.ui.earnings_analyst import render_earnings_analyst  # Phase 28
+from agstock.src.ui.news_analyst import render_news_analyst
+from agstock.src.ui.risk_hedge_panel import render_risk_hedge_panel
+from agstock.src.rag.filing_watcher import FilingWatcher
+from agstock.src.data.feedback_store import FeedbackStore
+from agstock.src.data.earnings_history import EarningsHistory
 import pandas as pd
 import plotly.express as px
 
@@ -16,9 +16,7 @@ import plotly.express as px
 def render_ai_hub():
     """Renders the consolidated AI Analyzer Hub"""
     st.header("🤖 AI分析センター (AI Hub)")
-    st.caption(
-        "最新ニュース、投資委員会、AIチャットなど、すべてのAI機能にここからアクセスできます。"
-    )
+    st.caption("最新ニュース、投資委員会、AIチャットなど、すべてのAI機能にここからアクセスできます。")
 
     tabs = st.tabs(
         [
@@ -88,15 +86,11 @@ def render_sector_heatmap():
     df = pd.DataFrame(data_list)
 
     if df["sector"].nunique() <= 1 and "Unknown" in df["sector"].unique():
-        st.warning(
-            "セクター情報が含まれる分析データがまだありません。新しい決算分析を実行してください。"
-        )
+        st.warning("セクター情報が含まれる分析データがまだありません。新しい決算分析を実行してください。")
         return
 
     # セクター別に集計
-    sector_summary = (
-        df.groupby("sector").agg({"score": "mean", "ticker": "count"}).reset_index()
-    )
+    sector_summary = df.groupby("sector").agg({"score": "mean", "ticker": "count"}).reset_index()
     sector_summary.columns = ["Sector", "Avg Score", "Count"]
     sector_summary = sector_summary.sort_values(by="Avg Score", ascending=False)
 
@@ -128,9 +122,7 @@ def render_past_decisions():
     recent_lessons = fs.get_lessons_for_ticker("%", limit=20)  # Get all recent outcomes
 
     if not recent_lessons:
-        st.info(
-            "まだ評価済みの学習データがありません。判断から数日後に結果が自動更新されます。"
-        )
+        st.info("まだ評価済みの学習データがありません。判断から数日後に結果が自動更新されます。")
         return
 
     for lesson in recent_lessons:
@@ -140,11 +132,7 @@ def render_past_decisions():
             col1, col2 = st.columns(2)
             with col1:
                 st.write(f"**当初価格:** ¥{lesson['initial_price']:,.1f}")
-                st.write(
-                    f"**1週間後価格:** ¥{lesson['price_1w']:,.1f}"
-                    if lesson["price_1w"]
-                    else "未更新"
-                )
+                st.write(f"**1週間後価格:** ¥{lesson['price_1w']:,.1f}" if lesson["price_1w"] else "未更新")
             with col2:
                 ret = lesson["return_1w"]
                 if ret is not None:
@@ -157,20 +145,14 @@ def render_past_decisions():
                 st.info(f"💡 **学習した教訓:** {lesson['lesson_learned']}")
             else:
                 if lesson["outcome"] == "FAILURE":
-                    st.warning(
-                        "このケースは失敗として学習モデルにフィードバックされました。"
-                    )
+                    st.warning("このケースは失敗として学習モデルにフィードバックされました。")
                 elif lesson["outcome"] == "SUCCESS":
-                    st.success(
-                        "このケースは成功パターンとして学習モデルに強化されました。"
-                    )
+                    st.success("このケースは成功パターンとして学習モデルに強化されました。")
 
 
 def _render_filing_watcher_ui():
     st.subheader("📡 自動適時開示ウォッチ")
-    st.markdown(
-        "PCを起動している間、特定のディレクトリを監視し、新しい決算PDFを自動で分析します。"
-    )
+    st.markdown("PCを起動している間、特定のディレクトリを監視し、新しい決算PDFを自動で分析します。")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -209,8 +191,8 @@ def render_executive_control():
 
     # --- NIGHTWATCH SECTION ---
     st.write("## 🦉 グローバル・ナイトウォッチ (Morning Memo)")
-    from src.data.us_market_monitor import USMarketMonitor
-    from src.reports.morning_strategy_memo import MorningStrategyMemo
+    from agstock.src.data.us_market_monitor import USMarketMonitor
+    from agstock.src.reports.morning_strategy_memo import MorningStrategyMemo
 
     col_nw1, col_nw2 = st.columns([1, 2])
     with col_nw1:
@@ -232,16 +214,14 @@ def render_executive_control():
         if "morning_memo" in st.session_state:
             st.info(st.session_state.morning_memo)
         else:
-            st.info(
-                "米国市場のスキャンを実行すると、今日の日本株戦略メモが生成されます。"
-            )
+            st.info("米国市場のスキャンを実行すると、今日の日本株戦略メモが生成されます。")
 
     st.divider()
 
-    from src.agents.strategy_arena import StrategyArena
-    from src.data.macro_loader import MacroLoader
-    from src.execution.adaptive_rebalancer import AdaptiveRebalancer
-    from src.utils.tax_optimizer import TaxOptimizer
+    from agstock.src.agents.strategy_arena import StrategyArena
+    from agstock.src.data.macro_loader import MacroLoader
+    from agstock.src.execution.adaptive_rebalancer import AdaptiveRebalancer
+    from agstock.src.utils.tax_optimizer import TaxOptimizer
 
     col1, col2 = st.columns([1, 1])
 
@@ -281,7 +261,7 @@ def render_executive_control():
 
     # 1.5 Digital Twin Shadow Portfolios
     st.write("### 🧪 デジタルツイン・シミュレーション (もしもの軌跡)")
-    from src.simulation.digital_twin import DigitalTwin
+    from agstock.src.simulation.digital_twin import DigitalTwin
 
     twin = DigitalTwin()
     twin_perf = twin.get_twin_performance()
@@ -309,9 +289,7 @@ def render_executive_control():
         labels={"Performance": "基準値 (100=開始時)"},
     )
     st.plotly_chart(fig_twin, use_container_width=True)
-    st.info(
-        "※ AIが現実とは異なる『性格』で運用していた場合のシミュレーションと比較しています。"
-    )
+    st.info("※ AIが現実とは異なる『性格』で運用していた場合のシミュレーションと比較しています。")
 
     st.divider()
 
@@ -329,9 +307,7 @@ def render_executive_control():
 
     if actions:
         for act in actions:
-            with st.expander(
-                f"【{act['action']}】 {act.get('ticker', '全体')} - {act['reason'][:50]}..."
-            ):
+            with st.expander(f"【{act['action']}】 {act.get('ticker', '全体')} - {act['reason'][:50]}..."):
                 st.write(f"**詳細理由:** {act['reason']}")
                 st.button(
                     f"実行を承認 ({act['ticker']})",
@@ -364,7 +340,7 @@ def render_executive_control():
 
     # 5. Strategy Evolution
     st.write("### 🧬 戦略自己進化 (Strategy Evolution)")
-    from src.evolution.strategy_generator import StrategyGenerator
+    from agstock.src.evolution.strategy_generator import StrategyGenerator
 
     col_ev1, col_ev2 = st.columns([1, 1])
     with col_ev1:
@@ -374,17 +350,11 @@ def render_executive_control():
             # In a real app, API key would be in config
             with st.spinner("Geminiが失敗を分析し、新しいコードを執筆中..."):
                 gen.evolve_strategies()
-            st.success(
-                "新しい戦略コードが `src/strategies/evolved/` に生成されました！"
-            )
+            st.success("新しい戦略コードが `src/strategies/evolved/` に生成されました！")
 
     with col_ev2:
         st.write("#### 進化履歴")
-        evolved_files = (
-            os.listdir("src/strategies/evolved")
-            if os.path.exists("src/strategies/evolved")
-            else []
-        )
+        evolved_files = os.listdir("src/strategies/evolved") if os.path.exists("src/strategies/evolved") else []
         if evolved_files:
             for f in evolved_files[-5:]:  # Show last 5
                 st.text(f"📄 {f}")
@@ -395,7 +365,7 @@ def render_executive_control():
 
     # 6. Live Shock Monitor
     st.write("### 📡 ライブ・ショックモニター (緊急防衛)")
-    from src.execution.news_shock_defense import NewsShockDefense
+    from agstock.src.execution.news_shock_defense import NewsShockDefense
 
     defense = NewsShockDefense()
 
@@ -413,9 +383,7 @@ def render_executive_control():
         st.error(f"🚨 **緊急警告検知**: {shock['title']}")
         st.warning(f"推奨アクション: {defense.get_emergency_action(shock)['action']}")
     else:
-        st.success(
-            "✅ 現在、重大なニュースショックは検知されていません。平時運用を継続中。"
-        )
+        st.success("✅ 現在、重大なニュースショックは検知されていません。平時運用を継続中。")
 
     with st.expander("監視キーワード一覧（ミリ秒反応対象）"):
         st.write(defense.CRITICAL_KEYWORDS)

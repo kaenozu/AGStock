@@ -10,7 +10,7 @@ from typing import Dict
 import numpy as np
 import pandas as pd
 
-from src.base_predictor import BasePredictor
+from .base_predictor import BasePredictor
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ class TransformerPredictor(BasePredictor):
     def prepare_model(self, X, y, sequence_length=60):
         """モデルの準備"""
         try:
-            from src.transformer_model import TemporalFusionTransformer
+            from .transformer_model import TemporalFusionTransformer
 
             # X is likely a DataFrame of features
             n_features = X.shape[1] if hasattr(X, "shape") else 10
@@ -102,7 +102,7 @@ class TransformerPredictor(BasePredictor):
         """保存済みモデルのロードを試行"""
         if os.path.exists(MODEL_PATH):
             try:
-                from src.transformer_model import TemporalFusionTransformer
+                from .transformer_model import TemporalFusionTransformer
 
                 self.model = TemporalFusionTransformer.load(MODEL_PATH)
                 self.is_ready = True
@@ -116,8 +116,8 @@ class TransformerPredictor(BasePredictor):
             return
 
         try:
-            from src.features import add_advanced_features
-            from src.transformer_model import TemporalFusionTransformer
+            from .features import add_advanced_features
+            from .transformer_model import TemporalFusionTransformer
 
             # 特徴量追加
             df = add_advanced_features(df.copy())
@@ -128,13 +128,7 @@ class TransformerPredictor(BasePredictor):
                 return
 
             # TFTモデル初期化
-            n_features = len(
-                [
-                    c
-                    for c in df.columns
-                    if c not in ["Date", "Open", "High", "Low", "Close", "Volume"]
-                ]
-            )
+            n_features = len([c for c in df.columns if c not in ["Date", "Open", "High", "Low", "Close", "Volume"]])
             self.model = TemporalFusionTransformer(
                 input_size=max(n_features, 10),
                 hidden_size=64,
@@ -143,9 +137,7 @@ class TransformerPredictor(BasePredictor):
             )
 
             # データ準備
-            X, y = self.model.prepare_sequences(
-                df, sequence_length=30, forecast_horizon=5
-            )
+            X, y = self.model.prepare_sequences(df, sequence_length=30, forecast_horizon=5)
 
             if len(X) < 50:
                 logger.warning("Not enough sequences for TFT training")
@@ -153,9 +145,7 @@ class TransformerPredictor(BasePredictor):
 
             # 訓練
             logger.info("Training TFT model...")
-            self.model.fit(
-                X, y, epochs=30, batch_size=32, validation_split=0.2, verbose=0
-            )
+            self.model.fit(X, y, epochs=30, batch_size=32, validation_split=0.2, verbose=0)
 
             # 保存
             os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
@@ -185,7 +175,7 @@ class TransformerPredictor(BasePredictor):
             return {"error": "TFT model not available"}
 
         try:
-            from src.features import add_advanced_features
+            from .features import add_advanced_features
 
             # 特徴量追加
             df_features = add_advanced_features(df.copy())
@@ -195,9 +185,7 @@ class TransformerPredictor(BasePredictor):
                 return {"error": "Insufficient data for TFT prediction"}
 
             # 最後のシーケンスを取得
-            X, _ = self.model.prepare_sequences(
-                df_features, sequence_length=30, forecast_horizon=days_ahead
-            )
+            X, _ = self.model.prepare_sequences(df_features, sequence_length=30, forecast_horizon=days_ahead)
 
             if len(X) == 0:
                 return {"error": "Failed to prepare sequences"}
@@ -209,9 +197,7 @@ class TransformerPredictor(BasePredictor):
             # 価格に変換（正規化を元に戻す）
             current_price = df["Close"].iloc[-1]
             # 予測値は変化率として解釈
-            predicted_prices = [
-                current_price * (1 + p) for p in predictions[:days_ahead]
-            ]
+            predicted_prices = [current_price * (1 + p) for p in predictions[:days_ahead]]
 
             # トレンド判定
             trend = "FLAT"
@@ -225,9 +211,7 @@ class TransformerPredictor(BasePredictor):
                 "predictions": predicted_prices,
                 "peak_price": max(predicted_prices),
                 "trend": trend,
-                "change_pct": (predicted_prices[-1] - current_price)
-                / current_price
-                * 100,
+                "change_pct": (predicted_prices[-1] - current_price) / current_price * 100,
                 "model": "TFT",
             }
 
@@ -239,7 +223,7 @@ class TransformerPredictor(BasePredictor):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    from src.data_loader import fetch_stock_data
+    from agstock.src.data_loader import fetch_stock_data
 
     data_map = fetch_stock_data(["7203.T"], period="2y")
     df = data_map.get("7203.T")

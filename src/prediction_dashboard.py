@@ -37,6 +37,8 @@ def create_prediction_analysis_dashboard():
 
     prediction_days = st.slider("予測日数", min_value=1, max_value=10, value=5)
 
+    fast_mode = st.checkbox("🚀 Scout Mode (高速予測)", value=False, help="アンサンブルAIを使わず、軽量なテクニカル分析で高速に予測します。")
+
     if st.button("🚀 バックテスト実行", type="primary", use_container_width=True):
         with st.spinner("バックテスト実行中...（数分かかる場合があります）"):
             backtester = PredictionBacktester()
@@ -46,6 +48,7 @@ def create_prediction_analysis_dashboard():
                 start_date=start_date.strftime("%Y-%m-%d"),
                 end_date=end_date.strftime("%Y-%m-%d"),
                 prediction_days=prediction_days,
+                fast_mode=fast_mode,
             )
 
             if "error" in result:
@@ -123,12 +126,8 @@ def create_prediction_analysis_dashboard():
             )
 
             # 予測ポイント（成功/失敗で色分け）
-            correct_preds = predictions_df[
-                predictions_df["predicted_trend"] == predictions_df["actual_trend"]
-            ]
-            wrong_preds = predictions_df[
-                predictions_df["predicted_trend"] != predictions_df["actual_trend"]
-            ]
+            correct_preds = predictions_df[predictions_df["predicted_trend"] == predictions_df["actual_trend"]]
+            wrong_preds = predictions_df[predictions_df["predicted_trend"] != predictions_df["actual_trend"]]
 
             # 予測価格のプロット（予測日の5日後などにプロットするのが正確だが、ここでは予測実行日にプロットし、矢印などで示すのが理想。
             # 簡易的に、予測実行日の価格に予測変動率を加味した点をプロットする）
@@ -172,9 +171,7 @@ def create_prediction_analysis_dashboard():
         st.markdown("### 📊 予測誤差の分布")
         fig2 = go.Figure()
 
-        errors = (
-            predictions_df["predicted_change_pct"] - predictions_df["actual_change_pct"]
-        )
+        errors = predictions_df["predicted_change_pct"] - predictions_df["actual_change_pct"]
 
         fig2.add_trace(
             go.Histogram(
@@ -198,11 +195,7 @@ def create_prediction_analysis_dashboard():
         # 3. トレンド予測の精度
         st.markdown("### 🎯 トレンド予測の詳細")
 
-        trend_comparison = (
-            predictions_df.groupby(["predicted_trend", "actual_trend"])
-            .size()
-            .unstack(fill_value=0)
-        )
+        trend_comparison = predictions_df.groupby(["predicted_trend", "actual_trend"]).size().unstack(fill_value=0)
 
         if not trend_comparison.empty:
             st.dataframe(trend_comparison, use_container_width=True)

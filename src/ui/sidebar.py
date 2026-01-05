@@ -7,9 +7,9 @@ import json
 
 import streamlit as st
 
-from src.constants import MARKETS, TICKER_NAMES
-from src.schemas import load_config as load_config_schema
-from src.services.defense import activate_defense, deactivate_defense, defense_status
+from agstock.src.constants import MARKETS, TICKER_NAMES
+from agstock.src.schemas import load_config as load_config_schema
+from agstock.src.services.defense import activate_defense, deactivate_defense, defense_status
 
 from src import demo_data  # noqa: F401  # imported for side-effects if needed
 
@@ -82,7 +82,7 @@ def render_sidebar():
         guidance = getattr(rm, "oracle_guidance", None)
         if guidance:
             st.sidebar.info(f"✨ Divine Shield: {guidance['max_drawdown_adj']:.1f}x Defense")
-        
+
         # Display VaR (Mock or stored value if available)
         st.sidebar.metric(label="予想最大損失率 (VaR)", value=f"{rm.confidence_level*100:.1f}%", delta="Oracle-Adj")
     else:
@@ -91,7 +91,8 @@ def render_sidebar():
     # --- Oracle 2026 Widget ---
     st.sidebar.subheader("🔮 Oracle 2026")
     try:
-        from src.ui.oracle_widget import render_oracle_sidebar
+        from agstock.src.ui.oracle_widget import render_oracle_sidebar
+
         render_oracle_sidebar()
     except Exception as e:
         st.sidebar.info(f"Oracle: {e}")

@@ -56,7 +56,9 @@ class StrategyGenerator:
     def _summarize_failures(self, failures: List[Dict[str, Any]]) -> str:
         summary = "【過去の失敗事例の概要】\n"
         for f in failures:
-            summary += f"- {f['ticker']}: 判断={f['decision']}, 理由={f['rationale']}, 収益率={f['return_1w'] * 100:.1f}%\n"
+            summary += (
+                f"- {f['ticker']}: 判断={f['decision']}, 理由={f['rationale']}, 収益率={f['return_1w'] * 100:.1f}%\n"
+            )
         return summary
 
     def _generate_strategy_code(self, context: str) -> str:

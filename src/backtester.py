@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Union
 import numpy as np
 import pandas as pd
 
-from src.strategies import Order, OrderType, Strategy
+from .strategies import Order, OrderType, Strategy
 
 
 class Backtester:
@@ -27,8 +27,8 @@ class Backtester:
         self,
         initial_capital: float = 100_000,
         position_size: Union[float, Dict[str, float]] = 0.1,
-        commission: float = 0.001,
-        slippage: float = 0.001,
+        commission: float = 0.0001,
+        slippage: float = 0.0001,
         allow_short: bool = True,
     ) -> None:
         self.initial_capital = initial_capital
@@ -577,7 +577,7 @@ class Backtester:
                 # ----- PROCESS ORDERS FROM SIGNALS -----
                 if isinstance(today_sig, Order):
                     # Order-based strategy
-                    if today_sig.side == 'BUY' and position == 0:
+                    if today_sig.side == "BUY" and position == 0:
                         # Enter long
                         # Use fixed fraction of portfolio for now
                         # In the original, it was a fixed amount (e.g., 100 shares)
@@ -589,7 +589,7 @@ class Backtester:
                             holdings[ticker] = size
                             entry_prices[ticker] = exec_price
                             highest_prices[ticker] = exec_price
-                    elif today_sig.side == 'SELL' and position > 0:
+                    elif today_sig.side == "SELL" and position > 0:
                         # Exit long
                         cash += position * exec_price
                         holdings[ticker] = 0.0

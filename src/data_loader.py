@@ -11,7 +11,7 @@ import pandas as pd
 import streamlit as st
 import yfinance as yf
 
-from src.constants import (
+from .constants import (
     CRYPTO_PAIRS,
     DEFAULT_REALTIME_BACKOFF_SECONDS,
     DEFAULT_REALTIME_TTL_SECONDS,
@@ -23,14 +23,14 @@ from src.constants import (
     MINIMUM_DATA_POINTS,
     STALE_DATA_MAX_AGE,
 )
-from src.data_manager import DataManager
-from src.data_quality_guard import evaluate_dataframe
-from src.helpers import retry_with_backoff
+from .data_manager import DataManager
+from .data_quality_guard import evaluate_dataframe
+from .helpers import retry_with_backoff
 
 logger = logging.getLogger(__name__)
 
 try:
-    from src.async_data_loader import AsyncDataLoader
+    from agstock.src.async_data_loader import AsyncDataLoader
 
     ASYNC_AVAILABLE = True
 except ImportError:
@@ -39,7 +39,7 @@ except ImportError:
     logger.warning("Async data loader not available; falling back to sync mode.")
 
 try:
-    from src.cache_manager import CacheManager
+    from agstock.src.cache_manager import CacheManager
 
     HAS_PERSISTENT_CACHE = True
 except ImportError:
@@ -362,9 +362,9 @@ def _sanitize_price_history(df: pd.DataFrame) -> pd.DataFrame:
     clean = clean.sort_index()
     idx = clean.index
     if idx.tzinfo is not None:
-        clean.index = idx.tz_convert(None)
+        clean.index = idx.tz_localize(None)
 
-    now = pd.Timestamp.utcnow()
+    now = pd.Timestamp.now()
     clean = clean[clean.index <= now + pd.Timedelta(minutes=1)]
 
     price_cols = [c for c in ["Open", "High", "Low", "Close", "Adj Close"] if c in clean.columns]
@@ -417,9 +417,7 @@ def fetch_stock_data(
             need_refresh.append(ticker)
 
     try:
-        downloaded = _download_and_cache_missing(
-            need_refresh, period, interval, start_date, db
-        )
+        downloaded = _download_and_cache_missing(need_refresh, period, interval, start_date, db)
         result.update(downloaded)
     except Exception as e:
         logger.error(f"Error downloading and caching missing data: {e}")

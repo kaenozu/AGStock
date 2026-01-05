@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Union
 import numpy as np
 import pandas as pd
 
-from src.strategies import Order, OrderType, Strategy
+from agstock.src.strategies import Order, OrderType, Strategy
 
 
 class TradeSimulator:
@@ -327,24 +327,36 @@ class TradeSimulator:
             should_execute = True
         elif today_sig.type == OrderType.LIMIT:
             if today_sig.action.upper() == "BUY":
-                if df["Low"].iloc[-1] if index is None else df["Low"].iloc[min(
-                        index + 1, len(df) - 1)] <= today_sig.price:
+                if (
+                    df["Low"].iloc[-1]
+                    if index is None
+                    else df["Low"].iloc[min(index + 1, len(df) - 1)] <= today_sig.price
+                ):
                     should_execute = True
                     fill_price = min(today_sig.price, exec_price)
             else:  # SELL
-                if df["High"].iloc[-1] if index is None else df["High"].iloc[min(
-                        index + 1, len(df) - 1)] >= today_sig.price:
+                if (
+                    df["High"].iloc[-1]
+                    if index is None
+                    else df["High"].iloc[min(index + 1, len(df) - 1)] >= today_sig.price
+                ):
                     should_execute = True
                     fill_price = max(today_sig.price, exec_price)
         elif today_sig.type == OrderType.STOP:
             if today_sig.action.upper() == "BUY":
-                if df["High"].iloc[-1] if index is None else df["High"].iloc[min(
-                        index + 1, len(df) - 1)] >= today_sig.price:
+                if (
+                    df["High"].iloc[-1]
+                    if index is None
+                    else df["High"].iloc[min(index + 1, len(df) - 1)] >= today_sig.price
+                ):
                     should_execute = True
                     fill_price = max(today_sig.price, exec_price)
             else:  # SELL
-                if df["Low"].iloc[-1] if index is None else df["Low"].iloc[min(
-                        index + 1, len(df) - 1)] <= today_sig.price:
+                if (
+                    df["Low"].iloc[-1]
+                    if index is None
+                    else df["Low"].iloc[min(index + 1, len(df) - 1)] <= today_sig.price
+                ):
                     should_execute = True
                     fill_price = min(today_sig.price, exec_price)
 

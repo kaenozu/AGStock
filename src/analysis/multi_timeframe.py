@@ -7,8 +7,8 @@ import logging
 from typing import Dict
 import pandas as pd
 
-from src.data_loader import fetch_stock_data
-from src.exceptions import DataFetchError
+from agstock.src.data_loader import fetch_stock_data
+from agstock.src.exceptions import DataFetchError
 
 logger = logging.getLogger(__name__)
 
@@ -58,9 +58,7 @@ class MultiTimeframeAnalyzer:
 
             # Analyze each timeframe
             daily_trend = self._get_trend(daily_df)
-            weekly_trend = (
-                self._get_trend(weekly_df) if weekly_df is not None else "NEUTRAL"
-            )
+            weekly_trend = self._get_trend(weekly_df) if weekly_df is not None else "NEUTRAL"
             hourly_momentum = self._get_momentum(daily_df)  # Use daily for momentum
 
             # Check alignment

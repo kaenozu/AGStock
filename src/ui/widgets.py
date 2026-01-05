@@ -5,7 +5,7 @@ Modern, consistent components for the dashboard.
 
 import streamlit as st
 from typing import Optional, Callable
-from src.ui.design_system import DS
+from agstock.src.ui.design_system import DS
 
 
 def metric_card(
@@ -141,9 +141,7 @@ def quick_action_button(
     # Use Streamlit button with custom styling
     button_key = f"quick_action_{label.replace(' ', '_')}"
 
-    if st.button(
-        f"{icon} {label}", key=button_key, disabled=disabled, use_container_width=True
-    ):
+    if st.button(f"{icon} {label}", key=button_key, disabled=disabled, use_container_width=True):
         if on_click:
             on_click()
 
@@ -225,9 +223,7 @@ def mini_chart(data: list, color: str = None, height: int = 40, width: int = 100
     st.markdown(svg, unsafe_allow_html=True)
 
 
-def progress_ring(
-    percentage: float, size: int = 60, stroke_width: int = 4, color: str = None
-):
+def progress_ring(percentage: float, size: int = 60, stroke_width: int = 4, color: str = None):
     """
     Circular progress indicator.
 

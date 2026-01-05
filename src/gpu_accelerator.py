@@ -32,18 +32,12 @@ class GPUAccelerator:
                 self.gpu_info["pytorch"] = {
                     "available": True,
                     "device_count": torch.cuda.device_count(),
-                    "device_name": torch.cuda.get_device_name(0)
-                    if torch.cuda.device_count() > 0
-                    else "N/A",
+                    "device_name": torch.cuda.get_device_name(0) if torch.cuda.device_count() > 0 else "N/A",
                     "memory_total": (
-                        torch.cuda.get_device_properties(0).total_memory
-                        if torch.cuda.device_count() > 0
-                        else 0
+                        torch.cuda.get_device_properties(0).total_memory if torch.cuda.device_count() > 0 else 0
                     ),
                 }
-                logger.info(
-                    f"CUDA GPU detected: {self.gpu_info['pytorch']['device_name']}"
-                )
+                logger.info(f"CUDA GPU detected: {self.gpu_info['pytorch']['device_name']}")
             else:
                 self.gpu_info["pytorch"] = {"available": False}
         except ImportError:
@@ -84,8 +78,7 @@ class GPUAccelerator:
 
             # LightGBMのGPUサポートは明示的にインストールが必要
             self.gpu_info["lightgbm"] = {
-                "available": "gpu" in lgb.__file__.lower()
-                or os.environ.get("LIGHTGBM_GPU", "0") == "1",
+                "available": "gpu" in lgb.__file__.lower() or os.environ.get("LIGHTGBM_GPU", "0") == "1",
                 "note": "GPU support requires special build",
             }
         except ImportError:

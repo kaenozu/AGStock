@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional, Union
 import numpy as np
 import pandas as pd
 
-from src.constants import (
+from agstock.src.constants import (
     BACKTEST_DEFAULT_COMMISSION_RATE,
     BACKTEST_DEFAULT_INITIAL_CAPITAL,
     BACKTEST_DEFAULT_POSITION_SIZE,
@@ -18,8 +18,8 @@ from src.constants import (
     BACKTEST_MIN_TRAINING_PERIOD_DAYS,
     BACKTEST_RETRAIN_PERIOD_DAYS,
 )
-from src.logger_config import logger
-from src.strategies.base import Order, OrderType, Strategy
+from agstock.src.logger_config import logger
+from agstock.src.strategies.base import Order, OrderType, Strategy
 
 
 class BacktestEngine:
@@ -69,6 +69,7 @@ class BacktestEngine:
         """
         # プロファイリングを開始
         import cProfile
+
         pr = cProfile.Profile()
         pr.enable()
         """Execute strategy(ies) on historical data.
@@ -474,8 +475,9 @@ class BacktestEngine:
         # 結果を出力
         import pstats
         from io import StringIO
+
         s = StringIO()
-        ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
+        ps = pstats.Stats(pr, stream=s).sort_stats("cumulative")
         ps.print_stats()
         print(s.getvalue())
 

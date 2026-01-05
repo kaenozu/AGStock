@@ -10,9 +10,7 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-def _population_stability_index(
-    expected: np.ndarray, actual: np.ndarray, bins: int = 10
-) -> float:
+def _population_stability_index(expected: np.ndarray, actual: np.ndarray, bins: int = 10) -> float:
     """PSIを計算（欠損・ゼロ割り込みに配慮）。"""
     expected = expected[~np.isnan(expected)]
     actual = actual[~np.isnan(actual)]
@@ -24,14 +22,10 @@ def _population_stability_index(
         expected_counts, _ = np.histogram(expected, bins=breakpoints)
         actual_counts, _ = np.histogram(actual, bins=breakpoints)
 
-        expected_perc = np.where(
-            expected_counts == 0, 1e-6, expected_counts / expected.size
-        )
+        expected_perc = np.where(expected_counts == 0, 1e-6, expected_counts / expected.size)
         actual_perc = np.where(actual_counts == 0, 1e-6, actual_counts / actual.size)
 
-        psi = np.sum(
-            (actual_perc - expected_perc) * np.log(actual_perc / expected_perc)
-        )
+        psi = np.sum((actual_perc - expected_perc) * np.log(actual_perc / expected_perc))
         return float(psi)
     except Exception as exc:
         logger.debug("PSI calculation failed: %s", exc)

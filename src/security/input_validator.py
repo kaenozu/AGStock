@@ -70,15 +70,11 @@ class InputValidator:
         try:
             if not isinstance(ticker, str):
                 errors.append("ティッカーは文字列である必要があります")
-                return ValidationResult(
-                    False, errors, warnings, time.time() - start_time
-                )
+                return ValidationResult(False, errors, warnings, time.time() - start_time)
 
             # 長さチェック
             if len(ticker) > self.limits["max_ticker_length"]:
-                errors.append(
-                    f"ティッカーが長すぎます: {len(ticker)} > {self.limits['max_ticker_length']}"
-                )
+                errors.append(f"ティッカーが長すぎます: {len(ticker)} > {self.limits['max_ticker_length']}")
 
             # パターンチェック
             if not re.match(self.patterns["ticker_symbol"], ticker.upper()):
@@ -92,9 +88,7 @@ class InputValidator:
             if self._is_cached(cache_key):
                 warnings.append("キャッシュされた検証結果を使用")
 
-            return ValidationResult(
-                len(errors) == 0, errors, warnings, sanitized, time.time() - start_time
-            )
+            return ValidationResult(len(errors) == 0, errors, warnings, sanitized, time.time() - start_time)
 
         except Exception as e:
             logger.error(f"ティッカー検証エラー: {e}")
@@ -112,17 +106,13 @@ class InputValidator:
             if isinstance(price, str):
                 if not re.match(self.patterns["price"], price):
                     errors.append(f"無効な価格形式です: {price}")
-                    return ValidationResult(
-                        False, errors, warnings, time.time() - start_time
-                    )
+                    return ValidationResult(False, errors, warnings, time.time() - start_time)
                 price = float(price)
             elif isinstance(price, (int, float)):
                 price = float(price)
             else:
                 errors.append("価格は数値または文字列である必要があります")
-                return ValidationResult(
-                    False, errors, warnings, time.time() - start_time
-                )
+                return ValidationResult(False, errors, warnings, time.time() - start_time)
 
             # 範囲チェック
             if price < self.limits["min_price"]:
@@ -130,9 +120,7 @@ class InputValidator:
             elif price > self.limits["max_price"]:
                 errors.append(f"価格が高すぎます: {price} > {self.limits['max_price']}")
 
-            return ValidationResult(
-                len(errors) == 0, errors, warnings, price, time.time() - start_time
-            )
+            return ValidationResult(len(errors) == 0, errors, warnings, price, time.time() - start_time)
 
         except Exception as e:
             logger.error(f"価格検証エラー: {e}")
@@ -153,32 +141,22 @@ class InputValidator:
                 quantity = float(quantity)
             else:
                 errors.append("数量は数値または文字列である必要があります")
-                return ValidationResult(
-                    False, errors, warnings, time.time() - start_time
-                )
+                return ValidationResult(False, errors, warnings, time.time() - start_time)
 
             # 整数チェック
             if not quantity.is_integer():
                 errors.append("数量は整数である必要があります")
-                return ValidationResult(
-                    False, errors, warnings, time.time() - start_time
-                )
+                return ValidationResult(False, errors, warnings, time.time() - start_time)
 
             quantity = int(quantity)
 
             # 範囲チェック
             if quantity < self.limits["min_quantity"]:
-                errors.append(
-                    f"数量が小さすぎます: {quantity} < {self.limits['min_quantity']}"
-                )
+                errors.append(f"数量が小さすぎます: {quantity} < {self.limits['min_quantity']}")
             elif quantity > self.limits["max_quantity"]:
-                errors.append(
-                    f"数量が大きすぎます: {quantity} > {self.limits['max_quantity']}"
-                )
+                errors.append(f"数量が大きすぎます: {quantity} > {self.limits['max_quantity']}")
 
-            return ValidationResult(
-                len(errors) == 0, errors, warnings, quantity, time.time() - start_time
-            )
+            return ValidationResult(len(errors) == 0, errors, warnings, quantity, time.time() - start_time)
 
         except Exception as e:
             logger.error(f"数量検証エラー: {e}")
@@ -195,25 +173,19 @@ class InputValidator:
             if isinstance(data, str):
                 # 文字列長チェック
                 if len(data) > self.limits["max_json_size"]:
-                    errors.append(
-                        f"JSONデータが大きすぎます: {len(data)} > {self.limits['max_json_size']}"
-                    )
+                    errors.append(f"JSONデータが大きすぎます: {len(data)} > {self.limits['max_json_size']}")
 
                 # JSONパース
                 try:
                     parsed_data = json.loads(data)
                 except json.JSONDecodeError as e:
                     errors.append(f"無効なJSON形式です: {e}")
-                    return ValidationResult(
-                        False, errors, warnings, time.time() - start_time
-                    )
+                    return ValidationResult(False, errors, warnings, time.time() - start_time)
             elif isinstance(data, dict):
                 parsed_data = data
             else:
                 errors.append("JSONデータは文字列または辞書である必要があります")
-                return ValidationResult(
-                    False, errors, warnings, time.time() - start_time
-                )
+                return ValidationResult(False, errors, warnings, time.time() - start_time)
 
             # 深さチェック
             max_depth = self._get_json_depth(parsed_data)
@@ -277,9 +249,7 @@ class RateLimiter:
 
             # 古いリクエストを削除
             self._requests[client_id] = [
-                req_time
-                for req_time in self._requests[client_id]
-                if now - req_time < self.window_size
+                req_time for req_time in self._requests[client_id] if now - req_time < self.window_size
             ]
 
             # リクエスト数チェック
@@ -297,11 +267,7 @@ class RateLimiter:
                 return self.max_requests
 
             now = datetime.now()
-            recent_requests = [
-                req_time
-                for req_time in self._requests[client_id]
-                if now - req_time < self.window_size
-            ]
+            recent_requests = [req_time for req_time in self._requests[client_id] if now - req_time < self.window_size]
 
             return max(0, self.max_requests - len(recent_requests))
 
@@ -334,16 +300,12 @@ class ThreadSafeDataProcessor:
                     return self._active_tasks[task_id]
 
             # タスクを submit
-            future = self.executor.submit(
-                self._process_with_validation, task_id, data, processor_func
-            )
+            future = self.executor.submit(self._process_with_validation, task_id, data, processor_func)
             self._active_tasks[task_id] = future
 
             return future
 
-    def _process_with_validation(
-        self, task_id: str, data: Any, processor_func: Callable
-    ) -> Any:
+    def _process_with_validation(self, task_id: str, data: Any, processor_func: Callable) -> Any:
         """検証付きでデータを処理"""
         try:
             # 入力検証

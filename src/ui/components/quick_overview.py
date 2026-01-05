@@ -14,7 +14,8 @@ import streamlit as st
 
 def render_quick_overview():
     """クイック概要をレンダリング"""
-    st.markdown("""
+    st.markdown(
+        """
     <style>
     .overview-card {
         background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.9));
@@ -53,7 +54,9 @@ def render_quick_overview():
         margin: 0.5rem 0;
     }
     </style>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
     # データ取得
     portfolio_data = _get_portfolio_data()
@@ -74,12 +77,7 @@ def render_quick_overview():
     cols = st.columns(4)
 
     with cols[0]:
-        _render_metric_card(
-            "総資産",
-            portfolio_data.get("total_value", 0),
-            prefix="¥",
-            format_type="currency"
-        )
+        _render_metric_card("総資産", portfolio_data.get("total_value", 0), prefix="¥", format_type="currency")
 
     with cols[1]:
         pnl = portfolio_data.get("total_pnl", 0)
@@ -90,7 +88,7 @@ def render_quick_overview():
             prefix="¥",
             suffix=f" ({pnl_pct:+.2f}%)",
             format_type="currency",
-            color="profit" if pnl >= 0 else "loss"
+            color="profit" if pnl >= 0 else "loss",
         )
 
     with cols[2]:
@@ -99,16 +97,11 @@ def render_quick_overview():
             portfolio_data.get("today_pnl", 0),
             prefix="¥",
             format_type="currency",
-            color="profit" if portfolio_data.get("today_pnl", 0) >= 0 else "loss"
+            color="profit" if portfolio_data.get("today_pnl", 0) >= 0 else "loss",
         )
 
     with cols[3]:
-        _render_metric_card(
-            "アラート",
-            len(alerts),
-            suffix="件",
-            color="loss" if len(alerts) > 0 else "neutral"
-        )
+        _render_metric_card("アラート", len(alerts), suffix="件", color="loss" if len(alerts) > 0 else "neutral")
 
     st.markdown("---")
 
@@ -143,12 +136,7 @@ def render_quick_overview():
 
 
 def _render_metric_card(
-    label: str,
-    value: float,
-    prefix: str = "",
-    suffix: str = "",
-    format_type: str = "number",
-    color: str = "neutral"
+    label: str, value: float, prefix: str = "", suffix: str = "", format_type: str = "number", color: str = "neutral"
 ):
     """メトリクスカードをレンダリング"""
     if format_type == "currency":
@@ -162,12 +150,15 @@ def _render_metric_card(
         formatted = f"{value:,.0f}"
 
     color_class = color
-    st.markdown(f"""
+    st.markdown(
+        f"""
     <div class="overview-card">
         <p class="metric-label">{label}</p>
         <p class="metric-large {color_class}">{prefix}{formatted}{suffix}</p>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 def _render_positions_mini(positions: List[Dict]):
@@ -186,14 +177,17 @@ def _render_positions_mini(positions: List[Dict]):
         weight = row.get("weight", 0) * 100
 
         color = "#22c55e" if pnl >= 0 else "#ef4444"
-        st.markdown(f"""
+        st.markdown(
+            f"""
         <div style="display: flex; justify-content: space-between; align-items: center;
                     padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 8px; margin: 0.25rem 0;">
             <span style="font-weight: 600;">{ticker}</span>
             <span style="color: {color}; font-weight: 500;">{pnl_pct:+.2f}%</span>
             <span style="color: #94a3b8; font-size: 0.875rem;">{weight:.1f}%</span>
         </div>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
 
 
 def _render_action_card(action: Dict):
@@ -210,13 +204,16 @@ def _render_action_card(action: Dict):
     }
     icon = icon_map.get(action_type, "ℹ️")
 
-    st.markdown(f"""
+    st.markdown(
+        f"""
     <div class="action-card">
         <span style="font-size: 1.25rem;">{icon}</span>
         <strong>{ticker}</strong>
         <p style="margin: 0.25rem 0 0 0; color: #94a3b8; font-size: 0.875rem;">{message}</p>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 def _render_alert(alert: Dict):
@@ -249,19 +246,23 @@ def _render_market_status(status: Dict):
             change = data.get("change", 0)
             color = "#22c55e" if change >= 0 else "#ef4444"
 
-            st.markdown(f"""
+            st.markdown(
+                f"""
             <div style="text-align: center; padding: 0.5rem;">
                 <p style="color: #94a3b8; font-size: 0.75rem; margin: 0;">{name}</p>
                 <p style="font-size: 1.25rem; font-weight: 600; margin: 0.25rem 0;">{value:,.2f}</p>
                 <p style="color: {color}; font-size: 0.875rem; margin: 0;">{change:+.2f}%</p>
             </div>
-            """, unsafe_allow_html=True)
+            """,
+                unsafe_allow_html=True,
+            )
 
 
 def _get_portfolio_data() -> Dict[str, Any]:
     """ポートフォリオデータを取得"""
     try:
-        from src.paper_trader import PaperTrader
+        from agstock.src.paper_trader import PaperTrader
+
         pt = PaperTrader()
 
         cash = pt.get_cash()
@@ -282,14 +283,16 @@ def _get_portfolio_data() -> Dict[str, Any]:
 
             total_position_value += value
 
-            position_list.append({
-                "ticker": ticker,
-                "quantity": qty,
-                "value": value,
-                "pnl": pnl,
-                "pnl_pct": pnl_pct,
-                "weight": 0,  # 後で計算
-            })
+            position_list.append(
+                {
+                    "ticker": ticker,
+                    "quantity": qty,
+                    "value": value,
+                    "pnl": pnl,
+                    "pnl_pct": pnl_pct,
+                    "weight": 0,  # 後で計算
+                }
+            )
 
         total_value = cash + total_position_value
 
@@ -348,15 +351,19 @@ def _get_active_alerts() -> List[Dict]:
 
                 for r in results:
                     if r.get("Action") == "BUY":
-                        alerts.append({
-                            "level": "info",
-                            "message": f"{r.get('Ticker')}: 買いシグナル検出",
-                        })
+                        alerts.append(
+                            {
+                                "level": "info",
+                                "message": f"{r.get('Ticker')}: 買いシグナル検出",
+                            }
+                        )
                     elif r.get("Action") == "SELL":
-                        alerts.append({
-                            "level": "warning",
-                            "message": f"{r.get('Ticker')}: 売りシグナル検出",
-                        })
+                        alerts.append(
+                            {
+                                "level": "warning",
+                                "message": f"{r.get('Ticker')}: 売りシグナル検出",
+                            }
+                        )
     except Exception:
         pass
 
@@ -376,11 +383,13 @@ def _get_next_actions() -> List[Dict]:
                 for r in results:
                     action_type = r.get("Action", "HOLD")
                     if action_type != "HOLD":
-                        actions.append({
-                            "type": action_type,
-                            "ticker": r.get("Ticker", ""),
-                            "message": r.get("Reason", "シグナル検出"),
-                        })
+                        actions.append(
+                            {
+                                "type": action_type,
+                                "ticker": r.get("Ticker", ""),
+                                "message": r.get("Reason", "シグナル検出"),
+                            }
+                        )
     except Exception:
         pass
 

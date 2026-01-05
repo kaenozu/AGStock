@@ -55,9 +55,7 @@ class SmartCache:
         """Determine asset type from ticker symbol."""
         ticker_upper = ticker.upper()
 
-        if any(
-            crypto in ticker_upper for crypto in ["BTC", "ETH", "DOGE", "SOL", "XRP"]
-        ):
+        if any(crypto in ticker_upper for crypto in ["BTC", "ETH", "DOGE", "SOL", "XRP"]):
             return "crypto"
         elif ticker_upper.endswith("=X") or "USD" in ticker_upper:
             return "fx"
@@ -93,9 +91,7 @@ class SmartCache:
             del self._cache[key]
             logger.debug(f"Evicted cache entry: {key}")
 
-    def get(
-        self, ticker: str, period: str, interval: str = "1d"
-    ) -> Optional[pd.DataFrame]:
+    def get(self, ticker: str, period: str, interval: str = "1d") -> Optional[pd.DataFrame]:
         """Get cached data if available and valid."""
         key = self._make_cache_key(ticker, period, interval)
 
@@ -107,9 +103,7 @@ class SmartCache:
                 entry.access_count += 1
                 entry.last_access = time.time()
 
-                logger.debug(
-                    f"Cache HIT: {key} (age: {time.time() - entry.timestamp:.1f}s)"
-                )
+                logger.debug(f"Cache HIT: {key} (age: {time.time() - entry.timestamp:.1f}s)")
                 return entry.data.copy()
 
             logger.debug(f"Cache MISS: {key}")
@@ -180,9 +174,7 @@ class SmartCache:
             logger.error(f"Fetch failed for {ticker}: {e}")
             return pd.DataFrame()
 
-    def _prefetch_related(
-        self, ticker: str, period: str, fetch_func: Callable, interval: str
-    ):
+    def _prefetch_related(self, ticker: str, period: str, fetch_func: Callable, interval: str):
         """Predictively prefetch related tickers (e.g., sector peers)."""
         # Simple heuristic: prefetch major indices
         related_tickers = []
@@ -207,9 +199,7 @@ class SmartCache:
         with self._lock:
             if ticker:
                 # Invalidate specific ticker
-                keys_to_remove = [
-                    k for k in self._cache.keys() if k.startswith(f"{ticker}::")
-                ]
+                keys_to_remove = [k for k in self._cache.keys() if k.startswith(f"{ticker}::")]
                 for key in keys_to_remove:
                     del self._cache[key]
                 logger.info(f"Invalidated cache for {ticker}")

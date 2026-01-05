@@ -40,9 +40,7 @@ class FeatureImportanceFilter:
         with open(IMPORTANCE_PATH, "w") as f:
             json.dump(scores, f, indent=2)
 
-    def calculate_importance(
-        self, model, X: pd.DataFrame, feature_names: List[str]
-    ) -> Dict[str, float]:
+    def calculate_importance(self, model, X: pd.DataFrame, feature_names: List[str]) -> Dict[str, float]:
         """
         SHAPを使用して特徴量重要度を計算
 
@@ -105,9 +103,7 @@ class FeatureImportanceFilter:
 
         # 重要な特徴量のみ選択
         important_features = [
-            f
-            for f, score in self.importance_scores.items()
-            if score >= self.min_importance and f in df.columns
+            f for f, score in self.importance_scores.items() if score >= self.min_importance and f in df.columns
         ]
 
         if not important_features:
@@ -119,9 +115,7 @@ class FeatureImportanceFilter:
 
         self.selected_features = [f for f in important_features if f not in required]
 
-        logger.info(
-            f"Selected {len(self.selected_features)} important features out of {len(df.columns)}"
-        )
+        logger.info(f"Selected {len(self.selected_features)} important features out of {len(df.columns)}")
 
         return df[keep_cols]
 
@@ -130,9 +124,7 @@ class FeatureImportanceFilter:
         if not self.importance_scores:
             return []
 
-        sorted_features = sorted(
-            self.importance_scores.items(), key=lambda x: x[1], reverse=True
-        )
+        sorted_features = sorted(self.importance_scores.items(), key=lambda x: x[1], reverse=True)
 
         return sorted_features[:n]
 

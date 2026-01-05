@@ -24,9 +24,7 @@ class TimeSeriesCV:
         self.n_splits = n_splits
         self.gap = gap
 
-    def split(
-        self, X: pd.DataFrame, y: pd.Series = None
-    ) -> Generator[Tuple, None, None]:
+    def split(self, X: pd.DataFrame, y: pd.Series = None) -> Generator[Tuple, None, None]:
         """
         時系列データを分割
 
@@ -98,9 +96,7 @@ class WalkForwardOptimizer:
             start += self.step
 
 
-def evaluate_with_cv(
-    model_factory, X: pd.DataFrame, y: pd.Series, cv=None, metric: str = "accuracy"
-) -> Dict:
+def evaluate_with_cv(model_factory, X: pd.DataFrame, y: pd.Series, cv=None, metric: str = "accuracy") -> Dict:
     """
     クロスバリデーションでモデルを評価
 

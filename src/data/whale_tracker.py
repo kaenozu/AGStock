@@ -29,9 +29,7 @@ class WhaleTracker:
         is_spike = volume_ratio > self.threshold_factor
 
         # 2. Price Correlation
-        price_change = (df["Close"].iloc[-1] - df["Open"].iloc[-1]) / df["Open"].iloc[
-            -1
-        ]
+        price_change = (df["Close"].iloc[-1] - df["Open"].iloc[-1]) / df["Open"].iloc[-1]
 
         whale_detected = False
         action_type = "UNKNOWN"

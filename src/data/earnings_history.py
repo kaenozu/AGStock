@@ -39,19 +39,13 @@ class EarningsHistory:
                 try:
                     cursor.execute("SELECT ticker FROM earnings_reports LIMIT 1")
                 except sqlite3.OperationalError:
-                    cursor.execute(
-                        "ALTER TABLE earnings_reports ADD COLUMN ticker TEXT"
-                    )
+                    cursor.execute("ALTER TABLE earnings_reports ADD COLUMN ticker TEXT")
 
                 try:
                     cursor.execute("SELECT sector FROM earnings_reports LIMIT 1")
                 except sqlite3.OperationalError:
-                    cursor.execute(
-                        "ALTER TABLE earnings_reports ADD COLUMN sector TEXT"
-                    )
-                    cursor.execute(
-                        "ALTER TABLE earnings_reports ADD COLUMN industry TEXT"
-                    )
+                    cursor.execute("ALTER TABLE earnings_reports ADD COLUMN sector TEXT")
+                    cursor.execute("ALTER TABLE earnings_reports ADD COLUMN industry TEXT")
 
                 conn.commit()
         except Exception as e:

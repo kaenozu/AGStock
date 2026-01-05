@@ -24,9 +24,7 @@ class ReportVisualizer:
         except Exception as e:
             logger.warning(f"Failed to apply dark background style: {e}")
 
-    def generate_equity_chart(
-        self, history_df: pd.DataFrame, filename: str = "equity_chart.png"
-    ) -> str:
+    def generate_equity_chart(self, history_df: pd.DataFrame, filename: str = "equity_chart.png") -> str:
         """
         資産推移チャートを生成する
 
@@ -114,9 +112,7 @@ class ReportVisualizer:
             logger.error(f"Failed to generate equity chart: {e}")
             return None
 
-    def generate_pnl_bar_chart(
-        self, daily_pnl: float, filename: str = "daily_pnl.png"
-    ) -> str:
+    def generate_pnl_bar_chart(self, daily_pnl: float, filename: str = "daily_pnl.png") -> str:
         """
         日次損益のバーチャートを生成する（シンプル版）
 

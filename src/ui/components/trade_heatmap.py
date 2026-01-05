@@ -53,13 +53,7 @@ def render_trade_heatmap(trades_df: pd.DataFrame):
     weekday_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
     # ピボットテーブル作成
-    pivot = df.pivot_table(
-        values="pnl",
-        index="hour",
-        columns="weekday",
-        aggfunc="sum",
-        fill_value=0
-    )
+    pivot = df.pivot_table(values="pnl", index="hour", columns="weekday", aggfunc="sum", fill_value=0)
 
     # 曜日の順序を並べ替え
     existing_weekdays = [w for w in weekday_order if w in pivot.columns]
@@ -69,21 +63,23 @@ def render_trade_heatmap(trades_df: pd.DataFrame):
     pivot = pivot.sort_index()
 
     # ヒートマップ作成
-    fig = go.Figure(data=go.Heatmap(
-        z=pivot.values,
-        x=pivot.columns,
-        y=[f"{h:02d}:00" for h in pivot.index],
-        colorscale=[
-            [0, "#ef4444"],      # 赤（損失）
-            [0.5, "#1e293b"],   # ニュートラル
-            [1, "#22c55e"],      # 緑（利益）
-        ],
-        zmid=0,
-        text=[[f"¥{v:,.0f}" for v in row] for row in pivot.values],
-        texttemplate="%{text}",
-        textfont={"size": 10},
-        hovertemplate="%{y} %{x}<br>損益: ¥%{z:,.0f}<extra></extra>",
-    ))
+    fig = go.Figure(
+        data=go.Heatmap(
+            z=pivot.values,
+            x=pivot.columns,
+            y=[f"{h:02d}:00" for h in pivot.index],
+            colorscale=[
+                [0, "#ef4444"],  # 赤（損失）
+                [0.5, "#1e293b"],  # ニュートラル
+                [1, "#22c55e"],  # 緑（利益）
+            ],
+            zmid=0,
+            text=[[f"¥{v:,.0f}" for v in row] for row in pivot.values],
+            texttemplate="%{text}",
+            textfont={"size": 10},
+            hovertemplate="%{y} %{x}<br>損益: ¥%{z:,.0f}<extra></extra>",
+        )
+    )
 
     fig.update_layout(
         title={
@@ -148,14 +144,16 @@ def render_monthly_performance(trades_df: pd.DataFrame):
     # バーチャート
     colors = ["#22c55e" if v >= 0 else "#ef4444" for v in monthly["pnl"]]
 
-    fig = go.Figure(data=go.Bar(
-        x=monthly["month_str"],
-        y=monthly["pnl"],
-        marker_color=colors,
-        text=[f"¥{v:,.0f}" for v in monthly["pnl"]],
-        textposition="outside",
-        hovertemplate="%{x}<br>損益: ¥%{y:,.0f}<extra></extra>",
-    ))
+    fig = go.Figure(
+        data=go.Bar(
+            x=monthly["month_str"],
+            y=monthly["pnl"],
+            marker_color=colors,
+            text=[f"¥{v:,.0f}" for v in monthly["pnl"]],
+            textposition="outside",
+            hovertemplate="%{x}<br>損益: ¥%{y:,.0f}<extra></extra>",
+        )
+    )
 
     fig.update_layout(
         title={
@@ -182,31 +180,33 @@ def render_win_rate_gauge(win_rate: float):
     Args:
         win_rate: 勝率（%）
     """
-    fig = go.Figure(go.Indicator(
-        mode="gauge+number+delta",
-        value=win_rate,
-        domain={"x": [0, 1], "y": [0, 1]},
-        title={"text": "勝率", "font": {"size": 16, "color": "#94a3b8"}},
-        number={"suffix": "%", "font": {"size": 40, "color": "#f8fafc"}},
-        delta={"reference": 50, "suffix": "%"},
-        gauge={
-            "axis": {"range": [0, 100], "tickwidth": 1, "tickcolor": "#94a3b8"},
-            "bar": {"color": "#3b82f6"},
-            "bgcolor": "rgba(30, 41, 59, 0.5)",
-            "borderwidth": 2,
-            "bordercolor": "rgba(255, 255, 255, 0.1)",
-            "steps": [
-                {"range": [0, 40], "color": "rgba(239, 68, 68, 0.3)"},
-                {"range": [40, 60], "color": "rgba(245, 158, 11, 0.3)"},
-                {"range": [60, 100], "color": "rgba(34, 197, 94, 0.3)"},
-            ],
-            "threshold": {
-                "line": {"color": "#f8fafc", "width": 4},
-                "thickness": 0.75,
-                "value": win_rate,
+    fig = go.Figure(
+        go.Indicator(
+            mode="gauge+number+delta",
+            value=win_rate,
+            domain={"x": [0, 1], "y": [0, 1]},
+            title={"text": "勝率", "font": {"size": 16, "color": "#94a3b8"}},
+            number={"suffix": "%", "font": {"size": 40, "color": "#f8fafc"}},
+            delta={"reference": 50, "suffix": "%"},
+            gauge={
+                "axis": {"range": [0, 100], "tickwidth": 1, "tickcolor": "#94a3b8"},
+                "bar": {"color": "#3b82f6"},
+                "bgcolor": "rgba(30, 41, 59, 0.5)",
+                "borderwidth": 2,
+                "bordercolor": "rgba(255, 255, 255, 0.1)",
+                "steps": [
+                    {"range": [0, 40], "color": "rgba(239, 68, 68, 0.3)"},
+                    {"range": [40, 60], "color": "rgba(245, 158, 11, 0.3)"},
+                    {"range": [60, 100], "color": "rgba(34, 197, 94, 0.3)"},
+                ],
+                "threshold": {
+                    "line": {"color": "#f8fafc", "width": 4},
+                    "thickness": 0.75,
+                    "value": win_rate,
+                },
             },
-        },
-    ))
+        )
+    )
 
     fig.update_layout(
         paper_bgcolor="rgba(0,0,0,0)",
@@ -240,19 +240,27 @@ def render_sector_allocation(positions: List[dict]):
 
     # カラーパレット
     colors = [
-        "#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b",
-        "#22c55e", "#06b6d4", "#f97316", "#6366f1",
+        "#3b82f6",
+        "#8b5cf6",
+        "#ec4899",
+        "#f59e0b",
+        "#22c55e",
+        "#06b6d4",
+        "#f97316",
+        "#6366f1",
     ]
 
-    fig = go.Figure(data=go.Pie(
-        labels=labels,
-        values=values,
-        hole=0.6,
-        marker={"colors": colors[:len(labels)]},
-        textinfo="label+percent",
-        textposition="outside",
-        hovertemplate="%{label}<br>¥%{value:,.0f}<br>%{percent}<extra></extra>",
-    ))
+    fig = go.Figure(
+        data=go.Pie(
+            labels=labels,
+            values=values,
+            hole=0.6,
+            marker={"colors": colors[: len(labels)]},
+            textinfo="label+percent",
+            textposition="outside",
+            hovertemplate="%{label}<br>¥%{value:,.0f}<br>%{percent}<extra></extra>",
+        )
+    )
 
     fig.update_layout(
         title={
@@ -264,14 +272,16 @@ def render_sector_allocation(positions: List[dict]):
         height=400,
         showlegend=True,
         legend={"orientation": "h", "y": -0.1},
-        annotations=[{
-            "text": f"¥{sum(values):,.0f}",
-            "x": 0.5,
-            "y": 0.5,
-            "font_size": 20,
-            "showarrow": False,
-            "font": {"color": "#f8fafc"},
-        }],
+        annotations=[
+            {
+                "text": f"¥{sum(values):,.0f}",
+                "x": 0.5,
+                "y": 0.5,
+                "font_size": 20,
+                "showarrow": False,
+                "font": {"color": "#f8fafc"},
+            }
+        ],
     )
 
     st.plotly_chart(fig, use_container_width=True)
