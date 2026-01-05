@@ -4,6 +4,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+
 def optimize_sqlite_connection(conn: sqlite3.Connection):
     """Enable performance optimizations for a SQLite connection."""
     try:
@@ -18,6 +19,7 @@ def optimize_sqlite_connection(conn: sqlite3.Connection):
         cursor.execute("PRAGMA temp_store=MEMORY;")
     except Exception as e:
         logger.warning(f"Failed to optimize SQLite connection: {e}")
+
 
 def create_composite_indexes(db_path: str, table_name: str, columns: list):
     """Create a composite index if it doesn't exist."""

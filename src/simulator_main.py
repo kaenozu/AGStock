@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 import pandas as pd
 
-from src.strategies import Order, OrderType, Strategy
+from agstock.src.strategies import Order, OrderType, Strategy
 
 from .simulator_core import TradeSimulatorCore
 
@@ -40,17 +40,13 @@ class TradeSimulator(TradeSimulatorCore):
         signals_map = self._generate_signals(data, strategy_map)
 
         # 統一インデックス作成
-        all_dates = sorted(
-            set().union(*[df.index for df in data.values() if df is not None])
-        )
+        all_dates = sorted(set().union(*[df.index for df in data.values() if df is not None]))
         full_index = pd.DatetimeIndex(all_dates)
 
         # 初期化
         cash = self.initial_capital
         holdings: Dict[str, float] = {t: 0.0 for t in data}
-        self.entry_prices: Dict[str, float] = {
-            t: 0.0 for t in data
-        }  # インスタンス変数として定義
+        self.entry_prices: Dict[str, float] = {t: 0.0 for t in data}  # インスタンス変数として定義
         trades: List[Dict[str, Any]] = []
         portfolio_value_history: List[float] = []
         position_history: List[int] = []
@@ -61,19 +57,13 @@ class TradeSimulator(TradeSimulatorCore):
         aligned_data: Dict[str, pd.DataFrame] = {}
         for ticker, df in data.items():
             aligned = df.reindex(full_index).ffill()
-            aligned["Signal"] = (
-                signals_map.get(ticker, pd.Series(0, index=df.index))
-                .reindex(full_index)
-                .fillna(0)
-            )
+            aligned["Signal"] = signals_map.get(ticker, pd.Series(0, index=df.index)).reindex(full_index).fillna(0)
             aligned_data[ticker] = aligned
 
         # メミュレーションループ
         for i in range(len(full_index) - 1):
             # ポ場価値計算
-            current_portfolio_value = self._calculate_portfolio_value(
-                cash, holdings, aligned_data, i, final_calc=False
-            )
+            current_portfolio_value = self._calculate_portfolio_value(cash, holdings, aligned_data, i, final_calc=False)
 
             for ticker, df in aligned_data.items():
                 today_sig = df["Signal"].iloc[i]
@@ -93,16 +83,10 @@ class TradeSimulator(TradeSimulatorCore):
                         # トレーピングストップ更新
                         if trailing_stop and trailing_stop > 0:
                             new_stop = highest_prices[ticker] * (1 - trailing_stop)
-                            trailing_stop_levels[ticker] = max(
-                                trailing_stop_levels[ticker], new_stop
-                            )
+                            trailing_stop_levels[ticker] = max(trailing_stop_levels[ticker], new_stop)
 
                         # トレーピングストップ
-                        if (
-                            trailing_stop
-                            and trailing_stop > 0
-                            and today_low <= trailing_stop_levels[ticker]
-                        ):
+                        if trailing_stop and trailing_stop > 0 and today_low <= trailing_stop_levels[ticker]:
                             trades.append(
                                 self._create_trade_record(
                                     ticker,
@@ -122,9 +106,7 @@ class TradeSimulator(TradeSimulatorCore):
                             continue
 
                         # 利確
-                        elif (
-                            take_profit and (today_high - entry) / entry >= take_profit
-                        ):
+                        elif take_profit and (today_high - entry) / entry >= take_profit:
                             take_profit_price = entry * (1 + take_profit)
                             trades.append(
                                 self._create_trade_record(
@@ -224,9 +206,7 @@ class TradeSimulator(TradeSimulatorCore):
                     )
 
             # ポ場総額計算
-            end_of_day_value = self._calculate_portfolio_value(
-                cash, holdings, aligned_data, i, final_calc=True
-            )
+            end_of_day_value = self._calculate_portfolio_value(cash, holdings, aligned_data, i, final_calc=True)
             portfolio_value_history.append(end_of_day_value)
 
             # ポジション履歴
@@ -366,9 +346,7 @@ class TradeSimulator(TradeSimulatorCore):
                     qty = (
                         today_sig.quantity
                         if today_sig.quantity
-                        else self._size_position(
-                            ticker, current_portfolio_value, fill_price
-                        )
+                        else self._size_position(ticker, current_portfolio_value, fill_price)
                     )
                     holdings[ticker] = qty
                     self.entry_prices[ticker] = fill_price

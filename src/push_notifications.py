@@ -60,25 +60,18 @@ class LineNotifyClient:
         data = {"message": f"{notification.title}\\n\\n{notification.message}"}
 
         # 添付ファイル（オプション）
-        if (
-            notification.channel == "line_with_image"
-            and "chart_image" in notification.data
-        ):
+        if notification.channel == "line_with_image" and "chart_image" in notification.data:
             files = {"imageFile": notification.data["chart_image"]}
             headers.pop("Content-Type")  # Multipartでは自動設定
 
             try:
-                response = requests.post(
-                    self.api_url, headers=headers, data=data, files=files, timeout=10
-                )
+                response = requests.post(self.api_url, headers=headers, data=data, files=files, timeout=10)
             except requests.RequestException as e:
                 logger.error(f"LINE notification with image failed: {e}")
                 return False
         else:
             try:
-                response = requests.post(
-                    self.api_url, headers=headers, data=data, timeout=10
-                )
+                response = requests.post(self.api_url, headers=headers, data=data, timeout=10)
             except requests.RequestException as e:
                 logger.error(f"LINE notification failed: {e}")
                 return False
@@ -141,9 +134,7 @@ class SlackNotifyClient:
                         },
                         {
                             "title": "時刻",
-                            "value": notification.timestamp.strftime(
-                                "%Y-%m-%d %H:%M:%S"
-                            ),
+                            "value": notification.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
                             "short": True,
                         },
                     ],
@@ -204,9 +195,7 @@ class SlackNotifyClient:
         """接続テスト"""
         if self.webhook_url:
             try:
-                response = requests.post(
-                    self.webhook_url, json={"text": "Connection test"}, timeout=5
-                )
+                response = requests.post(self.webhook_url, json={"text": "Connection test"}, timeout=5)
                 return response.status_code == 200
             except Exception:
                 return False
@@ -316,9 +305,7 @@ class EmailNotifyClient:
             server.login(self.smtp_config["username"], self.smtp_config["password"])
 
             text = msg.as_string()
-            server.sendmail(
-                self.smtp_config["from_email"], [notification.user_id], text
-            )
+            server.sendmail(self.smtp_config["from_email"], [notification.user_id], text)
             server.quit()
 
             return True
@@ -346,9 +333,7 @@ class BrowserPushClient:
         self.vapid_private_key = os.getenv("VAPID_PRIVATE_KEY")
         self.vapid_email = os.getenv("VAPID_EMAIL")
 
-    async def send_notification(
-        self, notification: PushNotification, subscription_info: Dict = None
-    ) -> bool:
+    async def send_notification(self, notification: PushNotification, subscription_info: Dict = None) -> bool:
         """
         ブラウザプッシュ通知を送信
 
@@ -425,9 +410,7 @@ class PushNotificationManager:
         self.user_preferences[user_id] = preferences
         logger.info(f"Registered preferences for user {user_id}")
 
-    async def send_notification(
-        self, notification: PushNotification
-    ) -> Dict[str, bool]:
+    async def send_notification(self, notification: PushNotification) -> Dict[str, bool]:
         """
         通知を送信
 
@@ -454,15 +437,11 @@ class PushNotificationManager:
         if user_prefs.get("browser_enabled", False):
             subscription_info = user_prefs.get("browser_subscription")
             if subscription_info:
-                results["browser"] = await self.browser_client.send_notification(
-                    notification, subscription_info
-                )
+                results["browser"] = await self.browser_client.send_notification(notification, subscription_info)
 
         return results
 
-    async def send_bulk_notification(
-        self, notifications: List[PushNotification]
-    ) -> Dict[str, int]:
+    async def send_bulk_notification(self, notifications: List[PushNotification]) -> Dict[str, int]:
         """
         一括通知を送信
 
@@ -507,14 +486,10 @@ class PushNotificationManager:
         title = f"価格アラート: {ticker}"
 
         if change_pct > 0:
-            message = (
-                f"{ticker}が上昇中！現在: ¥{current_price:,}円（{change_pct:+.1f}%）"
-            )
+            message = f"{ticker}が上昇中！現在: ¥{current_price:,}円（{change_pct:+.1f}%）"
             priority = "medium"
         else:
-            message = (
-                f"{ticker}が下落中！現在: ¥{current_price:,}円（{change_pct:+.1f}%）"
-            )
+            message = f"{ticker}が下落中！現在: ¥{current_price:,}円（{change_pct:+.1f}%）"
             priority = "high"
 
         if target_price:
@@ -658,9 +633,7 @@ class PushNotificationManager:
 
         # メールテスト（環境変数が設定されている場合）
         if self.email_client.smtp_config["username"]:
-            results["email"] = await self.email_client.send_notification(
-                test_notification
-            )
+            results["email"] = await self.email_client.send_notification(test_notification)
         else:
             results["email"] = None  # 未設定
 

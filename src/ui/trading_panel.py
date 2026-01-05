@@ -6,10 +6,10 @@ Handles the Paper Trading interface (manual trading, positions, history).
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.constants import MARKETS, TICKER_NAMES
-from src.data_loader import fetch_stock_data
-from src.formatters import format_currency
-from src.paper_trader import PaperTrader
+from agstock.src.constants import MARKETS, TICKER_NAMES
+from agstock.src.data_loader import fetch_stock_data
+from agstock.src.formatters import format_currency
+from agstock.src.paper_trader import PaperTrader
 
 
 def render_trading_panel(sidebar_config):
@@ -50,9 +50,7 @@ def render_trading_panel(sidebar_config):
             pos_display = positions.copy()
 
             # Add Company Name
-            pos_display["name"] = pos_display["ticker"].map(
-                lambda x: TICKER_NAMES.get(x, x)
-            )
+            pos_display["name"] = pos_display["ticker"].map(lambda x: TICKER_NAMES.get(x, x))
 
             # Calculate metrics
             if "current_price" in pos_display.columns:
@@ -62,16 +60,12 @@ def render_trading_panel(sidebar_config):
             else:
                 pos_display["unrealized_pnl_pct"] = 0.0
 
-            pos_display["acquisition_cost"] = (
-                pos_display["entry_price"] * pos_display["quantity"]
-            )
+            pos_display["acquisition_cost"] = pos_display["entry_price"] * pos_display["quantity"]
 
             # Select and Reorder columns - Market Value is usually returned by get_positions as 'market_value'
             # If not, calculate it
             if "market_value" not in pos_display.columns:
-                pos_display["market_value"] = (
-                    pos_display["current_price"] * pos_display["quantity"]
-                )
+                pos_display["market_value"] = pos_display["current_price"] * pos_display["quantity"]
 
             target_cols = [
                 "name",
@@ -127,9 +121,7 @@ def render_trading_panel(sidebar_config):
             # Unit size logic from sidebar config
             trading_unit_step = sidebar_config.get("trading_unit", 100)
 
-            qty_input = st.number_input(
-                "数量", min_value=1, step=trading_unit_step, value=trading_unit_step
-            )
+            qty_input = st.number_input("数量", min_value=1, step=trading_unit_step, value=trading_unit_step)
 
             submitted = st.form_submit_button("注文実行")
             if submitted and ticker_input:
@@ -145,9 +137,7 @@ def render_trading_panel(sidebar_config):
                         current_price,
                         reason="Manual",
                     ):
-                        st.success(
-                            f"{action_input}注文完了しました: {ticker_input} @ {current_price}"
-                        )
+                        st.success(f"{action_input}注文完了しました: {ticker_input} @ {current_price}")
                         st.experimental_rerun()
                     else:
                         st.error("注文失敗しました。資金不足または保有株不足です。")
@@ -212,11 +202,7 @@ def render_trading_panel(sidebar_config):
     with col_a1:
         alert_type = st.selectbox("アラートタイプ", ["価格上昇", "価格下落"])
     with col_a2:
-        threshold = st.number_input(
-            "閾値 (%)", min_value=1.0, max_value=50.0, value=5.0, step=0.5
-        )
+        threshold = st.number_input("閾値 (%)", min_value=1.0, max_value=50.0, value=5.0, step=0.5)
 
     if st.button("アラートを設定"):
-        st.success(
-            f"✅{alert_ticker} の{alert_type}アラート({threshold}%)を設定しました (デモ)"
-        )
+        st.success(f"✅{alert_ticker} の{alert_type}アラート({threshold}%)を設定しました (デモ)")

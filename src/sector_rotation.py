@@ -3,8 +3,8 @@ from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 
-from src.constants import CYCLE_SECTOR_MAP, SECTOR_ETFS, SECTOR_NAMES_JA
-from src.data_loader import fetch_stock_data
+from agstock.src.constants import CYCLE_SECTOR_MAP, SECTOR_ETFS, SECTOR_NAMES_JA
+from agstock.src.data_loader import fetch_stock_data
 
 logger = logging.getLogger(__name__)
 
@@ -33,9 +33,7 @@ class SectorRotationEngine:
             セクターティッカーごとのDataFrame
         """
         logger.info(f"Fetching sector data for {len(self.sector_tickers)} sectors...")
-        self.sector_data = fetch_stock_data(
-            self.sector_tickers, period=self.lookback_period
-        )
+        self.sector_data = fetch_stock_data(self.sector_tickers, period=self.lookback_period)
         return self.sector_data
 
     def calculate_sector_performance(self, period_days: int = 30) -> Dict[str, float]:
@@ -67,9 +65,7 @@ class SectorRotationEngine:
         self.sector_performance = performance
         return performance
 
-    def get_top_sectors(
-        self, n: int = 3, period_days: int = 30
-    ) -> List[Tuple[str, float]]:
+    def get_top_sectors(self, n: int = 3, period_days: int = 30) -> List[Tuple[str, float]]:
         """
         パフォーマンスが高い上位Nセクターを取得する。
 
@@ -83,9 +79,7 @@ class SectorRotationEngine:
         if not self.sector_performance:
             self.calculate_sector_performance(period_days)
 
-        sorted_sectors = sorted(
-            self.sector_performance.items(), key=lambda x: x[1], reverse=True
-        )
+        sorted_sectors = sorted(self.sector_performance.items(), key=lambda x: x[1], reverse=True)
         return sorted_sectors[:n]
 
     def recommend_sectors_by_cycle(self, cycle: str) -> List[str]:
@@ -135,18 +129,14 @@ class SectorRotationEngine:
                 self.calculate_sector_performance()
 
             # 正のリターンのセクターのみを対象
-            positive_sectors = {
-                k: v for k, v in self.sector_performance.items() if v > 0
-            }
+            positive_sectors = {k: v for k, v in self.sector_performance.items() if v > 0}
 
             if positive_sectors:
                 total_positive_return = sum(positive_sectors.values())
                 if total_positive_return > 0:
                     for sector, perf in positive_sectors.items():
                         # モメンタムスコアを加算
-                        weights[sector] += (
-                            perf / total_positive_return
-                        ) * momentum_weight
+                        weights[sector] += (perf / total_positive_return) * momentum_weight
 
         # 3. 正規化（合計を1.0に）
         total_weight = sum(weights.values())

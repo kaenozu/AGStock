@@ -7,9 +7,9 @@ import json
 
 import streamlit as st
 
-from src.formatters import format_currency
-from src.llm_reasoner import get_llm_reasoner
-from src.paper_trader import PaperTrader
+from agstock.src.formatters import format_currency
+from agstock.src.llm_reasoner import get_llm_reasoner
+from agstock.src.paper_trader import PaperTrader
 
 
 def render_settings_tab():
@@ -113,9 +113,7 @@ def _render_simple_view():
             if "auto_trading" not in config:
                 config["auto_trading"] = {}
             config["auto_trading"]["max_daily_trades"] = mode_info["max_daily_trades"]
-            config["auto_trading"]["daily_loss_limit_pct"] = mode_info[
-                "daily_loss_limit_pct"
-            ]
+            config["auto_trading"]["daily_loss_limit_pct"] = mode_info["daily_loss_limit_pct"]
 
             # Update alerts
             if "alerts" not in config:
@@ -123,9 +121,7 @@ def _render_simple_view():
             config["alerts"]["active_mode"] = mode_info["active_mode"]
 
             _save_full_config(config)
-            st.success(
-                f"✅ モードを更新しました！ (新規取引上限: {mode_info['max_daily_trades']}回)"
-            )
+            st.success(f"✅ モードを更新しました！ (新規取引上限: {mode_info['max_daily_trades']}回)")
             if hasattr(st, "rerun"):
                 st.rerun()
 
@@ -156,9 +152,7 @@ def _render_advanced_view():
 
         current_openai_key = current_config.get("openai_api_key", "")
         display_openai = (
-            current_openai_key[:7] + "..." + current_openai_key[-4:]
-            if len(current_openai_key) > 12
-            else ""
+            current_openai_key[:7] + "..." + current_openai_key[-4:] if len(current_openai_key) > 12 else ""
         )
 
         if display_openai:
@@ -166,9 +160,7 @@ def _render_advanced_view():
         else:
             st.warning("⚠️ 未設定")
 
-        new_openai_key = st.text_input(
-            "OpenAI API Key", type="password", placeholder="sk-..."
-        )
+        new_openai_key = st.text_input("OpenAI API Key", type="password", placeholder="sk-...")
 
         if st.button("OpenAI キーを保存", key="save_openai"):
             if new_openai_key and new_openai_key.startswith("sk-"):
@@ -190,9 +182,7 @@ def _render_advanced_view():
 
         current_gemini_key = current_config.get("gemini_api_key", "")
         display_gemini = (
-            current_gemini_key[:6] + "..." + current_gemini_key[-4:]
-            if len(current_gemini_key) > 10
-            else ""
+            current_gemini_key[:6] + "..." + current_gemini_key[-4:] if len(current_gemini_key) > 10 else ""
         )
 
         if display_gemini:
@@ -223,9 +213,7 @@ def _render_advanced_view():
         notifications = current_config.get("notifications", {})
         line_config = notifications.get("line", {})
 
-        enable_line = st.checkbox(
-            "LINE通知を有効にする", value=line_config.get("enabled", False)
-        )
+        enable_line = st.checkbox("LINE通知を有効にする", value=line_config.get("enabled", False))
 
         line_token = st.text_input(
             "LINE Notify トークン",
@@ -256,9 +244,7 @@ def _render_advanced_view():
 
         st.subheader("🛡️ リスク許容度")
 
-        risk_level = st.radio(
-            "AIのリスク特性を選択", ["安全重視（推奨）", "バランス", "積極的"], index=0
-        )
+        risk_level = st.radio("AIのリスク特性を選択", ["安全重視（推奨）", "バランス", "積極的"], index=0)
 
         if risk_level == "安全重視（推奨）":
             st.info("✅ 損失回避を最優先します。ドローダウンを抑えます。")
@@ -268,9 +254,7 @@ def _render_advanced_view():
             st.warning("⚠️ 高いリターンを狙いますが、ボラティリティも高くなります。")
 
         if st.button("リスク設定を適用"):
-            st.success(
-                f"✅ リスク設定「{risk_level}」を適用しました（シミュレーション）"
-            )
+            st.success(f"✅ リスク設定「{risk_level}」を適用しました（シミュレーション）")
 
 
 def _load_config():

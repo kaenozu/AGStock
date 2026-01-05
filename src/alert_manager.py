@@ -1,6 +1,6 @@
 """
-Alert Manager - アラート管琁E��スチE��
-価格アラート、�Eートフォリオアラート、カスタムアラートをサポ�EチE
+Alert Manager - アラート管理システム
+価格アラート、ポートフォリオアラート、カスタムアラートをサポート
 """
 
 import sqlite3
@@ -12,7 +12,7 @@ import pandas as pd
 
 
 class AlertType(Enum):
-    """アラートタイチE""
+    """アラートタイプ"""
 
     PRICE = "price"
     PORTFOLIO = "portfolio"
@@ -30,7 +30,7 @@ class AlertCondition(Enum):
 
 @dataclass
 class Alert:
-    """アラーチE""
+    """アラート"""
 
     id: Optional[int] = None
     type: str = AlertType.PRICE.value
@@ -45,14 +45,14 @@ class Alert:
 
 
 class AlertManager:
-    """アラート管琁E��ラス"""
+    """アラート管理クラス"""
 
     def __init__(self, db_path: str = "alerts.db"):
         self.db_path = db_path
         self._init_database()
 
     def _init_database(self):
-        """チE�Eタベ�Eス初期匁E""
+        """データベース初期化"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
@@ -90,7 +90,7 @@ class AlertManager:
         conn.close()
 
     def create_alert(self, alert: Alert) -> int:
-        """アラート作�E"""
+        """アラート作成"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
@@ -109,7 +109,7 @@ class AlertManager:
         return alert_id
 
     def get_alerts(self, enabled_only: bool = True) -> List[Alert]:
-        """アラート一覧取征E""
+        """アラート一覧取得"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
@@ -140,7 +140,7 @@ class AlertManager:
         return alerts
 
     def check_price_alert(self, ticker: str, current_price: float) -> List[Alert]:
-        """価格アラートチェチE��"""
+        """価格アラートチェック"""
         alerts = self.get_alerts()
         triggered_alerts = []
 
@@ -164,7 +164,7 @@ class AlertManager:
         return triggered_alerts
 
     def check_portfolio_alert(self, total_equity: float, initial_capital: float) -> List[Alert]:
-        """ポ�EトフォリオアラートチェチE��"""
+        """ポートフォリオアラートチェック"""
         alerts = self.get_alerts()
         triggered_alerts = []
 
@@ -192,10 +192,10 @@ class AlertManager:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        # アラートを無効匁E
+        # アラートを無効化
         cursor.execute(
             """
-            UPDATE alerts
+            UPDATE alerts 
             SET triggered = 1, triggered_at = CURRENT_TIMESTAMP
             WHERE id = ?
         """,
@@ -225,13 +225,13 @@ class AlertManager:
         conn.close()
 
     def toggle_alert(self, alert_id: int, enabled: bool):
-        """アラート有効/無効刁E��替ぁE""
+        """アラート有効/無効切り替え"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
         cursor.execute(
             """
-            UPDATE alerts
+            UPDATE alerts 
             SET enabled = ?
             WHERE id = ?
         """,
@@ -242,11 +242,11 @@ class AlertManager:
         conn.close()
 
     def get_alert_history(self, limit: int = 100) -> pd.DataFrame:
-        """アラート履歴取征E""
+        """アラート履歴取得"""
         conn = sqlite3.connect(self.db_path)
 
         query = """
-            SELECT
+            SELECT 
                 ah.id,
                 ah.alert_id,
                 a.ticker,
@@ -268,24 +268,24 @@ class AlertManager:
 
 
 if __name__ == "__main__":
-    # チE��チE
+    # テスト
     manager = AlertManager("test_alerts.db")
 
-    # 価格アラート作�E
+    # 価格アラート作成
     alert1 = Alert(
         type=AlertType.PRICE.value,
         ticker="7203.T",
         condition=AlertCondition.ABOVE.value,
         threshold=1500.0,
-        message="トヨタぁE500冁E��趁E��ました",
+        message="トヨタが1500円を超えました",
     )
     alert_id = manager.create_alert(alert1)
     print(f"Alert created: {alert_id}")
 
-    # アラートチェチE��
+    # アラートチェック
     triggered = manager.check_price_alert("7203.T", 1600.0)
     print(f"Triggered alerts: {len(triggered)}")
 
-    # 履歴取征E
+    # 履歴取得
     history = manager.get_alert_history()
     print(f"Alert history:\n{history}")

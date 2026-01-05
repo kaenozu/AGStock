@@ -50,9 +50,7 @@ class PersistentCache:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
 
-                cursor.execute(
-                    "SELECT value, expires_at FROM cache WHERE key = ?", (key,)
-                )
+                cursor.execute("SELECT value, expires_at FROM cache WHERE key = ?", (key,))
 
                 row = cursor.fetchone()
 

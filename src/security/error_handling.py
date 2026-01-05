@@ -83,9 +83,7 @@ class ValidationError(BaseTradingError):
         context = kwargs.get("context", {})
         if field:
             context["field"] = field
-        super().__init__(
-            message, ErrorCategory.VALIDATION, ErrorSeverity.MEDIUM, context
-        )
+        super().__init__(message, ErrorCategory.VALIDATION, ErrorSeverity.MEDIUM, context)
         self.field = field
 
 
@@ -103,9 +101,7 @@ class DatabaseError(BaseTradingError):
 class APIError(BaseTradingError):
     """APIエラー"""
 
-    def __init__(
-        self, message: str, service: str = None, status_code: int = None, **kwargs
-    ):
+    def __init__(self, message: str, service: str = None, status_code: int = None, **kwargs):
         context = kwargs.get("context", {})
         if service:
             context["service"] = service
@@ -123,26 +119,20 @@ class SecurityError(BaseTradingError):
         context = kwargs.get("context", {})
         if threat_type:
             context["threat_type"] = threat_type
-        super().__init__(
-            message, ErrorCategory.SECURITY, ErrorSeverity.CRITICAL, context
-        )
+        super().__init__(message, ErrorCategory.SECURITY, ErrorSeverity.CRITICAL, context)
         self.threat_type = threat_type
 
 
 class PerformanceError(BaseTradingError):
     """パフォーマンスエラー"""
 
-    def __init__(
-        self, message: str, metric: str = None, threshold: float = None, **kwargs
-    ):
+    def __init__(self, message: str, metric: str = None, threshold: float = None, **kwargs):
         context = kwargs.get("context", {})
         if metric:
             context["metric"] = metric
         if threshold:
             context["threshold"] = threshold
-        super().__init__(
-            message, ErrorCategory.PERFORMANCE, ErrorSeverity.MEDIUM, context
-        )
+        super().__init__(message, ErrorCategory.PERFORMANCE, ErrorSeverity.MEDIUM, context)
         self.metric = metric
         self.threshold = threshold
 
@@ -200,9 +190,7 @@ class ErrorHandler:
 
         return error_info
 
-    def register_callback(
-        self, category: ErrorCategory, callback: Callable[[ErrorInfo], None]
-    ) -> None:
+    def register_callback(self, category: ErrorCategory, callback: Callable[[ErrorInfo], None]) -> None:
         """エラーコールバックを登録"""
         with self._lock:
             self.error_callbacks[category].append(callback)
@@ -226,9 +214,7 @@ class ErrorHandler:
         else:
             return ErrorCategory.SYSTEM
 
-    def _determine_severity(
-        self, exception: Exception, category: ErrorCategory
-    ) -> ErrorSeverity:
+    def _determine_severity(self, exception: Exception, category: ErrorCategory) -> ErrorSeverity:
         """深刻度を判定"""
         if category == ErrorCategory.SECURITY:
             return ErrorSeverity.CRITICAL
@@ -323,9 +309,7 @@ class MemoryManager:
             return
 
         self._monitoring = True
-        self._monitor_thread = threading.Thread(
-            target=self._monitor_memory, args=(interval_seconds,), daemon=True
-        )
+        self._monitor_thread = threading.Thread(target=self._monitor_memory, args=(interval_seconds,), daemon=True)
         self._monitor_thread.start()
         logger.info("メモリ監視を開始しました")
 
@@ -343,9 +327,7 @@ class MemoryManager:
                 memory_info = self.get_memory_info()
 
                 if memory_info["rss_mb"] > self.memory_threshold_mb:
-                    logger.warning(
-                        f"メモリ使用量が閾値を超過: {memory_info['rss_mb']:.1f}MB"
-                    )
+                    logger.warning(f"メモリ使用量が閾値を超過: {memory_info['rss_mb']:.1f}MB")
                     self.cleanup_memory()
 
                 time.sleep(interval_seconds)
@@ -459,9 +441,7 @@ def memory_monitor(threshold_mb: int = 512):
             memory_before = memory_manager.get_memory_info()
 
             if memory_before["rss_mb"] > threshold_mb:
-                logger.warning(
-                    f"関数実行前メモリ使用量が高い: {memory_before['rss_mb']:.1f}MB"
-                )
+                logger.warning(f"関数実行前メモリ使用量が高い: {memory_before['rss_mb']:.1f}MB")
                 memory_manager.cleanup_memory()
 
             try:
@@ -472,9 +452,7 @@ def memory_monitor(threshold_mb: int = 512):
                 memory_diff = memory_after["rss_mb"] - memory_before["rss_mb"]
 
                 if memory_diff > 100:  # 100MB以上増加
-                    logger.warning(
-                        f"メモリ使用量が増加: {memory_diff:.1f}MB ({func.__name__})"
-                    )
+                    logger.warning(f"メモリ使用量が増加: {memory_diff:.1f}MB ({func.__name__})")
 
                 return result
 
@@ -514,9 +492,7 @@ def memory_context(cleanup_on_exit: bool = True):
             memory_manager.cleanup_memory()
 
         memory_after = memory_manager.get_memory_info()
-        logger.debug(
-            f"メモリ使用量: {memory_before['rss_mb']:.1f}MB -> {memory_after['rss_mb']:.1f}MB"
-        )
+        logger.debug(f"メモリ使用量: {memory_before['rss_mb']:.1f}MB -> {memory_after['rss_mb']:.1f}MB")
 
 
 # 初期化

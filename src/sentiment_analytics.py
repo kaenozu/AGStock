@@ -19,7 +19,7 @@ import yfinance as yf
 from nltk.sentiment import SentimentIntensityAnalyzer
 from textblob import TextBlob
 
-from src.base_predictor import BasePredictor
+from .base_predictor import BasePredictor
 
 warnings.filterwarnings("ignore")
 
@@ -254,7 +254,7 @@ class SocialMediaSentimentAnalyzer:
 
             sentiment_type = random.choice(["positive", "negative", "neutral"])
             words = random.choices(sentiment_words[sentiment_type], k=random.randint(5, 10))
-            trend = 'up' if sentiment_type == 'positive' else ('down' if sentiment_type == 'negative' else 'mixed')
+            trend = "up" if sentiment_type == "positive" else ("down" if sentiment_type == "negative" else "mixed")
             text = f"${ticker} {' '.join(words)} trending {trend}!"
 
             mock_tweets.append(

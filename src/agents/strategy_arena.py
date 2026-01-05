@@ -35,9 +35,7 @@ class StrategyArena:
             with sqlite3.connect(self.db_path) as conn:
                 conn.row_factory = sqlite3.Row
                 cursor = conn.cursor()
-                cursor.execute(
-                    "SELECT raw_data, outcome FROM decision_feedback WHERE outcome IS NOT NULL"
-                )
+                cursor.execute("SELECT raw_data, outcome FROM decision_feedback WHERE outcome IS NOT NULL")
                 rows = cursor.fetchall()
 
                 for row in rows:

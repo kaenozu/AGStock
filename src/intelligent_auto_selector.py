@@ -34,17 +34,15 @@ class IntelligentAutoSelector:
     def _initialize(self):
         """各コンポーネントを初期化"""
         try:
-            from src.enhanced_ensemble_predictor import EnhancedEnsemblePredictor
+            from agstock.src.enhanced_ensemble_predictor import EnhancedEnsemblePredictor
 
             self.ensemble_predictor = EnhancedEnsemblePredictor()
-            logger.info(
-                "EnhancedEnsemblePredictor initialized with advanced models + RL + FinBERT"
-            )
+            logger.info("EnhancedEnsemblePredictor initialized with advanced models + RL + FinBERT")
         except Exception as e:
             logger.error(f"Failed to init EnsemblePredictor: {e}")
 
         try:
-            from src.online_lgbm import get_online_lgbm
+            from agstock.src.online_lgbm import get_online_lgbm
 
             self.online_lgbm = get_online_lgbm()
             logger.info("Online Learning LightGBM initialized")
@@ -52,7 +50,7 @@ class IntelligentAutoSelector:
             logger.warning(f"Online Learning not available: {e}")
 
         try:
-            from src.meta_optimizer import get_meta_optimizer
+            from agstock.src.meta_optimizer import get_meta_optimizer
 
             self.meta_optimizer = get_meta_optimizer()
             logger.info("Meta Optimizer initialized")
@@ -61,7 +59,7 @@ class IntelligentAutoSelector:
 
         # Phase 50: Performance enhancers
         try:
-            from src.prediction_cache import get_prediction_cache
+            from agstock.src.prediction_cache import get_prediction_cache
 
             self.cache = get_prediction_cache()
             logger.info("Prediction Cache initialized (30min TTL)")
@@ -70,7 +68,7 @@ class IntelligentAutoSelector:
             logger.warning(f"Prediction Cache not available: {e}")
 
         try:
-            from src.ensemble_weight_optimizer import get_weight_optimizer
+            from agstock.src.ensemble_weight_optimizer import get_weight_optimizer
 
             self.weight_optimizer = get_weight_optimizer()
             logger.info("Ensemble Weight Optimizer initialized")
@@ -79,7 +77,7 @@ class IntelligentAutoSelector:
             logger.warning(f"Weight Optimizer not available: {e}")
 
         try:
-            from src.batch_inference import get_batch_engine
+            from agstock.src.batch_inference import get_batch_engine
 
             self.batch_engine = get_batch_engine()
             logger.info("Batch Inference Engine initialized")
@@ -89,7 +87,7 @@ class IntelligentAutoSelector:
 
         # Phase 51: Advanced enhancements
         try:
-            from src.external_data import get_external_data
+            from agstock.src.external_data import get_external_data
 
             self.external_data = get_external_data()
             logger.info("External Data Provider initialized")
@@ -97,7 +95,7 @@ class IntelligentAutoSelector:
             self.external_data = None
 
         try:
-            from src.lazy_loader import get_lazy_loader
+            from agstock.src.lazy_loader import get_lazy_loader
 
             self.lazy_loader = get_lazy_loader()
             logger.info("Lazy Model Loader initialized (6 models registered)")
@@ -105,7 +103,7 @@ class IntelligentAutoSelector:
             self.lazy_loader = None
 
         try:
-            from src.persistent_cache import get_persistent_cache
+            from agstock.src.persistent_cache import get_persistent_cache
 
             self.persistent_cache = get_persistent_cache()
             logger.info("Persistent Cache (SQLite) initialized")
@@ -113,16 +111,14 @@ class IntelligentAutoSelector:
             self.persistent_cache = None
 
         try:
-            from src.multi_task_learner import get_multi_task_predictor
+            from agstock.src.multi_task_learner import get_multi_task_predictor
 
             self.multi_task = get_multi_task_predictor()
             logger.info("Multi-Task Predictor initialized")
         except Exception:
             self.multi_task = None
 
-    def get_best_prediction(
-        self, df: pd.DataFrame, ticker: str, days_ahead: int = 5
-    ) -> Dict:
+    def get_best_prediction(self, df: pd.DataFrame, ticker: str, days_ahead: int = 5) -> Dict:
         """
         最善の予測を取得
 
@@ -156,9 +152,7 @@ class IntelligentAutoSelector:
             if not self.ensemble_predictor:
                 return {"error": "Ensemble predictor not available"}
 
-            result = self.ensemble_predictor.predict_trajectory(
-                df=df, days_ahead=days_ahead, ticker=ticker
-            )
+            result = self.ensemble_predictor.predict_trajectory(df=df, days_ahead=days_ahead, ticker=ticker)
 
             if "error" in result:
                 return result
@@ -213,9 +207,7 @@ class IntelligentAutoSelector:
             trend = result.get("trend", "FLAT")
 
             # トレンドとセンチメントが一致していれば加点
-            if (trend == "UP" and sent_score > 0) or (
-                trend == "DOWN" and sent_score < 0
-            ):
+            if (trend == "UP" and sent_score > 0) or (trend == "DOWN" and sent_score < 0):
                 score += 0.1
 
         # 4. 変化率の妥当性 (+0.1)
@@ -278,9 +270,7 @@ class IntelligentAutoSelector:
         rl_signal = details.get("rl_signal", {})
         if rl_signal and "action" in rl_signal:
             action = rl_signal.get("action", "HOLD")
-            models["RL (DQN)"] = (
-                "UP" if action == "BUY" else "DOWN" if action == "SELL" else "FLAT"
-            )
+            models["RL (DQN)"] = "UP" if action == "BUY" else "DOWN" if action == "SELL" else "FLAT"
 
         # 合意度計算
         trends = [t for t in models.values() if t != "N/A"]
@@ -300,9 +290,7 @@ class IntelligentAutoSelector:
             "agreement_rate": agreement_rate,
         }
 
-    def get_trading_signal(
-        self, df: pd.DataFrame, ticker: str, current_position: int = 0
-    ) -> Dict:
+    def get_trading_signal(self, df: pd.DataFrame, ticker: str, current_position: int = 0) -> Dict:
         """
         取引シグナルを生成
 
@@ -362,7 +350,7 @@ def get_auto_selector() -> IntelligentAutoSelector:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    from src.data_loader import fetch_stock_data
+    from agstock.src.data_loader import fetch_stock_data
 
     # テスト
     selector = get_auto_selector()

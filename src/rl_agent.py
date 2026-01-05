@@ -9,9 +9,7 @@ try:
     import torch.nn as nn
     import torch.optim as optim
 except ImportError:
-    raise ImportError(
-        "PyTorch is required for RL Agent. Please install with: pip install torch"
-    )
+    raise ImportError("PyTorch is required for RL Agent. Please install with: pip install torch")
 
 logger = logging.getLogger(__name__)
 
@@ -54,9 +52,7 @@ class DQNAgent:
 
         # Q-Networks (Main and Target)
         self.model = QNetwork(state_size, action_size, hidden_size).to(self.device)
-        self.target_model = QNetwork(state_size, action_size, hidden_size).to(
-            self.device
-        )
+        self.target_model = QNetwork(state_size, action_size, hidden_size).to(self.device)
         self.update_target_model()
 
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
@@ -90,15 +86,9 @@ class DQNAgent:
         minibatch = random.sample(self.memory, self.batch_size)
 
         states = torch.FloatTensor(np.array([i[0] for i in minibatch])).to(self.device)
-        actions = (
-            torch.LongTensor(np.array([i[1] for i in minibatch]))
-            .unsqueeze(1)
-            .to(self.device)
-        )
+        actions = torch.LongTensor(np.array([i[1] for i in minibatch])).unsqueeze(1).to(self.device)
         rewards = torch.FloatTensor(np.array([i[2] for i in minibatch])).to(self.device)
-        next_states = torch.FloatTensor(np.array([i[3] for i in minibatch])).to(
-            self.device
-        )
+        next_states = torch.FloatTensor(np.array([i[3] for i in minibatch])).to(self.device)
         dones = torch.FloatTensor(np.array([i[4] for i in minibatch])).to(self.device)
 
         # Current Q values

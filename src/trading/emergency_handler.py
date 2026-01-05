@@ -1,6 +1,6 @@
 import logging
 
-from src.smart_notifier import SmartNotifier
+from agstock.src.smart_notifier import SmartNotifier
 
 
 class EmergencyHandler:
@@ -20,9 +20,7 @@ class EmergencyHandler:
         self.logger = logger
         self.notifier = notifier
         self.backup_enabled = True  # FullyAutomatedTraderから引き継ぎ
-        self.backup_manager = (
-            None  # FullyAutomatedTraderから引き継ぎ、必要なら初期化時に設定
-        )
+        self.backup_manager = None  # FullyAutomatedTraderから引き継ぎ、必要なら初期化時に設定
 
     def trigger_emergency_stop(self, reason: str):
         """

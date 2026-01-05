@@ -22,9 +22,7 @@ class PortfolioAnalytics:
         """
         try:
             conn = sqlite3.connect(self.db_path)
-            df = pd.read_sql_query(
-                "SELECT date, total_equity FROM balance ORDER BY date ASC", conn
-            )
+            df = pd.read_sql_query("SELECT date, total_equity FROM balance ORDER BY date ASC", conn)
             conn.close()
 
             if df.empty:
@@ -74,19 +72,13 @@ class PortfolioAnalytics:
             return {}
 
         total_return = (
-            (curve["total_equity"].iloc[-1] - curve["total_equity"].iloc[0])
-            / curve["total_equity"].iloc[0]
-            * 100
+            (curve["total_equity"].iloc[-1] - curve["total_equity"].iloc[0]) / curve["total_equity"].iloc[0] * 100
         )
         max_drawdown = curve["drawdown"].min()
 
         # Sharpe Ratio (Simple)
         returns = curve["total_equity"].pct_change().dropna()
-        sharpe = (
-            (returns.mean() / returns.std()) * np.sqrt(252)
-            if len(returns) > 1 and returns.std() != 0
-            else 0.0
-        )
+        sharpe = (returns.mean() / returns.std()) * np.sqrt(252) if len(returns) > 1 and returns.std() != 0 else 0.0
 
         return {
             "total_return_pct": total_return,

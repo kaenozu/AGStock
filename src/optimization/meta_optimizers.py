@@ -10,7 +10,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score
 
-from src.features import add_advanced_features
+from agstock.src.features import add_advanced_features
 
 logger = logging.getLogger(__name__)
 
@@ -38,9 +38,7 @@ class HyperparameterOptimizer:
             json.dump(self.best_params, f, indent=4)
         logger.info(f"Saved optimized parameters to {self.config_path}")
 
-    def optimize_random_forest(
-        self, df: pd.DataFrame, n_trials: int = 20
-    ) -> Dict[str, Any]:
+    def optimize_random_forest(self, df: pd.DataFrame, n_trials: int = 20) -> Dict[str, Any]:
         """
         Optimizes Random Forest parameters using Optuna.
         """
@@ -163,9 +161,7 @@ class HyperparameterOptimizer:
         self.save_params()
         return study.best_params
 
-    def optimize_transformer(
-        self, df: pd.DataFrame, n_trials: int = 20
-    ) -> Dict[str, Any]:
+    def optimize_transformer(self, df: pd.DataFrame, n_trials: int = 20) -> Dict[str, Any]:
         """
         Optimizes Transformer parameters.
         """
@@ -178,14 +174,10 @@ class HyperparameterOptimizer:
             # 探索空間
             {
                 "hidden_size": trial.suggest_categorical("hidden_size", [32, 64, 128]),
-                "num_attention_heads": trial.suggest_categorical(
-                    "num_attention_heads", [2, 4, 8]
-                ),
+                "num_attention_heads": trial.suggest_categorical("num_attention_heads", [2, 4, 8]),
                 "num_encoder_layers": trial.suggest_int("num_encoder_layers", 1, 3),
                 "dropout": trial.suggest_float("dropout", 0.0, 0.3),
-                "learning_rate": trial.suggest_float(
-                    "learning_rate", 1e-4, 1e-2, log=True
-                ),
+                "learning_rate": trial.suggest_float("learning_rate", 1e-4, 1e-2, log=True),
                 "batch_size": trial.suggest_categorical("batch_size", [16, 32, 64]),
             }
 
@@ -207,7 +199,7 @@ class HyperparameterOptimizer:
 
 if __name__ == "__main__":
     # Test run
-    from src.data_loader import fetch_stock_data
+    from agstock.src.data_loader import fetch_stock_data
 
     logging.basicConfig(level=logging.INFO)
 
@@ -218,16 +210,14 @@ if __name__ == "__main__":
         optimizer.optimize_random_forest(df, n_trials=2)
         optimizer.optimize_lightgbm(df, n_trials=2)
 
-    def optimize_transformer(
-        self, df: pd.DataFrame, n_trials: int = 10
-    ) -> Dict[str, Any]:
+    def optimize_transformer(self, df: pd.DataFrame, n_trials: int = 10) -> Dict[str, Any]:
         """
         Optimizes Transformer parameters using Optuna.
         """
         logger.info("Starting Transformer optimization...")
 
         try:
-            from src.transformer_model import TemporalFusionTransformer
+            from agstock.src.transformer_model import TemporalFusionTransformer
         except ImportError:
             logger.error("Transformer model not available")
             return {}
@@ -250,9 +240,7 @@ if __name__ == "__main__":
         def objective(trial):
             # Hyperparameters
             hidden_size = trial.suggest_categorical("hidden_size", [32, 64, 128])
-            num_attention_heads = trial.suggest_categorical(
-                "num_attention_heads", [2, 4]
-            )
+            num_attention_heads = trial.suggest_categorical("num_attention_heads", [2, 4])
             num_encoder_layers = trial.suggest_int("num_encoder_layers", 1, 3)
             dropout = trial.suggest_float("dropout", 0.0, 0.3)
             learning_rate = trial.suggest_float("learning_rate", 1e-4, 1e-2, log=True)
@@ -269,12 +257,8 @@ if __name__ == "__main__":
             )
 
             # Data Prep
-            X_train, y_train = model.prepare_sequences(
-                train_df, sequence_length=30, forecast_horizon=5
-            )
-            X_val, y_val = model.prepare_sequences(
-                val_df, sequence_length=30, forecast_horizon=5
-            )
+            X_train, y_train = model.prepare_sequences(train_df, sequence_length=30, forecast_horizon=5)
+            X_val, y_val = model.prepare_sequences(val_df, sequence_length=30, forecast_horizon=5)
 
             if len(X_train) == 0 or len(X_val) == 0:
                 raise optuna.TrialPruned("Not enough data for sequences")
@@ -344,9 +328,7 @@ def optimize_strategy_wfo(
         train_df = df.iloc[start_idx:train_end]
         test_df = df.iloc[train_end:test_end]
 
-        logger.info(
-            f"Window: train={start_idx}:{train_end}, test={train_end}:{test_end}"
-        )
+        logger.info(f"Window: train={start_idx}:{train_end}, test={train_end}:{test_end}")
 
         # Optuna で訓練期間のパラメータ最適化
         def objective(trial):
@@ -367,9 +349,7 @@ def optimize_strategy_wfo(
             # バックテスト (簡易版)
             returns = train_df["Close"].pct_change()
             strategy_returns = signals.shift(1) * returns
-            sharpe = (
-                strategy_returns.mean() / (strategy_returns.std() + 1e-6) * np.sqrt(252)
-            )
+            sharpe = strategy_returns.mean() / (strategy_returns.std() + 1e-6) * np.sqrt(252)
 
             return sharpe
 
@@ -383,11 +363,7 @@ def optimize_strategy_wfo(
         test_signals = test_strategy.generate_signals(test_df)
         test_returns = test_df["Close"].pct_change()
         test_strategy_returns = test_signals.shift(1) * test_returns
-        test_sharpe = (
-            test_strategy_returns.mean()
-            / (test_strategy_returns.std() + 1e-6)
-            * np.sqrt(252)
-        )
+        test_sharpe = test_strategy_returns.mean() / (test_strategy_returns.std() + 1e-6) * np.sqrt(252)
 
         results.append(
             {
@@ -398,9 +374,7 @@ def optimize_strategy_wfo(
             }
         )
 
-        logger.info(
-            f"Best params: {best_params}, Train Sharpe: {study.best_value:.2f}, Test Sharpe: {test_sharpe:.2f}"
-        )
+        logger.info(f"Best params: {best_params}, Train Sharpe: {study.best_value:.2f}, Test Sharpe: {test_sharpe:.2f}")
 
     # 全ウィンドウの平均パラメータを計算
     avg_params = {}

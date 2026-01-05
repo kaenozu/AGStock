@@ -1,4 +1,5 @@
 """Portfolio Manager - legacy implementation"""
+
 import logging
 from typing import Any, Dict, List
 import pandas as pd

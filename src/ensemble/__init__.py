@@ -72,8 +72,8 @@ class EnsembleVoter:
 
 # Re-export from submodules
 try:
-    from src.ensemble.adaptive_ensemble import AdaptiveEnsemble
-    from src.ensemble.stacking import StackingEnsemble
+    from agstock.src.ensemble.adaptive_ensemble import AdaptiveEnsemble
+    from agstock.src.ensemble.stacking import StackingEnsemble
 except ImportError:
     AdaptiveEnsemble = None
     StackingEnsemble = None

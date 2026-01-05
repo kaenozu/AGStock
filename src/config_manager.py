@@ -42,19 +42,13 @@ class TradingConfig:
     def __post_init__(self):
         """初期化後の検証を行う"""
         # データ型の検証
-        if (
-            not isinstance(self.initial_capital, (int, float))
-            or self.initial_capital <= 0
-        ):
+        if not isinstance(self.initial_capital, (int, float)) or self.initial_capital <= 0:
             raise ConfigurationError(
                 message="Initial capital must be a positive number",
                 config_key="initial_capital",
             )
 
-        if (
-            not isinstance(self.paper_trading_initial_capital, (int, float))
-            or self.paper_trading_initial_capital <= 0
-        ):
+        if not isinstance(self.paper_trading_initial_capital, (int, float)) or self.paper_trading_initial_capital <= 0:
             raise ConfigurationError(
                 message="Paper trading initial capital must be a positive number",
                 config_key="paper_trading_initial_capital",
@@ -165,9 +159,7 @@ class ConfigManager:
             # TradingConfigオブジェクトの作成
             config = TradingConfig(
                 initial_capital=self.config_data.get("initial_capital", 1000000.0),
-                paper_trading_initial_capital=paper_trading.get(
-                    "initial_capital", 1000000.0
-                ),
+                paper_trading_initial_capital=paper_trading.get("initial_capital", 1000000.0),
                 risk_management=risk_management,
                 mini_stock=mini_stock,
                 backtest=backtest,

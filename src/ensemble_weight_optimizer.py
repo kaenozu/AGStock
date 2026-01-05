@@ -50,9 +50,7 @@ class EnsembleWeightOptimizer:
         with open(WEIGHTS_PATH, "w") as f:
             json.dump(weights, f, indent=2)
 
-    def optimize_weights(
-        self, predictions_history: List[Dict], actual_returns: List[float]
-    ) -> Dict[str, float]:
+    def optimize_weights(self, predictions_history: List[Dict], actual_returns: List[float]) -> Dict[str, float]:
         """
         過去の予測履歴から最適な重みを計算
 

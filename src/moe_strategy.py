@@ -7,7 +7,7 @@ import logging
 
 import pandas as pd
 
-from src.moe_system import MixtureOfExperts
+from agstock.src.moe_system import MixtureOfExperts
 
 logger = logging.getLogger(__name__)
 

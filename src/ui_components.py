@@ -7,8 +7,8 @@ from typing import Any, Dict, List, Optional
 
 import streamlit as st
 
-from src.design_tokens import ACTION_TYPES, RISK_LEVELS, SENTIMENT_LABELS, Colors
-from src.formatters import format_currency, format_percentage
+from agstock.src.design_tokens import ACTION_TYPES, RISK_LEVELS, SENTIMENT_LABELS, Colors
+from agstock.src.formatters import format_currency, format_percentage
 
 
 def display_risk_badge(risk_level: str, show_label: bool = True) -> None:

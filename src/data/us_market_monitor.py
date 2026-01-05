@@ -28,9 +28,7 @@ class USMarketMonitor:
         try:
             # Fetch last 2 days to compare
             tickers = list(self.SYMBOLS.values())
-            data = yf.download(tickers, period="2d", interval="1d", progress=False)[
-                "Close"
-            ]
+            data = yf.download(tickers, period="2d", interval="1d", progress=False)["Close"]
 
             for key, symbol in self.SYMBOLS.items():
                 if symbol in data.columns:

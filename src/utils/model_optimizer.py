@@ -32,11 +32,7 @@ class ModelOptimizer:
 
             logger.info(f"⚡ Quantizing ONNX model: {p.name} -> {output_path.name}")
 
-            quantize_dynamic(
-                model_input=str(p),
-                model_output=str(output_path),
-                weight_type=QuantType.QUInt8
-            )
+            quantize_dynamic(model_input=str(p), model_output=str(output_path), weight_type=QuantType.QUInt8)
 
             logger.info("✅ Quantization complete.")
             return str(output_path)

@@ -17,7 +17,7 @@ class TradingEnvironment:
         df: pd.DataFrame,
         initial_balance: float = 1000000.0,
         transaction_cost_pct: float = 0.001,
-        lookback_window: int = 20
+        lookback_window: int = 20,
     ):
         # Numeric columns only for the observation state
         self.raw_df = df.copy()
@@ -116,18 +116,19 @@ class TradingEnvironment:
         # Oracle 2026 Risk Shaping
         # If Oracle is in safety mode, penalize BUY actions
         try:
-            from src.oracle.oracle_2026 import Oracle2026
+            from agstock.src.oracle.oracle_2026 import Oracle2026
+
             oracle = Oracle2026()
             guidance = oracle.get_risk_guidance()
-            
+
             if guidance.get("safety_mode", False):
-                if action == 1: # BUY during crisis
-                    reward -= 1.0 # Heavy penalty for buying during storm
+                if action == 1:  # BUY during crisis
+                    reward -= 1.0  # Heavy penalty for buying during storm
             elif guidance.get("var_buffer", 0.0) > 0:
-                if action == 1: # BUY during caution
-                    reward -= 0.3 # Mild deterrent
+                if action == 1:  # BUY during caution
+                    reward -= 0.3  # Mild deterrent
         except Exception:
-            pass # Oracle unavailable, skip
+            pass  # Oracle unavailable, skip
 
         # Additional penalty for holding -5% drawdown to encourage stop-losses
         if self.shares_held > 0:
@@ -140,10 +141,6 @@ class TradingEnvironment:
 
         next_state = self._get_observation() if not done else np.zeros(self.state_size)
 
-        info = {
-            "step": self.current_step,
-            "value": self.portfolio_value,
-            "shares": self.shares_held
-        }
+        info = {"step": self.current_step, "value": self.portfolio_value, "shares": self.shares_held}
 
         return next_state, reward, done, info

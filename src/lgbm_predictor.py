@@ -9,7 +9,7 @@ from typing import Any, Dict
 import lightgbm as lgb
 import pandas as pd
 
-from src.base_predictor import BasePredictor
+from .base_predictor import BasePredictor
 
 logger = logging.getLogger(__name__)
 
@@ -71,9 +71,7 @@ class LGBMPredictor(BasePredictor):
         """
         try:
             if df is None or df.empty or len(df) < 50:
-                return {
-                    "error": f"データ不足 (データ数: {len(df) if df is not None else 0})"
-                }
+                return {"error": f"データ不足 (データ数: {len(df) if df is not None else 0})"}
 
             # 1. 特徴量生成
             data = df.copy()
@@ -110,9 +108,7 @@ class LGBMPredictor(BasePredictor):
             split_idx = int(len(X) * 0.8)
             X_train, y_train = X[:split_idx], y[:split_idx]
 
-            self.model = lgb.LGBMRegressor(
-                n_estimators=100, learning_rate=0.05, max_depth=5, verbose=-1
-            )
+            self.model = lgb.LGBMRegressor(n_estimators=100, learning_rate=0.05, max_depth=5, verbose=-1)
             self.model.fit(X_train, y_train)
 
             # 5. 未来予測（再帰的）

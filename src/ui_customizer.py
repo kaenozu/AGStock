@@ -66,9 +66,7 @@ class UICustomizer:
             st.rerun()
 
         # 自動更新
-        auto_refresh = st.sidebar.checkbox(
-            "自動更新", value=self.config.get("auto_refresh", False)
-        )
+        auto_refresh = st.sidebar.checkbox("自動更新", value=self.config.get("auto_refresh", False))
 
         if auto_refresh != self.config.get("auto_refresh"):
             self.config["auto_refresh"] = auto_refresh
@@ -88,9 +86,7 @@ class UICustomizer:
                 self.save_config()
 
         # ショートカットキー
-        shortcuts_enabled = st.sidebar.checkbox(
-            "ショートカットキー", value=self.config.get("shortcuts_enabled", True)
-        )
+        shortcuts_enabled = st.sidebar.checkbox("ショートカットキー", value=self.config.get("shortcuts_enabled", True))
 
         if shortcuts_enabled != self.config.get("shortcuts_enabled"):
             self.config["shortcuts_enabled"] = shortcuts_enabled
@@ -220,9 +216,7 @@ def render_dashboard_customizer():
         "パフォーマンス分析",
     ]
 
-    visible_tabs = st.multiselect(
-        "表示タブ", all_tabs, default=customizer.get_visible_tabs()
-    )
+    visible_tabs = st.multiselect("表示タブ", all_tabs, default=customizer.get_visible_tabs())
 
     if visible_tabs != customizer.get_visible_tabs():
         customizer.set_visible_tabs(visible_tabs)

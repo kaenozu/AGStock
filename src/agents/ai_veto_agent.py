@@ -1,8 +1,8 @@
 import logging
 from typing import Any, Dict, Tuple
 from .base_agent import BaseAgent
-from src.llm_reasoner import get_llm_reasoner
-from src.news_collector import get_news_collector
+from agstock.src.llm_reasoner import get_llm_reasoner
+from agstock.src.news_collector import get_news_collector
 
 logger = logging.getLogger(__name__)
 
@@ -19,9 +19,7 @@ class AIVetoAgent(BaseAgent):
         self.news_collector = get_news_collector()
         self.config = config or {}
 
-    def review_signal(
-        self, ticker: str, action: str, price: float, reason: str
-    ) -> Tuple[bool, str]:
+    def review_signal(self, ticker: str, action: str, price: float, reason: str) -> Tuple[bool, str]:
         """
         Review a trading signal and decide whether to approve or veto it.
 

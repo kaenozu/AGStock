@@ -29,9 +29,7 @@ def loading_spinner(message: str = "読み込み中..."):
     return LoadingContext(message)
 
 
-def async_component(
-    loader_func: Callable, placeholder_text: str = "データを読み込んでいます..."
-) -> Any:
+def async_component(loader_func: Callable, placeholder_text: str = "データを読み込んでいます...") -> Any:
     """Load component asynchronously with placeholder to prevent UI blocking vibe."""
     placeholder = st.empty()
     with placeholder.container():
@@ -46,8 +44,7 @@ def async_component(
         return None
 
 
-def metric_card(label: str, value: str, delta: Optional[str] = None,
-                help_text: Optional[str] = None, icon: str = "📊"):
+def metric_card(label: str, value: str, delta: Optional[str] = None, help_text: Optional[str] = None, icon: str = "📊"):
     """Displays a styled metric card with an icon."""
     col1, col2 = st.columns([1, 4])
     with col1:
@@ -61,22 +58,13 @@ def metric_card(label: str, value: str, delta: Optional[str] = None,
 
 def status_badge(status: str, message: str = ""):
     """Displays a colored status badge."""
-    colors = {
-        "success": "#28a745",
-        "warning": "#ffc107",
-        "error": "#dc3545",
-        "info": "#17a2b8"
-    }
-    icons = {
-        "success": "✅",
-        "warning": "⚠️",
-        "error": "❌",
-        "info": "ℹ️"
-    }
+    colors = {"success": "#28a745", "warning": "#ffc107", "error": "#dc3545", "info": "#17a2b8"}
+    icons = {"success": "✅", "warning": "⚠️", "error": "❌", "info": "ℹ️"}
     color = colors.get(status, "#6c757d")
     icon = icons.get(status, "•")
 
-    st.markdown(f"""
+    st.markdown(
+        f"""
     <div style='
         background-color: {color}20;
         border-left: 4px solid {color};
@@ -86,7 +74,9 @@ def status_badge(status: str, message: str = ""):
     '>
         <strong>{icon} {message}</strong>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 def collapsible_section(title: str, content_func: Callable, default_expanded: bool = False):
@@ -106,9 +96,11 @@ def data_table_with_search(df: pd.DataFrame, search_columns: list = None):
 
     if search_term and search_columns:
         # Simple string containment search
-        mask = df[search_columns].apply(
-            lambda x: x.astype(str).str.contains(search_term, case=False, na=False)
-        ).any(axis=1)
+        mask = (
+            df[search_columns]
+            .apply(lambda x: x.astype(str).str.contains(search_term, case=False, na=False))
+            .any(axis=1)
+        )
         filtered_df = df[mask]
     else:
         filtered_df = df
@@ -138,7 +130,8 @@ def toast_notification(message: str, icon: str = "ℹ️"):
 def skeleton_loader(num_rows: int = 3):
     """Visual placeholder for loading content."""
     for _ in range(num_rows):
-        st.markdown("""
+        st.markdown(
+            """
         <div style='
             background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%);
             background-size: 200% 100%;
@@ -154,7 +147,9 @@ def skeleton_loader(num_rows: int = 3):
                 100% { background-position: -200% 0; }
             }
         </style>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
 
 
 def step_progress(steps: List[str], current_step: int):

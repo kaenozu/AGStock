@@ -272,9 +272,7 @@ def render_japanese_ui_components():
         col1, col2, col3, col4 = st.columns(4)
 
         with col1:
-            if st.button(
-                "🔄 最新データ", key="refresh_jp", help="データを最新状態に更新"
-            ):
+            if st.button("🔄 最新データ", key="refresh_jp", help="データを最新状態に更新"):
                 st.success("データを更新しました")
 
         with col2:

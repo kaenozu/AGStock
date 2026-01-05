@@ -67,9 +67,7 @@ def generate_trade_history(days: int = 30, seed: Optional[int] = None) -> pd.Dat
     return pd.DataFrame(records)
 
 
-def generate_backtest_history(
-    days: int = 90, seed: Optional[int] = None
-) -> pd.DataFrame:
+def generate_backtest_history(days: int = 90, seed: Optional[int] = None) -> pd.DataFrame:
     """日次の勝率・シャープ比を疑似生成。"""
     rng_dates = pd.date_range(end=datetime.date.today(), periods=days, freq="D")
     gen = _rng(seed)

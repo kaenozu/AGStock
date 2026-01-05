@@ -13,9 +13,7 @@ class TaxOptimizer:
     def __init__(self, tax_rate: float = 0.20315):  # Japan standard
         self.tax_rate = tax_rate
 
-    def find_harvesting_opportunities(
-        self, portfolio: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+    def find_harvesting_opportunities(self, portfolio: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Analyzes holdings for unrealized losses that can offset realized gains.
         """
@@ -49,9 +47,7 @@ class TaxOptimizer:
 
         return proposals
 
-    def optimize_order_size(
-        self, ticker: str, total_amount: float, avg_daily_volume: float
-    ) -> Dict[str, Any]:
+    def optimize_order_size(self, ticker: str, total_amount: float, avg_daily_volume: float) -> Dict[str, Any]:
         """
         Suggests splitting large orders to minimize market impact (slippage).
         """

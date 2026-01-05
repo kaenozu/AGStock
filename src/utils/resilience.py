@@ -1,8 +1,8 @@
-
 """
 Iron Dome: Resilience & Circuit Breaker Utilities.
 Provides decorators and classes to prevent cascading failures.
 """
+
 import time
 import logging
 import functools
@@ -60,6 +60,7 @@ def circuit_breaker(failure_threshold: int = 3, recovery_timeout: int = 60, fall
     """
     Decorator to apply circuit breaker logic to a function.
     """
+
     def decorator(func):
         # Create a specific breaker instance for this function
         breaker = CircuitBreaker(failure_threshold, recovery_timeout, name=func.__qualname__)
@@ -82,4 +83,5 @@ def circuit_breaker(failure_threshold: int = 3, recovery_timeout: int = 60, fall
         # Attach breaker to wrapper for inspection if needed
         wrapper.breaker = breaker
         return wrapper
+
     return decorator

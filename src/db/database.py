@@ -11,9 +11,7 @@ if not os.path.exists(DATA_DIR):
 DB_PATH = os.path.join(DATA_DIR, "agstock.db")
 DATABASE_URL = f"sqlite:///{DB_PATH}"
 
-engine = create_engine(
-    DATABASE_URL, connect_args={"check_same_thread": False}
-)  # Needed for SQLite with Streamlit
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})  # Needed for SQLite with Streamlit
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # Scoped session for thread safety in Streamlit

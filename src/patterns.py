@@ -59,9 +59,7 @@ def detect_double_bottom(df: pd.DataFrame, tolerance: float = 0.03) -> Optional[
             if (peak - avg_price) / avg_price > 0.05:
                 return {
                     "pattern": "Double Bottom",
-                    "confidence": 1.0
-                    - (price_diff / avg_price)
-                    / tolerance,  # Higher confidence if prices are closer
+                    "confidence": 1.0 - (price_diff / avg_price) / tolerance,  # Higher confidence if prices are closer
                     "points": [prev_min.name, last_min.name],
                     "description": "底値を2回試し、反発の兆し (W字型)",
                 }
@@ -69,9 +67,7 @@ def detect_double_bottom(df: pd.DataFrame, tolerance: float = 0.03) -> Optional[
     return None
 
 
-def detect_head_and_shoulders_bottom(
-    df: pd.DataFrame, tolerance: float = 0.05
-) -> Optional[Dict]:
+def detect_head_and_shoulders_bottom(df: pd.DataFrame, tolerance: float = 0.05) -> Optional[Dict]:
     """
     Detects Inverse Head and Shoulders (Bottom).
     """

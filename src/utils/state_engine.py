@@ -38,6 +38,7 @@ class SystemStateEngine:
     """
     High-speed In-memory state storage.
     """
+
     _instance = None
 
     def __new__(cls):
@@ -47,7 +48,7 @@ class SystemStateEngine:
                 "positions": {},
                 "regime": "UNKNOWN",
                 "last_scan_time": None,
-                "active_mirror_account": "main"
+                "active_mirror_account": "main",
             }
         return cls._instance
 

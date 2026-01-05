@@ -96,12 +96,8 @@ class SecureDataManager:
         # SQLインジェクションパターンチェック
         for pattern in self.sql_injection_patterns:
             if re.search(pattern, query, re.IGNORECASE):
-                log_security_event(
-                    "SQL_INJECTION_ATTEMPT", {"query": query[:100], "pattern": pattern}
-                )
-                raise DatabaseSecurityError(
-                    "潜在的なSQLインジェクションが検出されました"
-                )
+                log_security_event("SQL_INJECTION_ATTEMPT", {"query": query[:100], "pattern": pattern})
+                raise DatabaseSecurityError("潜在的なSQLインジェクションが検出されました")
 
         # 許可された操作のみを許可
         operation_found = False
@@ -173,9 +169,7 @@ class SecureDataManager:
 
         except sqlite3.Error as e:
             logger.error(f"SQL実行エラー: {e}")
-            log_security_event(
-                "SQL_EXECUTION_ERROR", {"query": query[:100], "error": str(e)}
-            )
+            log_security_event("SQL_EXECUTION_ERROR", {"query": query[:100], "error": str(e)})
             raise DatabaseSecurityError(f"SQL実行に失敗しました: {e}")
 
     def insert_stock_data(self, ticker: str, data: Dict[str, Any]) -> bool:
@@ -192,9 +186,7 @@ class SecureDataManager:
         # データ検証
         for price_field in ["open", "high", "low", "close"]:
             if not validate_input_data(data[price_field], "price_data"):
-                raise DatabaseSecurityError(
-                    f"無効な価格データです: {price_field}={data[price_field]}"
-                )
+                raise DatabaseSecurityError(f"無効な価格データです: {price_field}={data[price_field]}")
 
         query = """
         INSERT OR REPLACE INTO stocks 
@@ -266,9 +258,7 @@ class SecureDataManager:
 
         # 取引データ検証
         if trade_data["action"].lower() not in ["buy", "sell"]:
-            raise DatabaseSecurityError(
-                f"無効な取引アクションです: {trade_data['action']}"
-            )
+            raise DatabaseSecurityError(f"無効な取引アクションです: {trade_data['action']}")
 
         if not validate_input_data(trade_data["ticker"], "ticker_symbol"):
             raise DatabaseSecurityError(f"無効なティッカーです: {trade_data['ticker']}")
@@ -292,9 +282,7 @@ class SecureDataManager:
 
         try:
             self.execute_query(query, params, fetch_mode="none")
-            logger.info(
-                f"取引記録を挿入しました: {trade_data['ticker']} {trade_data['action']}"
-            )
+            logger.info(f"取引記録を挿入しました: {trade_data['ticker']} {trade_data['action']}")
             return True
         except DatabaseSecurityError:
             raise
@@ -332,9 +320,7 @@ class SecureDataManager:
             logger.error(f"ポートフォリオ取得エラー: {e}")
             return {}
 
-    def log_api_usage(
-        self, service: str, endpoint: str, status: str, response_time: float
-    ) -> None:
+    def log_api_usage(self, service: str, endpoint: str, status: str, response_time: float) -> None:
         """API使用状況をログ記録"""
         query = """
         INSERT INTO api_usage 

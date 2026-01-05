@@ -5,9 +5,9 @@ Dynamically selects the active "Squad" of strategies based on the Market Regime.
 
 import logging
 from typing import List, Dict, Any
-from src.strategies.base import Strategy
-from src.strategies.meta_registry import get_strategies_for_regime
-from src.strategies.loader import load_custom_strategies
+from agstock.src.strategies.base import Strategy
+from agstock.src.strategies.meta_registry import get_strategies_for_regime
+from agstock.src.strategies.loader import load_custom_strategies
 
 logger = logging.getLogger(__name__)
 
@@ -25,9 +25,7 @@ class StrategyOrchestrator:
         # Pre-load custom strategies (they are always active if valid)
         try:
             self.custom_strategies = load_custom_strategies()
-            logger.info(
-                f"Orchestrator loaded {len(self.custom_strategies)} custom strategies."
-            )
+            logger.info(f"Orchestrator loaded {len(self.custom_strategies)} custom strategies.")
         except Exception as e:
             logger.error(f"Failed to load custom strategies: {e}")
 

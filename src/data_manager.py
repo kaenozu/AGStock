@@ -1,11 +1,10 @@
-
 import logging
 import sqlite3
 import pandas as pd
 from datetime import datetime
 from typing import Optional
 from pathlib import Path
-from src.config import settings
+from .config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +33,8 @@ class DataManager:
         cursor = conn.cursor()
 
         # Metadata table (Index of what we have)
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS ticker_metadata (
                 ticker TEXT PRIMARY KEY,
                 last_updated TIMESTAMP,
@@ -43,7 +43,8 @@ class DataManager:
                 data_points INTEGER,
                 file_path TEXT
             )
-        """)
+        """
+        )
 
         # Keep legacy stock_data table for compatibility if needed,
         # but we won't actively write big data to it in v2.
@@ -51,14 +52,16 @@ class DataManager:
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='stock_data'")
         if not cursor.fetchone():
             # Create minimal schema if missing, just in case legacy code queries it
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE stock_data (
                     ticker TEXT,
                     date TIMESTAMP,
                     open REAL, high REAL, low REAL, close REAL, volume REAL,
                     PRIMARY KEY (ticker, date)
                 )
-            """)
+            """
+            )
 
         conn.commit()
         conn.close()
@@ -85,7 +88,7 @@ class DataManager:
             df_to_save.columns = [c.lower() for c in df_to_save.columns]
 
             # Ensure it has standard OHLCV columns
-            required = ['open', 'high', 'low', 'close', 'volume']
+            required = ["open", "high", "low", "close", "volume"]
             # If some missing, fill 0 (though unlikely for valid market data)
             for c in required:
                 if c not in df_to_save.columns:
@@ -94,7 +97,7 @@ class DataManager:
             # 2. Save to Parquet (Fast I/O)
             # Use 'pyarrow' engine for best performance with pandas
             file_path = self._get_parquet_path(ticker)
-            df_to_save.to_parquet(file_path, engine='pyarrow', compression='snappy')
+            df_to_save.to_parquet(file_path, engine="pyarrow", compression="snappy")
 
             # 3. Update Metadata in SQLite
             start_date = df_to_save.index.min()
@@ -104,7 +107,8 @@ class DataManager:
 
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO ticker_metadata (ticker, last_updated, start_date, end_date, data_points, file_path)
                 VALUES (?, ?, ?, ?, ?, ?)
                 ON CONFLICT(ticker) DO UPDATE SET
@@ -113,7 +117,9 @@ class DataManager:
                     end_date=excluded.end_date,
                     data_points=excluded.data_points,
                     file_path=excluded.file_path
-            """, (ticker, update_time, str(start_date), str(end_date), count, str(file_path)))
+            """,
+                (ticker, update_time, str(start_date), str(end_date), count, str(file_path)),
+            )
             conn.commit()
             conn.close()
 
@@ -139,7 +145,7 @@ class DataManager:
                 # Fallback: check legacy SQLite
                 return self._legacy_load(ticker, start_date, end_date)
 
-            df = pd.read_parquet(file_path, engine='pyarrow')
+            df = pd.read_parquet(file_path, engine="pyarrow")
 
             # Filter by date range
             if start_date:
@@ -149,9 +155,7 @@ class DataManager:
 
             # Restore proper capital case for compatibility with existing codebase
             # Existing code expects: "Open", "High", "Low", "Close", "Volume"
-            rename_map = {
-                "open": "Open", "high": "High", "low": "Low", "close": "Close", "volume": "Volume"
-            }
+            rename_map = {"open": "Open", "high": "High", "low": "Low", "close": "Close", "volume": "Volume"}
             df = df.rename(columns=rename_map)
 
             return df

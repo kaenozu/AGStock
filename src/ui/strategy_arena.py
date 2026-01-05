@@ -8,15 +8,15 @@ import logging
 import pandas as pd
 import streamlit as st
 
-from src.backtest_engine import HistoricalBacktester
-from src.constants import NIKKEI_225_TICKERS, TICKER_NAMES
-from src.strategies import MultiTimeframeStrategy  # New
-from src.strategies import SMACrossoverStrategy  # Corrected
-from src.strategies import BollingerBandsStrategy, LightGBMStrategy, MLStrategy, RSIStrategy
+from agstock.src.backtest_engine import HistoricalBacktester
+from agstock.src.constants import NIKKEI_225_TICKERS, TICKER_NAMES
+from agstock.src.strategies import MultiTimeframeStrategy  # New
+from agstock.src.strategies import SMACrossoverStrategy  # Corrected
+from agstock.src.strategies import BollingerBandsStrategy, LightGBMStrategy, MLStrategy, RSIStrategy
 
 # Try importing RL Strategy, but don't crash if missing deps
 try:
-    from src.strategies.rl import RLStrategy
+    from agstock.src.strategies.rl import RLStrategy
 
     HAS_RL = True
 except ImportError:

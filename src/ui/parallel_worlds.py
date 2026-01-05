@@ -1,5 +1,3 @@
-
-
 def render_parallel_worlds():
     pass
     #     """

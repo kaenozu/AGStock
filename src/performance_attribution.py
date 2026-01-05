@@ -17,9 +17,7 @@ class PerformanceAttribution:
     def __init__(self):
         pass
 
-    def factor_analysis(
-        self, portfolio_returns: pd.Series, factor_returns: pd.DataFrame
-    ) -> Dict:
+    def factor_analysis(self, portfolio_returns: pd.Series, factor_returns: pd.DataFrame) -> Dict:
         """
         Fama-French style factor analysis.
 
@@ -96,9 +94,7 @@ class PerformanceAttribution:
         contributions = []
         for sector, weight in sector_weights.items():
             if sector in sector_returns:
-                sector_ret = (
-                    pd.concat(sector_returns[sector], axis=1).mean(axis=1).mean()
-                )
+                sector_ret = pd.concat(sector_returns[sector], axis=1).mean(axis=1).mean()
                 contribution = weight * sector_ret
                 contributions.append(
                     {
@@ -158,9 +154,7 @@ class PerformanceAttribution:
             ),
         }
 
-    def risk_adjusted_metrics(
-        self, returns: pd.Series, benchmark_returns: Optional[pd.Series] = None
-    ) -> Dict:
+    def risk_adjusted_metrics(self, returns: pd.Series, benchmark_returns: Optional[pd.Series] = None) -> Dict:
         """
         Calculate comprehensive risk-adjusted performance metrics.
 
@@ -181,22 +175,12 @@ class PerformanceAttribution:
 
         # Sharpe ratio
         risk_free_rate = 0.02
-        sharpe = (
-            (annualized_return - risk_free_rate) / volatility if volatility > 0 else 0
-        )
+        sharpe = (annualized_return - risk_free_rate) / volatility if volatility > 0 else 0
 
         # Sortino ratio (downside deviation)
         downside_returns = returns[returns < 0]
-        downside_std = (
-            downside_returns.std() * np.sqrt(252)
-            if len(downside_returns) > 0
-            else volatility
-        )
-        sortino = (
-            (annualized_return - risk_free_rate) / downside_std
-            if downside_std > 0
-            else 0
-        )
+        downside_std = downside_returns.std() * np.sqrt(252) if len(downside_returns) > 0 else volatility
+        sortino = (annualized_return - risk_free_rate) / downside_std if downside_std > 0 else 0
 
         # Maximum drawdown
         cum_returns = (1 + returns).cumprod()
@@ -223,11 +207,7 @@ class PerformanceAttribution:
             if len(aligned) > 0:
                 excess_returns = aligned.iloc[:, 0] - aligned.iloc[:, 1]
                 tracking_error = excess_returns.std() * np.sqrt(252)
-                information_ratio = (
-                    excess_returns.mean() * 252 / tracking_error
-                    if tracking_error > 0
-                    else 0
-                )
+                information_ratio = excess_returns.mean() * 252 / tracking_error if tracking_error > 0 else 0
 
                 # Beta
                 cov = np.cov(aligned.iloc[:, 0], aligned.iloc[:, 1])[0, 1]

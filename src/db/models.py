@@ -1,10 +1,11 @@
 from sqlalchemy import Column, DateTime, Float, Integer, String, Text
 from sqlalchemy.sql import func
-from src.db.database import Base
+from agstock.src.db.database import Base
 
 
 class MarketScan(Base):
     """Records daily scan results for a ticker."""
+
     __tablename__ = "market_scans"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -20,6 +21,7 @@ class MarketScan(Base):
 
 class TradeLog(Base):
     """Records executed trades."""
+
     __tablename__ = "trade_logs"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -35,6 +37,7 @@ class TradeLog(Base):
 
 class CouncilVote(Base):
     """Records individual votes from the Council of Avatars."""
+
     __tablename__ = "council_votes"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -50,6 +53,7 @@ class CouncilVote(Base):
 
 class SystemEvent(Base):
     """Generic system events (e.g., deployments, errors, mode switches)."""
+
     __tablename__ = "system_events"
 
     id = Column(Integer, primary_key=True, index=True)

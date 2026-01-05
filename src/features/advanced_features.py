@@ -104,14 +104,9 @@ class AdvancedFeatureEngine:
         # Sector correlation
         if sector_index is not None and "Close" in sector_index.columns:
             # Calculate rolling correlation
-            df["Sector_correlation"] = (
-                df["Close"].rolling(20).corr(sector_index["Close"])
-            )
+            df["Sector_correlation"] = df["Close"].rolling(20).corr(sector_index["Close"])
             df["Sector_beta"] = (
-                df["Close"]
-                .pct_change()
-                .rolling(20)
-                .cov(sector_index["Close"].pct_change())
+                df["Close"].pct_change().rolling(20).cov(sector_index["Close"].pct_change())
                 / sector_index["Close"].pct_change().rolling(20).var()
             )
         else:
@@ -184,9 +179,9 @@ class AdvancedFeatureEngine:
         # Market regime indicator (ADX-based)
         # Simplified: use price range volatility
         df["Price_range"] = (df["High"] - df["Low"]) / df["Close"]
-        df["Regime_trending"] = (
-            df["Price_range"].rolling(14).mean() > df["Price_range"].rolling(50).mean()
-        ).astype(int)
+        df["Regime_trending"] = (df["Price_range"].rolling(14).mean() > df["Price_range"].rolling(50).mean()).astype(
+            int
+        )
 
         return df
 
@@ -212,9 +207,7 @@ class AdvancedFeatureEngine:
 
         return df
 
-    def select_features(
-        self, df: pd.DataFrame, importance_threshold: float = 0.01
-    ) -> pd.DataFrame:
+    def select_features(self, df: pd.DataFrame, importance_threshold: float = 0.01) -> pd.DataFrame:
         """
         Select features based on importance.
 
@@ -227,11 +220,7 @@ class AdvancedFeatureEngine:
             return df
 
         # Filter features by importance
-        important_features = [
-            feat
-            for feat, imp in self.feature_importance.items()
-            if imp >= importance_threshold
-        ]
+        important_features = [feat for feat, imp in self.feature_importance.items() if imp >= importance_threshold]
 
         # Keep only important features (plus target if exists)
         available_features = [f for f in important_features if f in df.columns]
@@ -239,9 +228,7 @@ class AdvancedFeatureEngine:
         if "target" in df.columns:
             available_features.append("target")
 
-        logger.info(
-            f"Selected {len(available_features)} features (threshold: {importance_threshold})"
-        )
+        logger.info(f"Selected {len(available_features)} features (threshold: {importance_threshold})")
 
         return df[available_features]
 

@@ -37,9 +37,7 @@ class PerformanceOptimizer:
 
                     # 実行時間が遅い場合に警告
                     if execution_time > 3.0:
-                        st.warning(
-                            f"⚠️ {name} の実行に {execution_time:.2f}秒 かかりました"
-                        )
+                        st.warning(f"⚠️ {name} の実行に {execution_time:.2f}秒 かかりました")
 
                     return result
                 except Exception as e:
@@ -134,9 +132,7 @@ class PerformanceOptimizer:
             "max_time": max(times),
             "min_time": min(times),
             "slow_functions": [
-                (name, time_taken)
-                for name, time_taken in self.execution_times.items()
-                if time_taken > 2.0
+                (name, time_taken) for name, time_taken in self.execution_times.items() if time_taken > 2.0
             ],
             "cache_size": len(self.cache),
         }
@@ -210,9 +206,7 @@ def optimized_dataframe_display(
             st.info(f"データ量が多いため、最初の{max_rows}行を表示しています")
             df = df.head(max_rows)
         else:
-            st.warning(
-                f"全{len(df)}行を表示します。パフォーマンスに影響する可能性があります。"
-            )
+            st.warning(f"全{len(df)}行を表示します。パフォーマンスに影響する可能性があります。")
 
     # 検索機能
     if search_columns:
@@ -221,11 +215,7 @@ def optimized_dataframe_display(
         if search_term:
             mask = (
                 df[search_columns]
-                .apply(
-                    lambda x: x.astype(str).str.contains(
-                        search_term, case=False, na=False
-                    )
-                )
+                .apply(lambda x: x.astype(str).str.contains(search_term, case=False, na=False))
                 .any(axis=1)
             )
             filtered_df = df[mask]
@@ -329,9 +319,7 @@ def batch_processing(items: List[Any], process_func: Callable, batch_size: int =
         # バッチ処理の実行
         try:
             batch_results = process_func(batch)
-            results.extend(
-                batch_results if isinstance(batch_results, list) else [batch_results]
-            )
+            results.extend(batch_results if isinstance(batch_results, list) else [batch_results])
         except Exception as e:
             st.error(f"バッチ {batch_num} でエラー: {str(e)}")
             results.extend([None] * len(batch))
@@ -347,9 +335,7 @@ def batch_processing(items: List[Any], process_func: Callable, batch_size: int =
     return results
 
 
-def smart_caching_strategy(
-    data_size: int, complexity: str = "medium"
-) -> Dict[str, Any]:
+def smart_caching_strategy(data_size: int, complexity: str = "medium") -> Dict[str, Any]:
     """データサイズと複雑さに応じたキャッシュ戦略"""
 
     if data_size < 1000 and complexity == "low":

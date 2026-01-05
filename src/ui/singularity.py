@@ -1,5 +1,3 @@
-
-
 def render_singularity_core():
     #         """
     #         st.markdown(

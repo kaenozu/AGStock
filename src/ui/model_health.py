@@ -1,6 +1,6 @@
 import streamlit as st
 
-from src.services.model_health import compute_health, write_retrain_flag
+from agstock.src.services.model_health import compute_health, write_retrain_flag
 
 
 def render_model_health():

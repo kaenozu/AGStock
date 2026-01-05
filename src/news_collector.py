@@ -20,7 +20,7 @@ RSS_FEEDS = {
 
 
 try:
-    from src.cache_manager import CacheManager
+    from agstock.src.cache_manager import CacheManager
 
     HAS_CACHE = True
 except ImportError:
@@ -62,9 +62,7 @@ class NewsCollector:
                             "published",
                             datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
                         ),
-                        "summary": entry.get(
-                            "summary", ""
-                        ),  # specific to ticker if scraping, but RSS usually generic
+                        "summary": entry.get("summary", ""),  # specific to ticker if scraping, but RSS usually generic
                     }
                 )
         except Exception as e:
@@ -77,9 +75,7 @@ class NewsCollector:
         # Sort by date if possible (though RSS format varies)
         return all_news[:limit]
 
-    def fetch_news_for_ticker(
-        self, ticker: str, limit: int = 5
-    ) -> List[Dict[str, str]]:
+    def fetch_news_for_ticker(self, ticker: str, limit: int = 5) -> List[Dict[str, str]]:
         """
         Fetches news specific to a ticker using yfinance.
         """
@@ -102,11 +98,13 @@ class NewsCollector:
                         "source": item.get("publisher", "Unknown"),
                         "title": item.get("title", "No Title"),
                         "link": item.get("link", ""),
-                        "published": datetime.datetime.fromtimestamp(
-                            item.get("providerPublishTime", 0)
-                        ).strftime("%Y-%m-%d %H:%M")
-                        if item.get("providerPublishTime")
-                        else "Unknown",
+                        "published": (
+                            datetime.datetime.fromtimestamp(item.get("providerPublishTime", 0)).strftime(
+                                "%Y-%m-%d %H:%M"
+                            )
+                            if item.get("providerPublishTime")
+                            else "Unknown"
+                        ),
                         "summary": item.get("summary", ""),
                         "type": item.get("type", "STORY"),
                     }

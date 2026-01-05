@@ -42,27 +42,19 @@ class AttentionFeatureSelector:
         # 2. ボラティリティベース（変動大きい時点は重要）
         if "Close" in df.columns:
             returns = df["Close"].pct_change().fillna(0).abs()
-            volatility_weight = (returns - returns.min()) / (
-                returns.max() - returns.min() + 1e-10
-            )
+            volatility_weight = (returns - returns.min()) / (returns.max() - returns.min() + 1e-10)
         else:
             volatility_weight = np.ones(n)
 
         # 3. 出来高ベース（出来高大きい時点は重要）
         if "Volume" in df.columns:
             volume = df["Volume"].fillna(0)
-            volume_weight = (volume - volume.min()) / (
-                volume.max() - volume.min() + 1e-10
-            )
+            volume_weight = (volume - volume.min()) / (volume.max() - volume.min() + 1e-10)
         else:
             volume_weight = np.ones(n)
 
         # 組み合わせ
-        combined = (
-            0.6 * time_decay
-            + 0.2 * volatility_weight.values
-            + 0.2 * volume_weight.values
-        )
+        combined = 0.6 * time_decay + 0.2 * volatility_weight.values + 0.2 * volume_weight.values
 
         # 正規化
         attention = combined / combined.sum()
@@ -70,9 +62,7 @@ class AttentionFeatureSelector:
 
         return attention
 
-    def select_important_features(
-        self, df: pd.DataFrame, n_features: int = 20
-    ) -> List[str]:
+    def select_important_features(self, df: pd.DataFrame, n_features: int = 20) -> List[str]:
         """
         重要な特徴量を選択
 
@@ -120,9 +110,7 @@ class AttentionFeatureSelector:
         logger.info(f"Selected {len(selected)} important features")
         return selected
 
-    def apply_attention_weights(
-        self, X: np.ndarray, attention: np.ndarray
-    ) -> np.ndarray:
+    def apply_attention_weights(self, X: np.ndarray, attention: np.ndarray) -> np.ndarray:
         """
         データにアテンション重みを適用
 
@@ -148,12 +136,8 @@ class AttentionFeatureSelector:
     def get_attention_summary(self) -> Dict:
         """アテンション情報のサマリーを取得"""
         return {
-            "top_features": list(self.feature_scores.items())[:10]
-            if self.feature_scores
-            else [],
-            "attention_weights": self.attention_weights.tolist()
-            if self.attention_weights is not None
-            else [],
+            "top_features": list(self.feature_scores.items())[:10] if self.feature_scores else [],
+            "attention_weights": self.attention_weights.tolist() if self.attention_weights is not None else [],
         }
 
 

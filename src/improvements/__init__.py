@@ -1,11 +1,11 @@
 """AGStock 改善モジュール"""
 
-from src.improvements.settings import (
+from agstock.src.improvements.settings import (
     AGStockSettings,
     get_settings,
     reload_settings,
 )
-from src.improvements.memory_cache import (
+from agstock.src.improvements.memory_cache import (
     MemoryCache,
     cached,
     get_memory_cache,

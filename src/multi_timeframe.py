@@ -56,9 +56,7 @@ class MultiTimeframeAnalyzer:
 
         return resampled
 
-    def calculate_mtf_indicators(
-        self, df: pd.DataFrame, timeframe_prefix: str
-    ) -> pd.DataFrame:
+    def calculate_mtf_indicators(self, df: pd.DataFrame, timeframe_prefix: str) -> pd.DataFrame:
         """
         Calculate technical indicators for a specific timeframe.
 
@@ -72,22 +70,14 @@ class MultiTimeframeAnalyzer:
         df = df.copy()
 
         # 1. Trend (SMA/EMA)
-        df[f"{timeframe_prefix}SMA_20"] = ta.trend.SMAIndicator(
-            df["Close"], window=20
-        ).sma_indicator()
-        df[f"{timeframe_prefix}SMA_50"] = ta.trend.SMAIndicator(
-            df["Close"], window=50
-        ).sma_indicator()
+        df[f"{timeframe_prefix}SMA_20"] = ta.trend.SMAIndicator(df["Close"], window=20).sma_indicator()
+        df[f"{timeframe_prefix}SMA_50"] = ta.trend.SMAIndicator(df["Close"], window=50).sma_indicator()
 
         # Trend Direction
-        df[f"{timeframe_prefix}Trend"] = np.where(
-            df["Close"] > df[f"{timeframe_prefix}SMA_20"], 1, -1
-        )
+        df[f"{timeframe_prefix}Trend"] = np.where(df["Close"] > df[f"{timeframe_prefix}SMA_20"], 1, -1)
 
         # 2. Momentum (RSI)
-        df[f"{timeframe_prefix}RSI"] = ta.momentum.RSIIndicator(
-            df["Close"], window=14
-        ).rsi()
+        df[f"{timeframe_prefix}RSI"] = ta.momentum.RSIIndicator(df["Close"], window=14).rsi()
 
         # 3. MACD
         macd = ta.trend.MACD(df["Close"])
@@ -97,9 +87,7 @@ class MultiTimeframeAnalyzer:
 
         return df
 
-    def merge_mtf_features(
-        self, daily_df: pd.DataFrame, mtf_df: pd.DataFrame, prefix: str
-    ) -> pd.DataFrame:
+    def merge_mtf_features(self, daily_df: pd.DataFrame, mtf_df: pd.DataFrame, prefix: str) -> pd.DataFrame:
         """
         Merge higher timeframe features into daily dataframe.
 

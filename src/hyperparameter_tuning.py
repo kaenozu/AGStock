@@ -42,9 +42,7 @@ class HyperparameterTuner:
 
         logger.info(f"HyperparameterTuner initialized for {model_type}")
 
-    def _calculate_sharpe_ratio(
-        self, returns: np.ndarray, risk_free_rate: float = 0.0
-    ) -> float:
+    def _calculate_sharpe_ratio(self, returns: np.ndarray, risk_free_rate: float = 0.0) -> float:
         """
         Sharpe Ratioを計算
 
@@ -64,9 +62,7 @@ class HyperparameterTuner:
         # 年率換算（252営業日）
         return sharpe * np.sqrt(252)
 
-    def _objective_lightgbm(
-        self, trial: optuna.Trial, X: pd.DataFrame, y: pd.Series
-    ) -> float:
+    def _objective_lightgbm(self, trial: optuna.Trial, X: pd.DataFrame, y: pd.Series) -> float:
         """
         LightGBMの目的関数
 
@@ -133,9 +129,7 @@ class HyperparameterTuner:
         # 平均Sharpe Ratioを返す
         return np.mean(sharpe_scores)
 
-    def _objective_lstm(
-        self, trial: optuna.Trial, X: pd.DataFrame, y: pd.Series
-    ) -> float:
+    def _objective_lstm(self, trial: optuna.Trial, X: pd.DataFrame, y: pd.Series) -> float:
         """
         LSTMの目的関数
 
@@ -152,9 +146,7 @@ class HyperparameterTuner:
             "hidden_units": trial.suggest_int("hidden_units", 32, 256, step=32),
             "num_layers": trial.suggest_int("num_layers", 1, 4),
             "dropout_rate": trial.suggest_float("dropout_rate", 0.1, 0.5),
-            "learning_rate": trial.suggest_float(
-                "learning_rate", 0.0001, 0.01, log=True
-            ),
+            "learning_rate": trial.suggest_float("learning_rate", 0.0001, 0.01, log=True),
             "batch_size": trial.suggest_int("batch_size", 16, 128, step=16),
         }
 
@@ -166,9 +158,7 @@ class HyperparameterTuner:
 
         return sharpe
 
-    def optimize(
-        self, X: pd.DataFrame, y: pd.Series, n_trials: int = 50, timeout: int = 3600
-    ) -> Dict[str, Any]:
+    def optimize(self, X: pd.DataFrame, y: pd.Series, n_trials: int = 50, timeout: int = 3600) -> Dict[str, Any]:
         """
         ハイパーパラメータ最適化を実行
 
@@ -194,18 +184,20 @@ class HyperparameterTuner:
 
         # 目的関数の選択
         if self.model_type == "lightgbm":
+
             def objective_func(trial):
                 return self._objective_lightgbm(trial, X, y)
+
         elif self.model_type == "lstm":
+
             def objective_func(trial):
                 return self._objective_lstm(trial, X, y)
+
         else:
             raise ValueError(f"Unsupported model type: {self.model_type}")
 
         # 最適化実行
-        self.study.optimize(
-            objective_func, n_trials=n_trials, timeout=timeout, show_progress_bar=True
-        )
+        self.study.optimize(objective_func, n_trials=n_trials, timeout=timeout, show_progress_bar=True)
 
         self.best_params = self.study.best_params
 
@@ -243,8 +235,7 @@ class HyperparameterTuner:
             "best_value": self.study.best_value,
             "n_trials": len(self.study.trials),
             "optimization_history": [
-                {"number": trial.number, "value": trial.value, "params": trial.params}
-                for trial in self.study.trials
+                {"number": trial.number, "value": trial.value, "params": trial.params} for trial in self.study.trials
             ],
         }
 
@@ -273,9 +264,7 @@ class HyperparameterTuner:
         return results
 
 
-def optimize_all_models(
-    df: pd.DataFrame, n_trials: int = 30
-) -> Dict[str, Dict[str, Any]]:
+def optimize_all_models(df: pd.DataFrame, n_trials: int = 30) -> Dict[str, Dict[str, Any]]:
     """
     すべてのモデルのハイパーパラメータを最適化
 
@@ -286,7 +275,7 @@ def optimize_all_models(
     Returns:
         各モデルの最適パラメータ
     """
-    from src.features import add_advanced_features
+    from agstock.src.features import add_advanced_features
 
     # 特徴量を生成
     logger.info("Generating features...")
@@ -298,9 +287,7 @@ def optimize_all_models(
         return {}
 
     # 特徴量とターゲットを準備
-    feature_cols = [
-        col for col in df_features.columns if col not in ["Return_1d", "Return_5d"]
-    ]
+    feature_cols = [col for col in df_features.columns if col not in ["Return_1d", "Return_5d"]]
     X = df_features[feature_cols]
     y = (df_features["Return_1d"] > 0).astype(int)
 
@@ -320,9 +307,7 @@ def optimize_all_models(
     logger.info("=" * 60)
     logger.info("Optimizing LSTM...")
     logger.info("=" * 60)
-    logger.info(
-        "LSTM optimization is a placeholder - implement with TensorFlow/PyTorch"
-    )
+    logger.info("LSTM optimization is a placeholder - implement with TensorFlow/PyTorch")
 
     return results
 

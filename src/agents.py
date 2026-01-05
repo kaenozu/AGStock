@@ -4,8 +4,8 @@ from typing import Any, Dict, List
 
 import numpy as np
 
-from src.data_loader import fetch_macro_data
-from src.llm_analyzer import LLMAnalyzer
+from agstock.src.data_loader import fetch_macro_data
+from agstock.src.llm_analyzer import LLMAnalyzer
 
 logger = logging.getLogger(__name__)
 
@@ -129,9 +129,7 @@ class MacroStrategist(Agent):
         score = 0
 
         if sp500 is not None and not sp500.empty:
-            ret = (sp500["Close"].iloc[-1] - sp500["Close"].iloc[0]) / sp500[
-                "Close"
-            ].iloc[0]
+            ret = (sp500["Close"].iloc[-1] - sp500["Close"].iloc[0]) / sp500["Close"].iloc[0]
             if ret > 0:
                 score += 1
                 reasons.append("S&P500 is uptrending")
@@ -141,9 +139,7 @@ class MacroStrategist(Agent):
 
         if usdjpy is not None and not usdjpy.empty:
             # Assuming weaker yen (higher USDJPY) is good for Japanese stocks (generalization)
-            ret = (usdjpy["Close"].iloc[-1] - usdjpy["Close"].iloc[0]) / usdjpy[
-                "Close"
-            ].iloc[0]
+            ret = (usdjpy["Close"].iloc[-1] - usdjpy["Close"].iloc[0]) / usdjpy["Close"].iloc[0]
             if ret > 0:
                 score += 1
                 reasons.append("USD/JPY is rising (Yen weakening)")
@@ -182,9 +178,7 @@ class RiskManager(Agent):
         max_dd = drawdown.min()
 
         reasons = []
-        decision = (
-            "HOLD"  # Risk manager usually says HOLD (approve) or SELL (reject/reduce)
-        )
+        decision = "HOLD"  # Risk manager usually says HOLD (approve) or SELL (reject/reduce)
         # They rarely say "BUY" aggressively, but "ALLOW" -> HOLD/BUY
 
         confidence = 0.5
@@ -241,13 +235,7 @@ class PortfolioManager(Agent):
             score += weighted_score
             total_weight += w
 
-            icon = (
-                "🟢"
-                if vote.decision == "BUY"
-                else "🔴"
-                if vote.decision == "SELL"
-                else "⚪"
-            )
+            icon = "🟢" if vote.decision == "BUY" else "🔴" if vote.decision == "SELL" else "⚪"
             summary_lines.append(
                 f"{icon} **{vote.agent_name}**: {vote.decision} (Conf: {vote.confidence:.2f}) - {vote.reasoning}"
             )
@@ -271,9 +259,7 @@ class PortfolioManager(Agent):
             final_decision = "HOLD"  # Downgrade BUY to HOLD, or SELL to SELL
             if final_score > 0:
                 final_decision = "HOLD"  # Veto BUY
-                summary_lines.append(
-                    "⚠️ **VETO**: Risk Manager blocked the BUY decision due to high risk."
-                )
+                summary_lines.append("⚠️ **VETO**: Risk Manager blocked the BUY decision due to high risk.")
             else:
                 final_decision = "SELL"  # Confirm SELL
 

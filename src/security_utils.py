@@ -42,9 +42,7 @@ class SecurityUtils:
         Returns:
             bool: 機密情報のキーであればTrue
         """
-        return any(
-            pattern.match(key) for pattern in SecurityUtils.SENSITIVE_KEY_PATTERNS
-        )
+        return any(pattern.match(key) for pattern in SecurityUtils.SENSITIVE_KEY_PATTERNS)
 
     @staticmethod
     def mask_sensitive_data(data: str, show_chars: int = 2) -> str:
@@ -60,14 +58,10 @@ class SecurityUtils:
         if not data or len(data) <= show_chars * 2:
             return "*" * len(data) if data else ""
 
-        return (
-            data[:show_chars] + "*" * (len(data) - show_chars * 2) + data[-show_chars:]
-        )
+        return data[:show_chars] + "*" * (len(data) - show_chars * 2) + data[-show_chars:]
 
     @staticmethod
-    def validate_input(
-        value: str, pattern: str = r"^[a-zA-Z0-9_-]+$", max_length: Optional[int] = 100
-    ) -> bool:
+    def validate_input(value: str, pattern: str = r"^[a-zA-Z0-9_-]+$", max_length: Optional[int] = 100) -> bool:
         """入力値の検証を行う
 
         Args:
@@ -146,9 +140,7 @@ class SecurityUtils:
 class SecureConfig:
     """安全な設定管理クラス"""
 
-    def __init__(
-        self, config_path: str = "config.json", encryption_key: Optional[bytes] = None
-    ):
+    def __init__(self, config_path: str = "config.json", encryption_key: Optional[bytes] = None):
         """SecureConfigの初期化
 
         Args:
@@ -168,9 +160,7 @@ class SecureConfig:
             else:
                 # 新しいキーを生成し、環境変数に設定（開発用）
                 self.encryption_key = Fernet.generate_key()
-                logger.info(
-                    "New encryption key generated. Set AGSTOCK_CRYPTO_KEY environment variable for production."
-                )
+                logger.info("New encryption key generated. Set AGSTOCK_CRYPTO_KEY environment variable for production.")
 
         self.cipher_suite = Fernet(self.encryption_key)
 

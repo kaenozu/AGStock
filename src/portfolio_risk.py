@@ -44,9 +44,7 @@ class PortfolioRiskAnalyzer:
 
         # 時価評価額で計算
         if "market_value" not in positions.columns:
-            positions["market_value"] = (
-                positions["current_price"] * positions["quantity"]
-            )
+            positions["market_value"] = positions["current_price"] * positions["quantity"]
 
         total_value = positions["market_value"].sum()
 
@@ -121,9 +119,7 @@ class PortfolioRiskAnalyzer:
 
         # 時価評価額で計算
         if "market_value" not in positions.columns:
-            positions["market_value"] = (
-                positions["current_price"] * positions["quantity"]
-            )
+            positions["market_value"] = positions["current_price"] * positions["quantity"]
 
         total_value = positions["market_value"].sum()
 

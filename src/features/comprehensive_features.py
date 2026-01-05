@@ -86,9 +86,7 @@ class ComprehensiveFeatureGenerator:
         df["log_returns"] = np.log(df["Close"] / df["Close"].shift(1))
 
         # Price position in range
-        df["price_position"] = (df["Close"] - df["Low"]) / (
-            df["High"] - df["Low"] + 1e-10
-        )
+        df["price_position"] = (df["Close"] - df["Low"]) / (df["High"] - df["Low"] + 1e-10)
 
         # Gap
         df["gap"] = (df["Open"] - df["Close"].shift(1)) / df["Close"].shift(1)
@@ -123,9 +121,7 @@ class ComprehensiveFeatureGenerator:
         df["BB_upper"] = sma_20 + 2 * std_20
         df["BB_lower"] = sma_20 - 2 * std_20
         df["BB_width"] = (df["BB_upper"] - df["BB_lower"]) / sma_20
-        df["BB_position"] = (df["Close"] - df["BB_lower"]) / (
-            df["BB_upper"] - df["BB_lower"] + 1e-10
-        )
+        df["BB_position"] = (df["Close"] - df["BB_lower"]) / (df["BB_upper"] - df["BB_lower"] + 1e-10)
 
         # Stochastic
         low_14 = df["Low"].rolling(14).min()
@@ -157,16 +153,8 @@ class ComprehensiveFeatureGenerator:
         # Money Flow Index (MFI)
         typical_price = (df["High"] + df["Low"] + df["Close"]) / 3
         money_flow = typical_price * df["Volume"]
-        positive_flow = (
-            money_flow.where(typical_price > typical_price.shift(1), 0)
-            .rolling(14)
-            .sum()
-        )
-        negative_flow = (
-            money_flow.where(typical_price < typical_price.shift(1), 0)
-            .rolling(14)
-            .sum()
-        )
+        positive_flow = money_flow.where(typical_price > typical_price.shift(1), 0).rolling(14).sum()
+        negative_flow = money_flow.where(typical_price < typical_price.shift(1), 0).rolling(14).sum()
         df["MFI"] = 100 - (100 / (1 + positive_flow / (negative_flow + 1e-10)))
 
         return df
@@ -219,11 +207,7 @@ class ComprehensiveFeatureGenerator:
         df["zscore"] = (df["Close"] - mean_20) / (std_20 + 1e-10)
 
         # Autocorrelation
-        df["autocorr_5"] = (
-            df["returns_1d"]
-            .rolling(20)
-            .apply(lambda x: x.autocorr(lag=5) if len(x) >= 5 else 0)
-        )
+        df["autocorr_5"] = df["returns_1d"].rolling(20).apply(lambda x: x.autocorr(lag=5) if len(x) >= 5 else 0)
 
         return df
 
@@ -242,9 +226,7 @@ class ComprehensiveFeatureGenerator:
 
         return df
 
-    def _add_cross_asset_features(
-        self, df: pd.DataFrame, external_data: Dict[str, pd.DataFrame]
-    ) -> pd.DataFrame:
+    def _add_cross_asset_features(self, df: pd.DataFrame, external_data: Dict[str, pd.DataFrame]) -> pd.DataFrame:
         """Add cross-asset features."""
         # Convert index to timezone-naive for compatibility
         df_index = df.index.tz_localize(None) if df.index.tz is not None else df.index
@@ -252,9 +234,7 @@ class ComprehensiveFeatureGenerator:
         # VIX
         if "VIX" in external_data and not external_data["VIX"].empty:
             vix = external_data["VIX"]["Close"]
-            vix_index = (
-                vix.index.tz_localize(None) if vix.index.tz is not None else vix.index
-            )
+            vix_index = vix.index.tz_localize(None) if vix.index.tz is not None else vix.index
             vix.index = vix_index
             df["VIX"] = vix.reindex(df_index, method="ffill")
             df["VIX_change"] = df["VIX"].pct_change()
@@ -262,11 +242,7 @@ class ComprehensiveFeatureGenerator:
         # Market index (e.g., Nikkei, S&P500)
         if "NIKKEI" in external_data and not external_data["NIKKEI"].empty:
             nikkei = external_data["NIKKEI"]["Close"]
-            nikkei_index = (
-                nikkei.index.tz_localize(None)
-                if nikkei.index.tz is not None
-                else nikkei.index
-            )
+            nikkei_index = nikkei.index.tz_localize(None) if nikkei.index.tz is not None else nikkei.index
             nikkei.index = nikkei_index
             df["Market_returns"] = nikkei.pct_change().reindex(df_index, method="ffill")
 

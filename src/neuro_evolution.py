@@ -11,7 +11,7 @@ from typing import Any, Dict
 
 import pandas as pd
 
-from src.vector_backtester import get_vector_backtester
+from agstock.src.vector_backtester import get_vector_backtester
 
 logger = logging.getLogger(__name__)
 
@@ -81,9 +81,7 @@ class NeuroEvolutionEngine:
             }
             self.population.append(gene)
         self.generation = 0
-        logger.info(
-            f"Initialized population of {self.pop_size} agents (includes Seed)."
-        )
+        logger.info(f"Initialized population of {self.pop_size} agents (includes Seed).")
 
     def fitness_function(self, gene: Dict, data: pd.DataFrame) -> float:
         """適応度関数: Sharpe Ratio重視"""

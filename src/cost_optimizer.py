@@ -55,9 +55,7 @@ class CostOptimizer:
             broker: 証券会社（"sbi", "rakuten", "matsui"）
         """
         if broker not in self.BROKER_FEES:
-            raise ValueError(
-                f"Unknown broker: {broker}. Choose from {list(self.BROKER_FEES.keys())}"
-            )
+            raise ValueError(f"Unknown broker: {broker}. Choose from {list(self.BROKER_FEES.keys())}")
 
         self.broker = broker
         self.broker_config = self.BROKER_FEES[broker]
@@ -125,9 +123,7 @@ class CostOptimizer:
             "total_cost": total_cost,
         }
 
-    def should_take_profit(
-        self, position: Dict, current_price: float
-    ) -> Tuple[bool, str]:
+    def should_take_profit(self, position: Dict, current_price: float) -> Tuple[bool, str]:
         """
         利確すべきか判断（手数料考慮）
 

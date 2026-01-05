@@ -11,13 +11,15 @@ def render_features_hub():
     """新機能ハブをレンダリング"""
     st.markdown("### 🚀 新機能センター")
 
-    tabs = st.tabs([
-        "📅 決算カレンダー",
-        "📊 市場センチメント",
-        "🔄 セクターローテーション",
-        "💰 税金最適化",
-        "🌱 配当再投資",
-    ])
+    tabs = st.tabs(
+        [
+            "📅 決算カレンダー",
+            "📊 市場センチメント",
+            "🔄 セクターローテーション",
+            "💰 税金最適化",
+            "🌱 配当再投資",
+        ]
+    )
 
     with tabs[0]:
         render_earnings_calendar()
@@ -41,8 +43,8 @@ def render_earnings_calendar():
     st.caption("決算発表前のポジション調整でサプライズリスクを回避")
 
     try:
-        from src.features.earnings_calendar import get_earnings_calendar
-        from src.paper_trader import PaperTrader
+        from agstock.src.features.earnings_calendar import get_earnings_calendar
+        from agstock.src.paper_trader import PaperTrader
 
         cal = get_earnings_calendar()
         pt = PaperTrader()
@@ -95,7 +97,7 @@ def render_sentiment_indicators():
     st.caption("Fear & Greed Index, VIX, Put/Call Ratioの統合分析")
 
     try:
-        from src.features.sentiment_indicators import get_sentiment_indicators
+        from agstock.src.features.sentiment_indicators import get_sentiment_indicators
 
         indicators = get_sentiment_indicators()
 
@@ -169,7 +171,7 @@ def render_sector_rotation():
     st.caption("景気サイクルに応じた最適セクターの提案")
 
     try:
-        from src.features.sector_rotation import get_sector_rotation
+        from agstock.src.features.sector_rotation import get_sector_rotation
 
         market = st.selectbox("市場選択", ["US", "JP"], index=0)
         sr = get_sector_rotation(market=market)
@@ -198,10 +200,7 @@ def render_sector_rotation():
         # 回避セクター
         st.markdown("**⚠️ 回避推奨セクター**")
         for sec in recs["avoid_sectors"]:
-            st.markdown(
-                f"- {sec['sector']} ({sec['etf']}) "
-                f"- モメンタム: {sec['momentum_score']:.1f}"
-            )
+            st.markdown(f"- {sec['sector']} ({sec['etf']}) " f"- モメンタム: {sec['momentum_score']:.1f}")
 
     except Exception as e:
         st.error(f"エラー: {e}")
@@ -213,8 +212,8 @@ def render_tax_optimizer():
     st.caption("年末に向けた損益通算シミュレーション")
 
     try:
-        from src.features.tax_optimizer import get_tax_optimizer, HarvestingStrategy
-        from src.paper_trader import PaperTrader
+        from agstock.src.features.tax_optimizer import get_tax_optimizer, HarvestingStrategy
+        from agstock.src.paper_trader import PaperTrader
 
         # 戦略選択
         strategy_name = st.selectbox(
@@ -239,12 +238,14 @@ def render_tax_optimizer():
         # ポジションデータを整形
         positions_list = []
         for ticker, pos in positions.items():
-            positions_list.append({
-                "ticker": ticker,
-                "quantity": pos.get("quantity", 0),
-                "avg_price": pos.get("avg_price", 0),
-                "current_price": pos.get("current_price", pos.get("avg_price", 0)),
-            })
+            positions_list.append(
+                {
+                    "ticker": ticker,
+                    "quantity": pos.get("quantity", 0),
+                    "avg_price": pos.get("avg_price", 0),
+                    "current_price": pos.get("current_price", pos.get("avg_price", 0)),
+                }
+            )
 
         realized_gains = st.number_input(
             "年初来の実現益 (¥)",
@@ -295,8 +296,8 @@ def render_drip_manager():
     st.caption("配当受領時に自動で再投資")
 
     try:
-        from src.features.drip import get_drip_manager, DRIPStrategy
-        from src.paper_trader import PaperTrader
+        from agstock.src.features.drip import get_drip_manager, DRIPStrategy
+        from agstock.src.paper_trader import PaperTrader
 
         # 戦略選択
         strategy_name = st.selectbox(
@@ -320,10 +321,7 @@ def render_drip_manager():
             return
 
         # ポートフォリオを構築
-        portfolio = {
-            ticker: pos.get("quantity", 0)
-            for ticker, pos in positions.items()
-        }
+        portfolio = {ticker: pos.get("quantity", 0) for ticker, pos in positions.items()}
 
         with st.spinner("配当データを取得中..."):
             summary = drip.get_drip_summary(portfolio)

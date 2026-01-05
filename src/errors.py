@@ -40,9 +40,7 @@ class AGStockException(Exception):
         self.message = message
         self.error_code = error_code or "UNKNOWN_ERROR"
         self.details = details or {}
-        logger.error(
-            f"{self.__class__.__name__}: {message} (Code: {self.error_code}, Details: {self.details})"
-        )
+        logger.error(f"{self.__class__.__name__}: {message} (Code: {self.error_code}, Details: {self.details})")
 
 
 class DataLoadError(AGStockException):
@@ -51,9 +49,7 @@ class DataLoadError(AGStockException):
     データ取得や読み込み処理で発生する例外を表します。
     """
 
-    def __init__(
-        self, message: str, ticker: Optional[str] = None, details: Optional[dict] = None
-    ):
+    def __init__(self, message: str, ticker: Optional[str] = None, details: Optional[dict] = None):
         """DataLoadErrorの初期化
 
         Args:

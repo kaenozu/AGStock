@@ -11,9 +11,9 @@ from typing import Any, Dict, List
 
 import yfinance as yf
 
-from src.data_loader import fetch_stock_data, get_latest_price
-from src.paper_trader import PaperTrader
-from src.smart_notifier import SmartNotifier
+from agstock.src.data_loader import fetch_stock_data, get_latest_price
+from agstock.src.paper_trader import PaperTrader
+from agstock.src.smart_notifier import SmartNotifier
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class SmartAlerts:
         "vix_threshold": 30.0,
         "large_profit_threshold": 5.0,  # %
         "enabled": True,
-        "active_mode": False
+        "active_mode": False,
     }
 
     def __init__(self, config_path: str = "config.json"):
@@ -64,13 +64,12 @@ class SmartAlerts:
         logger.critical(f"🚨 EMERGENCY STOP TRIGGERED: {reason}")
         try:
             # Lazy import to avoid circular dependencies
-            from src.trading.fully_automated_trader import FullyAutomatedTrader
+            from agstock.src.trading.fully_automated_trader import FullyAutomatedTrader
+
             trader = FullyAutomatedTrader()
             trader.emergency_stop(reason)
 
-            self.notifier.send_line_notify(
-                f"🛡️ 【Active Defense】緊急停止を実行しました\n理由: {reason}"
-            )
+            self.notifier.send_line_notify(f"🛡️ 【Active Defense】緊急停止を実行しました\n理由: {reason}")
         except Exception as e:
             logger.error(f"Emergency stop execution failed: {e}")
 
@@ -89,13 +88,15 @@ class SmartAlerts:
         threshold = self.alert_config.get("daily_loss_threshold", -3.0)
 
         if daily_change_pct < threshold:
-            alerts.append({
-                "type": "DAILY_LOSS",
-                "severity": "HIGH",
-                "title": "⚠️ 日次損失アラート",
-                "message": f"本日の資産が{abs(daily_change_pct):.1f}%減少しました（閾値: {abs(threshold):.1f}%）",
-                "value": daily_change_pct,
-            })
+            alerts.append(
+                {
+                    "type": "DAILY_LOSS",
+                    "severity": "HIGH",
+                    "title": "⚠️ 日次損失アラート",
+                    "message": f"本日の資産が{abs(daily_change_pct):.1f}%減少しました（閾値: {abs(threshold):.1f}%）",
+                    "value": daily_change_pct,
+                }
+            )
 
             # Force stop if loss exceeds 5%
             if daily_change_pct < -5.0:
@@ -135,14 +136,16 @@ class SmartAlerts:
                 if abs(change_pct) > threshold:
                     severity = "MEDIUM" if change_pct > 0 else "HIGH"
                     emoji = "📈" if change_pct > 0 else "📉"
-                    alerts.append({
-                        "type": "POSITION_VOLATILITY",
-                        "severity": severity,
-                        "title": f"{emoji} {ticker} 大幅変動",
-                        "message": f"{ticker}が{change_pct:+.1f}%変動しました（現在価格: ¥{current_price:,.0f}）",
-                        "ticker": ticker,
-                        "value": change_pct,
-                    })
+                    alerts.append(
+                        {
+                            "type": "POSITION_VOLATILITY",
+                            "severity": severity,
+                            "title": f"{emoji} {ticker} 大幅変動",
+                            "message": f"{ticker}が{change_pct:+.1f}%変動しました（現在価格: ¥{current_price:,.0f}）",
+                            "ticker": ticker,
+                            "value": change_pct,
+                        }
+                    )
             except Exception as e:
                 logger.debug(f"Failed to check volatility for {ticker}: {e}")
                 continue
@@ -164,13 +167,15 @@ class SmartAlerts:
 
             if current_vix > threshold:
                 vix_change = current_vix - prev_vix
-                alerts.append({
-                    "type": "VIX_SPIKE",
-                    "severity": "HIGH" if current_vix > 40 else "MEDIUM",
-                    "title": "🚨 VIX急騰アラート",
-                    "message": f"VIXが{current_vix:.1f}に上昇（前日比{vix_change:+.1f}）- 市場が非常に不安定です",
-                    "value": current_vix,
-                })
+                alerts.append(
+                    {
+                        "type": "VIX_SPIKE",
+                        "severity": "HIGH" if current_vix > 40 else "MEDIUM",
+                        "title": "🚨 VIX急騰アラート",
+                        "message": f"VIXが{current_vix:.1f}に上昇（前日比{vix_change:+.1f}）- 市場が非常に不安定です",
+                        "value": current_vix,
+                    }
+                )
 
                 if current_vix > 45.0:
                     self.trigger_emergency_stop(f"VIX危険水域 ({current_vix:.1f})")

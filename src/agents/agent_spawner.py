@@ -9,8 +9,8 @@ from typing import Any, Dict, List
 
 import google.generativeai as genai
 
-from src.agents.base_agent import BaseAgent
-from src.schemas import AgentAnalysis, TradingDecision
+from agstock.src.agents.base_agent import BaseAgent
+from agstock.src.schemas import AgentAnalysis, TradingDecision
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ class SpecializedAgent(BaseAgent):
                     agent_name=self.name,
                     decision=TradingDecision.HOLD,
                     reasoning="API Key missing for specialized agent.",
-                    confidence=0.0
+                    confidence=0.0,
                 )
 
             genai.configure(api_key=api_key)
@@ -66,19 +66,13 @@ class SpecializedAgent(BaseAgent):
                 decision = TradingDecision.SELL
 
             return AgentAnalysis(
-                agent_name=self.name,
-                decision=decision,
-                reasoning=text[:500],
-                confidence=0.7  # Placeholder confidence
+                agent_name=self.name, decision=decision, reasoning=text[:500], confidence=0.7  # Placeholder confidence
             )
 
         except Exception as e:
             logger.error(f"Specialized Agent {self.name} failed: {e}")
             return AgentAnalysis(
-                agent_name=self.name,
-                decision=TradingDecision.HOLD,
-                reasoning=f"Error: {e}",
-                confidence=0.0
+                agent_name=self.name, decision=TradingDecision.HOLD, reasoning=f"Error: {e}", confidence=0.0
             )
 
 

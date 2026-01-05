@@ -40,9 +40,7 @@ class RichNotifier:
         except Exception as e:
             print(f"通知設定の読み込みエラー: {e}")
 
-    def create_mini_chart(
-        self, ticker: str, price: float, data: Optional[pd.DataFrame] = None
-    ) -> BytesIO:
+    def create_mini_chart(self, ticker: str, price: float, data: Optional[pd.DataFrame] = None) -> BytesIO:
         """
         ミニチャートを生成
 
@@ -70,9 +68,7 @@ class RichNotifier:
             ax.plot(x, y, color="#00d4ff", linewidth=2)
             ax.fill_between(x, y, alpha=0.3, color="#00d4ff")
 
-        ax.set_title(
-            f"{ticker} - ¥{price:,.0f}", color="white", fontsize=14, fontweight="bold"
-        )
+        ax.set_title(f"{ticker} - ¥{price:,.0f}", color="white", fontsize=14, fontweight="bold")
         ax.tick_params(colors="white")
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
@@ -89,9 +85,7 @@ class RichNotifier:
 
         return img_buffer
 
-    def send_line_notify(
-        self, message: str, image_buffer: Optional[BytesIO] = None
-    ) -> bool:
+    def send_line_notify(self, message: str, image_buffer: Optional[BytesIO] = None) -> bool:
         """
         LINE Notifyでメッセージ送信
 
@@ -121,9 +115,7 @@ class RichNotifier:
             print(f"LINE通知エラー: {e}")
             return False
 
-    def send_discord_webhook(
-        self, message: str, embeds: Optional[List[Dict]] = None
-    ) -> bool:
+    def send_discord_webhook(self, message: str, embeds: Optional[List[Dict]] = None) -> bool:
         """
         Discord Webhookでメッセージ送信
 
@@ -209,9 +201,7 @@ class RichNotifier:
                         {"name": "戦略", "value": strategy, "inline": True},
                         {"name": "理由", "value": reason, "inline": False},
                     ],
-                    "footer": {
-                        "text": f"AGStock | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-                    },
+                    "footer": {"text": f"AGStock | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"},
                 }
             ]
             success = self.send_discord_webhook(message, embeds) or success
@@ -279,9 +269,7 @@ class RichNotifier:
                             "inline": True,
                         },
                     ],
-                    "footer": {
-                        "text": f"AGStock | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-                    },
+                    "footer": {"text": f"AGStock | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"},
                 }
             ]
 

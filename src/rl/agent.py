@@ -57,9 +57,7 @@ class DQNAgent:
 
         # Q-Networks (Main and Target)
         self.model = QNetwork(state_size, action_size, hidden_size).to(self.device)
-        self.target_model = QNetwork(state_size, action_size, hidden_size).to(
-            self.device
-        )
+        self.target_model = QNetwork(state_size, action_size, hidden_size).to(self.device)
         self.update_target_model()
 
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
@@ -80,16 +78,17 @@ class DQNAgent:
         # Oracle Safety Check
         oracle_mask = None
         try:
-            from src.oracle.oracle_2026 import Oracle2026
+            from agstock.src.oracle.oracle_2026 import Oracle2026
+
             oracle = Oracle2026()
             guidance = oracle.get_risk_guidance()
-            
+
             if guidance.get("safety_mode", False):
                 # Mask BUY action (action 1) - Agent can only HOLD or SELL
                 oracle_mask = [0, 2]  # Available actions in crisis
         except Exception:
             pass  # Oracle unavailable
-        
+
         if np.random.rand() <= self.epsilon:
             if oracle_mask:
                 return random.choice(oracle_mask)
@@ -98,12 +97,12 @@ class DQNAgent:
         state_tensor = torch.FloatTensor(state).unsqueeze(0).to(self.device)
         with torch.no_grad():
             act_values = self.model(state_tensor)
-            
+
             # Apply Oracle Mask if active
             if oracle_mask:
                 # Set BUY Q-value to very negative
-                act_values[0][1] = float('-inf')
-                
+                act_values[0][1] = float("-inf")
+
         return torch.argmax(act_values).item()
 
     def replay(self):
@@ -114,15 +113,9 @@ class DQNAgent:
         minibatch = random.sample(self.memory, self.batch_size)
 
         states = torch.FloatTensor(np.array([i[0] for i in minibatch])).to(self.device)
-        actions = (
-            torch.LongTensor(np.array([i[1] for i in minibatch]))
-            .unsqueeze(1)
-            .to(self.device)
-        )
+        actions = torch.LongTensor(np.array([i[1] for i in minibatch])).unsqueeze(1).to(self.device)
         rewards = torch.FloatTensor(np.array([i[2] for i in minibatch])).to(self.device)
-        next_states = torch.FloatTensor(np.array([i[3] for i in minibatch])).to(
-            self.device
-        )
+        next_states = torch.FloatTensor(np.array([i[3] for i in minibatch])).to(self.device)
         dones = torch.FloatTensor(np.array([i[4] for i in minibatch])).to(self.device)
 
         # Current Q values

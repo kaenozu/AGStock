@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 # Numbaが利用可能かチェック
 try:
     from numba import jit, prange
+
     NUMBA_AVAILABLE = True
 except ImportError:
     NUMBA_AVAILABLE = False
@@ -21,12 +22,14 @@ except ImportError:
     def jit(*args, **kwargs):
         def decorator(func):
             return func
+
         return decorator
 
     prange = range
 
 
 # === テクニカル指標計算 ===
+
 
 @jit(nopython=True, cache=True)
 def fast_sma(prices: np.ndarray, period: int) -> np.ndarray:
@@ -41,7 +44,7 @@ def fast_sma(prices: np.ndarray, period: int) -> np.ndarray:
     """
     n = len(prices)
     result = np.empty(n)
-    result[:period - 1] = np.nan
+    result[: period - 1] = np.nan
 
     # 最初の値
     window_sum = np.sum(prices[:period])
@@ -173,11 +176,11 @@ def fast_bollinger_bands(
 
     upper = np.empty(n)
     lower = np.empty(n)
-    upper[:period - 1] = np.nan
-    lower[:period - 1] = np.nan
+    upper[: period - 1] = np.nan
+    lower[: period - 1] = np.nan
 
     for i in range(period - 1, n):
-        window = prices[i - period + 1:i + 1]
+        window = prices[i - period + 1 : i + 1]
         std = np.std(window)
         upper[i] = middle[i] + num_std * std
         lower[i] = middle[i] - num_std * std
@@ -186,6 +189,7 @@ def fast_bollinger_bands(
 
 
 # === リスク計算 ===
+
 
 @jit(nopython=True, cache=True)
 def fast_max_drawdown(equity_curve: np.ndarray) -> float:
@@ -275,6 +279,7 @@ def fast_sortino_ratio(
 
 # === バックテスト用 ===
 
+
 @jit(nopython=True, cache=True, parallel=True)
 def fast_portfolio_returns(
     weights: np.ndarray,
@@ -333,6 +338,7 @@ def fast_correlation_matrix(returns: np.ndarray) -> np.ndarray:
 
 
 # === ヘルパー関数 ===
+
 
 def is_numba_available() -> bool:
     """​Numbaが利用可能かチェック"""

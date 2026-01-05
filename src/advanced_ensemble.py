@@ -30,9 +30,7 @@ class StackingEnsemble:
         self.meta_model = meta_model or LinearRegression()
         self.is_fitted = False
 
-    def fit(
-        self, X: np.ndarray, y: np.ndarray, cv_folds: int = 5
-    ) -> "StackingEnsemble":
+    def fit(self, X: np.ndarray, y: np.ndarray, cv_folds: int = 5) -> "StackingEnsemble":
         """モデルの学習"""
         # 時系列交差検証を準備
         tscv = TimeSeriesSplit(n_splits=cv_folds)
@@ -75,9 +73,7 @@ class DynamicWeightingEnsemble:
         self.weight_calculator = weight_calculator or self._default_weight_calculator
         self.weights_history = []  # 各時刻の重みを記録
 
-    def _default_weight_calculator(
-        self, X: np.ndarray, y_true: np.ndarray
-    ) -> Dict[str, float]:
+    def _default_weight_calculator(self, X: np.ndarray, y_true: np.ndarray) -> Dict[str, float]:
         """デフォルトの重み計算ロジック"""
         weights = {}
         for name, model in self.models.items():
@@ -138,16 +134,12 @@ class DiversityEnsemble:
     def predict(self, X: np.ndarray) -> np.ndarray:
         """相関と多様性を考慮した予測"""
         # 各モデルの予測を取得
-        current_predictions = {
-            name: model.predict(X) for name, model in self.models.items()
-        }
+        current_predictions = {name: model.predict(X) for name, model in self.models.items()}
 
         # 最新の履歴と相関を計算（簡略化のため、最後の履歴のみ使用）
         if self.predictions_history:
             prev_preds = self.predictions_history[-1]
-            correlations = self._compute_pairwise_correlations(
-                prev_preds, current_predictions
-            )
+            correlations = self._compute_pairwise_correlations(prev_preds, current_predictions)
         else:
             correlations = {name: 0.0 for name in self.models}
 
@@ -171,9 +163,7 @@ class DiversityEnsemble:
 
         return final_prediction
 
-    def _compute_pairwise_correlations(
-        self, prev: Dict[str, np.ndarray], curr: Dict[str, np.ndarray]
-    ):
+    def _compute_pairwise_correlations(self, prev: Dict[str, np.ndarray], curr: Dict[str, np.ndarray]):
         """モデル間の相関を計算"""
         correlations = {}
         for name in self.models:
@@ -215,7 +205,7 @@ class DiversityEnsemble:
         return 1.0 - avg_corr  # 相関が低いほど多様
 
 
-def create_model_diversity_ensemble():
+def create_model_diversity_ensemble(input_dim: int = 10, forecast_horizon: int = 5):
     """
     モデル多様性を考慮したアンサンブルを生成
     例: LightGBM, LSTM, CNN, Random Forest の組み合わせ
@@ -231,11 +221,11 @@ def create_model_diversity_ensemble():
 
     # モデルのインスタンスを生成
     models = {
-        "LSTM": AttentionLSTM(),
-        "CNN-LSTM": CNNLSTMHybrid(),
-        "Multi-Step": MultiStepPredictor(),
-        "N-BEATS": NBEATS(),
-        "Advanced": EnhancedLSTM(),
+        "LSTM": AttentionLSTM(input_dim=input_dim, forecast_horizon=forecast_horizon),
+        "CNN-LSTM": CNNLSTMHybrid(input_dim=input_dim, forecast_horizon=forecast_horizon),
+        "Multi-Step": MultiStepPredictor(input_dim=input_dim, forecast_horizon=forecast_horizon),
+        "N-BEATS": NBEATS(input_size=input_dim, forecast_size=forecast_horizon),
+        "Advanced": EnhancedLSTM(input_dim=input_dim, forecast_horizon=forecast_horizon),
     }
 
     # それぞれのモデルに最適なハイパーパラメータを設定
@@ -281,17 +271,13 @@ def create_meta_feature_ensemble(base_models: List, feature_generator: callable 
 
         def fit(self, X: np.ndarray, y: np.ndarray):
             # ベースモデルの予測を取得
-            base_preds = np.array(
-                [model.predict(X) for model in self.base_models]
-            ).T  # shape: (n_samples, n_models)
+            base_preds = np.array([model.predict(X) for model in self.base_models]).T  # shape: (n_samples, n_models)
 
             # メタフィーチャーを生成
             meta_features = self.feature_gen(X)  # shape: (n_samples, n_meta_features)
 
             # ベース予測 + メタフィーチャーを結合
-            X_meta = np.hstack(
-                [base_preds, meta_features]
-            )  # shape: (n_samples, n_models + n_meta_features)
+            X_meta = np.hstack([base_preds, meta_features])  # shape: (n_samples, n_models + n_meta_features)
 
             # メタモデルを学習
             self.meta_model.fit(X_meta, y)
@@ -391,9 +377,7 @@ class OnlineEnsemble:
     def partial_fit(self, X: np.ndarray, y: np.ndarray):
         """オンライン学習でモデルを更新"""
         # 各モデルで予測
-        model_preds = np.array(
-            [model.predict(X) for model in self.models]
-        ).T  # shape: (n_samples, n_models)
+        model_preds = np.array([model.predict(X) for model in self.models]).T  # shape: (n_samples, n_models)
 
         # アンサンブル予測（加重平均）
         ensemble_pred = np.average(model_preds, axis=1, weights=self.weights)
@@ -456,9 +440,7 @@ class HierarchicalEnsemble:
 
         self.global_model.fit(X_meta, y_global)
 
-    def predict(
-        self, X_sector: Dict[str, np.ndarray], X_global: np.ndarray
-    ) -> np.ndarray:
+    def predict(self, X_sector: Dict[str, np.ndarray], X_global: np.ndarray) -> np.ndarray:
         # 業界ごとの予測を取得
         sector_preds = []
         for sector, model in self.sector_models.items():

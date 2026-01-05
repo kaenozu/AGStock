@@ -110,7 +110,7 @@ class ArchiveManager:
             "confidence": confidence,
             "verification_status": "PENDING",
             "actual_outcome": None,
-            "error": None
+            "error": None,
         }
 
         date_path = timestamp.strftime("%Y/%m")
@@ -174,7 +174,7 @@ class ArchiveManager:
         return {
             "verified_count": verified_count,
             "accuracy_rate": correct_predictions / verified_count if verified_count > 0 else 0.0,
-            "average_error": total_error / verified_count if verified_count > 0 else 0.0
+            "average_error": total_error / verified_count if verified_count > 0 else 0.0,
         }
 
     def _generate_archive_id(self, entry: Dict[str, Any]) -> str:

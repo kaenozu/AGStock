@@ -24,14 +24,10 @@ class EventTrader:
 
         # Threshold for purely autonomous event trading
         if score >= 90 and recommendation == "BUY":
-            logger.info(
-                f"🔥 SURPRISE EARNINGS DETECTED for {ticker} (Score: {score}). Executing immediate trade!"
-            )
+            logger.info(f"🔥 SURPRISE EARNINGS DETECTED for {ticker} (Score: {score}). Executing immediate trade!")
 
             if self.dry_run:
-                logger.info(
-                    f"[DRY RUN] Would BUY {ticker} due to high-impact earnings surprise."
-                )
+                logger.info(f"[DRY RUN] Would BUY {ticker} due to high-impact earnings surprise.")
                 return {"status": "success", "action": "BUY", "dry_run": True}
             else:
                 # Here we would call the actual broker API or execution manager

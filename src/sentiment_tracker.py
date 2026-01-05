@@ -8,7 +8,7 @@ import logging
 import sys
 from pathlib import Path
 
-from src.sentiment import SentimentAnalyzer
+from agstock.src.sentiment import SentimentAnalyzer
 
 # Configure logging
 log_dir = Path("logs")
@@ -39,9 +39,7 @@ def main():
         # Save to database
         analyzer.save_sentiment_history(sentiment)
 
-        logger.info(
-            f"Sentiment captured: {sentiment['label']} (Score: {sentiment['score']:.3f})"
-        )
+        logger.info(f"Sentiment captured: {sentiment['label']} (Score: {sentiment['score']:.3f})")
         logger.info(f"News analyzed: {sentiment['news_count']} articles")
 
         # Display top news (optional)

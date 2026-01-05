@@ -36,7 +36,7 @@ class RLStrategy:
             return False
 
         try:
-            from src.rl_agent import DQNAgent
+            from agstock.src.rl_agent import DQNAgent
 
             # デフォルトのstate_sizeとaction_size
             # 実際には環境から取得すべきだが、推論時は固定で問題ない
@@ -44,9 +44,7 @@ class RLStrategy:
             state_size = 50  # 概算値
             action_size = 3  # HOLD, BUY, SELL
 
-            self.agent = DQNAgent(
-                state_size=state_size, action_size=action_size, hidden_size=128
-            )
+            self.agent = DQNAgent(state_size=state_size, action_size=action_size, hidden_size=128)
             self.agent.load(MODEL_PATH)
             self.agent.epsilon = 0.0  # 推論時は探索しない
             self.is_ready = True
@@ -116,7 +114,7 @@ class RLStrategy:
 
     def _build_state(self, df: pd.DataFrame, current_position: int) -> np.ndarray:
         """状態ベクトルを構築"""
-        from src.features import add_advanced_features
+        from agstock.src.features import add_advanced_features
 
         # 特徴量を追加（まだ追加されていなければ）
         if "rsi" not in df.columns:
@@ -128,9 +126,7 @@ class RLStrategy:
         # 特徴量カラムを抽出
         exclude_cols = ["Date", "Open", "High", "Low", "Close", "Volume", "Target"]
         feature_cols = [c for c in df.columns if c not in exclude_cols]
-        feature_cols = (
-            df[feature_cols].select_dtypes(include=[np.number]).columns.tolist()
-        )
+        feature_cols = df[feature_cols].select_dtypes(include=[np.number]).columns.tolist()
 
         # 特徴量値
         features = latest[feature_cols].values
@@ -184,7 +180,7 @@ class RLStrategy:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    from src.data_loader import fetch_stock_data
+    from agstock.src.data_loader import fetch_stock_data
 
     # テスト
     strategy = RLStrategy()

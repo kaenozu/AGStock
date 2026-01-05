@@ -28,6 +28,7 @@ class Strategy:
     """
     トレード戦略の基底クラス
     """
+
     def __init__(self, name: str, trend_period: int = 200) -> None:
         """
         戦略の初期化

@@ -4,7 +4,7 @@ Risk Hedge UI Panel
 """
 
 import streamlit as st
-from src.strategies.options_strategy import OptionsEngine
+from agstock.src.strategies.options_strategy import OptionsEngine
 
 
 def render_risk_hedge_panel(portfolio_data: dict, market_vix: float):
@@ -44,9 +44,7 @@ def render_risk_hedge_panel(portfolio_data: dict, market_vix: float):
 
         # プットオプションの利益（簡易計算）
         # プット価格の変動 = -Delta * S_change (実際はガンマ等も効くが簡易化)
-        put_profit = abs(advice["put_delta"]) * (
-            portfolio_data.get("equity", 1000000) * (drop_pct / 100)
-        )
+        put_profit = abs(advice["put_delta"]) * (portfolio_data.get("equity", 1000000) * (drop_pct / 100))
 
         net_loss = loss_no_hedge - put_profit + advice["hedge_cost_estimate"]
 
@@ -55,11 +53,7 @@ def render_risk_hedge_panel(portfolio_data: dict, market_vix: float):
         st.write(f"- プット利益(推定): ¥{put_profit:,.0f}")
         st.write(f"- **最終損益 (ネット): ¥{net_loss:,.0f}**")
 
-        st.progress(
-            max(0, min(100, int((1 - net_loss / loss_no_hedge) * 100)))
-            if loss_no_hedge > 0
-            else 0
-        )
+        st.progress(max(0, min(100, int((1 - net_loss / loss_no_hedge) * 100))) if loss_no_hedge > 0 else 0)
         st.caption("ヘッジによる損失緩和率")
 
 

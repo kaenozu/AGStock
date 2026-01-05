@@ -20,9 +20,7 @@ class OptionsEngine:
     def __init__(self, risk_free_rate: float = 0.001):
         self.r = risk_free_rate  # 無リスク金利（デフォルト0.1%）
 
-    def black_scholes(
-        self, S: float, K: float, T: float, sigma: float, option_type: str = "put"
-    ) -> Dict[str, float]:
+    def black_scholes(self, S: float, K: float, T: float, sigma: float, option_type: str = "put") -> Dict[str, float]:
         """
         ブラック・ショールズ・モデルによる価格とデルタの計算
 
@@ -55,15 +53,10 @@ class OptionsEngine:
             "gamma": norm.pdf(d1) / (S * sigma * math.sqrt(T)),
             "vega": S * norm.pdf(d1) * math.sqrt(T),
             "theta": -(S * norm.pdf(d1) * sigma) / (2 * math.sqrt(T))
-            - self.r
-            * K
-            * math.exp(-self.r * T)
-            * norm.cdf(d2 if option_type == "call" else -d2),
+            - self.r * K * math.exp(-self.r * T) * norm.cdf(d2 if option_type == "call" else -d2),
         }
 
-    def get_hedge_advice(
-        self, portfolio: Dict[str, Any], market_vix: float = 20.0
-    ) -> Dict[str, Any]:
+    def get_hedge_advice(self, portfolio: Dict[str, Any], market_vix: float = 20.0) -> Dict[str, Any]:
         """
         ポートフォリオに対するプットオプションによるヘッジ助言
 
@@ -99,9 +92,7 @@ class OptionsEngine:
             "recommended_strike_pct": 95,
             "expiry_days": 30,
             "put_delta": put_delta,
-            "advice": self._generate_advice_text(
-                market_vix, cost_to_hedge, put_price_pct
-            ),
+            "advice": self._generate_advice_text(market_vix, cost_to_hedge, put_price_pct),
         }
 
     def _generate_advice_text(self, vix: float, cost: float, cost_pct: float) -> str:

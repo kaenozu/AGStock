@@ -64,9 +64,7 @@ class ResponsiveUI:
 
         # モバイルではフォントサイズを調整
         if self.is_mobile:
-            fig.update_layout(
-                height=height, font=dict(size=10), margin=dict(l=20, r=20, t=20, b=20)
-            )
+            fig.update_layout(height=height, font=dict(size=10), margin=dict(l=20, r=20, t=20, b=20))
         else:
             fig.update_layout(height=height, margin=dict(l=40, r=40, t=20, b=20))
 
@@ -96,9 +94,7 @@ class ResponsiveUI:
         button_params.update(kwargs)
         return st.button(label, key=key, **button_params)
 
-    def collapsible_section(
-        self, title: str, content_func: callable, default_expanded: bool = False
-    ) -> None:
+    def collapsible_section(self, title: str, content_func: callable, default_expanded: bool = False) -> None:
         """
         画面サイズに応じた折りたたみセクションを生成
 
@@ -113,9 +109,7 @@ class ResponsiveUI:
         with st.expander(title, expanded=expanded):
             content_func()
 
-    def responsive_metrics(
-        self, metrics: Dict[str, Any], layout: str = "horizontal"
-    ) -> None:
+    def responsive_metrics(self, metrics: Dict[str, Any], layout: str = "horizontal") -> None:
         """
         画面サイズに応じたメトリクス表示
 
@@ -254,9 +248,7 @@ class MobileOptimizedComponents:
     """モバイル最適化コンポーネント"""
 
     @staticmethod
-    def create_touch_friendly_chart(
-        data: pd.DataFrame, chart_type: str = "line"
-    ) -> go.Figure:
+    def create_touch_friendly_chart(data: pd.DataFrame, chart_type: str = "line") -> go.Figure:
         """
         タッチ操作に最適化されたチャートを生成
 
@@ -300,9 +292,7 @@ class MobileOptimizedComponents:
             margin=dict(l=20, r=20, t=20, b=20),
             xaxis=dict(
                 fixedrange=True,  # タッチ操作でズームを制御
-                rangeselector=dict(
-                    button=dict(count=3), xaxis=dict(rangemode="auto", range=[0.1, 0.9])
-                ),
+                rangeselector=dict(button=dict(count=3), xaxis=dict(rangemode="auto", range=[0.1, 0.9])),
             ),
             yaxis=dict(fixedrange=True),
             hovermode="x unified",

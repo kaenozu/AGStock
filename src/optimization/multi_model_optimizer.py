@@ -8,7 +8,7 @@ from typing import Any, Dict, List
 
 # These functions should be moved or imported properly
 # For now, we'll keep the logic here for the transition
-from src.hyperparameter_tuning import HyperparameterTuner
+from ..hyperparameter_tuning import HyperparameterTuner
 
 logger = logging.getLogger(__name__)
 
@@ -45,9 +45,7 @@ class MultiModelOptimizer:
                 internal_type = "lightgbm" if model_type == "lgbm" else model_type
 
                 tuner = HyperparameterTuner(internal_type, n_splits=self.cv_folds)
-                self.best_params[model_type] = tuner.optimize(
-                    X, y, n_trials=n_trials_per_model
-                )
+                self.best_params[model_type] = tuner.optimize(X, y, n_trials=n_trials_per_model)
 
                 logger.info(f"✅ Completed optimization for {model_type}")
             except Exception as e:

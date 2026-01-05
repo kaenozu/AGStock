@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 class DRIPStrategy(Enum):
     """配当再投資戦略"""
+
     SAME_STOCK = "same_stock"  # 同じ銘柄に再投資
     TARGET_STOCK = "target_stock"  # 指定銘柄に再投資
     DIVERSIFIED = "diversified"  # 複数銘柄に分散
@@ -25,6 +26,7 @@ class DRIPStrategy(Enum):
 @dataclass
 class DividendInfo:
     """配当情報"""
+
     ticker: str
     ex_date: datetime
     payment_date: Optional[datetime]
@@ -36,6 +38,7 @@ class DividendInfo:
 @dataclass
 class DRIPOrder:
     """再投資注文"""
+
     source_ticker: str
     target_ticker: str
     dividend_amount: float
@@ -71,9 +74,7 @@ class DRIPManager:
         self._pending_orders: List[DRIPOrder] = []
         self._executed_orders: List[DRIPOrder] = []
 
-    def get_upcoming_dividends(
-        self, tickers: List[str], days_ahead: int = 30
-    ) -> List[DividendInfo]:
+    def get_upcoming_dividends(self, tickers: List[str], days_ahead: int = 30) -> List[DividendInfo]:
         """今後の配当予定を取得
 
         Args:
@@ -179,8 +180,7 @@ class DRIPManager:
 
         if total_dividend < self.min_reinvest_amount:
             logger.info(
-                f"Dividend {total_dividend:.2f} below minimum "
-                f"{self.min_reinvest_amount:.2f}, skipping DRIP"
+                f"Dividend {total_dividend:.2f} below minimum " f"{self.min_reinvest_amount:.2f}, skipping DRIP"
             )
             return None
 
@@ -276,8 +276,7 @@ class DRIPManager:
                 executed.append(order)
 
                 logger.info(
-                    f"DRIP executed: {whole_shares} shares of {order.target_ticker} "
-                    f"@ {order.estimated_price:.2f}"
+                    f"DRIP executed: {whole_shares} shares of {order.target_ticker} " f"@ {order.estimated_price:.2f}"
                 )
 
             except Exception as e:
@@ -286,9 +285,7 @@ class DRIPManager:
 
         # 実行済みを移動
         self._executed_orders.extend(executed)
-        self._pending_orders = [
-            o for o in self._pending_orders if o.status == "pending"
-        ]
+        self._pending_orders = [o for o in self._pending_orders if o.status == "pending"]
 
         return executed
 
@@ -312,14 +309,16 @@ class DRIPManager:
             expected_amount = div.amount * shares
             total_expected_dividend += expected_amount
 
-            dividend_schedule.append({
-                "ticker": div.ticker,
-                "ex_date": div.ex_date.strftime("%Y-%m-%d"),
-                "amount_per_share": div.amount,
-                "shares_held": shares,
-                "expected_total": expected_amount,
-                "yield": div.yield_pct,
-            })
+            dividend_schedule.append(
+                {
+                    "ticker": div.ticker,
+                    "ex_date": div.ex_date.strftime("%Y-%m-%d"),
+                    "amount_per_share": div.amount,
+                    "shares_held": shares,
+                    "expected_total": expected_amount,
+                    "yield": div.yield_pct,
+                }
+            )
 
         return {
             "strategy": self.strategy.value,
@@ -334,10 +333,7 @@ class DRIPManager:
 _drip_manager: Optional[DRIPManager] = None
 
 
-def get_drip_manager(
-    strategy: DRIPStrategy = DRIPStrategy.SAME_STOCK,
-    **kwargs
-) -> DRIPManager:
+def get_drip_manager(strategy: DRIPStrategy = DRIPStrategy.SAME_STOCK, **kwargs) -> DRIPManager:
     """シングルトンインスタンスを取得"""
     global _drip_manager
     if _drip_manager is None:

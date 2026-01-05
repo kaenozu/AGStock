@@ -8,7 +8,7 @@ import pandas as pd
 import streamlit as st
 from fully_automated_trader import FullyAutomatedTrader
 
-from src.paper_trader import PaperTrader
+from agstock.src.paper_trader import PaperTrader
 
 
 def create_auto_trader_ui():
@@ -114,20 +114,12 @@ def render_control_center(config, config_path):
     )
 
     with col_assets1:
-        jp_stocks = st.checkbox(
-            "🇯🇵 日本株 (Nikkei 225)", value=current_assets.get("japan_stocks", True)
-        )
-        us_stocks = st.checkbox(
-            "🇺🇸 米国株 (S&P 500)", value=current_assets.get("us_stocks", True)
-        )
-        eu_stocks = st.checkbox(
-            "🇪🇺 欧州株 (STOXX 50)", value=current_assets.get("europe_stocks", True)
-        )
+        jp_stocks = st.checkbox("🇯🇵 日本株 (Nikkei 225)", value=current_assets.get("japan_stocks", True))
+        us_stocks = st.checkbox("🇺🇸 米国株 (S&P 500)", value=current_assets.get("us_stocks", True))
+        eu_stocks = st.checkbox("🇪🇺 欧州株 (STOXX 50)", value=current_assets.get("europe_stocks", True))
 
     with col_assets2:
-        crypto = st.checkbox(
-            "₿ 暗号資産 (Crypto)", value=current_assets.get("crypto", False)
-        )
+        crypto = st.checkbox("₿ 暗号資産 (Crypto)", value=current_assets.get("crypto", False))
         fx = st.checkbox("💱 FX (主要通貨ペア)", value=current_assets.get("fx", False))
 
     # Save logic
@@ -169,14 +161,8 @@ def render_todays_summary():
     else:
         buy_count = len(today_trades[today_trades["action"] == "BUY"])
         sell_count = len(today_trades[today_trades["action"] == "SELL"])
-        pnl = (
-            today_trades["realized_pnl"].sum()
-            if "realized_pnl" in today_trades.columns
-            else 0
-        )
+        pnl = today_trades["realized_pnl"].sum() if "realized_pnl" in today_trades.columns else 0
 
         col_a, col_b = st.columns(2)
-        col_a.metric(
-            "約定回数", f"{len(today_trades)}回", f"買{buy_count}/売{sell_count}"
-        )
+        col_a.metric("約定回数", f"{len(today_trades)}回", f"買{buy_count}/売{sell_count}")
         col_b.metric("確定損益", f"¥{pnl:,.0f}", delta_color="normal")

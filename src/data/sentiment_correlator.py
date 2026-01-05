@@ -1,9 +1,9 @@
 import logging
 import statistics
 from typing import Dict, Any
-from src.news_collector import NewsCollector
-from src.social_sentiment import SocialSentimentEngine
-from src.bert_sentiment import BERTSentimentAnalyzer
+from agstock.src.news_collector import NewsCollector
+from agstock.src.social_sentiment import SocialSentimentEngine
+from agstock.src.bert_sentiment import BERTSentimentAnalyzer
 
 logger = logging.getLogger(__name__)
 
@@ -57,9 +57,7 @@ class SentimentCorrelator:
             "social_hype_count": hype_score,
             "divergence": round(divergence, 2),
             "status": status,
-            "recommendation": "CAUTION"
-            if status == "OVERHEATED"
-            else "OPPORTUNITY"
-            if status == "SKEPTICISM"
-            else "NONE",
+            "recommendation": (
+                "CAUTION" if status == "OVERHEATED" else "OPPORTUNITY" if status == "SKEPTICISM" else "NONE"
+            ),
         }

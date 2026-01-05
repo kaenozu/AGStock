@@ -4,7 +4,7 @@
 try:
     from .enhanced_features import add_enhanced_technical_indicators as add_technical_indicators
     from .time_series_features import generate_phase29_features as add_advanced_features
-    
+
     def add_macro_features(df, macro_data):
         """マクロ経済指標をデータフレームにマージする（後方互換性用）"""
         if not macro_data:
@@ -21,38 +21,47 @@ try:
 
 except ImportError:
     import logging
+
     logging.warning("Failed to import some legacy features; check for missing files.")
-    def add_technical_indicators(df): return df
-    def add_advanced_features(df): return df
-    def add_macro_features(df, macro_data): return df
+
+    def add_technical_indicators(df):
+        return df
+
+    def add_advanced_features(df):
+        return df
+
+    def add_macro_features(df, macro_data):
+        return df
+
 
 # 新機能
 try:
-    from src.features.earnings_calendar import (
+    from .earnings_calendar import (
         EarningsCalendar,
         get_earnings_calendar,
     )
-    from src.features.sentiment_indicators import (
+    from .sentiment_indicators import (
         SentimentIndicators,
         SentimentData,
         MarketSentiment,
         get_sentiment_indicators,
     )
-    from src.features.drip import (
+    from .drip import (
         DRIPManager,
         DRIPStrategy,
         get_drip_manager,
     )
-    from src.features.tax_optimizer import (
+    from .tax_optimizer import (
         TaxOptimizer,
         HarvestingStrategy,
         get_tax_optimizer,
     )
-    from src.features.sector_rotation import (
+    from .sector_rotation import (
         SectorRotation,
         EconomicCycle,
         get_sector_rotation,
     )
+
     NEW_FEATURES_AVAILABLE = True
 except ImportError:
     NEW_FEATURES_AVAILABLE = False

@@ -15,7 +15,7 @@ import nest_asyncio
 import pandas as pd
 import yfinance as yf
 
-from src.data_manager import DataManager
+from agstock.src.data_manager import DataManager
 
 # Streamlit環境でもasyncioを使えるようにする
 nest_asyncio.apply()
@@ -63,17 +63,13 @@ class AsyncDataLoader:
             logger.error(f"Error fetching {ticker}: {e}")
             return (ticker, None)
 
-    def _check_and_return_cache(
-        self, ticker: str, period: str
-    ) -> Optional[tuple[str, pd.DataFrame]]:
+    def _check_and_return_cache(self, ticker: str, period: str) -> Optional[tuple[str, pd.DataFrame]]:
         """DBのキャッシュを確認し、最新であれば返す"""
         # まずDBキャッシュをチェック
         end_date = datetime.now()
         start_date = self._parse_period(period, end_date)
 
-        cached_df = self.db.load_data(
-            ticker, start_date=start_date.strftime("%Y-%m-%d")
-        )
+        cached_df = self.db.load_data(ticker, start_date=start_date.strftime("%Y-%m-%d"))
 
         # キャッシュが最新かチェック（DataFrameであることを確認）
         if isinstance(cached_df, pd.DataFrame) and not cached_df.empty:
@@ -86,15 +82,11 @@ class AsyncDataLoader:
                 logger.warning(f"Error checking cache date for {ticker}: {e}")
         return None
 
-    async def _download_and_validate_data(
-        self, ticker: str, period: str, interval: str
-    ) -> Optional[pd.DataFrame]:
+    async def _download_and_validate_data(self, ticker: str, period: str, interval: str) -> Optional[pd.DataFrame]:
         """yfinanceからデータをダウンロードし、型をチェックする"""
         # yfinanceは同期的なので、executor内で実行
         loop = asyncio.get_event_loop()
-        df = await loop.run_in_executor(
-            None, self._download_yfinance, ticker, period, interval
-        )
+        df = await loop.run_in_executor(None, self._download_yfinance, ticker, period, interval)
 
         # ダウンロード結果の型チェック
         if not isinstance(df, pd.DataFrame):
@@ -103,9 +95,7 @@ class AsyncDataLoader:
             return None
         return df
 
-    def _save_and_return_data(
-        self, ticker: str, df: Optional[pd.DataFrame]
-    ) -> tuple[str, Optional[pd.DataFrame]]:
+    def _save_and_return_data(self, ticker: str, df: Optional[pd.DataFrame]) -> tuple[str, Optional[pd.DataFrame]]:
         """データをDBに保存し、(ticker, df)を返す"""
         if df is not None and not df.empty:
             # DBに保存
@@ -119,9 +109,7 @@ class AsyncDataLoader:
             logger.warning(f"No data retrieved for {ticker}")
             return (ticker, None)
 
-    def _download_yfinance(
-        self, ticker: str, period: str, interval: str = "1d"
-    ) -> Optional[pd.DataFrame]:
+    def _download_yfinance(self, ticker: str, period: str, interval: str = "1d") -> Optional[pd.DataFrame]:
         """yfinanceでデータをダウンロード（同期処理）"""
         try:
             stock = yf.Ticker(ticker)
@@ -129,9 +117,7 @@ class AsyncDataLoader:
 
             # DataFrameでない場合はログに記録
             if not isinstance(df, pd.DataFrame):
-                logger.error(
-                    f"yfinance returned non-DataFrame for {ticker}: {type(df)}"
-                )
+                logger.error(f"yfinance returned non-DataFrame for {ticker}: {type(df)}")
                 return None
 
             if df.empty:
@@ -250,17 +236,13 @@ class AsyncDataLoader:
                 asyncio.set_event_loop(loop)
 
             # 非同期関数を実行
-            return loop.run_until_complete(
-                self.fetch_multiple_async(tickers, period, interval, max_concurrent)
-            )
+            return loop.run_until_complete(self.fetch_multiple_async(tickers, period, interval, max_concurrent))
         except Exception as e:
             logger.error(f"Error in sync wrapper: {e}")
             # フォールバック: 従来の同期処理
             return self._fetch_multiple_fallback(tickers, period)
 
-    def _fetch_multiple_fallback(
-        self, tickers: List[str], period: str
-    ) -> Dict[str, pd.DataFrame]:
+    def _fetch_multiple_fallback(self, tickers: List[str], period: str) -> Dict[str, pd.DataFrame]:
         """フォールバック: 同期的に順次取得"""
         logger.warning("Falling back to synchronous data fetching")
         data_map = {}
@@ -271,9 +253,7 @@ class AsyncDataLoader:
                 start_date = self._parse_period(period, end_date)
 
                 # DBから読み込み
-                cached_df = self.db.load_data(
-                    ticker, start_date=start_date.strftime("%Y-%m-%d")
-                )
+                cached_df = self.db.load_data(ticker, start_date=start_date.strftime("%Y-%m-%d"))
 
                 if isinstance(cached_df, pd.DataFrame) and not cached_df.empty:
                     try:
@@ -309,9 +289,7 @@ def get_async_loader() -> AsyncDataLoader:
     return _async_loader
 
 
-def fetch_stock_data_async(
-    tickers: List[str], period: str = "1y", max_concurrent: int = 10
-) -> Dict[str, pd.DataFrame]:
+def fetch_stock_data_async(tickers: List[str], period: str = "1y", max_concurrent: int = 10) -> Dict[str, pd.DataFrame]:
     """
     複数銘柄のデータを非同期で並列取得（エントリーポイント）
 

@@ -143,8 +143,8 @@ class TransformerStrategy(Strategy):
 
     def train(self, df: pd.DataFrame):
         try:
-            from src.advanced_models import AdvancedModels
-            from src.features import add_advanced_features
+            from agstock.src.advanced_models import AdvancedModels
+            from agstock.src.features import add_advanced_features
 
             df_feat = add_advanced_features(df.copy())
             numeric_cols = df_feat.select_dtypes(include=[np.number]).columns
@@ -174,7 +174,7 @@ class TransformerStrategy(Strategy):
             return "HOLD"
 
         try:
-            from src.features import add_advanced_features
+            from agstock.src.features import add_advanced_features
 
             df_feat = add_advanced_features(df.copy())
             numeric_cols = df_feat.select_dtypes(include=[np.number]).columns
@@ -210,8 +210,8 @@ class GRUStrategy(Strategy):
 
     def train(self, df: pd.DataFrame):
         try:
-            from src.advanced_models import AdvancedModels
-            from src.features import add_advanced_features
+            from agstock.src.advanced_models import AdvancedModels
+            from agstock.src.features import add_advanced_features
 
             df_feat = add_advanced_features(df.copy())
             numeric_cols = df_feat.select_dtypes(include=[np.number]).columns
@@ -241,7 +241,7 @@ class GRUStrategy(Strategy):
             return "HOLD"
 
         try:
-            from src.features import add_advanced_features
+            from agstock.src.features import add_advanced_features
 
             df_feat = add_advanced_features(df.copy())
             numeric_cols = df_feat.select_dtypes(include=[np.number]).columns
@@ -276,8 +276,8 @@ class AttentionLSTMStrategy(Strategy):
 
     def train(self, df: pd.DataFrame):
         try:
-            from src.advanced_models import AdvancedModels
-            from src.features import add_advanced_features
+            from agstock.src.advanced_models import AdvancedModels
+            from agstock.src.features import add_advanced_features
 
             df_feat = add_advanced_features(df.copy())
             numeric_cols = df_feat.select_dtypes(include=[np.number]).columns
@@ -306,7 +306,7 @@ class AttentionLSTMStrategy(Strategy):
             return "HOLD"
 
         try:
-            from src.features import add_advanced_features
+            from agstock.src.features import add_advanced_features
 
             df_feat = add_advanced_features(df.copy())
             numeric_cols = df_feat.select_dtypes(include=[np.number]).columns

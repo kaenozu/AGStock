@@ -7,8 +7,8 @@ import logging
 from typing import Dict, Optional
 import numpy as np
 
-from src.kelly_criterion import KellyCriterion
-from src.types import TradeSignal, PortfolioPosition, MarketRegime
+from agstock.src.kelly_criterion import KellyCriterion
+from agstock.src.types import TradeSignal, PortfolioPosition, MarketRegime
 
 logger = logging.getLogger(__name__)
 
@@ -127,9 +127,7 @@ class IntelligentPositionSizer:
             adjustment = baseline_vol / volatility
             return max(adjustment, 0.5)  # At least 50% of base size
 
-    def _correlation_adjustment(
-        self, ticker: str, portfolio: Dict[str, PortfolioPosition]
-    ) -> float:
+    def _correlation_adjustment(self, ticker: str, portfolio: Dict[str, PortfolioPosition]) -> float:
         """
         Adjust position size based on portfolio correlation.
         High correlation = smaller position (for diversification).

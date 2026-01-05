@@ -1,4 +1,5 @@
 """Genetic Optimizer - stub implementation"""
+
 import logging
 from typing import Dict, Any, List
 

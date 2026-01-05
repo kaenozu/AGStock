@@ -1,5 +1,3 @@
-
-
 def render_akashic_records():
     #     """
     #     Renders the Akashic Records (Database Viewer) UI.

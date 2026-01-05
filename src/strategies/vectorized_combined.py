@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import logging
-from src.strategies.base import Strategy
+from agstock.src.strategies.base import Strategy
 
 logger = logging.getLogger(__name__)
 
@@ -24,14 +24,14 @@ class VectorizedCombinedStrategy(Strategy):
 
         # 1. テクニカル指標の計算 (ベクトル演算)
         try:
-            close = df['Close'].values
+            close = df["Close"].values
 
             # 移動平均 (SMA)
-            sma20 = df['Close'].rolling(window=20).mean().values
-            sma50 = df['Close'].rolling(window=50).mean().values
+            sma20 = df["Close"].rolling(window=20).mean().values
+            sma50 = df["Close"].rolling(window=50).mean().values
 
             # RSI (ベクトル化された計算)
-            delta = df['Close'].diff().values
+            delta = df["Close"].diff().values
             gain = np.where(delta > 0, delta, 0)
             loss = np.where(delta < 0, -delta, 0)
 

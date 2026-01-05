@@ -1,4 +1,5 @@
 """Messenger module - stub implementation"""
+
 import logging
 
 logger = logging.getLogger(__name__)

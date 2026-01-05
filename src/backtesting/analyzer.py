@@ -70,9 +70,7 @@ def calculate_performance_metrics(
     }
 
 
-def calculate_risk_metrics(
-    equity_curve: pd.Series, trades: List[Dict[str, Any]]
-) -> Dict[str, float]:
+def calculate_risk_metrics(equity_curve: pd.Series, trades: List[Dict[str, Any]]) -> Dict[str, float]:
     """バックテスト結果からリスク指標を計算します。
 
     Args:
@@ -112,9 +110,7 @@ def calculate_risk_metrics(
     # 損失取引の平均損失
     losing_trades = [t for t in trades if t.get("return", 0) < 0]
     if losing_trades:
-        avg_loss_per_trade = sum(t.get("return", 0) for t in losing_trades) / len(
-            losing_trades
-        )
+        avg_loss_per_trade = sum(t.get("return", 0) for t in losing_trades) / len(losing_trades)
     else:
         avg_loss_per_trade = 0.0
 
@@ -133,9 +129,7 @@ def calculate_risk_metrics(
     }
 
 
-def generate_backtest_report(
-    performance_metrics: Dict[str, float], risk_metrics: Dict[str, float]
-) -> str:
+def generate_backtest_report(performance_metrics: Dict[str, float], risk_metrics: Dict[str, float]) -> str:
     """バックテストレポートを生成します。
 
     Args:
@@ -154,9 +148,7 @@ def generate_backtest_report(
     report.append(f"- 最終資産価値: {performance_metrics.get('final_value', 0):,.0f}円")
     report.append(f"- 勝率: {performance_metrics.get('win_rate', 0):.2%}")
     report.append(f"- 平均リターン: {performance_metrics.get('avg_return', 0):.2%}")
-    report.append(
-        f"- 最大ドロークダウン: {performance_metrics.get('max_drawdown', 0):.2%}"
-    )
+    report.append(f"- 最大ドロークダウン: {performance_metrics.get('max_drawdown', 0):.2%}")
     report.append(f"- シャープ比: {performance_metrics.get('sharpe_ratio', 0):.2f}")
     report.append(f"- トータル取引数: {performance_metrics.get('total_trades', 0)}")
     report.append("")
@@ -165,12 +157,8 @@ def generate_backtest_report(
     report.append(f"- 5% VaR: {risk_metrics.get('var_5', 0):.2%}")
     report.append(f"- 5% CVaR: {risk_metrics.get('cvar_5', 0):.2%}")
     report.append(f"- 平均取引損益: {risk_metrics.get('avg_trade_pnl', 0):.2%}")
-    report.append(
-        f"- 平均損失 (損失取引): {risk_metrics.get('avg_loss_per_trade', 0):.2%}"
-    )
-    report.append(
-        f"- 最大損失 (損失取引): {risk_metrics.get('max_loss_per_trade', 0):.2%}"
-    )
+    report.append(f"- 平均損失 (損失取引): {risk_metrics.get('avg_loss_per_trade', 0):.2%}")
+    report.append(f"- 最大損失 (損失取引): {risk_metrics.get('max_loss_per_trade', 0):.2%}")
     report.append("")
 
     return "\n".join(report)

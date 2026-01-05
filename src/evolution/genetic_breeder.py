@@ -12,8 +12,8 @@ from typing import List, Optional, Tuple
 
 import google.generativeai as genai
 
-from src.agents.strategy_arena import StrategyArena
-from src.evolution.market_simulator import MarketSimulator
+from agstock.src.agents.strategy_arena import StrategyArena
+from agstock.src.evolution.market_simulator import MarketSimulator
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ class GeneticBreeder:
         if api_key:
             try:
                 genai.configure(api_key=api_key)
-                self.model = genai.GenerativeModel('gemini-1.5-flash')
+                self.model = genai.GenerativeModel("gemini-1.5-flash")
                 self.has_gemini = True
             except Exception as e:
                 logger.error(f"Failed to init Gemini for Breeder: {e}")

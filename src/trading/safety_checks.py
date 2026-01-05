@@ -14,9 +14,7 @@ class SafetyChecks:
         self.pt = paper_trader
         self.logger = logger
         self.risk_config = self.config.get("auto_trading", {})
-        self.min_cash_balance = self.config.get("risk_management", {}).get(
-            "min_cash_balance", 10000
-        )
+        self.min_cash_balance = self.config.get("risk_management", {}).get("min_cash_balance", 10000)
         self.vix_ticker = self.config.get("market_indices", {}).get("vix", "^VIX")
 
     def _calculate_daily_pnl(self) -> float:
@@ -70,9 +68,7 @@ class SafetyChecks:
                         f"市場ボラティリティが高すぎます (VIX: {current_vix:.1f})",
                     )
         except Exception:
-            self.logger.warning(
-                "VIXデータ取得失敗、ボラティリティチェックをスキップします。"
-            )
+            self.logger.warning("VIXデータ取得失敗、ボラティリティチェックをスキップします。")
 
         # 3. 残高チェック
         if balance["cash"] < self.min_cash_balance:

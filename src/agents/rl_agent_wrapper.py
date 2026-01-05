@@ -1,8 +1,9 @@
 """RL Agent Wrapper - stub implementation"""
+
 import logging
 from typing import Dict, Any
-from src.agents.base_agent import BaseAgent
-from src.schemas import AgentAnalysis, TradingDecision
+from agstock.src.agents.base_agent import BaseAgent
+from agstock.src.schemas import AgentAnalysis, TradingDecision
 
 logger = logging.getLogger(__name__)
 
@@ -13,8 +14,9 @@ class RLAgentWrapper:
     The RL layer learns to 'trust' or 'override' the base agent based on market state.
     """
 
-    def __init__(self, base_agent: BaseAgent, name_suffix: str = "",
-                 learning_rate: float = 0.1, discount_factor: float = 0.9):
+    def __init__(
+        self, base_agent: BaseAgent, name_suffix: str = "", learning_rate: float = 0.1, discount_factor: float = 0.9
+    ):
         self.agent = base_agent
         self.name = f"{base_agent.name}{name_suffix}"
         self.lr = learning_rate

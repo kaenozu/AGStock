@@ -1,7 +1,7 @@
 """UI コンポーネント"""
 
-from src.ui.components.quick_overview import render_quick_overview
-from src.ui.components.trade_heatmap import (
+from agstock.src.ui.components.quick_overview import render_quick_overview
+from agstock.src.ui.components.trade_heatmap import (
     render_trade_heatmap,
     render_monthly_performance,
     render_win_rate_gauge,

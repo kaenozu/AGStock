@@ -20,9 +20,7 @@ class ShadowCouncil:
             "The Value Guardian": "Focuses on margin of safety, P/E ratios, and balance sheet health. Extremely risk-averse.",
         }
 
-    def hold_debate(
-        self, ticker: str, proposed_action: str, data_context: str
-    ) -> Dict[str, Any]:
+    def hold_debate(self, ticker: str, proposed_action: str, data_context: str) -> Dict[str, Any]:
         """
         Runs a structured debate among the council members.
         """
@@ -62,9 +60,7 @@ class ShadowCouncil:
         # Consensus logic
         consensus = "APPROVE" if votes["APPROVE"] > votes["REJECT"] else "REJECT"
         if votes["APPROVE"] == votes["REJECT"]:
-            consensus = (
-                "HOLD"  # Tie-breaker is safety (Value Guardian usually wins in spirit)
-            )
+            consensus = "HOLD"  # Tie-breaker is safety (Value Guardian usually wins in spirit)
 
         return {
             "ticker": ticker,

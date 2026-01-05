@@ -1,5 +1,3 @@
-
-
 def get_persona(mood: str) -> str:
     pass
 

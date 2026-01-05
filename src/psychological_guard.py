@@ -87,9 +87,7 @@ class PsychologicalGuard:
 
         return {"action": "HOLD", "reason": "OK"}
 
-    def check_position_size(
-        self, ticker: str, target_value: float, total_equity: float
-    ) -> Dict:
+    def check_position_size(self, ticker: str, target_value: float, total_equity: float) -> Dict:
         """
         ポジションサイズチェック
 
@@ -155,12 +153,8 @@ class PsychologicalGuard:
         self.trade_history.append(trade)
 
         # 損失が大きい場合、クーリングオフ期間を設定
-        if (
-            action == "SELL" and pnl < self.config["revenge_trading_threshold"] * 10000
-        ):  # 仮に資産1000万円として
-            end_date = datetime.now() + timedelta(
-                days=self.config["cooling_period_days"]
-            )
+        if action == "SELL" and pnl < self.config["revenge_trading_threshold"] * 10000:  # 仮に資産1000万円として
+            end_date = datetime.now() + timedelta(days=self.config["cooling_period_days"])
             self.cooling_off_stocks[ticker] = end_date
             self.logger.warning(f"Cooling period set for {ticker} until {end_date}")
 
@@ -177,9 +171,7 @@ class PsychologicalGuard:
         target_date = date or datetime.now().date()
 
         # 今日の取引回数
-        today_trades = [
-            t for t in self.trade_history if t["timestamp"].date() == target_date
-        ]
+        today_trades = [t for t in self.trade_history if t["timestamp"].date() == target_date]
 
         if len(today_trades) >= self.config["max_daily_trades"]:
             return {
@@ -213,9 +205,7 @@ class PsychologicalGuard:
 
         return {"action": "OK", "reason": "Holding period sufficient"}
 
-    def comprehensive_check(
-        self, position: Dict, peak_price: float, total_equity: float
-    ) -> Dict:
+    def comprehensive_check(self, position: Dict, peak_price: float, total_equity: float) -> Dict:
         """
         包括的なチェック
 
@@ -233,13 +223,9 @@ class PsychologicalGuard:
         checks = {
             "stop_loss": self.check_stop_loss(position),
             "trailing_stop": self.check_trailing_stop(position, peak_price),
-            "cooling_period": {"action": "BLOCKED"}
-            if self.is_in_cooling_period(ticker)
-            else {"action": "OK"},
+            "cooling_period": {"action": "BLOCKED"} if self.is_in_cooling_period(ticker) else {"action": "OK"},
             "overtrading": self.check_overtrading(),
-            "holding_period": self.check_min_holding_period(
-                position.get("entry_date", datetime.now())
-            ),
+            "holding_period": self.check_min_holding_period(position.get("entry_date", datetime.now())),
         }
 
         # 最も優先度の高いアクションを決定

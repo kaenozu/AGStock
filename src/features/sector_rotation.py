@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 class EconomicCycle(Enum):
     """景気サイクル"""
+
     EARLY_EXPANSION = "early_expansion"  # 景気回復初期
     MID_EXPANSION = "mid_expansion"  # 景気拡大期
     LATE_EXPANSION = "late_expansion"  # 景気後期
@@ -28,6 +29,7 @@ class EconomicCycle(Enum):
 @dataclass
 class SectorPerformance:
     """セクターパフォーマンス"""
+
     sector: str
     etf_symbol: str
     return_1w: float
@@ -68,24 +70,12 @@ class SectorRotation:
 
     # 景気サイクルごとの推奨セクター
     CYCLE_RECOMMENDATIONS = {
-        EconomicCycle.EARLY_EXPANSION: [
-            "Technology", "Consumer Discretionary", "Financials"
-        ],
-        EconomicCycle.MID_EXPANSION: [
-            "Industrials", "Materials", "Technology"
-        ],
-        EconomicCycle.LATE_EXPANSION: [
-            "Energy", "Materials", "Industrials"
-        ],
-        EconomicCycle.EARLY_RECESSION: [
-            "Utilities", "Consumer Staples", "Healthcare"
-        ],
-        EconomicCycle.MID_RECESSION: [
-            "Consumer Staples", "Healthcare", "Utilities"
-        ],
-        EconomicCycle.LATE_RECESSION: [
-            "Financials", "Consumer Discretionary", "Real Estate"
-        ],
+        EconomicCycle.EARLY_EXPANSION: ["Technology", "Consumer Discretionary", "Financials"],
+        EconomicCycle.MID_EXPANSION: ["Industrials", "Materials", "Technology"],
+        EconomicCycle.LATE_EXPANSION: ["Energy", "Materials", "Industrials"],
+        EconomicCycle.EARLY_RECESSION: ["Utilities", "Consumer Staples", "Healthcare"],
+        EconomicCycle.MID_RECESSION: ["Consumer Staples", "Healthcare", "Utilities"],
+        EconomicCycle.LATE_RECESSION: ["Financials", "Consumer Discretionary", "Real Estate"],
     }
 
     def __init__(self, market: str = "US"):
@@ -95,9 +85,7 @@ class SectorRotation:
             market: 市場（"US"または"JP"）
         """
         self.market = market
-        self.sector_etfs = (
-            self.US_SECTOR_ETFS if market == "US" else self.JP_SECTOR_ETFS
-        )
+        self.sector_etfs = self.US_SECTOR_ETFS if market == "US" else self.JP_SECTOR_ETFS
         self._cache: Dict[str, pd.DataFrame] = {}
         self._cache_timestamp: Optional[datetime] = None
 
@@ -115,9 +103,7 @@ class SectorRotation:
 
         for sector, etf in self.sector_etfs.items():
             try:
-                perf = self._analyze_single_sector(
-                    sector, etf, lookback_days, benchmark_returns
-                )
+                perf = self._analyze_single_sector(sector, etf, lookback_days, benchmark_returns)
                 if perf:
                     performances.append(perf)
             except Exception as e:
@@ -156,12 +142,7 @@ class SectorRotation:
             relative_strength = return_1m - benchmark_1m
 
             # モメンタムスコア（加重平均）
-            momentum_score = (
-                return_1w * 0.1
-                + return_1m * 0.3
-                + return_3m * 0.4
-                + return_6m * 0.2
-            )
+            momentum_score = return_1w * 0.1 + return_1m * 0.3 + return_3m * 0.4 + return_6m * 0.2
 
             # 推奨判定
             if momentum_score > 5 and relative_strength > 2:
@@ -305,15 +286,17 @@ class SectorRotation:
             if perf.sector in recommended_sectors:
                 score += 10  # サイクル推奨ボーナス
 
-            combined_recommendations.append({
-                "sector": perf.sector,
-                "etf": perf.etf_symbol,
-                "combined_score": score,
-                "momentum_score": perf.momentum_score,
-                "relative_strength": perf.relative_strength,
-                "cycle_recommended": perf.sector in recommended_sectors,
-                "action": perf.recommendation,
-            })
+            combined_recommendations.append(
+                {
+                    "sector": perf.sector,
+                    "etf": perf.etf_symbol,
+                    "combined_score": score,
+                    "momentum_score": perf.momentum_score,
+                    "relative_strength": perf.relative_strength,
+                    "cycle_recommended": perf.sector in recommended_sectors,
+                    "action": perf.recommendation,
+                }
+            )
 
         combined_recommendations.sort(key=lambda x: x["combined_score"], reverse=True)
 

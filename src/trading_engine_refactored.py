@@ -89,16 +89,10 @@ class TradingEngineRefactored:
                 current_price = market_data[ticker]["Close"].iloc[-1]
                 position.current_price = current_price
                 position.market_value = position.quantity * current_price
-                position.unrealized_pnl = position.market_value - (
-                    position.quantity * position.entry_price
-                )
-                position.pnl_pct = position.unrealized_pnl / (
-                    position.quantity * position.entry_price
-                )
+                position.unrealized_pnl = position.market_value - (position.quantity * position.entry_price)
+                position.pnl_pct = position.unrealized_pnl / (position.quantity * position.entry_price)
 
-    def _generate_signals(
-        self, market_data: Dict[str, pd.DataFrame]
-    ) -> List[TradeSignal]:
+    def _generate_signals(self, market_data: Dict[str, pd.DataFrame]) -> List[TradeSignal]:
         """取引シグナルを生成"""
         signals = []
 
@@ -111,9 +105,7 @@ class TradingEngineRefactored:
 
     def _apply_risk_filters(self, signals: List[TradeSignal]) -> List[TradeSignal]:
         """リスクフィルターを適用"""
-        return self.risk_manager.filter_signals(
-            signals, self.positions, self.cash_balance
-        )
+        return self.risk_manager.filter_signals(signals, self.positions, self.cash_balance)
 
     def _execute_trades(self, signals: List[TradeSignal]) -> List[Trade]:
         """取引を実行"""
@@ -165,9 +157,7 @@ class TradingEngineRefactored:
                 pnl_pct=0.0,
             )
 
-        logger.info(
-            f"BUY: {signal.quantity} shares of {signal.ticker} at {signal.price}"
-        )
+        logger.info(f"BUY: {signal.quantity} shares of {signal.ticker} at {signal.price}")
 
     def _process_sell_trade(self, signal: TradeSignal, trade_value: float) -> None:
         """売り取引を処理"""
@@ -181,14 +171,10 @@ class TradingEngineRefactored:
             # 部分売却
             position.quantity -= signal.quantity
             position.market_value = position.quantity * signal.price
-            position.unrealized_pnl = position.market_value - (
-                position.quantity * position.entry_price
-            )
+            position.unrealized_pnl = position.market_value - (position.quantity * position.entry_price)
             self.cash_balance += trade_value
 
-        logger.info(
-            f"SELL: {signal.quantity} shares of {signal.ticker} at {signal.price}"
-        )
+        logger.info(f"SELL: {signal.quantity} shares of {signal.ticker} at {signal.price}")
 
     def _rebalance_portfolio_if_needed(self) -> None:
         """必要に応じてポートフォリオを再均衡"""
@@ -305,9 +291,7 @@ class RiskManager:
 
         return filtered
 
-    def _is_signal_valid(
-        self, signal: TradeSignal, positions: Dict[str, Position], cash_balance: float
-    ) -> bool:
+    def _is_signal_valid(self, signal: TradeSignal, positions: Dict[str, Position], cash_balance: float) -> bool:
         """シグナルの妥当性チェック"""
         total_value = sum(pos.market_value for pos in positions.values()) + cash_balance
         trade_value = signal.quantity * signal.price
@@ -343,9 +327,7 @@ class SignalGenerator:
 
         return None
 
-    def _generate_ma_signal(
-        self, ticker: str, data: pd.DataFrame
-    ) -> Optional[TradeSignal]:
+    def _generate_ma_signal(self, ticker: str, data: pd.DataFrame) -> Optional[TradeSignal]:
         """移動平均シグナル"""
         if len(data) < 50:
             return None
@@ -375,9 +357,7 @@ class SignalGenerator:
 
         return None
 
-    def _generate_rsi_signal(
-        self, ticker: str, data: pd.DataFrame
-    ) -> Optional[TradeSignal]:
+    def _generate_rsi_signal(self, ticker: str, data: pd.DataFrame) -> Optional[TradeSignal]:
         """RSIシグナル"""
         if len(data) < 20:
             return None
@@ -440,9 +420,7 @@ class PortfolioManager:
         """目標ウェイトを計算"""
         return self.target_weights
 
-    def _calculate_current_weights(
-        self, positions: Dict[str, Position]
-    ) -> Dict[str, float]:
+    def _calculate_current_weights(self, positions: Dict[str, Position]) -> Dict[str, float]:
         """現在のウェイトを計算"""
         total_value = sum(pos.market_value for pos in positions.values())
 

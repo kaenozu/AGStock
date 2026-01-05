@@ -81,9 +81,7 @@ class PredictionMonitor:
     def calculate_metrics(self) -> Dict[str, float]:
         """Calculate current performance metrics."""
         # Filter out predictions without actuals
-        valid_pairs = [
-            (p, a) for p, a in zip(self.predictions, self.actuals) if a is not None
-        ]
+        valid_pairs = [(p, a) for p, a in zip(self.predictions, self.actuals) if a is not None]
 
         if len(valid_pairs) < 10:
             return {
@@ -97,9 +95,7 @@ class PredictionMonitor:
         actuals = np.array([a for _, a in valid_pairs])
 
         # Directional accuracy
-        directional_correct = sum(
-            (p > 0 and a > 0) or (p < 0 and a < 0) for p, a in zip(predictions, actuals)
-        )
+        directional_correct = sum((p > 0 and a > 0) or (p < 0 and a < 0) for p, a in zip(predictions, actuals))
         directional_accuracy = directional_correct / len(valid_pairs)
 
         # MAPE
@@ -121,8 +117,8 @@ class PredictionMonitor:
 
         # Keep only recent history
         if len(self.rolling_accuracy) > self.window_size:
-            self.rolling_accuracy = self.rolling_accuracy[-self.window_size:]
-            self.rolling_mape = self.rolling_mape[-self.window_size:]
+            self.rolling_accuracy = self.rolling_accuracy[-self.window_size :]
+            self.rolling_mape = self.rolling_mape[-self.window_size :]
 
         return metrics
 
@@ -197,12 +193,8 @@ class PredictionMonitor:
 
         report = {
             "current_metrics": metrics,
-            "rolling_accuracy_7d": np.mean(self.rolling_accuracy[-7:])
-            if len(self.rolling_accuracy) >= 7
-            else 0.0,
-            "rolling_accuracy_30d": np.mean(self.rolling_accuracy)
-            if self.rolling_accuracy
-            else 0.0,
+            "rolling_accuracy_7d": np.mean(self.rolling_accuracy[-7:]) if len(self.rolling_accuracy) >= 7 else 0.0,
+            "rolling_accuracy_30d": np.mean(self.rolling_accuracy) if self.rolling_accuracy else 0.0,
             "recent_alerts": self.alerts[-5:],  # Last 5 alerts
             "total_predictions": len(self.predictions),
             "predictions_with_actuals": sum(1 for a in self.actuals if a is not None),

@@ -1,4 +1,3 @@
-
 """
 Turbo-Evolution Engine
 Implements a PARALLELIZED genetic evolution loop for trading strategies.
@@ -12,8 +11,8 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 import pandas as pd
 from typing import List, Dict, Any
 
-from src.config import settings
-from src.data_loader import fetch_stock_data
+from agstock.src.config import settings
+from agstock.src.data_loader import fetch_stock_data
 
 logger = logging.getLogger("EvolutionEngine")
 
@@ -76,7 +75,7 @@ def evaluate_fitness_static(genome_config: Dict[str, Any], data_list: List[pd.Da
 
         try:
             # Need minimal columns
-            close = df['Close']
+            close = df["Close"]
 
             # Recalculate indicators based on gene params
             # Note: This is computationally expensive, hence why parallelization helps.
@@ -119,6 +118,7 @@ def evaluate_fitness_static(genome_config: Dict[str, Any], data_list: List[pd.Da
 
     return total_pnl
 
+
 # --- Main Engine ---
 
 
@@ -155,11 +155,7 @@ class EvolutionEngine:
         with ProcessPoolExecutor(max_workers=self.max_workers) as executor:
             # Submit tasks
             future_to_genome = {
-                executor.submit(
-                    evaluate_fitness_static,
-                    genome.to_config(),
-                    data_list
-                ): genome
+                executor.submit(evaluate_fitness_static, genome.to_config(), data_list): genome
                 for genome in self.population
             }
 
@@ -223,6 +219,7 @@ class EvolutionEngine:
 
     def save_best_genome(self, genome: Genome):
         import json
+
         out_path = settings.system.data_dir / "best_strategy_params.json"
         with open(out_path, "w") as f:
             json.dump(genome.to_config(), f, indent=4)

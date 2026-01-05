@@ -10,7 +10,7 @@ import sqlite3
 from datetime import datetime
 from typing import Any, Dict
 
-from src.data_loader import fetch_stock_data
+from agstock.src.data_loader import fetch_stock_data
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,8 @@ class DigitalTwin:
         try:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
+                cursor.execute(
+                    """
                     CREATE TABLE IF NOT EXISTS shadow_positions (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         twin_type TEXT NOT NULL,
@@ -41,15 +42,18 @@ class DigitalTwin:
                         entry_timestamp TEXT,
                         status TEXT DEFAULT 'OPEN'
                     )
-                """)
-                cursor.execute("""
+                """
+                )
+                cursor.execute(
+                    """
                     CREATE TABLE IF NOT EXISTS performance_snapshot (
                         timestamp TEXT NOT NULL,
                         twin_type TEXT NOT NULL,
                         total_equity REAL,
                         unrealized_pnl REAL
                     )
-                """)
+                """
+                )
                 conn.commit()
         except Exception as e:
             logger.error(f"Failed to init digital twin DB: {e}")
@@ -67,7 +71,7 @@ class DigitalTwin:
                 if original_decision in ["BUY", "HOLD"]:
                     cursor.execute(
                         "INSERT INTO shadow_positions (twin_type, ticker, entry_price, quantity, entry_timestamp) VALUES (?, ?, ?, ?, ?)",
-                        ("AGGRESSIVE", ticker, current_price, 10, datetime.now().isoformat())
+                        ("AGGRESSIVE", ticker, current_price, 10, datetime.now().isoformat()),
                     )
 
                 # 2. Conservative Twin: More prone to selling/holding
@@ -75,7 +79,7 @@ class DigitalTwin:
                     # Only buy half size if real world buys
                     cursor.execute(
                         "INSERT INTO shadow_positions (twin_type, ticker, entry_price, quantity, entry_timestamp) VALUES (?, ?, ?, ?, ?)",
-                        ("CONSERVATIVE", ticker, current_price, 5, datetime.now().isoformat())
+                        ("CONSERVATIVE", ticker, current_price, 5, datetime.now().isoformat()),
                     )
 
                 conn.commit()
@@ -94,7 +98,7 @@ class DigitalTwin:
                 for twin_type in ["AGGRESSIVE", "CONSERVATIVE"]:
                     cursor.execute(
                         "SELECT ticker, entry_price, quantity FROM shadow_positions WHERE twin_type = ? AND status = 'OPEN'",
-                        (twin_type,)
+                        (twin_type,),
                     )
                     positions = [dict(row) for row in cursor.fetchall()]
 
@@ -126,7 +130,7 @@ class DigitalTwin:
                         results[twin_type] = {
                             "pnl": round(pnl, 0),
                             "pnl_pct": round(pnl_pct, 2),
-                            "count": len(positions)
+                            "count": len(positions),
                         }
                     except Exception as e:
                         logger.warning(f"Failed to fetch price for twin perf: {e}")

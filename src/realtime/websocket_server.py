@@ -26,11 +26,11 @@ class RealtimeDataStreamer:
         """クライアントを登録"""
         self.clients.add(websocket)
         logger.info(f"クライアントが接続されました。総接続数: {len(self.clients)}")
-        
+
         try:
             # 初期データを送信
             await self.send_initial_data(websocket)
-            
+
             # クライアントからのメッセージを待機
             async for message in websocket:
                 await self.handle_client_message(websocket, message)
@@ -45,7 +45,7 @@ class RealtimeDataStreamer:
         initial_data = {
             "type": "initial_data",
             "timestamp": datetime.now().isoformat(),
-            "message": "リアルタイムデータストリーミングに接続されました"
+            "message": "リアルタイムデータストリーミングに接続されました",
         }
         await websocket.send(json.dumps(initial_data, ensure_ascii=False))
 
@@ -66,7 +66,7 @@ class RealtimeDataStreamer:
             response = {
                 "type": "subscription_confirmed",
                 "subscription_type": subscription_type,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             }
             await websocket.send(json.dumps(response, ensure_ascii=False))
 
@@ -74,16 +74,16 @@ class RealtimeDataStreamer:
         """すべてのクライアントにデータをブロードキャスト"""
         if not self.clients:
             return
-            
+
         message = json.dumps(data, ensure_ascii=False)
         disconnected_clients = set()
-        
+
         for client in self.clients:
             try:
                 await client.send(message)
             except websockets.exceptions.ConnectionClosed:
                 disconnected_clients.add(client)
-        
+
         # 切断されたクライアントを削除
         for client in disconnected_clients:
             self.clients.discard(client)
@@ -92,7 +92,7 @@ class RealtimeDataStreamer:
         """WebSocketサーバーを開始"""
         self.is_running = True
         logger.info(f"WebSocketサーバーを {host}:{port} で開始します")
-        
+
         async with websockets.serve(self.register_client, host, port):
             await self.run_data_generation()
 
@@ -112,14 +112,14 @@ class RealtimeDataStreamer:
                 "AAPL": {
                     "price": 150.0 + (time.time() % 10),
                     "change": 0.5 + (time.time() % 2),
-                    "volume": 1000000 + int(time.time() % 100000)
+                    "volume": 1000000 + int(time.time() % 100000),
                 },
                 "MSFT": {
                     "price": 300.0 + (time.time() % 15),
                     "change": 0.3 + (time.time() % 1.5),
-                    "volume": 800000 + int(time.time() % 80000)
-                }
-            }
+                    "volume": 800000 + int(time.time() % 80000),
+                },
+            },
         }
         await self.broadcast_data(dummy_data)
 
@@ -136,7 +136,7 @@ streamer = RealtimeDataStreamer()
 async def main():
     """メイン関数"""
     logging.basicConfig(level=logging.INFO)
-    
+
     try:
         await streamer.start_server()
     except KeyboardInterrupt:

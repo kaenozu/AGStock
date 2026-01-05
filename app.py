@@ -115,10 +115,12 @@ def main():
     # Create Tabs
     # Create Tabs (Simplified)
 
+    # --- Dashboard Router Implementation ---
+    from src.ui.dashboard_router import DashboardRouter
+
     # Check for new signals (notification badge)
     import json
     import os
-
     signal_count = 0
     try:
         if os.path.exists("scan_results.json"):
@@ -129,51 +131,25 @@ def main():
     except Exception:
         signal_count = 0
 
-    # Build tab labels with badges
-    trading_badge = f" ({signal_count})" if signal_count > 0 else ""
-
-    tab_list = ["🏠 ダッシュボード", "📈 運用パフォーマンス", "🤖 AI分析センター", f"💼 トレーディング{trading_badge}", "🧪 戦略研究所", "🏆 シャドウ・トーナメント", "🚀 Mission Control", "🏛️ Divine Hub"]
-
-    tabs = st.tabs(tab_list)
-
-    # 0. Dashboard (Home)
-    with tabs[0]:
-        create_simple_dashboard()
-
-    # 1. Performance Analytics
-    with tabs[1]:
-        from src.ui.performance_analyst import render_performance_analyst
-        render_performance_analyst()
-
-    # 2. AI Hub
-    with tabs[2]:
-        from src.ui.ai_hub import render_ai_hub
-
-        render_ai_hub()
-
-    # 3. Trading Hub
-    with tabs[3]:
-        from src.ui.trading_hub import render_trading_hub
-        render_trading_hub(sidebar_config, strategies)
-
-    # 4. Lab Hub
-    with tabs[4]:
-        from src.ui.lab_hub import render_lab_hub
-        render_lab_hub()
+    # Get Tab Definitions
+    tab_defs = DashboardRouter.get_tabs(signal_count)
+    tab_labels = [t[0] for t in tab_defs]
     
-    # 5. Tournament
-    with tabs[5]:
-        from src.ui.tournament_ui import render_tournament_ui
-        render_tournament_ui()
-
-    # 6. Mission Control
-    with tabs[6]:
-        render_mission_control()
-
-    # 7. Divine Hub (Year-in-Review and Oracle)
-    with tabs[7]:
-        from src.ui.divine_reflection import render_divine_reflection
-        render_divine_reflection()
+    # Create Streamlit Tabs
+    tabs = st.tabs(tab_labels)
+    
+    # Render Tabs via Router
+    for i, (label, render_func) in enumerate(tab_defs):
+        with tabs[i]:
+            try:
+                # Dependency Injection for specific tabs
+                if "トレーディング" in label:
+                    render_func(sidebar_config, strategies)
+                else:
+                    render_func()
+            except Exception as e:
+                st.error(f"Error rendering tab {label}: {e}")
+                st.exception(e)
 
     # 6. Real-time Monitor (Enhanced)
     with st.sidebar.expander("⚡ リアルタイム監視 (β)", expanded=True):

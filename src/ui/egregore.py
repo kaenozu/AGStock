@@ -49,7 +49,7 @@ st.sidebar.info(f"System Consciousness: {random.randint(90, 100)}%")
 #             st.session_state["show_oracle_chat"] = not st.session_state.get("show_oracle_chat", False)
 #             if st.session_state.get("show_oracle_chat", False):
 #                 with st.sidebar.expander("Divine Dialogue", expanded=True):
-#                     from src.ui.oracle_link import render_oracle_chat
+#                     from agstock.src.ui.oracle_link import render_oracle_chat
 #                     render_oracle_chat(mood)
 # -----------------------------
 

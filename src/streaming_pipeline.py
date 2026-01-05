@@ -9,9 +9,9 @@ from typing import Any, Dict, List
 
 import pandas as pd
 
-from src.features import add_advanced_features
-from src.realtime_alerts import get_alert_manager
-from src.strategies import AttentionLSTMStrategy, GRUStrategy, LightGBMStrategy
+from agstock.src.features import add_advanced_features
+from agstock.src.realtime_alerts import get_alert_manager
+from agstock.src.strategies import AttentionLSTMStrategy, GRUStrategy, LightGBMStrategy
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ class StreamingPipeline:
         self._load_strategies()
 
         # 2. 履歴データのロード（特徴量計算用）
-        from src.data_loader import fetch_stock_data
+        from agstock.src.data_loader import fetch_stock_data
 
         # 期間を少し長めに取ってテクニカル指標の計算に必要な期間を確保
         period = f"{lookback_days + 30}d"
@@ -171,9 +171,7 @@ class StreamingPipeline:
             "sell_votes": sell_count,
         }
 
-    def _check_alerts(
-        self, ticker: str, predictions: Dict[str, Any], latest_row: pd.Series
-    ):
+    def _check_alerts(self, ticker: str, predictions: Dict[str, Any], latest_row: pd.Series):
         """アラート条件をチェック"""
 
         # 判定用データ作成
@@ -181,9 +179,7 @@ class StreamingPipeline:
             "ticker": ticker,
             "current_price": latest_row["Close"],
             "signal": predictions["final_signal"],
-            "confidence": max(
-                [p["confidence"] for p in predictions["details"].values()] or [0]
-            ),
+            "confidence": max([p["confidence"] for p in predictions["details"].values()] or [0]),
             "timestamp": predictions["timestamp"],
         }
 

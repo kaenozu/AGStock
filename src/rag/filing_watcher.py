@@ -10,12 +10,12 @@ import shutil
 from datetime import datetime
 from typing import Dict, Any
 
-from src.rag.pdf_loader import PDFLoader
-from src.rag.earnings_rag import EarningsRAG
-from src.rag.earnings_analyzer import EarningsAnalyzer
-from src.data.earnings_history import EarningsHistory
-from src.smart_notifier import SmartNotifier
-from src.execution.event_trader import EventTrader
+from agstock.src.rag.pdf_loader import PDFLoader
+from agstock.src.rag.earnings_rag import EarningsRAG
+from agstock.src.rag.earnings_analyzer import EarningsAnalyzer
+from agstock.src.data.earnings_history import EarningsHistory
+from agstock.src.smart_notifier import SmartNotifier
+from agstock.src.execution.event_trader import EventTrader
 
 logger = logging.getLogger(__name__)
 
@@ -84,9 +84,7 @@ class FilingWatcher:
                     self._send_notification(analysis_result)
 
                     # 3. 自動売買判定 (Event-Driven Execution)
-                    trade_result = self.event_trader.handle_high_impact_event(
-                        analysis_result
-                    )
+                    trade_result = self.event_trader.handle_high_impact_event(analysis_result)
                     if trade_result.get("status") == "success":
                         logger.info(f"Event-driven trade executed for {filename}")
 

@@ -16,9 +16,7 @@ class EventForecaster:
     def __init__(self):
         self.model_name = "gemini-1.5-pro"
 
-    def forecast_upcoming_events(
-        self, market_data: pd.DataFrame, news_summary: str
-    ) -> Dict[str, Any]:
+    def forecast_upcoming_events(self, market_data: pd.DataFrame, news_summary: str) -> Dict[str, Any]:
         """
         Generates a 3-5 day probabilistic forecast.
         """

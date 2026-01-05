@@ -30,9 +30,7 @@ class MacroLoader:
         try:
             # Download recent history for all symbols to calculate change
             all_symbols = list(self.SYMBOLS.values())
-            df = yf.download(all_symbols, period="5d", interval="1d", progress=False)[
-                "Close"
-            ]
+            df = yf.download(all_symbols, period="5d", interval="1d", progress=False)["Close"]
 
             for key, symbol in self.SYMBOLS.items():
                 if symbol in df.columns:
@@ -40,11 +38,7 @@ class MacroLoader:
                     if not series.empty:
                         current_val = series.iloc[-1]
                         prev_val = series.iloc[-2] if len(series) > 1 else current_val
-                        change_pct = (
-                            (current_val - prev_val) / prev_val * 100
-                            if prev_val != 0
-                            else 0
-                        )
+                        change_pct = (current_val - prev_val) / prev_val * 100 if prev_val != 0 else 0
 
                         data[key] = {
                             "value": float(current_val),

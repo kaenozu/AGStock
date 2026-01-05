@@ -46,9 +46,7 @@ class TimeSeriesCV:
         """
         return self.tscv.split(X, y)
 
-    def evaluate_model(
-        self, model, X: pd.DataFrame, y: pd.Series, metric_func: callable
-    ) -> Dict[str, float]:
+    def evaluate_model(self, model, X: pd.DataFrame, y: pd.Series, metric_func: callable) -> Dict[str, float]:
         """
         モデルをクロスバリデーションで評価
 

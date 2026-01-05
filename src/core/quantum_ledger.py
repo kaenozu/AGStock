@@ -27,13 +27,16 @@ class Block:
 
     def calculate_hash(self) -> str:
         """Calculates the SHA-256 hash of the block's content."""
-        block_string = json.dumps({
-            "index": self.index,
-            "timestamp": self.timestamp,
-            "data": self.data,
-            "previous_hash": self.previous_hash,
-            "nonce": self.nonce
-        }, sort_keys=True).encode()
+        block_string = json.dumps(
+            {
+                "index": self.index,
+                "timestamp": self.timestamp,
+                "data": self.data,
+                "previous_hash": self.previous_hash,
+                "nonce": self.nonce,
+            },
+            sort_keys=True,
+        ).encode()
         return hashlib.sha256(block_string).hexdigest()
 
     def mine_block(self, difficulty: int):
@@ -51,7 +54,7 @@ class Block:
             "data": self.data,
             "previous_hash": self.previous_hash,
             "hash": self.hash,
-            "nonce": self.nonce
+            "nonce": self.nonce,
         }
 
 

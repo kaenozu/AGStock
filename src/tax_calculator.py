@@ -46,9 +46,7 @@ class TaxCalculator:
     def __init__(self):
         pass
 
-    def calculate_capital_gains_tax(
-        self, profit: float, is_nisa: bool = False
-    ) -> Dict[str, float]:
+    def calculate_capital_gains_tax(self, profit: float, is_nisa: bool = False) -> Dict[str, float]:
         """
         株式譲渡所得税計算
 
@@ -94,9 +92,7 @@ class TaxCalculator:
             "effective_tax_rate": (total_tax / profit) if profit > 0 else 0,
         }
 
-    def calculate_loss_offset(
-        self, gains: List[float], losses: List[float]
-    ) -> Dict[str, float]:
+    def calculate_loss_offset(self, gains: List[float], losses: List[float]) -> Dict[str, float]:
         """
         損益通算計算
 
@@ -127,9 +123,7 @@ class TaxCalculator:
             **tax_info,
         }
 
-    def optimize_loss_harvesting(
-        self, positions: pd.DataFrame, target_loss: float = 0.0
-    ) -> List[Dict]:
+    def optimize_loss_harvesting(self, positions: pd.DataFrame, target_loss: float = 0.0) -> List[Dict]:
         """
         税務損失収穫の最適化
 
@@ -145,9 +139,7 @@ class TaxCalculator:
 
         # 含み損のポジションを抽出
         positions = positions.copy()
-        positions["unrealized_pnl"] = (
-            positions["current_price"] - positions["entry_price"]
-        ) * positions["quantity"]
+        positions["unrealized_pnl"] = (positions["current_price"] - positions["entry_price"]) * positions["quantity"]
 
         loss_positions = positions[positions["unrealized_pnl"] < 0].copy()
 
@@ -186,9 +178,7 @@ class TaxCalculator:
 
         return recommendations
 
-    def calculate_year_end_tax_strategy(
-        self, realized_gains: float, unrealized_positions: pd.DataFrame
-    ) -> Dict:
+    def calculate_year_end_tax_strategy(self, realized_gains: float, unrealized_positions: pd.DataFrame) -> Dict:
         """
         年末税務戦略計算
 
@@ -203,9 +193,7 @@ class TaxCalculator:
         current_tax = self.calculate_capital_gains_tax(realized_gains)
 
         # 損失収穫の推奨
-        loss_harvest = self.optimize_loss_harvesting(
-            unrealized_positions, target_loss=realized_gains
-        )  # 利益を相殺
+        loss_harvest = self.optimize_loss_harvesting(unrealized_positions, target_loss=realized_gains)  # 利益を相殺
 
         total_harvestable_loss = sum([rec["unrealized_loss"] for rec in loss_harvest])
         total_tax_benefit = sum([rec["tax_benefit"] for rec in loss_harvest])
@@ -225,9 +213,7 @@ class TaxCalculator:
             "recommendations": loss_harvest,
         }
 
-    def simulate_tax_scenarios(
-        self, base_profit: float, scenarios: List[Dict]
-    ) -> pd.DataFrame:
+    def simulate_tax_scenarios(self, base_profit: float, scenarios: List[Dict]) -> pd.DataFrame:
         """
         税金シミュレーション
 
@@ -269,9 +255,7 @@ if __name__ == "__main__":
     print(f"実効税率: {tax['effective_tax_rate']:.2%}")
 
     # 損益通算
-    offset = calc.calculate_loss_offset(
-        gains=[500000, 300000], losses=[-200000, -100000]
-    )
+    offset = calc.calculate_loss_offset(gains=[500000, 300000], losses=[-200000, -100000])
     print("\n損益通算:")
     print(f"純利益: ¥{offset['net_profit']:,.0f}")
     print(f"税金: ¥{offset['total_tax']:,.0f}")
@@ -289,6 +273,4 @@ if __name__ == "__main__":
     harvest = calc.optimize_loss_harvesting(positions)
     print(f"\n損失収穫推奨: {len(harvest)}件")
     for rec in harvest:
-        print(
-            f"  {rec['ticker']}: 損失¥{rec['unrealized_loss']:,.0f}, 節税¥{rec['tax_benefit']:,.0f}"
-        )
+        print(f"  {rec['ticker']}: 損失¥{rec['unrealized_loss']:,.0f}, 節税¥{rec['tax_benefit']:,.0f}")

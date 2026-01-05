@@ -130,7 +130,7 @@ class RealTimeEngine:
                 "current_price": current_price,
                 "mean_price": mean_price,
                 "std_price": std_price,
-                "severity": "HIGH" if abs(z_score) > 5 else "MEDIUM"
+                "severity": "HIGH" if abs(z_score) > 5 else "MEDIUM",
             }
         return None
 
@@ -152,30 +152,22 @@ class RealTimeEngine:
             return {
                 "action": "BUY",
                 "reason": f"Strong upward momentum: {trend:.2%}",
-                "confidence": min(abs(trend) * 10, 1.0)
+                "confidence": min(abs(trend) * 10, 1.0),
             }
         elif trend < -0.02:  # 2% downward momentum
             return {
                 "action": "SELL",
                 "reason": f"Strong downward momentum: {trend:.2%}",
-                "confidence": min(abs(trend) * 10, 1.0)
+                "confidence": min(abs(trend) * 10, 1.0),
             }
 
         return None
 
     async def _handle_anomaly(self, ticker: str, anomaly: Dict[str, Any]):
         """Handle detected anomaly."""
-        logger.warning(
-            f"⚠️ ANOMALY DETECTED: {ticker} - {anomaly['type']} "
-            f"(Z-score: {anomaly['z_score']:.2f})"
-        )
+        logger.warning(f"⚠️ ANOMALY DETECTED: {ticker} - {anomaly['type']} " f"(Z-score: {anomaly['z_score']:.2f})")
         # Notify callbacks
-        event = {
-            "type": "ANOMALY",
-            "ticker": ticker,
-            "data": anomaly,
-            "timestamp": datetime.now()
-        }
+        event = {"type": "ANOMALY", "ticker": ticker, "data": anomaly, "timestamp": datetime.now()}
         for callback in self.callbacks:
             try:
                 await callback(event)
@@ -184,17 +176,9 @@ class RealTimeEngine:
 
     async def _handle_signal(self, ticker: str, signal: Dict[str, Any]):
         """Handle trading signal."""
-        logger.info(
-            f"📊 SIGNAL: {ticker} - {signal['action']} "
-            f"({signal['confidence']:.0%} confidence)"
-        )
+        logger.info(f"📊 SIGNAL: {ticker} - {signal['action']} " f"({signal['confidence']:.0%} confidence)")
         # Notify callbacks
-        event = {
-            "type": "SIGNAL",
-            "ticker": ticker,
-            "data": signal,
-            "timestamp": datetime.now()
-        }
+        event = {"type": "SIGNAL", "ticker": ticker, "data": signal, "timestamp": datetime.now()}
         for callback in self.callbacks:
             try:
                 await callback(event)
@@ -220,8 +204,8 @@ class RealTimeEngine:
             "data_points": len(prices),
             "time_range": {
                 "start": timestamps[0].isoformat() if timestamps else None,
-                "end": timestamps[-1].isoformat() if timestamps else None
-            }
+                "end": timestamps[-1].isoformat() if timestamps else None,
+            },
         }
 
 

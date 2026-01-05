@@ -104,9 +104,7 @@ class SecureConfigManager:
                 api_key = os.getenv(env_key)
 
         if not api_key or api_key in ["", "YOUR_API_KEY_HERE"]:
-            raise ValueError(
-                f"APIキーが設定されていません: {service} (環境変数: {env_key})"
-            )
+            raise ValueError(f"APIキーが設定されていません: {service} (環境変数: {env_key})")
 
         # APIキーの形式を検証
         self._validate_api_key(api_key, service)
@@ -120,14 +118,10 @@ class SecureConfigManager:
             security_config = config.get("security", {})
 
             self._security_config = SecurityConfig(
-                max_api_calls_per_minute=security_config.get(
-                    "max_api_calls_per_minute", 60
-                ),
+                max_api_calls_per_minute=security_config.get("max_api_calls_per_minute", 60),
                 max_data_size_mb=security_config.get("max_data_size_mb", 100),
                 enable_rate_limiting=security_config.get("enable_rate_limiting", True),
-                enable_input_validation=security_config.get(
-                    "enable_input_validation", True
-                ),
+                enable_input_validation=security_config.get("enable_input_validation", True),
                 enable_audit_logging=security_config.get("enable_audit_logging", True),
             )
 
@@ -146,9 +140,7 @@ class SecureConfigManager:
                 daily_loss_limit_pct=auto_config.get("daily_loss_limit_pct", -3.0),
                 max_vix_threshold=auto_config.get("max_vix", 40.0),
                 enable_circuit_breaker=auto_config.get("enable_circuit_breaker", True),
-                emergency_stop_loss_pct=risk_config.get(
-                    "emergency_stop_loss_pct", -10.0
-                ),
+                emergency_stop_loss_pct=risk_config.get("emergency_stop_loss_pct", -10.0),
             )
 
         return self._trading_limits
@@ -169,9 +161,7 @@ class SecureConfigManager:
             api_keys_found.append("openai_api_key")
 
         if api_keys_found:
-            logger.error(
-                f"設定ファイルにAPIキーがハードコーディングされています: {api_keys_found}"
-            )
+            logger.error(f"設定ファイルにAPIキーがハードコーディングされています: {api_keys_found}")
             raise ValueError("APIキーは環境変数で管理してください")
 
     def _validate_service_name(self, service: str) -> None:

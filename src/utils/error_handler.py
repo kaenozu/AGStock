@@ -65,9 +65,7 @@ def handle_error(error: Exception, context: str = "", show_to_user: bool = True)
             st.info("💡 問題が解決しない場合は、ページを再読み込みするかログを確認してください。")
 
 
-def safe_execute(
-    func: Callable, *args, default_return: Any = None, context: str = "", **kwargs
-) -> Any:
+def safe_execute(func: Callable, *args, default_return: Any = None, context: str = "", **kwargs) -> Any:
     """Safely execute a function, catching and handling any exceptions."""
     try:
         return func(*args, **kwargs)
@@ -78,6 +76,7 @@ def safe_execute(
 
 def error_boundary(default_return: Any = None, show_error: bool = True):
     """Decorator to catch exceptions in a function and return a default value."""
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -87,7 +86,9 @@ def error_boundary(default_return: Any = None, show_error: bool = True):
                 if show_error:
                     handle_error(e, context=f"Error in {func.__name__}")
                 return default_return
+
         return wrapper
+
     return decorator
 
 
@@ -97,7 +98,7 @@ def validate_ticker(ticker: str) -> bool:
         raise ConfigurationError(
             f"Invalid ticker: {ticker}",
             user_message="銘柄コードが正しくありません。",
-            recovery_hint="正しい形式（例: 7203.T）で入力してください。"
+            recovery_hint="正しい形式（例: 7203.T）で入力してください。",
         )
     return True
 
@@ -108,7 +109,7 @@ def validate_api_key(name: str, value: Optional[str]) -> bool:
         raise ConfigurationError(
             f"Missing API Key: {name}",
             user_message=f"{name} が設定されていません。",
-            recovery_hint="設定画面から正しいAPIキーを入力してください。"
+            recovery_hint="設定画面から正しいAPIキーを入力してください。",
         )
     return True
 
@@ -120,6 +121,7 @@ class ErrorRecovery:
     def retry_with_backoff(func: Callable, max_retries: int = 3, initial_delay: float = 1.0) -> Any:
         """Retries a function call with exponential backoff on failure."""
         import time
+
         delay = initial_delay
         last_exception = None
 
@@ -135,15 +137,12 @@ class ErrorRecovery:
         raise last_exception
 
 
-def autonomous_error_handler(
-    name: str = "System",
-    reraise: bool = False,
-    notification_enabled: bool = True
-):
+def autonomous_error_handler(name: str = "System", reraise: bool = False, notification_enabled: bool = True):
     """
     Decorator for autonomous error handling, logging, and diagnostics.
     Captures stack traces and logs them in JSON structured format.
     """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs) -> Any:
@@ -164,8 +163,8 @@ def autonomous_error_handler(
                         "err_function": func.__name__,
                         "err_module": name,
                         "stack_trace": stack_trace,
-                        "snapshot": snapshot_path
-                    }
+                        "snapshot": snapshot_path,
+                    },
                 )
 
                 # Self-Diagnosis
@@ -174,21 +173,20 @@ def autonomous_error_handler(
                 if notification_enabled:
                     try:
                         # Attempt to notify via existing channels
-                        from src.smart_notifier import SmartNotifier
-                        from src.config import settings
+                        from agstock.src.smart_notifier import SmartNotifier
+                        from agstock.src.config import settings
+
                         notifier = SmartNotifier(settings.dict())
-                        notifier.send_error_notification(
-                            module=name,
-                            error=str(e),
-                            stack=stack_trace[:500] + "..."
-                        )
+                        notifier.send_error_notification(module=name, error=str(e), stack=stack_trace[:500] + "...")
                     except Exception as notify_err:
                         logger.warning(f"Notification in error handler failed: {notify_err}")
 
                 if reraise:
                     raise
                 return None
+
         return wrapper
+
     return decorator
 
 
@@ -205,7 +203,8 @@ def diagnose_environment():
 
     # 2. Database Connectivity
     try:
-        from src.paths import STOCK_DATA_DB
+        from agstock.src.paths import STOCK_DATA_DB
+
         conn = sqlite3.connect(STOCK_DATA_DB)
         conn.execute("SELECT 1")
         conn.close()
@@ -216,6 +215,7 @@ def diagnose_environment():
     # 3. Memory
     try:
         import psutil
+
         mem = psutil.virtual_memory()
         logger.info(f"Memory Check: {mem.percent}% used")
     except ImportError:
@@ -225,8 +225,8 @@ def diagnose_environment():
 def take_system_snapshot(module: str, function: str) -> str:
     """Saves a JSON snapshot of the system state for debugging."""
     try:
-        from src.paths import LOGS_DIR
-        from src.utils.state_engine import state_engine
+        from agstock.src.paths import LOGS_DIR
+        from agstock.src.utils.state_engine import state_engine
 
         snapshot_dir = LOGS_DIR / "snapshots"
         snapshot_dir.mkdir(parents=True, exist_ok=True)
@@ -240,14 +240,11 @@ def take_system_snapshot(module: str, function: str) -> str:
             "module": module,
             "function": function,
             "system_state": state_engine.state,
-            "environment": {
-                "os": os.name,
-                "cwd": os.getcwd(),
-                "python": sys.version
-            }
+            "environment": {"os": os.name, "cwd": os.getcwd(), "python": sys.version},
         }
 
         import json
+
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(snapshot, f, ensure_ascii=False, indent=2, default=str)
 

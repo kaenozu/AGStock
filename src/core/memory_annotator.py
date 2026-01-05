@@ -1,5 +1,5 @@
 import logging
-from src.core.experience_manager import ExperienceManager
+from agstock.src.core.experience_manager import ExperienceManager
 
 logger = logging.getLogger(__name__)
 
@@ -62,9 +62,7 @@ def __init__(self, feedback_db_path: str = "committee_feedback.db"):
 def _update_by_metadata(self, ticker: str, return_pct: float, outcome: str):
     try:
         # We filter by ticker and status='PENDING'
-        self.experience_manager.collection.get(
-            where={"$and": [{"ticker": ticker}, {"status": "PENDING"}]}
-        )
+        self.experience_manager.collection.get(where={"$and": [{"ticker": ticker}, {"status": "PENDING"}]})
     #                 if results and results["ids"]:
     # Update the most recent one (assuming order or metadata timestamp)
     # For simplicity, update the first one found.

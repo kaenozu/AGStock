@@ -25,7 +25,7 @@ class RiskParityRebalancer:
                 continue
 
             # Daily returns
-            returns = df['Close'].pct_change().dropna()
+            returns = df["Close"].pct_change().dropna()
             # Annualized Volatility
             vol = returns.std() * np.sqrt(252)
             if vol > 0:
@@ -43,8 +43,9 @@ class RiskParityRebalancer:
         logger.info(f"⚖️ Risk Parity Weights calculated for {len(weights)} assets.")
         return weights
 
-    def suggest_rebalance(self, current_positions: Dict[str, Any],
-                          equity: float, weights: Dict[str, float]) -> List[Dict[str, Any]]:
+    def suggest_rebalance(
+        self, current_positions: Dict[str, Any], equity: float, weights: Dict[str, float]
+    ) -> List[Dict[str, Any]]:
         """
         Compares current positions to target weights and suggests trades.
         """
@@ -56,11 +57,13 @@ class RiskParityRebalancer:
             diff = target_value - current_value
             # Threshold: only rebalance if diff is > 5% of position or significant
             if abs(diff) > (equity * 0.01):
-                suggestions.append({
-                    "ticker": ticker,
-                    "target_weight": weight,
-                    "diff_value": diff,
-                    "action": "BUY" if diff > 0 else "SELL"
-                })
+                suggestions.append(
+                    {
+                        "ticker": ticker,
+                        "target_weight": weight,
+                        "diff_value": diff,
+                        "action": "BUY" if diff > 0 else "SELL",
+                    }
+                )
 
         return suggestions

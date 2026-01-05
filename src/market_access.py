@@ -41,9 +41,7 @@ class GlobalMarketAccess:
     def __init__(self):
         pass
 
-    def fetch_global_data(
-        self, period: str = "1y", interval: str = "1d"
-    ) -> Dict[str, pd.DataFrame]:
+    def fetch_global_data(self, period: str = "1y", interval: str = "1d") -> Dict[str, pd.DataFrame]:
         """
         全グローバルアセットのデータを取得
         """

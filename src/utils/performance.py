@@ -23,6 +23,7 @@ class PerformanceMonitor:
 
     def time_function(self, func_name: str) -> Callable:
         """Decorator to instrument a specific function."""
+
         def decorator(func: Callable) -> Callable:
             @wraps(func)
             def wrapper(*args, **kwargs):
@@ -45,7 +46,9 @@ class PerformanceMonitor:
                     elapsed = time.time() - start_time
                     logger.error(f"❌ {func_name} failed after {elapsed:.2f}s: {e}")
                     raise
+
             return wrapper
+
         return decorator
 
     def get_stats(self, func_name: str) -> Dict[str, float]:
@@ -93,7 +96,9 @@ def cached_data_loader(ttl_seconds: int = 300):
             cache[key] = result
             cache_time[key] = current_time
             return result
+
         return wrapper
+
     return decorator
 
 
@@ -101,6 +106,7 @@ def cached_data_loader(ttl_seconds: int = 300):
 def cached_market_data(ticker: str, period: str):
     """Streamlit-cached market data loader."""
     import yfinance as yf
+
     try:
         return yf.download(ticker, period=period, progress=False)
     except Exception as e:
@@ -127,6 +133,7 @@ class LazyLoader:
         if self._module is None:
             logger.info(f"📥 Lazy loading: {self.module_name}")
             import importlib
+
             self._module = importlib.import_module(self.module_name)
         return getattr(self._module, name)
 
@@ -151,7 +158,7 @@ def batch_process(items: list, batch_size: int = 10, show_progress: bool = True)
         status_text = st.empty()
 
     for i in range(0, total_items, batch_size):
-        batch = items[i: i + batch_size]
+        batch = items[i : i + batch_size]
 
         if show_progress:
             progress = min((i + batch_size) / total_items, 1.0)

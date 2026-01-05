@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from src import demo_data
-from src.paper_trader import PaperTrader
+from agstock.src.paper_trader import PaperTrader
 
 
 def _load_equity(use_demo: bool = False) -> pd.DataFrame:

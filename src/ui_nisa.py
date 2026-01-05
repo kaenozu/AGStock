@@ -4,7 +4,7 @@ NISA Manager UI - NISA口座管理ダッシュボード
 
 import streamlit as st
 
-from src.nisa_manager import NISAManager, NISAType
+from agstock.src.nisa_manager import NISAManager, NISAType
 
 
 def render_nisa_manager():
@@ -15,9 +15,7 @@ def render_nisa_manager():
     user_id = 1  # シングルユーザー想定
 
     # NISA種類選択
-    nisa_type_display = st.selectbox(
-        "NISA口座タイプ", ["新NISA", "つみたてNISA", "一般NISA"]
-    )
+    nisa_type_display = st.selectbox("NISA口座タイプ", ["新NISA", "つみたてNISA", "一般NISA"])
 
     nisa_type_map = {
         "新NISA": NISAType.NEW_NISA,

@@ -35,9 +35,7 @@ class NewsShockDefense:
         ],
     }
 
-    def detect_shock_events(
-        self, news_items: List[Dict[str, str]]
-    ) -> Optional[Dict[str, Any]]:
+    def detect_shock_events(self, news_items: List[Dict[str, str]]) -> Optional[Dict[str, Any]]:
         """
         Scans a list of news items for critical keywords.
         Returns the first detected shock event if found.
@@ -50,9 +48,7 @@ class NewsShockDefense:
             for category, keywords in self.CRITICAL_KEYWORDS.items():
                 for kw in keywords:
                     if kw.upper() in content:
-                        logger.critical(
-                            f"🔥 SHOCK EVENT DETECTED [{category}]: {title}"
-                        )
+                        logger.critical(f"🔥 SHOCK EVENT DETECTED [{category}]: {title}")
                         return {
                             "category": category,
                             "keyword": kw,

@@ -24,9 +24,7 @@ class StackingEnsemble:
     Level 2: Meta-model (Ridge Regression)
     """
 
-    def __init__(
-        self, base_models: List[Any], meta_model: Optional[Any] = None, n_folds: int = 5
-    ):
+    def __init__(self, base_models: List[Any], meta_model: Optional[Any] = None, n_folds: int = 5):
         """
         Args:
             base_models: List of base models with fit/predict methods
@@ -49,18 +47,14 @@ class StackingEnsemble:
         Returns:
             Self
         """
-        logger.info(
-            f"Training stacking ensemble with {len(self.base_models)} base models"
-        )
+        logger.info(f"Training stacking ensemble with {len(self.base_models)} base models")
 
         # Generate out-of-fold predictions for meta-model training
         meta_features = self._generate_meta_features(X, y)
 
         # Train all base models on full dataset
         for i, model in enumerate(self.base_models):
-            logger.info(
-                f"Training base model {i + 1}/{len(self.base_models)}: {model.__class__.__name__}"
-            )
+            logger.info(f"Training base model {i + 1}/{len(self.base_models)}: {model.__class__.__name__}")
             model.fit(X, y)
 
         # Train meta-model on out-of-fold predictions
@@ -86,9 +80,7 @@ class StackingEnsemble:
             raise ValueError("Model not fitted. Call fit() first.")
 
         # Get predictions from all base models
-        base_predictions = np.column_stack(
-            [model.predict(X) for model in self.base_models]
-        )
+        base_predictions = np.column_stack([model.predict(X) for model in self.base_models])
 
         # Meta-model makes final prediction
         final_predictions = self.meta_model.predict(base_predictions)
@@ -185,9 +177,7 @@ def create_default_stacking_ensemble() -> StackingEnsemble:
     base_models = [
         LGBMRegressor(n_estimators=100, learning_rate=0.05, random_state=42),
         RandomForestRegressor(n_estimators=100, max_depth=10, random_state=42),
-        GradientBoostingRegressor(
-            n_estimators=100, learning_rate=0.05, random_state=42
-        ),
+        GradientBoostingRegressor(n_estimators=100, learning_rate=0.05, random_state=42),
     ]
 
     return StackingEnsemble(base_models=base_models)

@@ -111,9 +111,7 @@ def optimize_portfolio_weights(
     return weights
 
 
-def validate_data_quality(
-    data: pd.DataFrame, required_columns: Optional[List[str]] = None
-) -> Tuple[bool, List[str]]:
+def validate_data_quality(data: pd.DataFrame, required_columns: Optional[List[str]] = None) -> Tuple[bool, List[str]]:
     """
     データ品質を検証
 
@@ -239,9 +237,7 @@ def backtest_strategy(
     return results
 
 
-def generate_performance_report(
-    returns: pd.Series, benchmark: Optional[pd.Series] = None
-) -> Dict[str, float]:
+def generate_performance_report(returns: pd.Series, benchmark: Optional[pd.Series] = None) -> Dict[str, float]:
     """
     パフォーマンスレポート生成
 
@@ -265,10 +261,6 @@ def generate_performance_report(
     if benchmark is not None:
         report["alpha"] = report["annual_return"] - ((1 + benchmark).prod() - 1)
         report["tracking_error"] = (returns - benchmark).std() * np.sqrt(252)
-        report["information_ratio"] = (
-            report["alpha"] / report["tracking_error"]
-            if report["tracking_error"] != 0
-            else 0
-        )
+        report["information_ratio"] = report["alpha"] / report["tracking_error"] if report["tracking_error"] != 0 else 0
 
     return report

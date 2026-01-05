@@ -260,6 +260,4 @@ if __name__ == "__main__":
     # バックアップリスト表示
     print("\nAvailable backups:")
     for backup in bm.list_backups():
-        print(
-            f"  - {backup['filename']} ({backup['size_mb']:.2f} MB) - {backup['created']}"
-        )
+        print(f"  - {backup['filename']} ({backup['size_mb']:.2f} MB) - {backup['created']}")

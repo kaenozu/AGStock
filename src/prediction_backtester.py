@@ -4,14 +4,19 @@
 """
 
 import logging
+import traceback
 from datetime import timedelta
 from typing import Dict, List
 
 import numpy as np
 import pandas as pd
 
-from src.data_loader import fetch_fundamental_data, fetch_stock_data
-from src.enhanced_ensemble_predictor import EnhancedEnsemblePredictor
+from .data_loader import fetch_fundamental_data, fetch_stock_data
+
+try:
+    from .enhanced_ensemble_predictor import EnhancedEnsemblePredictor
+except ImportError:
+    EnhancedEnsemblePredictor = None
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +25,7 @@ class PredictionBacktester:
     def __init__(self):
         self.predictor = EnhancedEnsemblePredictor()
 
-    def run_backtest(self, ticker: str, start_date: str, end_date: str, prediction_days: int = 5) -> Dict:
+    def run_backtest(self, ticker: str, start_date: str, end_date: str, prediction_days: int = 5, fast_mode: bool = False) -> Dict:
         """
         指定期間で予測のバックテストを実行
 
@@ -29,12 +34,13 @@ class PredictionBacktester:
             start_date: バックテスト開始日 (YYYY-MM-DD)
             end_date: バックテスト終了日 (YYYY-MM-DD)
             prediction_days: 予測日数
+            fast_mode: 高速モード（Scout Mode）を使用するかどうか
 
         Returns:
             バックテスト結果の辞書
         """
         try:
-            logger.info(f"Starting backtest for {ticker}: {start_date} to {end_date}")
+            logger.info(f"Starting backtest for {ticker}: {start_date} to {end_date} (Fast Mode: {fast_mode})")
 
             # データ取得
             data_map = fetch_stock_data([ticker], period="2y")
@@ -42,9 +48,16 @@ class PredictionBacktester:
 
             if df is None or df.empty:
                 return {"error": f"データ取得失敗: {ticker}"}
+            
+            if isinstance(df, tuple):
+                logger.warning(f"Data for {ticker} is a tuple, taking first element")
+                df = df[0]
 
-            # ファンダメンタルズ取得（最新のみ）
-            fundamentals = fetch_fundamental_data(ticker)
+            # ファンダメンタルズ取得（通常モードまたはFastモードでも一応取得、重ければスキップ可）
+            # Scoutモードならファンダメンタルズ取得をスキップして高速化
+            fundamentals = None
+            if not fast_mode:
+                fundamentals = fetch_fundamental_data(ticker)
 
             # 日付範囲をフィルタ
             start_dt = pd.to_datetime(start_date).tz_localize(None)
@@ -69,13 +82,22 @@ class PredictionBacktester:
                     logger.info(f"Historical data size: {len(historical_data)}")
 
                     if len(historical_data) < 50:
-                        logger.warning(f"Insufficient historical data for {test_date_naive}: {len(historical_data)} rows. Skipping.")
+                        logger.warning(
+                            f"Insufficient historical data for {test_date_naive}: {len(historical_data)} rows. Skipping."
+                        )
                         continue
 
                     # 予測実行
-                    result = self.predictor.predict_trajectory(
-                        historical_data, days_ahead=prediction_days, ticker=ticker, fundamentals=fundamentals
-                    )
+                    # 予測実行
+                    if fast_mode:
+                        result = self._predict_scout(historical_data, prediction_days)
+                    else:
+                        result = self.predictor.predict_trajectory(
+                            historical_data,
+                            days_ahead=prediction_days,
+                            ticker=ticker,
+                            fundamentals=fundamentals,
+                        )
 
                     if "error" in result:
                         logger.warning(f"Prediction failed for {test_date_naive}: {result['error']}")
@@ -86,6 +108,10 @@ class PredictionBacktester:
                     future_data = df[(df.index >= test_date_naive) & (df.index <= future_date)]
 
                     logger.info(f"Future data size (for validation): {len(future_data)} (Goal: {prediction_days})")
+                    
+                    # Debug types
+                    # logger.info(f"Type of future_data: {type(future_data)}")
+                    # logger.info(f"Type of future_data['Close']: {type(future_data.get('Close'))}")
 
                     if len(future_data) < prediction_days:
                         logger.warning(f"Insufficient future data for validation at {test_date_naive}. Skipping.")
@@ -93,8 +119,30 @@ class PredictionBacktester:
 
                     # 予測値と実際の値を記録
                     predicted_price = result["predictions"][-1]
-                    actual_price = future_data["Close"].iloc[-1]
-                    current_price = historical_data["Close"].iloc[-1]
+                    
+                    # Safe access
+                    try:
+                        if isinstance(future_data, tuple):
+                             logger.error(f"future_data is a tuple! {future_data}")
+                             future_data = future_data[0]
+                        
+                        actual_price_obj = future_data["Close"]
+                        if isinstance(actual_price_obj, tuple):
+                             logger.error(f"future_data['Close'] is a tuple! {actual_price_obj}")
+                             actual_price = actual_price_obj[0].iloc[-1]
+                        else:
+                             actual_price = actual_price_obj.iloc[-1]
+                             
+                        current_price_obj = historical_data["Close"]
+                        if isinstance(current_price_obj, tuple):
+                             logger.error(f"historical_data['Close'] is a tuple! {current_price_obj}")
+                             current_price = current_price_obj[0].iloc[-1]
+                        else:
+                             current_price = current_price_obj.iloc[-1]
+                             
+                    except Exception as e:
+                        logger.error(f"Error accessing prices: {e}. future_data type: {type(future_data)}")
+                        raise e
 
                     predicted_change_pct = (predicted_price - current_price) / current_price * 100
                     actual_change_pct = (actual_price - current_price) / current_price * 100
@@ -108,7 +156,9 @@ class PredictionBacktester:
                             "predicted_change_pct": predicted_change_pct,
                             "actual_change_pct": actual_change_pct,
                             "predicted_trend": result["trend"],
-                            "actual_trend": "UP" if actual_change_pct > 1 else "DOWN" if actual_change_pct < -1 else "FLAT",
+                            "actual_trend": (
+                                "UP" if actual_change_pct > 1 else "DOWN" if actual_change_pct < -1 else "FLAT"
+                            ),
                             "models_used": result["details"].get("models_used", []),
                             "trend_votes": result["details"].get("trend_votes", {}),
                             "fundamental_score": (
@@ -120,6 +170,7 @@ class PredictionBacktester:
                     )
                 except Exception as e:
                     logger.error(f"Error in backtest loop for {test_date}: {e}")
+                    logger.error(traceback.format_exc())
                     continue
 
             if not predictions:
@@ -148,8 +199,73 @@ class PredictionBacktester:
         except Exception as e:
             logger.error(f"Backtest error: {e}")
             import traceback
+
             traceback.print_exc()
             return {"error": str(e)}
+
+    def _predict_scout(self, data: pd.DataFrame, days_ahead: int) -> Dict:
+        """
+        Scout Mode: 高速なテクニカル分析のみによる予測
+        """
+        # 単純な移動平均とRSIを使用
+        # 計算を高速化するため、直近のデータのみで計算
+        
+        # SMA計算
+        close = data["Close"]
+        sma5 = close.rolling(window=5).mean().iloc[-1]
+        sma20 = close.rolling(window=20).mean().iloc[-1]
+        
+        # RSI計算 (簡易)
+        delta = close.diff()
+        gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+        rs = gain / loss
+        rsi = 100 - (100 / (1 + rs)).iloc[-1]
+        
+        current_price = close.iloc[-1]
+        
+        # 簡易ロジック
+        sentiment = 0 # -1 to 1
+        
+        # SMAトレンド
+        if sma5 > sma20:
+            sentiment += 0.5
+        else:
+            sentiment -= 0.5
+            
+        # RSI逆張り/順張り
+        if rsi > 70:
+            sentiment -= 0.3 # 買われすぎ
+        elif rsi < 30:
+            sentiment += 0.3 # 売られすぎ
+        elif rsi > 50:
+            sentiment += 0.1 # モメンタム
+        else:
+            sentiment -= 0.1
+            
+        # 予測変動率（かなり単純化）
+        # sentiment 1.0 -> +3%
+        predicted_change_pct = sentiment * 0.03
+        
+        predicted_price = current_price * (1 + predicted_change_pct)
+        
+        trend = "FLAT"
+        if predicted_change_pct > 0.01:
+            trend = "UP"
+        elif predicted_change_pct < -0.01:
+            trend = "DOWN"
+            
+        return {
+            "predictions": [predicted_price],
+            "predicted_price": predicted_price,
+            "predicted_change_pct": predicted_change_pct * 100,
+            "trend": trend,
+            "confidence": 0.5, # Scoutは自信半分
+            "details": {
+                "models_used": ["Scout(SMA+RSI)"],
+                "trend_votes": {"Scout": trend},
+            },
+        }
 
     def _calculate_metrics(self, predictions: List[Dict]) -> Dict:
         """
