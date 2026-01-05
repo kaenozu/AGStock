@@ -117,6 +117,55 @@ class SlackNotifier:
         return colors.get(severity, "good")
 
 
+class LINENotifier:
+    """LINE Notify通知クラス"""
+
+    def __init__(self):
+        self.config = get_notification_config().get("line", {})
+        self.enabled = self.config.get("enabled", False)
+        self.token = self.config.get("token", "")
+
+    def send(self, notification: Notification) -> bool:
+        if not self.enabled or not self.token:
+            return False
+        try:
+            url = "https://notify-api.line.me/api/notify"
+            headers = {"Authorization": f"Bearer {self.token}"}
+            payload = {"message": f"\n[{notification.title}]\n{notification.message}"}
+            response = requests.post(url, headers=headers, data=payload, timeout=10)
+            response.raise_for_status()
+            logger.info(f"LINE notification sent: {notification.title}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to send LINE notification: {e}")
+            return False
+
+
+class DiscordNotifier:
+    """Discord Webhook通知クラス"""
+
+    def __init__(self):
+        self.config = get_notification_config().get("discord", {})
+        self.enabled = self.config.get("enabled", False)
+        self.webhook_url = self.config.get("webhook_url", "")
+
+    def send(self, notification: Notification) -> bool:
+        if not self.enabled or not self.webhook_url:
+            return False
+        try:
+            payload = {
+                "content": f"**[{notification.title}]**\n{notification.message}",
+                "username": "AGStock AI"
+            }
+            response = requests.post(self.webhook_url, json=payload, timeout=10)
+            response.raise_for_status()
+            logger.info(f"Discord notification sent: {notification.title}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to send Discord notification: {e}")
+            return False
+
+
 class NotificationManager:
     """通知管理クラス"""
 
@@ -134,6 +183,8 @@ class NotificationManager:
         self._initialized = True
         self.email_notifier = EmailNotifier()
         self.slack_notifier = SlackNotifier()
+        self.line_notifier = LINENotifier()
+        self.discord_notifier = DiscordNotifier()
         self.notification_history: List[Dict[str, Any]] = []
         self.alert_thresholds = get_notification_config().get("alert_thresholds", {})
 
@@ -146,7 +197,7 @@ class NotificationManager:
         metadata: Optional[Dict[str, Any]] = None,
         save_to_db: bool = True,
     ) -> bool:
-        """通知送信（メール/Slack両方）"""
+        """通知送信（全プラットフォーム）"""
         notification = Notification(
             type=notification_type,
             title=title,
@@ -154,9 +205,15 @@ class NotificationManager:
             severity=severity,
             metadata=metadata,
         )
+        # 各プラットフォームに送信
         email_sent = self.email_notifier.send(notification)
         slack_sent = self.slack_notifier.send(notification)
-        success = email_sent or slack_sent or not (self.email_notifier.enabled or self.slack_notifier.enabled)
+        line_sent = self.line_notifier.send(notification)
+        discord_sent = self.discord_notifier.send(notification)
+        
+        success = any([email_sent, slack_sent, line_sent, discord_sent]) or \
+                  not any([self.email_notifier.enabled, self.slack_notifier.enabled, 
+                          self.line_notifier.enabled, self.discord_notifier.enabled])
 
         if save_to_db and (self.email_notifier.enabled or self.slack_notifier.enabled):
             db_manager.save_alert(
