@@ -11,6 +11,7 @@ import os
 from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
 import json
+import base64
 from pathlib import Path
 import requests
 from web3 import Web3, Web3Provider

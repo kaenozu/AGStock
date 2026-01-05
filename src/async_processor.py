@@ -19,7 +19,7 @@ import weakref
 from collections import defaultdict
 import queue
 
-from .error_handling import handle_exceptions, memory_monitor, PerformanceError
+from .error_handling import handle_exceptions, memory_monitor, PerformanceError, ErrorCategory
 from .secure_config import get_secure_config
 from .input_validator import rate_limit
 

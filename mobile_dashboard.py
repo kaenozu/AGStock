@@ -137,7 +137,7 @@ def mobile_metric_card(
         <div style="font-size: 14px; color: #666; margin-bottom: 5px;">{title}</div>
         <div style="font-size: 24px; font-weight: bold; color: {color};">{value}</div>
         {'<div style="font-size: 12px; color: #888;">{subtitle}</div>' if subtitle else ""}
-        {"<div style=\"font-size: 12px; color: {'green' if delta.startswith('+') else 'red'};\">{delta}</div>" if delta else ""}
+        {f'<div style="font-size: 12px; color: {"green" if delta.startswith("+") else "red"};">{delta}</div>' if delta else ""}
     </div>
     """
     return card_html
