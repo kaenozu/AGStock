@@ -15,7 +15,7 @@ import plotly.express as px
 
 def render_ai_hub():
     """Renders the consolidated AI Analyzer Hub"""
-    st.header("🤖 AI分析センター (AI Hub)")
+    st.header("🧠 AI分析センター (AI Hub)")
     st.caption("最新ニュース、投資委員会、AIチャットなど、すべてのAI機能にここからアクセスできます。")
 
     tabs = st.tabs(
@@ -104,7 +104,7 @@ def render_sector_heatmap():
         range_color=[0, 100],
         text="Count",
         labels={"Avg Score": "平均スコア", "Count": "銘柄数"},
-        title="セクター別センチメント（最近の決算より）",
+        title="セクター別センチメント（直近の決算より）",
     )
     st.plotly_chart(fig, use_container_width=True)
 
@@ -115,7 +115,7 @@ def render_sector_heatmap():
 
 
 def render_past_decisions():
-    st.subheader("🧠 AI自己学習: 過去の判断と結果")
+    st.subheader("🧠 AI自己学習：過去の判断と結果")
     st.caption("AIが自身の判断を振り返り、成功・失敗から学習している履歴です。")
 
     fs = FeedbackStore()
@@ -131,7 +131,7 @@ def render_past_decisions():
         ):
             col1, col2 = st.columns(2)
             with col1:
-                st.write(f"**当初価格:** ¥{lesson['initial_price']:,.1f}")
+                st.write(f"**当時の価格:** ¥{lesson['initial_price']:,.1f}")
                 st.write(f"**1週間後価格:** ¥{lesson['price_1w']:,.1f}" if lesson["price_1w"] else "未更新")
             with col2:
                 ret = lesson["return_1w"]
@@ -158,7 +158,7 @@ def _render_filing_watcher_ui():
     with col1:
         watch_dir = st.text_input("監視ディレクトリ", value="./data/new_filings")
     with col2:
-        st.slider("確認間隔 (秒)", 10, 300, 60)
+        st.slider("確認間隔(秒)", 10, 300, 60)
 
     if "filing_watcher_running" not in st.session_state:
         st.session_state.filing_watcher_running = False
@@ -167,13 +167,13 @@ def _render_filing_watcher_ui():
         if st.button("🔴 監視を停止", type="secondary"):
             st.session_state.filing_watcher_running = False
             st.rerun()
-        st.success("✅ 監視実行中... ディレクトリにPDFを入れると自動で分析されます。")
+        st.success("👀 監視実行中... ディレクトリにPDFを入れると自動で分析されます。")
     else:
         if st.button("🟢 監視を開始", type="primary"):
             st.session_state.filing_watcher_running = True
             st.rerun()
         st.info(
-            "監視を開始すると、バックグラウンドでのチェックが有効になります（現在の実装ではこのタブを表示している間、または明示的なトリガーで実行されます）"
+            "監視を開始すると、バックグラウンドでのチェックが有効になります（現在の実装ではこのタブを表示している間、または明示的なトリガーで実行されます）。"
         )
 
     # 手動スキャンの実行ボタン
@@ -181,7 +181,7 @@ def _render_filing_watcher_ui():
         watcher = FilingWatcher(watch_dir=watch_dir)
         with st.spinner("スキャン中..."):
             watcher.scan_and_process()
-        st.success("スキャン完了！新しいファイルがあれば分析と通知が行われました。")
+        st.success("スキャン完了。新しいファイルがあれば分析と通知が行われました。")
 
 
 def render_executive_control():
@@ -190,9 +190,9 @@ def render_executive_control():
     st.caption("システムの『脳』の健康状態と、現在の市場適応戦略を表示します。")
 
     # --- NIGHTWATCH SECTION ---
-    st.write("## 🦉 グローバル・ナイトウォッチ (Morning Memo)")
+    st.write("## 🦁 グローバル・ナイトウォッチ (Morning Memo)")
     from agstock.src.data.us_market_monitor import USMarketMonitor
-    from agstock.src.reports.morning_strategy_memo import MorningStrategyMemo
+    from agstock.src.morning_strategy_memo import MorningStrategyMemo
 
     col_nw1, col_nw2 = st.columns([1, 2])
     with col_nw1:
@@ -289,7 +289,7 @@ def render_executive_control():
         labels={"Performance": "基準値 (100=開始時)"},
     )
     st.plotly_chart(fig_twin, use_container_width=True)
-    st.info("※ AIが現実とは異なる『性格』で運用していた場合のシミュレーションと比較しています。")
+    st.info("※ AIが現実とは異なる『性格』で運用している場合のシミュレーションと比較しています。")
 
     st.divider()
 
@@ -307,7 +307,7 @@ def render_executive_control():
 
     if actions:
         for act in actions:
-            with st.expander(f"【{act['action']}】 {act.get('ticker', '全体')} - {act['reason'][:50]}..."):
+            with st.expander(f"【{act['action']}】{act.get('ticker', '全体')} - {act['reason'][:50]}..."):
                 st.write(f"**詳細理由:** {act['reason']}")
                 st.button(
                     f"実行を承認 ({act['ticker']})",
@@ -364,7 +364,7 @@ def render_executive_control():
     st.divider()
 
     # 6. Live Shock Monitor
-    st.write("### 📡 ライブ・ショックモニター (緊急防衛)")
+    st.write("### 📡 ライブ・ショックモニター (緊急防御)")
     from agstock.src.execution.news_shock_defense import NewsShockDefense
 
     defense = NewsShockDefense()
