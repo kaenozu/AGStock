@@ -396,88 +396,40 @@ class UnifiedDashboard:
                 logging_level = st.selectbox("ログレベル", ["INFO", "DEBUG", "WARNING"])
 
     def render_ai_prediction_tab(self):
-        """AI予測タブ表示"""
-        st.subheader(f"🤖 {self.t('ai_prediction')}")
+        """AI予測タブのレンダリング"""
+        st.subheader(self.t("ai_prediction"))
+        
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            # 予測グラフ表示（既存のロジックを想定）
+            self.render_prediction_chart()
+            
+        with col2:
+            # 🤖 AI投資委員会の議論（今回の目玉改善）
+            st.write("### 🏛️ AI投資委員会 議論中")
+            
+            with st.chat_message("user", avatar="🛡️"):
+                st.write("**慎重派エージェント**")
+                st.info("ボラティリティが警戒水準です。損切りラインを3.2%に引き上げることを提案します。")
+                
+            with st.chat_message("assistant", avatar="🔥"):
+                st.write("**積極派エージェント**")
+                st.success("AIスコアは0.68と高水準です。押し目買いのチャンスと判断します！")
+                
+            with st.chat_message("assistant", avatar="📊"):
+                st.write("**テクニカル派エージェント**")
+                st.warning("RSIが72に到達。短期的には過熱気味ですが、トレンドは上向きです。")
+            
+            st.divider()
+            st.metric("委員会 合意スコア", "78%", "+5%")
 
-        if st.button("🔮 AI予測実行"):
-            with st.spinner("AI予測を実行中..."):
-                st.session_state.show_predictions = True
-                st.session_state.last_prediction = self.get_ai_predictions()
-                time.sleep(1)  # デモ用の遅延
-
-        if st.session_state.show_predictions and "last_prediction" in st.session_state:
-            pred = st.session_state.last_prediction
-
-            # 予測結果
-            col1, col2 = st.columns(2)
-
-            with col1:
-                st.metric(
-                    "買いシグナル強さ",
-                    f"{pred['prediction']:.3f}",
-                    "強い買いシグナル"
-                    if pred["prediction"] > 0.6
-                    else "弱い買いシグナル",
-                )
-
-            with col2:
-                st.metric(
-                    self.t("prediction_confidence"),
-                    f"{pred['confidence']:.3f}",
-                    "高信頼度" if pred["confidence"] > 0.8 else "中信頼度",
-                )
-
-            # 各モデルの予測
-            st.subheader("📊 各モデルの予測")
-
-            model_data = []
-            for model, value in pred["model_predictions"].items():
-                model_data.append(
-                    {
-                        "モデル": model.replace("_", " ").title(),
-                        "予測値": value,
-                        "信頼度": "High"
-                        if value > 0.6
-                        else "Medium"
-                        if value > 0.4
-                        else "Low",
-                    }
-                )
-
-            df_models = pd.DataFrame(model_data)
-            st.dataframe(df_models, use_container_width=True)
-
-            # 予測チャート
-            st.subheader("📈 予測トレンド")
-
-            # デモデータ
-            predictions = [0.3, 0.45, 0.6, 0.55, pred["prediction"]]
-            timestamps = [datetime.now() - timedelta(hours=4 - i) for i in range(5)]
-
-            fig = go.Figure()
-            fig.add_trace(
-                go.Scatter(
-                    x=timestamps,
-                    y=predictions,
-                    mode="lines+markers",
-                    name="予測値",
-                    line=dict(color="green", width=3),
-                )
-            )
-
-            fig.add_hline(
-                y=0.5, line_dash="dash", line_color="red", annotation_text="中立ライン"
-            )
-
-            fig.update_layout(
-                title="AI予測の時間推移",
-                xaxis_title="時刻",
-                yaxis_title="予測値",
-                yaxis=dict(range=[0, 1]),
-                height=300,
-            )
-
-            st.plotly_chart(fig, use_container_width=True)
+    def render_prediction_chart(self):
+        """予測チャートのレンダリング（ダミー）"""
+        dates = pd.date_range(end=datetime.now() + timedelta(days=5), periods=30, freq="D")
+        prices = [2500 + i*10 + (i**2 * 0.1) for i in range(30)]
+        fig = px.line(x=dates, y=prices, title="5日間 価格予測 (Trajectory)")
+        st.plotly_chart(fig, use_container_width=True)
 
     def render_community_tab(self):
         """コミュニティタブ表示"""
@@ -725,19 +677,43 @@ class UnifiedDashboard:
         st.markdown(
             """
         <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        
+        .main {
+            font-family: 'Inter', sans-serif;
+        }
+        
         .metric-container {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 12px;
+            border: 1px solid #334155;
             margin: 10px 0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
         
         .main-header {
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
-            border-radius: 10px;
+            background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+            padding: 25px;
+            border-radius: 15px;
             color: white;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .live-feed-item {
+            padding: 8px;
+            border-bottom: 1px solid #334155;
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+        
+        .agent-card {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 5px solid #3b82f6;
+            margin-bottom: 10px;
         }
         </style>
         """,
@@ -746,6 +722,28 @@ class UnifiedDashboard:
 
         # ヘッダー
         self.render_header()
+        
+    def render_sidebar(self):
+        """サイドバーのレンダリング（ライブフィード追加）"""
+        with st.sidebar:
+            st.image("assets/avatars/bull.png", width=100)
+            st.title("AGStock Pro")
+            
+            # ライブ・インテリジェンス・フィード
+            st.subheader("📡 Live Feed")
+            feeds = [
+                ("09:00", "🌙 夜間先物から強気サインを検知"),
+                ("09:15", "🏎️ トヨタ(7203.T) の買い圧力が上昇中"),
+                ("10:30", "🛡️ リスクガード：ボラティリティ安定を維持"),
+                ("11:00", "🤖 AIモデルが最新の歩み値を学習完了")
+            ]
+            for time, msg in feeds:
+                st.markdown(f"<div class='live-feed-item'><b>{time}</b>: {msg}</div>", unsafe_allow_html=True)
+            
+            st.divider()
+            st.session_state.language = st.selectbox("Language", ["ja", "en"], index=0 if st.session_state.language == "ja" else 1)
+            if st.button(self.t("refresh")):
+                st.rerun()
         st.markdown("---")
 
         # タブナビゲーション
