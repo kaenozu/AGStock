@@ -4,8 +4,8 @@ import numpy as np
 import streamlit as st
 import logging
 
-from agstock.src.rl.environment import TradingEnvironment
-from agstock.src.rl.agent import DQNAgent
+from src.rl.environment import TradingEnvironment
+from src.rl.agent import DQNAgent
 
 logger = logging.getLogger(__name__)
 

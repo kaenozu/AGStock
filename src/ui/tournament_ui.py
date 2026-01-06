@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
-from agstock.src.trading.tournament_manager import TournamentManager, PERSONALITIES
-from agstock.src.utils.currency import CurrencyConverter
+from src.trading.tournament_manager import TournamentManager, PERSONALITIES
+from src.utils.currency import CurrencyConverter
 
 
 def render_tournament_ui():

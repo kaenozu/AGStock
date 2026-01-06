@@ -6,13 +6,13 @@ Orchestrates the final execution of trade signals through multiple layers of val
 import logging
 from typing import Any, Dict, List
 
-from agstock.src.agents.ai_veto_agent import AIVetoAgent
-from agstock.src.agents.social_analyst import SocialAnalyst
-from agstock.src.agents.visual_oracle import VisualOracle
-from agstock.src.data.feedback_store import FeedbackStore
-from agstock.src.data_loader import fetch_stock_data, get_latest_price
-from agstock.src.execution.execution_engine import ExecutionEngine
-from agstock.src.trading.portfolio_manager import PortfolioManager
+from src.agents.ai_veto_agent import AIVetoAgent
+from src.agents.social_analyst import SocialAnalyst
+from src.agents.visual_oracle import VisualOracle
+from src.data.feedback_store import FeedbackStore
+from src.data_loader import fetch_stock_data, get_latest_price
+from src.execution.execution_engine import ExecutionEngine
+from src.trading.portfolio_manager import PortfolioManager
 
 logger = logging.getLogger(__name__)
 

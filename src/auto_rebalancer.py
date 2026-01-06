@@ -8,9 +8,9 @@ from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 
-from agstock.src.data_loader import fetch_stock_data
-from agstock.src.paper_trader import PaperTrader
-from agstock.src.portfolio_manager import PortfolioManager
+from src.data_loader import fetch_stock_data
+from src.paper_trader import PaperTrader
+from src.portfolio_manager import PortfolioManager
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

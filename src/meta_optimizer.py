@@ -29,7 +29,7 @@ class MetaOptimizer:
     def _initialize(self):
         """初期化"""
         try:
-            from agstock.src.meta_learner import MetaLearner
+            from src.meta_learner import MetaLearner
 
             self.meta_learner = MetaLearner(n_trials=20, cv_folds=3)
             logger.info("Meta Learner initialized")
@@ -131,7 +131,7 @@ def get_meta_optimizer() -> MetaOptimizer:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    from agstock.src.data_loader import fetch_stock_data
+    from src.data_loader import fetch_stock_data
 
     data_map = fetch_stock_data(["7203.T"], period="2y")
     df = data_map.get("7203.T")

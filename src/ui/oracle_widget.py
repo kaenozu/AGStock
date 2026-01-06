@@ -3,7 +3,7 @@ Divine Oracle Widget - Real-time Oracle Status Display for Streamlit
 """
 
 import streamlit as st
-from agstock.src.oracle.oracle_2026 import Oracle2026
+from src.oracle.oracle_2026 import Oracle2026
 
 
 def render_oracle_widget():

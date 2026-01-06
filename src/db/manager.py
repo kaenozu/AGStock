@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from agstock.src.db.database import SessionLocal
-from agstock.src.db.models import MarketScan, TradeLog, CouncilVote, SystemEvent
+from src.db.database import SessionLocal
+from src.db.models import MarketScan, TradeLog, CouncilVote, SystemEvent
 import logging
 
 logger = logging.getLogger(__name__)

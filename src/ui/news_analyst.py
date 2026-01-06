@@ -6,8 +6,8 @@ import logging
 
 import streamlit as st
 
-from agstock.src.llm_reasoner import get_llm_reasoner
-from agstock.src.news_collector import get_news_collector
+from src.llm_reasoner import get_llm_reasoner
+from src.news_collector import get_news_collector
 
 logger = logging.getLogger(__name__)
 
@@ -129,7 +129,7 @@ def render_news_analyst():
             with st.spinner("PDFを読み込み、AIが分析中..."):
                 try:
                     # 1. Extract Text
-                    from agstock.src.rag.pdf_loader import PDFLoader
+                    from src.rag.pdf_loader import PDFLoader
 
                     pdf_text = PDFLoader.extract_text_from_file(uploaded_file)
 

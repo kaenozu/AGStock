@@ -4,7 +4,7 @@ Risk Hedge UI Panel
 """
 
 import streamlit as st
-from agstock.src.strategies.options_strategy import OptionsEngine
+from src.strategies.options_strategy import OptionsEngine
 
 
 def render_risk_hedge_panel(portfolio_data: dict, market_vix: float):

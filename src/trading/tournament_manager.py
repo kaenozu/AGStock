@@ -2,8 +2,8 @@ import logging
 import datetime
 from typing import Dict, List, Any
 import pandas as pd
-from agstock.src.paper_trader import PaperTrader
-from agstock.src.constants import NIKKEI_225_TICKERS, SP500_TICKERS
+from src.paper_trader import PaperTrader
+from src.constants import NIKKEI_225_TICKERS, SP500_TICKERS
 
 logger = logging.getLogger(__name__)
 

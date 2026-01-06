@@ -30,7 +30,7 @@ from .helpers import retry_with_backoff
 logger = logging.getLogger(__name__)
 
 try:
-    from agstock.src.async_data_loader import AsyncDataLoader
+    from src.async_data_loader import AsyncDataLoader
 
     ASYNC_AVAILABLE = True
 except ImportError:
@@ -39,7 +39,7 @@ except ImportError:
     logger.warning("Async data loader not available; falling back to sync mode.")
 
 try:
-    from agstock.src.cache_manager import CacheManager
+    from src.cache_manager import CacheManager
 
     HAS_PERSISTENT_CACHE = True
 except ImportError:

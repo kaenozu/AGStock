@@ -15,9 +15,9 @@ from typing import Dict, List
 
 import streamlit as st
 
-from agstock.src.anomaly_detector import AnomalyDetector
-from agstock.src.formatters import format_currency, format_percentage
-from agstock.src.paper_trader import PaperTrader
+from src.anomaly_detector import AnomalyDetector
+from src.formatters import format_currency, format_percentage
+from src.paper_trader import PaperTrader
 
 # ページ設定はmainブロックに移動しました
 

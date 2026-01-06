@@ -9,8 +9,8 @@ import time
 import pandas as pd
 import streamlit as st
 
-from agstock.src.data_loader import fetch_stock_data
-from agstock.src.paper_trader import PaperTrader
+from src.data_loader import fetch_stock_data
+from src.paper_trader import PaperTrader
 import os
 
 

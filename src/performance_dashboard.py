@@ -9,8 +9,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from agstock.src.paper_trader import PaperTrader
-from agstock.src.performance_analyzer import PerformanceAnalyzer
+from src.paper_trader import PaperTrader
+from src.performance_analyzer import PerformanceAnalyzer
 
 
 def create_performance_dashboard():

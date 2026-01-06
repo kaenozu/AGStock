@@ -1,7 +1,7 @@
 from typing import Any, Dict
 import logging
-from agstock.src.agents.base_agent import BaseAgent
-from agstock.src.schemas import AgentAnalysis, TradingDecision
+from src.agents.base_agent import BaseAgent
+from src.schemas import AgentAnalysis, TradingDecision
 
 logger = logging.getLogger(__name__)
 

@@ -11,13 +11,13 @@ from typing import Any, Dict
 import google.generativeai as genai
 import pandas as pd
 
-from agstock.src.data.feedback_store import FeedbackStore
-from agstock.src.data_loader import fetch_stock_data
-from agstock.src.evolution.genetic_optimizer import GeneticOptimizer
-from agstock.src.evolution.strategy_generator import StrategyGenerator
-from agstock.src.feedback_loop import DailyReviewer
-from agstock.src.paper_trader import PaperTrader
-from agstock.src.smart_notifier import SmartNotifier
+from src.data.feedback_store import FeedbackStore
+from src.data_loader import fetch_stock_data
+from src.evolution.genetic_optimizer import GeneticOptimizer
+from src.evolution.strategy_generator import StrategyGenerator
+from src.feedback_loop import DailyReviewer
+from src.paper_trader import PaperTrader
+from src.smart_notifier import SmartNotifier
 
 logger = logging.getLogger(__name__)
 

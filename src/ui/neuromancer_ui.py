@@ -1,6 +1,6 @@
 import streamlit as st
 import time
-from agstock.src.agents.neuromancer import Neuromancer
+from src.agents.neuromancer import Neuromancer
 
 
 def render_neuromancer_ui():

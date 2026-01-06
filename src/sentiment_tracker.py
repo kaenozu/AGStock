@@ -8,7 +8,7 @@ import logging
 import sys
 from pathlib import Path
 
-from agstock.src.sentiment import SentimentAnalyzer
+from src.sentiment import SentimentAnalyzer
 
 # Configure logging
 log_dir = Path("logs")

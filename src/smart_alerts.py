@@ -11,9 +11,9 @@ from typing import Any, Dict, List
 
 import yfinance as yf
 
-from agstock.src.data_loader import fetch_stock_data, get_latest_price
-from agstock.src.paper_trader import PaperTrader
-from agstock.src.smart_notifier import SmartNotifier
+from src.data_loader import fetch_stock_data, get_latest_price
+from src.paper_trader import PaperTrader
+from src.smart_notifier import SmartNotifier
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +64,7 @@ class SmartAlerts:
         logger.critical(f"🚨 EMERGENCY STOP TRIGGERED: {reason}")
         try:
             # Lazy import to avoid circular dependencies
-            from agstock.src.trading.fully_automated_trader import FullyAutomatedTrader
+            from src.trading.fully_automated_trader import FullyAutomatedTrader
 
             trader = FullyAutomatedTrader()
             trader.emergency_stop(reason)

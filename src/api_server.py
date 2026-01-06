@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from agstock.src.config_loader import config, get_api_config, get_security_config
+from src.config_loader import config, get_api_config, get_security_config
 from src.database_manager import db_manager
 
 logger = logging.getLogger(__name__)

@@ -10,10 +10,10 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
-from agstock.src.data_loader import fetch_stock_data
-from agstock.src.features import add_advanced_features
-from agstock.src.rl_agent import DQNAgent
-from agstock.src.rl_environment import TradingEnvironment
+from src.data_loader import fetch_stock_data
+from src.features import add_advanced_features
+from src.rl_agent import DQNAgent
+from src.rl_environment import TradingEnvironment
 
 logger = logging.getLogger(__name__)
 

@@ -10,8 +10,8 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-from agstock.src.data.feedback_store import FeedbackStore
-from agstock.src.agents.strategy_arena import StrategyArena
+from src.data.feedback_store import FeedbackStore
+from src.agents.strategy_arena import StrategyArena
 
 
 def render_intelligence_dashboard():

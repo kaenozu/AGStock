@@ -1,9 +1,9 @@
 import logging
 from typing import Dict, Any
-from agstock.src.agents.base_agent import BaseAgent
-from agstock.src.schemas import AgentAnalysis, TradingDecision
-from agstock.src.llm_reasoner import get_llm_reasoner
-from agstock.src.news_collector import get_news_collector
+from src.agents.base_agent import BaseAgent
+from src.schemas import AgentAnalysis, TradingDecision
+from src.llm_reasoner import get_llm_reasoner
+from src.news_collector import get_news_collector
 
 logger = logging.getLogger(__name__)
 

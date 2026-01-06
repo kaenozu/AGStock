@@ -12,7 +12,7 @@ from typing import Dict, List
 import pandas as pd
 
 from src import demo_data
-from agstock.src.paper_trader import PaperTrader
+from src.paper_trader import PaperTrader
 from tasks.daily_backtest import compute_metrics
 
 

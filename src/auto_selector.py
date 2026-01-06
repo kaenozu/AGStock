@@ -5,10 +5,10 @@ from typing import Any, Dict, List, Type
 import numpy as np
 import pandas as pd
 
-from agstock.src.constants import NIKKEI_225_TICKERS
-from agstock.src.data_loader import fetch_stock_data
-from agstock.src.regime_detector import MarketRegime, RegimeDetector
-from agstock.src.strategies import BollingerBandsStrategy, LightGBMStrategy, RSIStrategy, SMACrossoverStrategy, Strategy
+from src.constants import NIKKEI_225_TICKERS
+from src.data_loader import fetch_stock_data
+from src.regime_detector import MarketRegime, RegimeDetector
+from src.strategies import BollingerBandsStrategy, LightGBMStrategy, RSIStrategy, SMACrossoverStrategy, Strategy
 
 logger = logging.getLogger("AutoSelector")
 

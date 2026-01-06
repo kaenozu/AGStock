@@ -94,7 +94,7 @@ def filter_strategies(self, strategies: List[str], current_paradigm: str) -> Lis
 def trigger_metamorphosis(self, current_paradigm: str):
     logger.warning(f"🧬 SYSTEM METAMORPHOSIS: Evolving for {current_paradigm}")
     try:
-        from agstock.src.evolution.strategy_generator import StrategyGenerator
+        from src.evolution.strategy_generator import StrategyGenerator
 
         generator = StrategyGenerator()
         # Generator can use current_paradigm in its prompt

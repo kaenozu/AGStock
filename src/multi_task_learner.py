@@ -62,7 +62,7 @@ class MultiTaskPredictor:
         try:
             from lightgbm import LGBMClassifier, LGBMRegressor
 
-            from agstock.src.features import add_advanced_features
+            from src.features import add_advanced_features
 
             # 特徴量準備
             df_features = add_advanced_features(df.copy())

@@ -1,7 +1,7 @@
 import logging
 import os
 from pathlib import Path
-from agstock.src.paths import MODELS_DIR
+from src.paths import MODELS_DIR
 
 logger = logging.getLogger(__name__)
 

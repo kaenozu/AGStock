@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import logging
-from agstock.src.strategies.base import Strategy
+from src.strategies.base import Strategy
 
 logger = logging.getLogger(__name__)
 

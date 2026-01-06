@@ -11,7 +11,7 @@ import os
 import pandas as pd
 import streamlit as st
 
-from agstock.src.data.feedback_store import FeedbackStore
+from src.data.feedback_store import FeedbackStore
 
 logger = logging.getLogger(__name__)
 

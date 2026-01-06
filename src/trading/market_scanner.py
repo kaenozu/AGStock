@@ -3,11 +3,11 @@ from typing import Dict, List
 
 import pandas as pd
 
-from agstock.src.constants import NIKKEI_225_TICKERS, SP500_TICKERS  # 地域判定のため
-from agstock.src.data_loader import fetch_fundamental_data, fetch_stock_data, get_latest_price
-from agstock.src.ensemble_predictor import EnsemblePredictor  # 中期予測フィルター
-from agstock.src.sentiment import SentimentAnalyzer
-from agstock.src.strategies import CombinedStrategy, DividendStrategy, LightGBMStrategy, MLStrategy
+from src.constants import NIKKEI_225_TICKERS, SP500_TICKERS  # 地域判定のため
+from src.data_loader import fetch_fundamental_data, fetch_stock_data, get_latest_price
+from src.ensemble_predictor import EnsemblePredictor  # 中期予測フィルター
+from src.sentiment import SentimentAnalyzer
+from src.strategies import CombinedStrategy, DividendStrategy, LightGBMStrategy, MLStrategy
 
 
 class MarketScanner:

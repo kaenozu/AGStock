@@ -4,8 +4,8 @@ Tax Calculator UI - 税務計算ダッシュボード
 
 import streamlit as st
 
-from agstock.src.paper_trader import PaperTrader
-from agstock.src.tax_calculator import TaxCalculator
+from src.paper_trader import PaperTrader
+from src.tax_calculator import TaxCalculator
 
 
 def render_tax_calculator():

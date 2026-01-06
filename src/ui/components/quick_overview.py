@@ -261,7 +261,7 @@ def _render_market_status(status: Dict):
 def _get_portfolio_data() -> Dict[str, Any]:
     """ポートフォリオデータを取得"""
     try:
-        from agstock.src.paper_trader import PaperTrader
+        from src.paper_trader import PaperTrader
 
         pt = PaperTrader()
 

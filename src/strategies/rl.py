@@ -28,9 +28,9 @@ class RLStrategy(Strategy):
         signals = pd.Series(0, index=df.index)
 
         try:
-            from agstock.src.features import add_advanced_features
-            from agstock.src.rl.agent import DQNAgent
-            from agstock.src.rl.environment import TradingEnvironment
+            from src.features import add_advanced_features
+            from src.rl.agent import DQNAgent
+            from src.rl.environment import TradingEnvironment
 
             # 特徴量追加
             df_features = add_advanced_features(df.copy())

@@ -4,7 +4,7 @@ from typing import Any, Dict, Tuple
 import numpy as np
 import pandas as pd
 
-from agstock.src.sovereign_retrospective import SovereignRetrospective
+from src.sovereign_retrospective import SovereignRetrospective
 
 logger = logging.getLogger(__name__)
 

@@ -12,12 +12,12 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from agstock.src.constants import TICKER_NAMES
+from src.constants import TICKER_NAMES
 from src import demo_data
-from agstock.src.data_loader import fetch_external_data
-from agstock.src.paper_trader import PaperTrader
-from agstock.src.services.defense import defense_status
-from agstock.src.ui.playbooks import render_playbook_cards
+from src.data_loader import fetch_external_data
+from src.paper_trader import PaperTrader
+from src.services.defense import defense_status
+from src.ui.playbooks import render_playbook_cards
 
 
 def format_currency_jp(amount: float) -> str:
@@ -262,7 +262,7 @@ def _notification_hooks():
 def _go_no_go():
     """取引前の簡易チェックリスト"""
     st.subheader("Go / No-Go チェック")
-    from agstock.src.utils.health import quick_health_check
+    from src.utils.health import quick_health_check
 
     health = quick_health_check()
     ext_ok = "✅" if all(k.startswith("api_latency") or v for k, v in health.items()) else "⚠️"

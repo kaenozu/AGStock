@@ -6,10 +6,10 @@ Handles the Paper Trading interface (manual trading, positions, history).
 import plotly.graph_objects as go
 import streamlit as st
 
-from agstock.src.constants import MARKETS, TICKER_NAMES
-from agstock.src.data_loader import fetch_stock_data
-from agstock.src.formatters import format_currency
-from agstock.src.paper_trader import PaperTrader
+from src.constants import MARKETS, TICKER_NAMES
+from src.data_loader import fetch_stock_data
+from src.formatters import format_currency
+from src.paper_trader import PaperTrader
 
 
 def render_trading_panel(sidebar_config):

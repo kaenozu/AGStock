@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 import pandas as pd
 
-from agstock.src.strategies import Order, OrderType, Strategy
+from src.strategies import Order, OrderType, Strategy
 
 from .simulator_core import TradeSimulatorCore
 

@@ -36,7 +36,7 @@ class RLStrategy:
             return False
 
         try:
-            from agstock.src.rl_agent import DQNAgent
+            from src.rl_agent import DQNAgent
 
             # デフォルトのstate_sizeとaction_size
             # 実際には環境から取得すべきだが、推論時は固定で問題ない
@@ -114,7 +114,7 @@ class RLStrategy:
 
     def _build_state(self, df: pd.DataFrame, current_position: int) -> np.ndarray:
         """状態ベクトルを構築"""
-        from agstock.src.features import add_advanced_features
+        from src.features import add_advanced_features
 
         # 特徴量を追加（まだ追加されていなければ）
         if "rsi" not in df.columns:
@@ -180,7 +180,7 @@ class RLStrategy:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
-    from agstock.src.data_loader import fetch_stock_data
+    from src.data_loader import fetch_stock_data
 
     # テスト
     strategy = RLStrategy()

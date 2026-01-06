@@ -23,29 +23,29 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from agstock.src.advanced_ensemble import AdvancedEnsemble, create_model_diversity_ensemble
-from agstock.src.advanced_models import AdvancedModels
+from src.advanced_ensemble import AdvancedEnsemble, create_model_diversity_ensemble
+from src.advanced_models import AdvancedModels
 
 # 新しい高度な機能のインポート
-from agstock.src.continual_learning import ConceptDriftDetector, ContinualLearningSystem
-from agstock.src.data_loader import fetch_external_data
-from agstock.src.data_preprocessing import preprocess_for_prediction
-from agstock.src.features.enhanced_features import generate_enhanced_features
-from agstock.src.fundamental_analyzer import FundamentalAnalyzer
-from agstock.src.future_predictor import FuturePredictor
-from agstock.src.hyperparameter_optimizer import MultiModelOptimizer
-from agstock.src.lgbm_predictor import LGBMPredictor
-from agstock.src.mlops_manager import MLopsManager
-from agstock.src.multi_asset_analytics import MultiAssetPredictor
-from agstock.src.prophet_predictor import ProphetPredictor
-from agstock.src.realtime_analytics import RealTimeAnalyticsPipeline
-from agstock.src.risk_adjusted_prediction import RiskAdjustedPredictor
-from agstock.src.scenario_analyzer import ScenarioBasedPredictor
-from agstock.src.sentiment_analytics import SentimentEnhancedPredictor
+from src.continual_learning import ConceptDriftDetector, ContinualLearningSystem
+from src.data_loader import fetch_external_data
+from src.data_preprocessing import preprocess_for_prediction
+from src.features.enhanced_features import generate_enhanced_features
+from src.fundamental_analyzer import FundamentalAnalyzer
+from src.future_predictor import FuturePredictor
+from src.hyperparameter_optimizer import MultiModelOptimizer
+from src.lgbm_predictor import LGBMPredictor
+from src.mlops_manager import MLopsManager
+from src.multi_asset_analytics import MultiAssetPredictor
+from src.prophet_predictor import ProphetPredictor
+from src.realtime_analytics import RealTimeAnalyticsPipeline
+from src.risk_adjusted_prediction import RiskAdjustedPredictor
+from src.scenario_analyzer import ScenarioBasedPredictor
+from src.sentiment_analytics import SentimentEnhancedPredictor
 
 # 新しい実装のインポート
-from agstock.src.transformer_predictor import TransformerPredictor
-from agstock.src.xai_explainer import XAIFramework
+from src.transformer_predictor import TransformerPredictor
+from src.xai_explainer import XAIFramework
 
 logger = logging.getLogger(__name__)
 
@@ -563,7 +563,7 @@ class EnhancedEnsemblePredictor:
         self, tickers_data: Dict[str, pd.DataFrame], weights: Dict[str, float], n_simulations: int = 1000
     ) -> Dict[str, Any]:
         """モンテカルロ法によるポートフォリオシミュレーション"""
-        from agstock.src.scenario_analyzer import MonteCarloSimulator
+        from src.scenario_analyzer import MonteCarloSimulator
 
         # 各資産のリターンデータを準備
         returns_data = {}

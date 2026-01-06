@@ -11,8 +11,8 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 import pandas as pd
 from typing import List, Dict, Any
 
-from agstock.src.config import settings
-from agstock.src.data_loader import fetch_stock_data
+from src.config import settings
+from src.data_loader import fetch_stock_data
 
 logger = logging.getLogger("EvolutionEngine")
 

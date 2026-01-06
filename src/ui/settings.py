@@ -7,9 +7,9 @@ import json
 
 import streamlit as st
 
-from agstock.src.formatters import format_currency
-from agstock.src.llm_reasoner import get_llm_reasoner
-from agstock.src.paper_trader import PaperTrader
+from src.formatters import format_currency
+from src.llm_reasoner import get_llm_reasoner
+from src.paper_trader import PaperTrader
 
 
 def render_settings_tab():

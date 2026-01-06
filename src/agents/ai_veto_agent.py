@@ -1,8 +1,8 @@
 import logging
 from typing import Any, Dict, Tuple
 from .base_agent import BaseAgent
-from agstock.src.llm_reasoner import get_llm_reasoner
-from agstock.src.news_collector import get_news_collector
+from src.llm_reasoner import get_llm_reasoner
+from src.news_collector import get_news_collector
 
 logger = logging.getLogger(__name__)
 

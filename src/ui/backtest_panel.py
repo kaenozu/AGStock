@@ -5,9 +5,9 @@ Handles the Historical Validation tab.
 
 import streamlit as st
 
-from agstock.src.backtest_engine import HistoricalBacktester
-from agstock.src.constants import MARKETS, TICKER_NAMES
-from agstock.src.strategies import BollingerBandsStrategy, CombinedStrategy, DividendStrategy, RSIStrategy
+from src.backtest_engine import HistoricalBacktester
+from src.constants import MARKETS, TICKER_NAMES
+from src.strategies import BollingerBandsStrategy, CombinedStrategy, DividendStrategy, RSIStrategy
 
 
 def render_backtest_panel(sidebar_config):

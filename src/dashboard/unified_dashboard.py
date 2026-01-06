@@ -14,10 +14,10 @@ from pathlib import Path
 
 import streamlit as st
 
-from agstock.src.anomaly_detector import AnomalyDetector
-from agstock.src.formatters import format_currency, format_percentage
-from agstock.src.paper_trader import PaperTrader
-from agstock.src.performance_optimizer import optimizer
+from src.anomaly_detector import AnomalyDetector
+from src.formatters import format_currency, format_percentage
+from src.paper_trader import PaperTrader
+from src.performance_optimizer import optimizer
 
 # ページ設定
 st.set_page_config(
