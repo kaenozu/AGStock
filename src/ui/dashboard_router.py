@@ -4,49 +4,49 @@ import streamlit as st
 
 # 各タブのレンダリング関数を遅延インポートするためのラッパー
 def render_dashboard_tab():
-    from agstock.src.simple_dashboard import create_simple_dashboard
+    from src.simple_dashboard import create_simple_dashboard
 
     create_simple_dashboard()
 
 
 def render_performance_tab():
-    from agstock.src.ui.performance_analyst import render_performance_analyst
+    from src.ui.performance_analyst import render_performance_analyst
 
     render_performance_analyst()
 
 
 def render_ai_hub_tab():
-    from agstock.src.ui.ai_hub import render_ai_hub
+    from src.ui.ai_hub import render_ai_hub
 
     render_ai_hub()
 
 
 def render_trading_tab(sidebar_config, strategies):
-    from agstock.src.ui.trading_hub import render_trading_hub
+    from src.ui.trading_hub import render_trading_hub
 
     render_trading_hub(sidebar_config, strategies)
 
 
 def render_lab_tab():
-    from agstock.src.ui.lab_hub import render_lab_hub
+    from src.ui.lab_hub import render_lab_hub
 
     render_lab_hub()
 
 
 def render_tournament_tab():
-    from agstock.src.ui.tournament_ui import render_tournament_ui
+    from src.ui.tournament_ui import render_tournament_ui
 
     render_tournament_ui()
 
 
 def render_prediction_tab():
-    from agstock.src.prediction_dashboard import create_prediction_analysis_dashboard
+    from src.prediction_dashboard import create_prediction_analysis_dashboard
     
     create_prediction_analysis_dashboard()
 
 
 def render_mission_control_tab():
-    from agstock.src.ui.mission_control import render_mission_control
+    from src.ui.mission_control import render_mission_control
 
     render_mission_control()
 
@@ -57,25 +57,25 @@ def render_neural_monitor_tab():
 
 
 def render_divine_tab():
-    from agstock.src.ui.divine_reflection import render_divine_reflection
+    from src.ui.divine_reflection import render_divine_reflection
 
     render_divine_reflection()
 
 
 def render_genetic_tab():
-    from agstock.src.ui.genetic_lab import render_genetic_lab
+    from src.ui.genetic_lab import render_genetic_lab
 
     render_genetic_lab()
 
 
 def render_war_room_tab():
-    from agstock.src.ui.war_room import render_war_room
+    from src.ui.war_room import render_war_room
 
     render_war_room()
 
 
 def render_neuromancer_tab():
-    from agstock.src.ui.neuromancer_ui import render_neuromancer_ui
+    from src.ui.neuromancer_ui import render_neuromancer_ui
 
     render_neuromancer_ui()
 

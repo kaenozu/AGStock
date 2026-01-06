@@ -76,7 +76,7 @@ class ParallelBacktester:
             signals = strategy.generate_signals(data)
 
             # バックテスト実行
-            from agstock.src.backtester import Backtester
+            from src.backtester import Backtester
 
             backtester = Backtester(
                 initial_capital=params.get("initial_capital", 1000000),
@@ -162,7 +162,7 @@ class ParallelBacktester:
             # テスト
             signals = strategy.generate_signals(test_data)
 
-            from agstock.src.backtester import Backtester
+            from src.backtester import Backtester
 
             backtester = Backtester(initial_capital=params.get("initial_capital", 1000000))
 
@@ -184,8 +184,8 @@ class ParallelBacktester:
 
 def benchmark_backtest_speed():
     """バックテスト速度ベンチマーク"""
-    from agstock.src.data_loader import fetch_stock_data
-    from agstock.src.strategies import SMACrossoverStrategy
+    from src.data_loader import fetch_stock_data
+    from src.strategies import SMACrossoverStrategy
 
     # テストデータ
     tickers = ["7203.T", "9984.T", "6758.T", "8035.T", "6861.T"]

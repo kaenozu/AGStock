@@ -1,6 +1,6 @@
 import logging
 
-from agstock.src.smart_notifier import SmartNotifier
+from src.smart_notifier import SmartNotifier
 
 
 class EmergencyHandler:

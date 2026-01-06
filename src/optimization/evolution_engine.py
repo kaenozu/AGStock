@@ -5,10 +5,10 @@ from datetime import datetime
 from typing import Dict
 
 import pandas as pd
-from agstock.src.data_loader import fetch_stock_data
-from agstock.src.features import add_advanced_features
-from agstock.src.optimization.optuna_tuner import OptunaTuner
-from agstock.src.oracle.oracle_2026 import Oracle2026
+from src.data_loader import fetch_stock_data
+from src.features import add_advanced_features
+from src.optimization.optuna_tuner import OptunaTuner
+from src.oracle.oracle_2026 import Oracle2026
 
 logger = logging.getLogger(__name__)
 

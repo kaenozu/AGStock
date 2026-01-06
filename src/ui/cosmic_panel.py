@@ -1,4 +1,4 @@
-from agstock.src.evolution.swarm_intel import SwarmIntelligence
+from src.evolution.swarm_intel import SwarmIntelligence
 
 
 def render_cosmic_dashboard():

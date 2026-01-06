@@ -5,8 +5,8 @@ import datetime
 import pandas as pd
 from typing import Dict, Any, List
 
-from agstock.src.optimization import MultiModelOptimizer
-from agstock.src.data_loader import fetch_stock_data
+from src.optimization import MultiModelOptimizer
+from src.data_loader import fetch_stock_data
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +61,7 @@ class SelfLearningPipeline:
         for ticker, df in data_dict.items():
             if df is not None and not df.empty:
                 # Basic feature engineering (simulated for training data preparation)
-                from agstock.src.features import add_advanced_features
+                from src.features import add_advanced_features
 
                 df = add_advanced_features(df)
                 df.dropna(inplace=True)

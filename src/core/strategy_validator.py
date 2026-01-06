@@ -1,8 +1,8 @@
 import logging
 import pandas as pd
 from typing import Dict, Any
-from agstock.src.backtester import Backtester
-from agstock.src.strategies.base import Strategy
+from src.backtester import Backtester
+from src.strategies.base import Strategy
 
 logger = logging.getLogger(__name__)
 

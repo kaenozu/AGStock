@@ -7,9 +7,9 @@ from datetime import datetime
 
 import streamlit as st
 
-from agstock.src.anomaly_detector import AnomalyDetector
-from agstock.src.auto_rebalancer import AutoRebalancer
-from agstock.src.pdf_report_generator import PDFReportGenerator
+from src.anomaly_detector import AnomalyDetector
+from src.auto_rebalancer import AutoRebalancer
+from src.pdf_report_generator import PDFReportGenerator
 
 
 def render_automation_tab():

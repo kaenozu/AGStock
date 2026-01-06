@@ -12,8 +12,8 @@ import logging
 
 import pandas as pd
 
-from agstock.src.multi_timeframe import MultiTimeframeAnalyzer
-from agstock.src.strategies import Strategy
+from src.multi_timeframe import MultiTimeframeAnalyzer
+from src.strategies import Strategy
 
 logger = logging.getLogger(__name__)
 

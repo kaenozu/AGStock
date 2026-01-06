@@ -78,7 +78,7 @@ class DQNAgent:
         # Oracle Safety Check
         oracle_mask = None
         try:
-            from agstock.src.oracle.oracle_2026 import Oracle2026
+            from src.oracle.oracle_2026 import Oracle2026
 
             oracle = Oracle2026()
             guidance = oracle.get_risk_guidance()

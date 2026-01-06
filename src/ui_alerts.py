@@ -4,7 +4,7 @@ UI Alerts - アラート管理のUI
 
 import streamlit as st
 
-from agstock.src.alert_manager import Alert, AlertCondition, AlertManager, AlertType
+from src.alert_manager import Alert, AlertCondition, AlertManager, AlertType
 
 
 def render_alerts_tab():

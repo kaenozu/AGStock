@@ -10,7 +10,7 @@ from typing import Dict, Any
 
 import google.generativeai as genai
 
-from agstock.src.rag.earnings_rag import EarningsRAG
+from src.rag.earnings_rag import EarningsRAG
 
 logger = logging.getLogger(__name__)
 

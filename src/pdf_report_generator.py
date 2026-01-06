@@ -13,10 +13,10 @@ from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
 
-from agstock.src.ai_analyst import AIAnalyst
-from agstock.src.constants import CRYPTO_PAIRS, FX_PAIRS, NIKKEI_225_TICKERS, SP500_TICKERS, STOXX50_TICKERS
+from src.ai_analyst import AIAnalyst
+from src.constants import CRYPTO_PAIRS, FX_PAIRS, NIKKEI_225_TICKERS, SP500_TICKERS, STOXX50_TICKERS
 from src import demo_data
-from agstock.src.paper_trader import PaperTrader
+from src.paper_trader import PaperTrader
 
 # For PDF generation
 try:

@@ -1,6 +1,6 @@
 import sys
 
-from agstock.src.cache_config import install_cache
+from src.cache_config import install_cache
 
 from .fully_automated_trader import FullyAutomatedTrader
 

@@ -7,8 +7,8 @@ from datetime import datetime
 import pandas as pd
 import streamlit as st
 
-from agstock.src.export_manager import ExportManager
-from agstock.src.paper_trader import PaperTrader
+from src.export_manager import ExportManager
+from src.paper_trader import PaperTrader
 
 
 def render_export_tab():

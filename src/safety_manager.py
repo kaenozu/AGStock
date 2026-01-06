@@ -10,9 +10,9 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass, field
 
-from agstock.src.log_config import get_logger
+from src.log_config import get_logger
 from src.database_manager import db_manager
-from agstock.src.notification_system import notification_manager
+from src.notification_system import notification_manager
 
 logger = get_logger("safety_features")
 

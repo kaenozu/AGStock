@@ -7,10 +7,10 @@ import time
 
 import streamlit as st
 
-from agstock.src.agents.committee import InvestmentCommittee
-from agstock.src.data_loader import fetch_market_summary
-from agstock.src.paper_trader import PaperTrader
-from agstock.src.data.macro_loader import MacroLoader
+from src.agents.committee import InvestmentCommittee
+from src.data_loader import fetch_market_summary
+from src.paper_trader import PaperTrader
+from src.data.macro_loader import MacroLoader
 
 
 def render_committee_ui():
@@ -70,7 +70,7 @@ def render_committee_ui():
                     committee = InvestmentCommittee()
 
                     # Fetch actual data for Regime Detection
-                    from agstock.src.data_loader import fetch_stock_data
+                    from src.data_loader import fetch_stock_data
 
                     market_data_dict = fetch_stock_data([ticker_input], period="1y")
                     # Extract DataFrame from dict
@@ -94,7 +94,7 @@ def render_committee_ui():
                             )
 
                     # Visualize Regime if possible
-                    from agstock.src.regime_detector import RegimeDetector
+                    from src.regime_detector import RegimeDetector
 
                     regime_det = RegimeDetector()
                     if market_df is not None and not market_df.empty:

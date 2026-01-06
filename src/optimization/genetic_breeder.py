@@ -67,8 +67,8 @@ class GeneticStrategyBreeder:
         """
         適応度評価関数（実データバックテスト版）
         """
-        from agstock.src.data_loader import fetch_stock_data
-        from agstock.src.backtesting.fast_engine import FastBacktester
+        from src.data_loader import fetch_stock_data
+        from src.backtesting.fast_engine import FastBacktester
 
         # データのロード（キャッシュされるので高速）
         # 評価基準としてトヨタ(7203)とソフトバンク(9984)を使用

@@ -11,7 +11,7 @@ from typing import Any, Dict
 
 import pandas as pd
 
-from agstock.src.vector_backtester import get_vector_backtester
+from src.vector_backtester import get_vector_backtester
 
 logger = logging.getLogger(__name__)
 

@@ -16,7 +16,7 @@ def render():
     #             unsafe_allow_html=True,
     #         )
     #             tab_train, tab_cinema, tab_lab = st.tabs(["🏋️ Train (Dojo)", "🎬 Replay (Cinema)", "🧬 Models (Lab)"])
-    #     from agstock.src.rl.trainer import TrainingSessionManager
+    #     from src.rl.trainer import TrainingSessionManager
     #             manager = TrainingSessionManager()
     #     # --- TAB 1: TRAIN ---
     #         with tab_train:

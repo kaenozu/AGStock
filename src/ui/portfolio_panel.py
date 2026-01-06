@@ -8,9 +8,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from agstock.src.constants import NIKKEI_225_TICKERS, TICKER_NAMES
-from agstock.src.data_loader import fetch_stock_data
-from agstock.src.portfolio import PortfolioManager
+from src.constants import NIKKEI_225_TICKERS, TICKER_NAMES
+from src.data_loader import fetch_stock_data
+from src.portfolio import PortfolioManager
 
 
 def render_portfolio_panel(sidebar_config, strategies):

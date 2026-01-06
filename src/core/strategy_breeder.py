@@ -7,11 +7,11 @@ import logging
 import os
 from typing import Optional
 
-from agstock.src.core.evo_coder import EvoCoder
-from agstock.src.core.strategy_validator import StrategyValidator
-from agstock.src.data_loader import DataLoader
-from agstock.src.db.manager import DatabaseManager
-from agstock.src.llm_reasoner import get_llm_reasoner
+from src.core.evo_coder import EvoCoder
+from src.core.strategy_validator import StrategyValidator
+from src.data_loader import DataLoader
+from src.db.manager import DatabaseManager
+from src.llm_reasoner import get_llm_reasoner
 
 logger = logging.getLogger(__name__)
 

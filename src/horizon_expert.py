@@ -8,7 +8,7 @@ from typing import Dict, List, Optional
 import numpy as np
 import pandas as pd
 
-from agstock.src.walkforward_blender import WalkForwardBlender
+from src.walkforward_blender import WalkForwardBlender
 
 logger = logging.getLogger(__name__)
 

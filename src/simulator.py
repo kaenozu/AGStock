@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Union
 import numpy as np
 import pandas as pd
 
-from agstock.src.strategies import Order, OrderType, Strategy
+from src.strategies import Order, OrderType, Strategy
 
 
 class TradeSimulator:

@@ -9,9 +9,9 @@ from typing import Any, Dict, List
 
 import pandas as pd
 
-from agstock.src.features import add_advanced_features
-from agstock.src.realtime_alerts import get_alert_manager
-from agstock.src.strategies import AttentionLSTMStrategy, GRUStrategy, LightGBMStrategy
+from src.features import add_advanced_features
+from src.realtime_alerts import get_alert_manager
+from src.strategies import AttentionLSTMStrategy, GRUStrategy, LightGBMStrategy
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ class StreamingPipeline:
         self._load_strategies()
 
         # 2. 履歴データのロード（特徴量計算用）
-        from agstock.src.data_loader import fetch_stock_data
+        from src.data_loader import fetch_stock_data
 
         # 期間を少し長めに取ってテクニカル指標の計算に必要な期間を確保
         period = f"{lookback_days + 30}d"

@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
-from agstock.src.agents.base_agent import BaseAgent
-from agstock.src.schemas import AgentAnalysis, RiskConfig, TradingDecision
+from src.agents.base_agent import BaseAgent
+from src.schemas import AgentAnalysis, RiskConfig, TradingDecision
 
 
 class RiskManager(BaseAgent):

@@ -2,7 +2,7 @@ import diskcache
 import functools
 import logging
 import time
-from agstock.src.paths import DATA_DIR
+from src.paths import DATA_DIR
 
 logger = logging.getLogger(__name__)
 

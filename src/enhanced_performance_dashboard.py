@@ -7,10 +7,10 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from agstock.src.benchmark_comparator import BenchmarkComparator
-from agstock.src.design_tokens import Colors
-from agstock.src.formatters import format_percentage
-from agstock.src.paper_trader import PaperTrader
+from src.benchmark_comparator import BenchmarkComparator
+from src.design_tokens import Colors
+from src.formatters import format_percentage
+from src.paper_trader import PaperTrader
 
 
 def create_performance_dashboard():

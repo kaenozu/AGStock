@@ -1,9 +1,9 @@
 import streamlit as st
 
-from agstock.src.ui.settings import render_settings_tab
-from agstock.src.ui.strategy_arena import render_strategy_arena
-from agstock.src.ui.rl_training_ui import render_rl_training_ui
-from agstock.src.ui.gen_lab import render_gen_lab
+from src.ui.settings import render_settings_tab
+from src.ui.strategy_arena import render_strategy_arena
+from src.ui.rl_training_ui import render_rl_training_ui
+from src.ui.gen_lab import render_gen_lab
 
 
 def render_lab_hub():

@@ -1,8 +1,8 @@
 import streamlit as st
 
-from agstock.src.ui.portfolio_panel import render_portfolio_panel
-from agstock.src.ui.trading_panel import render_trading_panel
-from agstock.src.ui_renderers import render_market_scan_tab
+from src.ui.portfolio_panel import render_portfolio_panel
+from src.ui.trading_panel import render_trading_panel
+from src.ui_renderers import render_market_scan_tab
 
 
 def render_trading_hub(sidebar_config, strategies):

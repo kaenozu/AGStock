@@ -2,7 +2,7 @@
 ダッシュボード機能の検証
 """
 
-from agstock.src.prediction_dashboard import create_prediction_analysis_dashboard
+from src.prediction_dashboard import create_prediction_analysis_dashboard
 import sys
 from unittest.mock import MagicMock
 

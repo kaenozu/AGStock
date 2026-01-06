@@ -5,8 +5,8 @@ Generates natural language explanations for trade decisions.
 
 from typing import Any, Dict, Optional
 
-from agstock.src.ai_analyst import AIAnalyst
-from agstock.src.prompts import TRADE_REASONING_SYSTEM_PROMPT
+from src.ai_analyst import AIAnalyst
+from src.prompts import TRADE_REASONING_SYSTEM_PROMPT
 
 
 class TradeExplainer:

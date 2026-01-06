@@ -2,7 +2,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict
 
-from agstock.src.schemas import AgentAnalysis, TradingDecision
+from src.schemas import AgentAnalysis, TradingDecision
 
 logger = logging.getLogger(__name__)
 

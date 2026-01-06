@@ -10,10 +10,10 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from agstock.src.constants import TICKER_NAMES
-from agstock.src.dashboard_utils import check_and_execute_missed_trades
-from agstock.src.formatters import format_currency
-from agstock.src.paper_trader import PaperTrader
+from src.constants import TICKER_NAMES
+from src.dashboard_utils import check_and_execute_missed_trades
+from src.formatters import format_currency
+from src.paper_trader import PaperTrader
 
 # ページ設定
 st.set_page_config(

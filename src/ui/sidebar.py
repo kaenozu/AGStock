@@ -7,9 +7,9 @@ import json
 
 import streamlit as st
 
-from agstock.src.constants import MARKETS, TICKER_NAMES
-from agstock.src.schemas import load_config as load_config_schema
-from agstock.src.services.defense import activate_defense, deactivate_defense, defense_status
+from src.constants import MARKETS, TICKER_NAMES
+from src.schemas import load_config as load_config_schema
+from src.services.defense import activate_defense, deactivate_defense, defense_status
 
 from src import demo_data  # noqa: F401  # imported for side-effects if needed
 
@@ -91,7 +91,7 @@ def render_sidebar():
     # --- Oracle 2026 Widget ---
     st.sidebar.subheader("🔮 Oracle 2026")
     try:
-        from agstock.src.ui.oracle_widget import render_oracle_sidebar
+        from src.ui.oracle_widget import render_oracle_sidebar
 
         render_oracle_sidebar()
     except Exception as e:

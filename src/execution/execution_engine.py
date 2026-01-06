@@ -6,9 +6,9 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 
-from agstock.src.paper_trader import PaperTrader
-from agstock.src.data_loader import fetch_fundamental_data, fetch_external_data
-from agstock.src.utils.health import quick_health_check
+from src.paper_trader import PaperTrader
+from src.data_loader import fetch_fundamental_data, fetch_external_data
+from src.utils.health import quick_health_check
 
 logger = logging.getLogger(__name__)
 

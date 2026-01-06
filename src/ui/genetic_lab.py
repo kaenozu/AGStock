@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import time
-from agstock.src.optimization.genetic_breeder import GeneticStrategyBreeder
+from src.optimization.genetic_breeder import GeneticStrategyBreeder
 
 
 def render_genetic_lab():

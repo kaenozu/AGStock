@@ -5,9 +5,9 @@ Dynamically selects the active "Squad" of strategies based on the Market Regime.
 
 import logging
 from typing import List, Dict, Any
-from agstock.src.strategies.base import Strategy
-from agstock.src.strategies.meta_registry import get_strategies_for_regime
-from agstock.src.strategies.loader import load_custom_strategies
+from src.strategies.base import Strategy
+from src.strategies.meta_registry import get_strategies_for_regime
+from src.strategies.loader import load_custom_strategies
 
 logger = logging.getLogger(__name__)
 

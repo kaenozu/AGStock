@@ -4,7 +4,7 @@ import yfinance as yf
 from typing import List
 import google.generativeai as genai
 import os
-from agstock.src.constants import NIKKEI_225_TICKERS, SP500_TICKERS
+from src.constants import NIKKEI_225_TICKERS, SP500_TICKERS
 
 logger = logging.getLogger(__name__)
 

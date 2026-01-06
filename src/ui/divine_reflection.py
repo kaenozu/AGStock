@@ -4,7 +4,7 @@ import sqlite3
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
-from agstock.src.ui.styles import apply_custom_styles
+from src.ui.styles import apply_custom_styles
 
 
 def render_divine_reflection():
@@ -104,7 +104,7 @@ def render_divine_reflection():
     st.markdown("---")
     st.markdown("### 🔮 The prophecy of 2026 (Oracle Engine)")
 
-    from agstock.src.oracle.oracle_2026 import Oracle2026
+    from src.oracle.oracle_2026 import Oracle2026
 
     oracle = Oracle2026()
 
@@ -167,7 +167,7 @@ def render_divine_reflection():
     st.markdown("---")
     st.markdown("### 🧬 Sovereign Adaptive Learning (Evolution Trace)")
 
-    from agstock.src.sovereign_retrospective import SovereignRetrospective
+    from src.sovereign_retrospective import SovereignRetrospective
 
     sr = SovereignRetrospective()
     insights = sr.analyze_2025_failures()
@@ -266,7 +266,7 @@ def render_divine_reflection():
     st.caption("AI、預言、パフォーマンスを統合した公式な聖域構成報告書を出力します。")
 
     if st.button("✨ Invoke Sovereign Reporter"):
-        from agstock.src.reporting.sovereign_report import SovereignReporter
+        from src.reporting.sovereign_report import SovereignReporter
 
         reporter = SovereignReporter()
         report_md = reporter.generate_report()

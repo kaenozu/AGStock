@@ -8,7 +8,7 @@ import pandas as pd
 import streamlit as st
 from fully_automated_trader import FullyAutomatedTrader
 
-from agstock.src.paper_trader import PaperTrader
+from src.paper_trader import PaperTrader
 
 
 def create_auto_trader_ui():

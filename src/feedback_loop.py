@@ -10,8 +10,8 @@ from datetime import datetime
 from typing import Dict, Any
 
 import pandas as pd
-from agstock.src.paper_trader import PaperTrader
-from agstock.src.llm_reasoner import get_llm_reasoner
+from src.paper_trader import PaperTrader
+from src.llm_reasoner import get_llm_reasoner
 
 logger = logging.getLogger(__name__)
 

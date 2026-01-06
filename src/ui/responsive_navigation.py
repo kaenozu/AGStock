@@ -97,7 +97,7 @@ def render_mobile_quick_stats():
 
     try:
         # Get portfolio data
-        from agstock.src.paper_trader import PaperTrader
+        from src.paper_trader import PaperTrader
 
         pt = PaperTrader()
 

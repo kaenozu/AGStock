@@ -1,6 +1,6 @@
 import streamlit as st
 
-from agstock.src.services import scenario as scenario_service
+from src.services import scenario as scenario_service
 
 
 def render_scenario_sandbox():

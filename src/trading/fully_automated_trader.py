@@ -21,46 +21,46 @@ import pandas as pd
 # リトライロジック
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-from agstock.src.agents.committee import InvestmentCommittee
-from agstock.src.backup_manager import BackupManager
-from agstock.src.cache_config import install_cache
-from agstock.src.constants import (
+from src.agents.committee import InvestmentCommittee
+from src.backup_manager import BackupManager
+from src.cache_config import install_cache
+from src.constants import (
     DEFAULT_VOLATILITY_SYMBOL,
     FALLBACK_VOLATILITY_SYMBOLS,
     NIKKEI_225_TICKERS,
     SP500_TICKERS,
     STOXX50_TICKERS,
 )
-from agstock.src.data_loader import (
+from src.data_loader import (
     CRYPTO_PAIRS,
     FX_PAIRS,
     fetch_fundamental_data,
     fetch_stock_data,
     get_latest_price,
 )
-from agstock.src.dynamic_risk_manager import DynamicRiskManager
-from agstock.src.dynamic_stop import DynamicStopManager
-from agstock.src.execution import ExecutionEngine
-from agstock.src.kelly_criterion import KellyCriterion
-from agstock.src.paper_trader import PaperTrader
+from src.dynamic_risk_manager import DynamicRiskManager
+from src.dynamic_stop import DynamicStopManager
+from src.execution import ExecutionEngine
+from src.kelly_criterion import KellyCriterion
+from src.paper_trader import PaperTrader
 
 # New Features from feat-add-position-guards
-from agstock.src.regime_detector import RegimeDetector
-from agstock.src.schemas import AppConfig, TradingDecision
-from agstock.src.sentiment import SentimentAnalyzer
-from agstock.src.smart_notifier import SmartNotifier
-from agstock.src.strategies import CombinedStrategy, LightGBMStrategy, MLStrategy
-from agstock.src.utils.logger import get_logger, setup_logger
-from agstock.src.data.universe_manager import UniverseManager
-from agstock.src.utils.self_healing import SelfHealingEngine
-from agstock.src.utils.parameter_optimizer import ParameterOptimizer
-from agstock.src.data.whale_tracker import WhaleTracker
-from agstock.src.agents.ai_veto_agent import AIVetoAgent
-from agstock.src.agents.social_analyst import SocialAnalyst
-from agstock.src.agents.visual_oracle import VisualOracle
-from agstock.src.trading.portfolio_manager import PortfolioManager
-from agstock.src.utils.self_learning import SelfLearningPipeline
-from agstock.src.oracle.oracle_2026 import Oracle2026
+from src.regime_detector import RegimeDetector
+from src.schemas import AppConfig, TradingDecision
+from src.sentiment import SentimentAnalyzer
+from src.smart_notifier import SmartNotifier
+from src.strategies import CombinedStrategy, LightGBMStrategy, MLStrategy
+from src.utils.logger import get_logger, setup_logger
+from src.data.universe_manager import UniverseManager
+from src.utils.self_healing import SelfHealingEngine
+from src.utils.parameter_optimizer import ParameterOptimizer
+from src.data.whale_tracker import WhaleTracker
+from src.agents.ai_veto_agent import AIVetoAgent
+from src.agents.social_analyst import SocialAnalyst
+from src.agents.visual_oracle import VisualOracle
+from src.trading.portfolio_manager import PortfolioManager
+from src.utils.self_learning import SelfLearningPipeline
+from src.oracle.oracle_2026 import Oracle2026
 
 # Create logger
 logger = logging.getLogger(__name__)
