@@ -55,6 +55,10 @@ class LGBMPredictor(BasePredictor):
         self.model.fit(X, y)
         return self
 
+    def train(self, X, y):
+        """モデルの学習（fitのエイリアス）"""
+        return self.fit(X, y)
+
     def predict(self, X):
         """予測実行"""
         if self.model is None:

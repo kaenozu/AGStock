@@ -38,9 +38,9 @@ class TestFullyAutomatedTrader:
         with open(config_file, "w") as f:
             json.dump(mock_config, f)
 
-        with patch("fully_automated_trader.SmartNotifier"):
-            with patch("fully_automated_trader.PaperTrader"):
-                with patch("fully_automated_trader.ExecutionEngine"):
+        with patch("src.trading.fully_automated_trader.SmartNotifier"):
+            with patch("src.trading.fully_automated_trader.PaperTrader"):
+                with patch("src.trading.fully_automated_trader.ExecutionEngine"):
                     trader = FullyAutomatedTrader(str(config_file))
                     return trader
 
@@ -122,7 +122,7 @@ class TestFullyAutomatedTrader:
         result = trader.filter_by_market_cap("TEST", {"marketCap": 10**8})
         assert result == False
 
-    @patch("fully_automated_trader.fetch_stock_data")
+    @patch("src.trading.fully_automated_trader.fetch_stock_data")
     def test_fetch_data_with_retry_success(self, mock_fetch, trader):
         """リトライ機能成功テスト"""
         mock_fetch.return_value = {"TEST": Mock()}
@@ -132,7 +132,7 @@ class TestFullyAutomatedTrader:
         assert result is not None
         assert mock_fetch.called
 
-    @patch("fully_automated_trader.fetch_stock_data")
+    @patch("src.trading.fully_automated_trader.fetch_stock_data")
     def test_fetch_data_with_retry_failure(self, mock_fetch, trader):
         """リトライ機能失敗テスト"""
         mock_fetch.side_effect = Exception("Network error")

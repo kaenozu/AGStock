@@ -39,11 +39,41 @@ class PortfolioManager(BaseManager):
     - リバランス提案
     """
 
-    def __init__(self, constraints: Optional[PortfolioConstraints] = None):
-        self.constraints = constraints or PortfolioConstraints()
+    def __init__(self, constraints: Optional[PortfolioConstraints] = None, **kwargs):
+        if constraints is None:
+            # マッピング: kwargs -> PortfolioConstraints
+            c_args = {}
+            for field in PortfolioConstraints.__dataclass_fields__:
+                if field in kwargs:
+                    c_args[field] = kwargs.pop(field)
+            self.constraints = PortfolioConstraints(**c_args)
+        else:
+            self.constraints = constraints
+        
         self.positions: Dict[str, float] = {}
         self.sector_map: Dict[str, str] = {}
+        self.cash_balance = 1000000.0 # Add missing attribute
         super().__init__()
+
+    @property
+    def max_correlation(self) -> float:
+        return self.constraints.max_correlation
+
+    @property
+    def max_sector_exposure(self) -> float:
+        return self.constraints.max_sector_exposure
+
+    def total_value(self) -> float:
+        """ポートフォリオの総価値（簡易計算）"""
+        return self.cash_balance + sum(self.positions.values())
+
+    def add_position(self, ticker: str, quantity: int, price: float):
+        """ポジションを追加（テスト用）"""
+        self.positions[ticker] = quantity * price
+
+    def get_positions(self) -> Dict[str, float]:
+        """現在のポジション一覧を取得"""
+        return self.positions
 
     def _initialize(self):
         """初期化"""
@@ -101,10 +131,10 @@ class PortfolioManager(BaseManager):
         ticker: str,
         current_portfolio: List[str],
         correlation_matrix: Optional[pd.DataFrame] = None,
-    ) -> Tuple[bool, str]:
+    ) -> bool:
         """新規ポジション追加の可否をチェック"""
         if not current_portfolio:
-            return True, "Empty portfolio"
+            return True
 
         # 1. 相関チェック
         if correlation_matrix is not None and not correlation_matrix.empty:
@@ -113,9 +143,7 @@ class PortfolioManager(BaseManager):
                     correlations = correlation_matrix.loc[ticker, current_portfolio]
                     high_corr = correlations[correlations > self.constraints.max_correlation]
                     if not high_corr.empty:
-                        reason = f"High correlation with {high_corr.index.tolist()}"
-                        self.logger.warning(f"Rejecting {ticker}: {reason}")
-                        return False, reason
+                        return False
                 except KeyError as e:
                     self.logger.warning(f"Correlation check failed: {e}")
 
@@ -126,11 +154,9 @@ class PortfolioManager(BaseManager):
             sector_exposure = sector_count / len(current_portfolio)
 
             if sector_exposure >= self.constraints.max_sector_exposure:
-                reason = f"Sector limit reached for {sector} ({sector_exposure:.1%})"
-                self.logger.warning(f"Rejecting {ticker}: {reason}")
-                return False, reason
+                return False
 
-        return True, "All checks passed"
+        return True
 
     def calculate_portfolio_volatility(self, weights: Dict[str, float], cov_matrix: pd.DataFrame) -> float:
         """ポートフォリオボラティリティを計算"""

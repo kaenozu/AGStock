@@ -92,7 +92,8 @@ class CommunityDatabase:
 
     def init_database(self):
         """データベース初期化"""
-        with sqlite3.connect(self.db_path) as conn:
+        conn = sqlite3.connect(self.db_path)
+        try:
             cursor = conn.cursor()
 
             # ユーザーテーブル
@@ -175,13 +176,16 @@ class CommunityDatabase:
             """)
 
             conn.commit()
+        finally:
+            conn.close()
 
     def create_user(self, username: str, email: str) -> User:
         """ユーザー作成"""
         user_id = str(uuid.uuid4())
         join_date = datetime.now()
 
-        with sqlite3.connect(self.db_path) as conn:
+        conn = sqlite3.connect(self.db_path)
+        try:
             cursor = conn.cursor()
             cursor.execute(
                 """
@@ -192,6 +196,8 @@ class CommunityDatabase:
                 (user_id, username, email, join_date),
             )
             conn.commit()
+        finally:
+            conn.close()
 
         return User(
             user_id=user_id, username=username, email=email, join_date=join_date
@@ -199,7 +205,9 @@ class CommunityDatabase:
 
     def get_user(self, user_id: str = None, username: str = None) -> Optional[User]:
         """ユーザー取得"""
-        with sqlite3.connect(self.db_path) as conn:
+        conn = sqlite3.connect(self.db_path)
+        try:
+            conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
 
             if user_id:
@@ -210,12 +218,23 @@ class CommunityDatabase:
                 return None
 
             row = cursor.fetchone()
-            if row:
-                columns = [description[0] for description in cursor.description]
-                user_data = dict(zip(columns, row))
-                return User(**user_data)
+            if not row:
+                return None
 
-        return None
+            return User(
+                user_id=row["user_id"],
+                username=row["username"],
+                email=row["email"],
+                join_date=pd.to_datetime(row["join_date"]),
+                avatar_url=row["avatar_url"],
+                bio=row["bio"],
+                reputation=row["reputation"],
+                strategies_shared=row["strategies_shared"],
+                followers_count=row["followers_count"],
+                following_count=row["following_count"],
+            )
+        finally:
+            conn.close()
 
     def create_strategy(
         self,
@@ -231,7 +250,8 @@ class CommunityDatabase:
         created_at = datetime.now()
         updated_at = created_at
 
-        with sqlite3.connect(self.db_path) as conn:
+        conn = sqlite3.connect(self.db_path)
+        try:
             cursor = conn.cursor()
             cursor.execute(
                 """
@@ -262,6 +282,8 @@ class CommunityDatabase:
             )
 
             conn.commit()
+        finally:
+            conn.close()
 
         return Strategy(
             strategy_id=strategy_id,
@@ -276,46 +298,64 @@ class CommunityDatabase:
         )
 
     def get_strategies(
-        self, category: str = None, limit: int = 20, sort_by: str = "created_at"
+        self,
+        category: str = None,
+        author_id: str = None,
+        limit: int = 20,
+        sort_by: str = "created_at",
     ) -> List[Strategy]:
         """戦略リスト取得"""
-        with sqlite3.connect(self.db_path) as conn:
+        conn = sqlite3.connect(self.db_path)
+        try:
+            conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
 
-            query = """
-                SELECT * FROM strategies WHERE is_public = 1
-            """
+            query = "SELECT * FROM strategies WHERE is_public = 1"
             params = []
 
             if category:
                 query += " AND category = ?"
                 params.append(category)
 
-            if sort_by == "upvotes":
-                query += " ORDER BY upvotes DESC"
-            elif sort_by == "performance":
-                query += " ORDER BY performance_score DESC NULLS LAST"
-            else:
-                query += " ORDER BY created_at DESC"
+            if author_id:
+                query += " AND author_id = ?"
+                params.append(author_id)
 
-            query += " LIMIT ?"
-            params.append(limit)
+            query += " ORDER BY created_at DESC"
 
             cursor.execute(query, params)
             rows = cursor.fetchall()
 
             strategies = []
             for row in rows:
-                columns = [description[0] for description in cursor.description]
-                strategy_data = dict(zip(columns, row))
-                strategy_data["tags"] = json.loads(strategy_data["tags"])
-                strategies.append(Strategy(**strategy_data))
+                strategies.append(
+                    Strategy(
+                        strategy_id=row["strategy_id"],
+                        author_id=row["author_id"],
+                        title=row["title"],
+                        description=row["description"],
+                        code=row["code"],
+                        category=row["category"],
+                        tags=json.loads(row["tags"]),
+                        created_at=pd.to_datetime(row["created_at"]),
+                        updated_at=pd.to_datetime(row["updated_at"]),
+                        upvotes=row["upvotes"],
+                        downvotes=row["downvotes"],
+                        views=row["views"],
+                        comments_count=row["comments_count"],
+                        performance_score=row["performance_score"],
+                        is_public=bool(row["is_public"])
+                    )
+                )
 
             return strategies
+        finally:
+            conn.close()
 
     def vote_strategy(self, user_id: str, strategy_id: str, vote_type: int):
         """戦略への投票"""
-        with sqlite3.connect(self.db_path) as conn:
+        conn = sqlite3.connect(self.db_path)
+        try:
             cursor = conn.cursor()
 
             # 既存の投票を確認
@@ -406,6 +446,8 @@ class CommunityDatabase:
                 )
 
             conn.commit()
+        finally:
+            conn.close()
 
 
 class CommunityDashboard:
@@ -434,7 +476,8 @@ class CommunityDashboard:
         st.subheader("🏆 コミュニティリーダーボード")
 
         # 上位ユーザー取得
-        with sqlite3.connect(self.db.db_path) as conn:
+        conn = sqlite3.connect(self.db.db_path)
+        try:
             cursor = conn.cursor()
             cursor.execute("""
                 SELECT username, reputation, strategies_shared, join_date
@@ -443,6 +486,8 @@ class CommunityDashboard:
                 LIMIT 10
             """)
             rows = cursor.fetchall()
+        finally:
+            conn.close()
 
         if rows:
             df = pd.DataFrame(
@@ -735,7 +780,8 @@ def main():
         st.subheader("📊 コミュニティ統計")
 
         # 統計情報表示
-        with sqlite3.connect(dashboard.db.db_path) as conn:
+        conn = sqlite3.connect(dashboard.db.db_path)
+        try:
             cursor = conn.cursor()
 
             # ユーザー数
@@ -753,6 +799,8 @@ def main():
             # 投票数
             cursor.execute("SELECT COUNT(*) FROM votes")
             total_votes = cursor.fetchone()[0]
+        finally:
+            conn.close()
 
         col1, col2, col3, col4 = st.columns(4)
         with col1:
@@ -766,7 +814,8 @@ def main():
 
         # カテゴリ別戦略数
         st.subheader("カテゴリ別戦略数")
-        with sqlite3.connect(dashboard.db.db_path) as conn:
+        conn = sqlite3.connect(dashboard.db.db_path)
+        try:
             cursor = conn.cursor()
             cursor.execute("""
                 SELECT category, COUNT(*) as count
@@ -776,6 +825,8 @@ def main():
                 ORDER BY count DESC
             """)
             category_data = cursor.fetchall()
+        finally:
+            conn.close()
 
         if category_data:
             df = pd.DataFrame(category_data, columns=["カテゴリ", "戦略数"])

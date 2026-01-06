@@ -19,9 +19,9 @@ import weakref
 from collections import defaultdict
 import queue
 
-from .error_handling import handle_exceptions, memory_monitor, PerformanceError, ErrorCategory
-from .secure_config import get_secure_config
-from .input_validator import rate_limit
+from src.security.error_handling import handle_exceptions, memory_monitor, PerformanceError, ErrorCategory
+from src.security.secure_config import get_secure_config
+from src.security.input_validator import RateLimiter
 
 logger = logging.getLogger(__name__)
 

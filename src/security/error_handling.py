@@ -17,7 +17,7 @@ from enum import Enum
 from functools import wraps
 from contextlib import contextmanager
 import weakref
-from datetime import datetime
+from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -300,8 +300,8 @@ class MemoryManager:
         self._monitor_thread: Optional[threading.Thread] = None
         self._lock = threading.Lock()
 
-        # 弱参照キャッシュ
-        self._weak_cache = weakref.WeakValueDictionary()
+        # キャッシュ
+        self._cache = {}
 
     def start_monitoring(self, interval_seconds: int = 30) -> None:
         """メモリ監視を開始"""
@@ -373,12 +373,12 @@ class MemoryManager:
             self.cleanup_callbacks.append(callback)
 
     def cache_object(self, key: str, obj: Any) -> None:
-        """オブジェクトをキャッシュ（弱参照）"""
-        self._weak_cache[key] = obj
+        """オブジェクトをキャッシュ"""
+        self._cache[key] = obj
 
     def get_cached_object(self, key: str) -> Optional[Any]:
         """キャッシュされたオブジェクトを取得"""
-        return self._weak_cache.get(key)
+        return self._cache.get(key)
 
 
 # グローバルインスタンス

@@ -25,8 +25,8 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # テスト対象モジュール
-from src.core.trading_engine import TradingEngine
-from src.core.risk_manager import RiskManager
+from src.trading_engine_refactored import TradingEngineRefactored as TradingEngine
+from src.agents.risk_manager import RiskManager
 from src.enhanced_ai_prediction import EnhancedPredictionSystem, FeatureEngineering
 from src.performance_collector import PerformanceCollector
 from community_dashboard import CommunityDatabase, CommunityDashboard
@@ -102,8 +102,8 @@ class TestFeatureEngineering(unittest.TestCase):
         """ATR計算テスト"""
         atr = self.fe.calculate_atr(self.sample_data, 14)
 
-        # ATRが正の値であることを確認
-        self.assertTrue(all(atr >= 0))
+        # ATRが正の値であることを確認 (NaNを除外)
+        self.assertTrue(all(atr.dropna() >= 0))
 
         # 最初の数値はNaNであることを確認（計算に十分なデータがないため）
         self.assertTrue(pd.isna(atr.iloc[:13]).any())
@@ -374,7 +374,7 @@ class TestPerformanceCollector(unittest.TestCase):
         # ダミーの設定ファイルとログファイルを作成
         config_data = {"test": "value"}
         config_path = os.path.join(os.path.dirname(self.temp_dir), "config.json")
-        with open(config_path, "w") as f:
+        with open(config_path, "w", encoding="utf-8") as f:
             json.dump(config_data, f)
 
         agstock_metrics = self.collector.collect_agstock_metrics()
@@ -420,7 +420,8 @@ class TestCommunityDatabase(unittest.TestCase):
         self.assertTrue(os.path.exists(self.temp_db))
 
         # テーブルが作成されていることを確認
-        with sqlite3.connect(self.temp_db) as conn:
+        conn = sqlite3.connect(self.temp_db)
+        try:
             cursor = conn.cursor()
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
             tables = [row[0] for row in cursor.fetchall()]
@@ -429,6 +430,8 @@ class TestCommunityDatabase(unittest.TestCase):
             for table in expected_tables:
                 with self.subTest(table=table):
                     self.assertIn(table, tables)
+        finally:
+            conn.close()
 
     def test_create_and_get_user(self):
         """ユーザー作成・取得テスト"""
@@ -578,10 +581,13 @@ class TestEdgeCases(unittest.TestCase):
 
             # データベースの整合性確認
             db = CommunityDatabase(temp_db)
-            with sqlite3.connect(temp_db) as conn:
+            conn = sqlite3.connect(temp_db)
+            try:
                 cursor = conn.cursor()
                 cursor.execute("SELECT COUNT(*) FROM users")
                 user_count = cursor.fetchone()[0]
+            finally:
+                conn.close()
 
             self.assertEqual(user_count, 15)  # 3スレッド × 5ユーザー
 

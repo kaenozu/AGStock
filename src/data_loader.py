@@ -5,7 +5,7 @@ import logging
 import os
 import time
 from datetime import datetime, timedelta
-from typing import Any, Awaitable, Callable, Dict, Mapping, Optional, Sequence, TypeVar
+from typing import Any, Awaitable, Callable, Dict, Mapping, Optional, Sequence, TypeVar, Union
 
 import pandas as pd
 import streamlit as st
@@ -89,6 +89,27 @@ JP_STOCKS = [
     "4502.T",
     "6954.T",
 ]
+
+
+class DataLoader:
+    """Wrapper class for data loading operations (backward compatibility)."""
+    def __init__(self, config: Optional[Union[str, Dict[str, Any]]] = None):
+        self.config = config if isinstance(config, dict) else {}
+        self.db_path = config if isinstance(config, str) else self.config.get("database", {}).get("path")
+        self.manager = DataManager(self.db_path) if self.db_path and isinstance(self.db_path, str) else None
+        # Add attributes for compatibility
+        data_cfg = self.config.get("data", {})
+        self.default_period = data_cfg.get("default_period", "1y")
+        self.interval = data_cfg.get("interval", "1d")
+
+    def get_latest_data(self, ticker: str, period: str = "1y") -> pd.DataFrame:
+        return fetch_stock_data(ticker, period=period)
+
+    def fetch_multiple(self, tickers: Sequence[str], period: str = "1y") -> Dict[str, pd.DataFrame]:
+        results = {}
+        for ticker in tickers:
+            results[ticker] = fetch_stock_data(ticker, period=period)
+        return results
 
 
 # シングルトンキャッシュインスタンスの作成

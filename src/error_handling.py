@@ -17,18 +17,7 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 
-class ErrorSeverity(Enum):
-    """エラー深刻度レベル"""
-
-    LOW = "low"  # 軽微な問題、継続可能
-    MEDIUM = "medium"  # 中程度の問題、通知必要
-    HIGH = "high"  # 重大な問題、即時対応必要
-    CRITICAL = "critical"  # 致命的な問題、システム停止
-
-
 class ErrorCategory(Enum):
-    """エラーカテゴリ"""
-
     DATA = "data"  # データ関連エラー
     NETWORK = "network"  # ネットワークエラー
     MODEL = "model"  # モデル関連エラー
@@ -36,6 +25,105 @@ class ErrorCategory(Enum):
     VALIDATION = "validation"  # バリデーションエラー
     SYSTEM = "system"  # システムエラー
     USER_INPUT = "user_input"  # ユーザー入力エラー
+    PERMISSION = "permission"
+    RESOURCE = "resource"
+    EXTERNAL_API = "external_api"
+    UNKNOWN = "unknown"
+
+
+class ErrorSeverity(Enum):
+    LOW = "low"  # 軽微な警告、無視可能
+    MEDIUM = "medium"  # 要注意、動作に影響する可能性あり
+    HIGH = "high"  # 重大な問題、一部機能制限
+    CRITICAL = "critical"  # 致命的な問題、システム停止
+
+
+class AGStockException(Exception):
+    """Base exception for AGStock."""
+    pass
+
+
+class RetryableError(AGStockException):
+    """Exception indicating that the operation can be retried."""
+    pass
+
+
+# よく使うリトライ設定のプリセット
+def network_retry(func: Callable) -> Callable:
+    """ネットワーク処理用のリトライデコレータ（3回、指数バックオフ）"""
+    from tenacity import retry, stop_after_attempt, wait_exponential
+
+    return retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))(func)
+
+
+def api_retry(func: Callable) -> Callable:
+    """API呼び出し用のリトライデコレータ（5回、長めの待機）"""
+    from tenacity import retry, stop_after_attempt, wait_exponential
+
+    return retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=2, max=10))(func)
+
+
+def classify_error(exception: Exception) -> ErrorCategory:
+    """
+    例外を分類してErrorCategoryを返す
+    """
+    error_str = str(exception).lower()
+
+    if isinstance(exception, (ConnectionError, TimeoutError)) or "network" in error_str or "connection" in error_str:
+        return ErrorCategory.NETWORK
+    if isinstance(exception, PermissionError):
+        return ErrorCategory.PERMISSION
+    if isinstance(exception, FileNotFoundError) or "not found" in error_str:
+        return ErrorCategory.DATA
+    if "validation" in error_str:
+        return ErrorCategory.VALIDATION
+    if "model" in error_str:
+        return ErrorCategory.MODEL
+    if "trade" in error_str or "order" in error_str:
+        return ErrorCategory.TRADING
+
+    return ErrorCategory.UNKNOWN
+
+
+def get_user_friendly_message(error: Exception, context: str) -> Dict[str, str]:
+    """ユーザーフレンドリーなメッセージを生成"""
+    return {
+        "title": f"エラー: {context}",
+        "message": str(error),
+        "suggestion": "しばらくしてから再度お試しください。",
+        "technical_details": traceback.format_exc(),
+    }
+
+
+def log_error_with_context(error: Exception, context: str, level: str = "error"):
+    """コンテキスト付きでエラーをログ記録"""
+    msg = f"Context: {context} | Error: {type(error).__name__}: {error}"
+    if level == "critical":
+        logger.critical(msg)
+    elif level == "warning":
+        logger.warning(msg)
+    else:
+        logger.error(msg)
+
+
+def retry(max_attempts: int = 3, delay: float = 1.0):
+    """汎用リトライデコレータ"""
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(max_attempts):
+                try:
+                    return func(*args, **kwargs)
+                except Exception:
+                    if attempt == max_attempts - 1:
+                        raise
+                    time.sleep(delay)
+            return None
+
+        return wrapper
+
+    return decorator
 
 
 class UserFriendlyError:

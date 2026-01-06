@@ -3,6 +3,7 @@
 複雑度を下げ、保守性を向上
 """
 
+from __future__ import annotations
 import logging
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass

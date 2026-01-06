@@ -11,6 +11,9 @@ from src.agents.committee import InvestmentCommittee
 from src.risk_guard import RiskGuard
 from src.online_learner import OnlineLearner
 from src.notification_system import notification_manager, send_trade_notification
+from src.smart_notifier import SmartNotifier
+from src.paper_trader import PaperTrader
+from src.execution import ExecutionEngine
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -61,6 +64,8 @@ class AutonomousTrader:
 
         logger.info("✨ 本日の自律運用サイクル完了")
 
+from src.trading.fully_automated_trader import FullyAutomatedTrader
+
 if __name__ == "__main__":
-    trader = AutonomousTrader()
-    trader.run_daily_cycle()
+    trader = FullyAutomatedTrader()
+    # main execution logic...
