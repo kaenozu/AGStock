@@ -127,9 +127,11 @@ class Backtester:
             last_price = df["Close"].iloc[-1]
             exit_price = last_price
             exit_idx = len(df) - 1
-            
-            # Handle Order object
-            from src.strategies import Order, OrderType
+            reason = "Strategy Signal"
+
+            from src.strategies import Order
+
+            # Handle Order object for entry price
             if isinstance(first_signal, Order) and first_signal.price:
                 entry_price = first_signal.price
 
@@ -138,6 +140,23 @@ class Backtester:
             if (isinstance(first_signal, Order) and first_signal.action == "SELL") or (not isinstance(first_signal, Order) and first_signal < 0):
                 trade_type = "Short"
 
+            # Identify exit from signals (if no other exit criteria met yet)
+            for i in range(entry_idx, len(df)):
+                s = signals.iloc[i]
+                if s is not None and s != 0:
+                    # If we are Long, look for -1. If Short, look for 1.
+                    is_exit = False
+                    if trade_type == "Long" and ((not isinstance(s, Order) and s < 0) or (isinstance(s, Order) and s.action == "SELL")):
+                        is_exit = True
+                    elif trade_type == "Short" and ((not isinstance(s, Order) and s > 0) or (isinstance(s, Order) and s.action == "BUY")):
+                        is_exit = True
+                    
+                    if is_exit:
+                        exit_idx = min(i + 1, len(df) - 1)
+                        exit_price = df["Open"].iloc[exit_idx] if "Open" in df.columns else df["Close"].iloc[exit_idx]
+                        reason = "Strategy Signal (Exit)"
+                        break
+            
             # Check if short selling is allowed
             if trade_type == "Short" and not self.allow_short:
                 # No trade
@@ -147,7 +166,8 @@ class Backtester:
                 pos_series.iloc[entry_idx:] = 1 if trade_type == "Long" else -1
                 
                 # Identify reason
-                reason = "Strategy Signal"
+                if "reason" not in locals() or reason == "Strategy Signal":
+                    reason = "Strategy Signal"
                 
                 # Simulate Trailing Stop / Stop Loss / Take Profit
                 if stop_loss:

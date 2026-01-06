@@ -6,7 +6,7 @@
 import pytest
 import pandas as pd
 import numpy as np
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, AsyncMock
 from datetime import datetime, timedelta
 import time
 
@@ -91,8 +91,9 @@ class TestPredictionEngine:
             predictor.scenario_predictor = mock_factory()
             predictor.scenario_predictor.analyze.return_value = {"details": "mock"}
             
-            predictor.realtime_pipeline = mock_factory()
-            predictor.batch_predict = AsyncMock(return_value={"ticker": 0.02})
+            async def side_effect(data_dict):
+                return {ticker: {"prediction": 0.02} for ticker in data_dict.keys()}
+            predictor.batch_predict = AsyncMock(side_effect=side_effect)
             
             predictor.mlops_manager = MagicMock()
             predictor.concept_drift_detector = MagicMock()

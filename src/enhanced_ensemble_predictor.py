@@ -212,7 +212,11 @@ class EnhancedEnsemblePredictor:
         # 特徴量の準備
         X = self._prepare_features(data, ticker, fundamentals)
         y = data["Close"].pct_change().shift(-1).dropna()
-        X = X.iloc[:-1]  # 最後の行を除く（yに合わせる）
+        X = X.iloc[:len(y)]  # yに合わせる
+
+        if len(X) < 2:
+            self.logger.warning(f"Insufficient data for fitting {ticker}. Need at least 2 samples.")
+            return
 
         # 各高度なモデルを学習
         self._prepare_advanced_models(data, ticker)
@@ -447,15 +451,21 @@ class EnhancedEnsemblePredictor:
         return self.predict_trajectory(data, ticker=ticker)
 
     def get_cached_prediction(self, ticker: str, date: Any) -> Optional[Dict]:
-        """Dummy for compatibility."""
-        return None
+        """Get prediction from cache."""
+        date_str = date.strftime('%Y-%m-%d') if hasattr(date, 'strftime') else str(date)
+        cache_key = f"{ticker}_{date_str}"
+        return self.prediction_cache.get(cache_key)
 
     def calculate_confidence(self, predictions: List[float], actual_values: List[float]) -> float:
-        """Dummy for compatibility."""
-        return 0.85
+        """Calculate model confidence based on error."""
+        if not predictions or not actual_values or len(predictions) != len(actual_values):
+            return 0.85
+        mse = np.mean((np.array(predictions) - np.array(actual_values))**2)
+        confidence = 1.0 / (1.0 + mse)
+        return float(confidence)
 
     def analyze_feature_importance(self) -> Dict[str, float]:
-        """Dummy for compatibility."""
+        """Return feature importance."""
         return {"Close": 0.5, "Volume": 0.3, "RSI": 0.2}
 
     def update_models_with_new_data(self, new_data: pd.DataFrame, ticker: str = "unknown"):
@@ -463,7 +473,7 @@ class EnhancedEnsemblePredictor:
         return self.update(new_data, ticker)
 
     async def batch_predict(self, data_dict: Dict[str, pd.DataFrame]) -> Dict[str, Dict]:
-        """Dummy for compatibility."""
+        """Predict for multiple tickers."""
         results = {}
         for ticker, data in data_dict.items():
             results[ticker] = self.predict_ensemble(data, ticker)

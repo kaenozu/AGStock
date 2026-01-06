@@ -202,8 +202,13 @@ class PaperTrader:
         return self.execute_order(SimpleOrder(ticker, action, quantity, price))
 
     def update_position_stop(self, ticker: str, stop_price: float, highest_price: float):
-        """Update stop price for a position (dummy for compatibility)."""
-        pass
+        """Update stop price and highest price for a position."""
+        cursor = self.conn.cursor()
+        cursor.execute(
+            "UPDATE positions SET stop_price = ?, highest_price = ? WHERE ticker = ?",
+            (stop_price, highest_price, ticker)
+        )
+        self.conn.commit()
 
     def get_position(self, ticker: str) -> Dict[str, Union[int, float]]:
         """Get the current position for a given ticker.
@@ -212,14 +217,16 @@ class PaperTrader:
             ticker (str): Stock ticker symbol.
 
         Returns:
-            Dict[str, Union[int, float]]: Dictionary containing 'quantity' and 'avg_price'.
+            Dict[str, Union[int, float]]: Dictionary containing position data.
                                           Returns {'quantity': 0, 'avg_price': 0.0} if no position.
         """
         cursor = self.conn.cursor()
-        cursor.execute("SELECT quantity, avg_price FROM positions WHERE ticker = ?", (ticker,))
+        cursor.execute("SELECT * FROM positions WHERE ticker = ?", (ticker,))
         result = cursor.fetchone()
         if result:
-            return {"quantity": result[0], "avg_price": result[1]}
+            # column names from description
+            columns = [column[0] for column in cursor.description]
+            return dict(zip(columns, result))
         return {"quantity": 0, "avg_price": 0.0}
 
     def execute_order(self, order: Any) -> bool:
@@ -257,8 +264,8 @@ class PaperTrader:
 
                 cursor.execute(
                     """
-                    INSERT OR REPLACE INTO positions (ticker, quantity, avg_price, entry_price, current_price, entry_date, highest_price)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    INSERT OR REPLACE INTO positions (ticker, quantity, avg_price, entry_price, current_price, entry_date, highest_price, stop_price)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                     (
                         order.ticker,
@@ -267,7 +274,8 @@ class PaperTrader:
                         new_avg_price,
                         order.price,
                         datetime.now().isoformat(),
-                        new_avg_price if new_avg_price > position.get("highest_price", 0) else position.get("highest_price", 0),
+                        new_avg_price,
+                        0.0,
                     ),
                 )
 
