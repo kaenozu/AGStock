@@ -15,19 +15,19 @@ import plotly.express as px
 
 def render_ai_hub():
     """Renders the consolidated AI Analyzer Hub"""
-    st.header("🧠 AI分析センター (AI Hub)")
-    st.caption("最新ニュース、投資委員会、AIチャットなど、すべてのAI機能にここからアクセスできます。")
+    st.header("🧠 AI Intelligence Center")
+    st.caption("Access all AI-driven insights, committee debates, and automated market scanning from this central hub.")
 
     tabs = st.tabs(
         [
-            "🏛️ AI投資委員会",
-            "📰 ニュース分析",
-            "💬 AIチャット",
-            "📑 決算分析",
-            "🛡️ リスクヘッジ",
-            "📡 適時開示ウォッチ",
-            "📊 セクター熱力図",
-            "⚖️ ガバナンス監視",
+            "🏛️ Committee (投資委員会)",
+            "📰 News (ニュース分析)",
+            "💬 Chat (AI相談)",
+            "📑 Earnings (決算分析)",
+            "🛡️ Risk (リスク管理)",
+            "📡 Filings (適時開示)",
+            "📊 Sectors (セクター分析)",
+            "⚖️ Governance (ガバナンス)",
         ]
     )
 
