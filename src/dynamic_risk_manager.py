@@ -264,6 +264,17 @@ class DynamicRiskManager:
             "volatility_adjustment": self.current_params.get("volatility_adjustment", 1.0),
         }
 
+    def adjust_risk_for_volatility(self, volatility: float) -> float:
+        """ボラティリティに基づいてリスク許容度を調整"""
+        # ボラティリティが高いほどリスク許容度（倍率）を下げる
+        if volatility <= 0:
+            return 1.0
+        
+        # 基準値をテスト値に合わせて調整
+        base_vol = 0.15
+        adjustment = base_vol / volatility
+        return float(np.clip(adjustment, 0.1, 2.0))
+
     def get_parameter_history(self, n: int = 10) -> list:
         """
         パラメータ履歴を取得

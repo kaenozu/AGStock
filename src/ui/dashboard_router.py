@@ -103,7 +103,7 @@ class DashboardRouter:
             ("🏠 ダッシュボード", render_dashboard_tab),
             ("🎙️ Daily Briefing", render_briefing_tab),
             ("🧠 Neural Monitor", render_neural_monitor_tab),
-            ("🕵️ Neuromancer", render_neuromancer_tab),  # Renamed for clarity
+            ("🧠 Neuromancer", render_neuromancer_tab),  # Renamed for clarity
             ("📈 運用パフォーマンス", render_performance_tab),
             ("🤖 AI分析センター", render_ai_hub_tab),
             (f"💼 トレーディング{trading_badge}", render_trading_tab),

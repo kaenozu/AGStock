@@ -233,11 +233,13 @@ class InputValidator:
 class RateLimiter:
     """レートリミッター"""
 
-    def __init__(self):
+    def __init__(self, max_requests_per_second: int = 5, max_requests_per_minute: int = 100):
         self._requests = {}
         self._lock = threading.Lock()
+        self.max_rps = max_requests_per_second
+        self.max_rpm = max_requests_per_minute
         self.window_size = timedelta(minutes=1)
-        self.max_requests = 100  # 1分あたりの最大リクエスト数
+        self.max_requests = max_requests_per_minute  # 1分あたりの最大リクエスト数
 
     def is_allowed(self, client_id: str) -> bool:
         """リクエストを許可するか判定"""
@@ -247,13 +249,20 @@ class RateLimiter:
             if client_id not in self._requests:
                 self._requests[client_id] = []
 
-            # 古いリクエストを削除
+            # 古いリクエスト（1分以上前）を削除
             self._requests[client_id] = [
-                req_time for req_time in self._requests[client_id] if now - req_time < self.window_size
+                req_time for req_time in self._requests[client_id] if now - req_time < timedelta(minutes=1)
             ]
 
-            # リクエスト数チェック
-            if len(self._requests[client_id]) >= self.max_requests:
+            # 1秒以内のリクエスト数をチェック
+            recent_second_requests = [
+                req_time for req_time in self._requests[client_id] if now - req_time < timedelta(seconds=1)
+            ]
+            if len(recent_second_requests) >= self.max_rps:
+                return False
+
+            # 1分以内のリクエスト数をチェック
+            if len(self._requests[client_id]) >= self.max_rpm:
                 return False
 
             # リクエストを記録
@@ -263,13 +272,23 @@ class RateLimiter:
     def get_remaining_requests(self, client_id: str) -> int:
         """残りリクエスト数を取得"""
         with self._lock:
-            if client_id not in self._requests:
-                return self.max_requests
-
             now = datetime.now()
-            recent_requests = [req_time for req_time in self._requests[client_id] if now - req_time < self.window_size]
+            if client_id not in self._requests:
+                return min(self.max_rps, self.max_rpm)
 
-            return max(0, self.max_requests - len(recent_requests))
+            # 1秒以内のリクエスト
+            recent_second = [
+                req_time for req_time in self._requests[client_id] if now - req_time < timedelta(seconds=1)
+            ]
+            # 1分以内のリクエスト
+            recent_minute = [
+                req_time for req_time in self._requests[client_id] if now - req_time < timedelta(minutes=1)
+            ]
+
+            remaining_sec = max(0, self.max_rps - len(recent_second))
+            remaining_min = max(0, self.max_rpm - len(recent_minute))
+
+            return min(remaining_sec, remaining_min)
 
 
 class ThreadSafeDataProcessor:
