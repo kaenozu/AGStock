@@ -32,6 +32,18 @@ class TestPhase30FullIntegration(unittest.TestCase):
         self.trader = FullyAutomatedTrader(config_path=self.config_path)
         self.trader.pt = self.pt  # Inject test paper trader
         self.trader.engine.pt = self.pt  # Inject into engine too
+        
+        # リファクタリング後のコンポーネントにも注入
+        if hasattr(self.trader, "position_manager"):
+            self.trader.position_manager.pt = self.pt
+        if hasattr(self.trader, "safety_checks"):
+            self.trader.safety_checks.pt = self.pt
+        if hasattr(self.trader, "market_scanner"):
+            self.trader.market_scanner.pt = self.pt
+        if hasattr(self.trader, "asset_selector"):
+            self.trader.asset_selector.pt = self.pt
+        if hasattr(self.trader, "daily_reporter"):
+            self.trader.daily_reporter.pt = self.pt
 
     def tearDown(self):
         self.pt.close()
@@ -79,7 +91,7 @@ class TestPhase30FullIntegration(unittest.TestCase):
             mock_sig.return_value = pd.Series([0] * 99 + [1], index=dates)
 
             # Also need to mock fetch_fundamental_data to pass filter
-            with patch("src.trading.fully_automated_trader.fetch_fundamental_data") as mock_fund:
+            with patch("src.data_loader.fetch_fundamental_data") as mock_fund:
                 mock_fund.return_value = {"marketCap": 10000000000, "trailingPE": 15}
 
                 # Run scan_market
@@ -125,7 +137,6 @@ class TestPhase30FullIntegration(unittest.TestCase):
         pos = positions[positions["ticker"] == "7203.T"].iloc[0]
         self.assertEqual(pos["stop_price"], 0.0)
 
-        # Mock fetch_stock_data for evaluate_positions
         # Scenario 1: Price goes up to 1100. Stop should move up.
         dates = pd.date_range("2024-01-01", periods=20, freq="D")
         df_up = pd.DataFrame(
@@ -139,24 +150,24 @@ class TestPhase30FullIntegration(unittest.TestCase):
             index=dates,
         )
 
-        # src.trading.fully_automated_trader モジュール内の fetch_stock_data をパッチ
-        with patch("src.trading.fully_automated_trader.fetch_stock_data", return_value={"7203.T": df_up}):
-            # Run evaluate_positions
-            self.trader.evaluate_positions()
+        # PositionManager インスタンスのメソッドを直接モック化
+        self.trader.position_manager._fetch_data_with_retry = MagicMock(return_value={"7203.T": df_up})
+        
+        # Run evaluate_positions
+        self.trader.evaluate_positions()
 
-            # Check DB
-            positions = self.pt.get_positions()
-            pos = positions[positions["ticker"] == "7203.T"].iloc[0]
+        # Check DB
+        positions = self.pt.get_positions()
+        pos = positions[positions["ticker"] == "7203.T"].iloc[0]
 
-            print(f"Updated Position after rise: Stop={pos['stop_price']}, High={pos['highest_price']}")
+        print(f"Updated Position after rise: Stop={pos['stop_price']}, High={pos['highest_price']}")
 
-            # Highest should be 1100
-            self.assertEqual(pos["highest_price"], 1100.0)
-            # Stop should be > 0 (initialized and trailed)
-            self.assertGreater(pos["stop_price"], 0.0)
-            # Stop should be around 1100 - 3*ATR. ATR approx 20? So ~1040?
+        # Highest should be 1100
+        self.assertEqual(pos["highest_price"], 1100.0)
+        # Stop should be > 0 (initialized and trailed)
+        self.assertGreater(pos["stop_price"], 0.0)
 
-            first_stop = pos["stop_price"]
+        first_stop = pos["stop_price"]
 
         # Scenario 2: Price drops to 1050 (above stop). Stop should NOT move down.
         df_drop = pd.DataFrame(
@@ -164,18 +175,18 @@ class TestPhase30FullIntegration(unittest.TestCase):
             index=pd.date_range("2024-01-21", periods=5, freq="D"),
         )
 
-        with patch("src.trading.fully_automated_trader.fetch_stock_data", return_value={"7203.T": df_drop}):
-            self.trader.evaluate_positions()
+        self.trader.position_manager._fetch_data_with_retry = MagicMock(return_value={"7203.T": df_drop})
+        self.trader.evaluate_positions()
 
-            positions = self.pt.get_positions()
-            pos = positions[positions["ticker"] == "7203.T"].iloc[0]
+        positions = self.pt.get_positions()
+        pos = positions[positions["ticker"] == "7203.T"].iloc[0]
 
-            print(f"Updated Position after drop: Stop={pos['stop_price']}, High={pos['highest_price']}")
+        print(f"Updated Position after drop: Stop={pos['stop_price']}, High={pos['highest_price']}")
 
-            # Highest should still be 1100 (didn't exceed)
-            self.assertEqual(pos["highest_price"], 1100.0)
-            # Stop should be same as before (never moves down)
-            self.assertEqual(pos["stop_price"], first_stop)
+        # Highest should still be 1100 (didn't exceed)
+        self.assertEqual(pos["highest_price"], 1100.0)
+        # Stop should be same as before (never moves down)
+        self.assertEqual(pos["stop_price"], first_stop)
 
         # Scenario 3: Price crashes to 900 (below stop). Should exit.
         df_crash = pd.DataFrame(
@@ -183,13 +194,13 @@ class TestPhase30FullIntegration(unittest.TestCase):
             index=pd.date_range("2024-01-26", periods=5, freq="D"),
         )
 
-        with patch("src.trading.fully_automated_trader.fetch_stock_data", return_value={"7203.T": df_crash}):
-            actions = self.trader.evaluate_positions()
+        self.trader.position_manager._fetch_data_with_retry = MagicMock(return_value={"7203.T": df_crash})
+        actions = self.trader.evaluate_positions()
 
-            print(f"Actions generated: {actions}")
-            self.assertTrue(len(actions) > 0)
-            self.assertEqual(actions[0]["action"], "SELL")
-            self.assertIn("Stop Loss Hit", actions[0]["reason"])
+        print(f"Actions generated: {actions}")
+        self.assertTrue(len(actions) > 0)
+        self.assertEqual(actions[0]["action"], "SELL")
+        self.assertIn("Stop Loss Hit", actions[0]["reason"])
 
 
 if __name__ == "__main__":

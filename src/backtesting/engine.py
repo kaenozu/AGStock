@@ -231,8 +231,8 @@ class BacktestEngine:
                             continue
 
                 # ----- EXIT LOGIC FOR INTEGER SIGNALS -----
-                if isinstance(today_sig, (int, np.integer)):
-                    if position > 0 and today_sig == -1:
+                if isinstance(today_sig, (int, np.integer, float, np.floating)):
+                    if position > 0 and today_sig <= -0.5:
                         entry = entry_prices[ticker]
                         ret = (exec_price - entry) / entry
                         trades.append(
@@ -250,7 +250,7 @@ class BacktestEngine:
                         holdings[ticker] = 0.0
                         entry_prices[ticker] = 0.0
                         exit_executed = True
-                    elif position < 0 and today_sig == 1:
+                    elif position < 0 and today_sig >= 0.5:
                         entry = entry_prices[ticker]
                         ret = (entry - exec_price) / entry
                         trades.append(
@@ -356,8 +356,8 @@ class BacktestEngine:
                                 entry_prices[ticker] = 0.0
                                 exit_executed = True
 
-                if not exit_executed and isinstance(today_sig, (int, np.integer)):
-                    if holdings[ticker] == 0 and today_sig == 1:
+                if not exit_executed and isinstance(today_sig, (int, np.integer, float, np.floating)):
+                    if holdings[ticker] == 0 and today_sig >= 0.5:
                         # Open long position
                         shares = self._size_position(ticker, current_portfolio_value, exec_price)
                         holdings[ticker] = shares
@@ -367,7 +367,7 @@ class BacktestEngine:
                         highest_prices[ticker] = exec_price
                         if trailing_stop and trailing_stop > 0:
                             trailing_stop_levels[ticker] = exec_price * (1 - trailing_stop)
-                    elif holdings[ticker] == 0 and today_sig == -1 and self.allow_short:
+                    elif holdings[ticker] == 0 and today_sig <= -0.5 and self.allow_short:
                         # Open short position
                         shares = self._size_position(ticker, current_portfolio_value, exec_price)
                         holdings[ticker] = -shares
