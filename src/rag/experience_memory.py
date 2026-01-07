@@ -1,7 +1,7 @@
-""
+"""
 Shared Experience Memory (Akashic Records)
 エージェント間で共有される取引経験・集合知データベース
-""
+"""
 
 import os
 import json
