@@ -174,7 +174,7 @@ def show_main_dashboard():
                 unsafe_allow_html=True,
             )
             time.sleep(3)
-            st.rerun()  # 処理中は自動更新
+            st.experimental_rerun()  # 処理中は自動更新
         else:
             st.markdown(
                 '<div class="status-ok">✅ システム正常稼働中</div>',
@@ -500,12 +500,12 @@ def show_main_dashboard():
     with col2:
         if st.button("📈 詳細を見る", use_container_width=True):
             st.session_state.page = "detail"
-            st.rerun()
+            st.experimental_rerun()
 
     with col3:
         if st.button("⚙️ 設定", use_container_width=True):
             st.session_state.page = "settings"
-            st.rerun()
+            st.experimental_rerun()
 
 
 def show_detail_page():
@@ -516,7 +516,7 @@ def show_detail_page():
 
     if st.button("← 戻る"):
         st.session_state.page = "main"
-        st.rerun()
+        st.experimental_rerun()
 
     st.markdown("---")
 
@@ -606,7 +606,7 @@ def show_settings_page():
 
     if st.button("← 戻る"):
         st.session_state.page = "main"
-        st.rerun()
+        st.experimental_rerun()
 
     st.markdown("---")
 

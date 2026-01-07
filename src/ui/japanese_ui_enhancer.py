@@ -282,7 +282,7 @@ def render_japanese_ui_components():
         with col3:
             if st.button("⚙️ 設定", key="settings_jp", help="システム設定"):
                 st.session_state.selected_tab = 4
-                st.rerun()
+                st.experimental_rerun()
 
         with col4:
             if st.button("❓ ヘルプ", key="help_jp", help="使い方を表示"):

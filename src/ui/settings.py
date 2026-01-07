@@ -123,7 +123,7 @@ def _render_simple_view():
             _save_full_config(config)
             st.success(f"✅ モードを更新しました！ (新規取引上限: {mode_info['max_daily_trades']}回)")
             if hasattr(st, "rerun"):
-                st.rerun()
+                st.experimental_rerun()
 
     st.divider()
     st.caption("ℹ️ 詳細な設定を変更するには、上の「専門家モード」をONにしてください。")
@@ -168,7 +168,7 @@ def _render_advanced_view():
                 reasoner.set_openai_key(new_openai_key)
                 st.success("✅ OpenAI APIキーを保存しました！")
                 if hasattr(st, "rerun"):
-                    st.rerun()
+                    st.experimental_rerun()
                 else:
                     st.experimental_rerun()
             else:

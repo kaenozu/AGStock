@@ -32,7 +32,7 @@ swarm = SwarmIntelligence()
 #                 if st.button("🍼 新しい後継者を産む"):
 #     pass
 #                     lm.spawn_child("Gold-Guardian-1", "Commodity/Gold", 500000)
-#                     st.rerun()
+#                     st.experimental_rerun()
 #             else:
 #     pass
 #                 df = pd.DataFrame(dynasty)

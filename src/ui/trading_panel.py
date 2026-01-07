@@ -6,10 +6,13 @@ Handles the Paper Trading interface (manual trading, positions, history).
 import plotly.graph_objects as go
 import streamlit as st
 
+
 from src.constants import MARKETS, TICKER_NAMES
 from src.data_loader import fetch_stock_data
 from src.formatters import format_currency
 from src.paper_trader import PaperTrader
+import pandas as pd
+from datetime import datetime, timedelta
 
 
 def render_trading_panel(sidebar_config):
@@ -78,6 +81,47 @@ def render_trading_panel(sidebar_config):
                 "unrealized_pnl",
                 "unrealized_pnl_pct",
             ]
+            
+            # --- Date Calculation Logic ---
+            # Ensure entry_date is available and calculate estimated exit
+            if "entry_date" in pos_display.columns:
+                # Fill NaN with today's date or leave as is, converting to datetime
+                pos_display["entry_date"] = pd.to_datetime(pos_display["entry_date"], errors='coerce')
+                
+                # Calculate estimated exit (Dynamic AI Prediction)
+                # Goal: +10% gain.
+                # Speed: Volatility (Price units per day). Assumption: 0.5 sigma move per day on average towards trend
+                def calc_ai_date(row):
+                    start_date = row["entry_date"]
+                    if pd.isna(start_date): return start_date
+                    
+                    target_price = row["entry_price"] * 1.10
+                    current = row["current_price"]
+                    gap = target_price - current
+                    vol = row.get("volatility", 0.0)
+                    
+                    if gap <= 0: return start_date + timedelta(days=1) # Already reached?
+                    
+                    days_needed = 14 # Default
+                    if vol > 0:
+                        # Gap / (0.3 * Volatility) -> Conservative estimate of daily trend progress
+                        days_needed = int(gap / (vol * 0.3))
+                        days_needed = max(1, min(days_needed, 60)) # Cap between 1 and 60 days
+                    
+                    # Logic is relative to TODAY if we are recalculating, or Entry?
+                    # "Prediction" usually implies "From Now".
+                    # Let's say: Today + Remaining Days needed.
+                    
+                    return datetime.now() + timedelta(days=days_needed)
+
+                pos_display["estimated_exit_date"] = pos_display.apply(calc_ai_date, axis=1)
+                
+                # Format for display (YYYY-MM-DD)
+                pos_display["entry_date"] = pos_display["entry_date"].dt.strftime('%Y-%m-%d').fillna("-")
+                pos_display["estimated_exit_date"] = pos_display["estimated_exit_date"].dt.strftime('%Y-%m-%d').fillna("-")
+                
+                target_cols.extend(["entry_date", "estimated_exit_date"])
+            
             existing_cols = [c for c in target_cols if c in pos_display.columns]
             pos_display = pos_display[existing_cols]
 
@@ -93,6 +137,8 @@ def render_trading_panel(sidebar_config):
                 "market_value": "時価評価額",
                 "unrealized_pnl": "評価損益",
                 "unrealized_pnl_pct": "損益比率",
+                "entry_date": "購入日",
+                "estimated_exit_date": "AI予測売却日",
             }
             pos_display = pos_display.rename(columns=col_map)
 

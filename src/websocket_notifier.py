@@ -281,7 +281,7 @@ class NotificationUI:
         else:
             st.warning("⚠️ WebSocket未接続")
             if st.button("🔄 再接続"):
-                st.rerun()
+                st.experimental_rerun()
 
         # 購読設定
         st.markdown("### 🔕 通知購読")

@@ -27,7 +27,7 @@ def render_mission_control():
         status_file = "data/system_status.json"
         if os.path.exists(status_file):
             try:
-                with open(status_file, "r") as f:
+                with open(status_file, "r", encoding="utf-8") as f:
                     status = json.load(f)
 
                 last_update = status.get("last_update", "Unknown")
@@ -178,7 +178,7 @@ def render_mission_control():
 
     with col1:
         if st.button("🔄 Refresh Status"):
-            st.rerun()
+            st.experimental_rerun()
 
     with col2:
         if st.button("🧹 Clear Cache"):

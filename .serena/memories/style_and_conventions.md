@@ -1,3 +1,25 @@
-- Codebase is standard Python 3 with type hints on function/method signatures (`def generate_signals(self, df: pd.DataFrame) -> pd.Series`). Classes encapsulate functionality (e.g., Strategy subclasses) with meaningful camel-cased names.
-- Inline comments (sometimes bilingual JP/EN) are used to clarify algorithm steps. Docstrings exist for key public methods (e.g., `Strategy.generate_signals` explains contract) but otherwise style follows PEP8 (4-space indents, snake_case functions/vars).
-- Uses pandas Series/DataFrames heavily; expect return values to be pandas objects. Tests rely on pytest fixtures; mocking done via pytest-mock. Keep imports ordered (stdlib, third-party, typing) as seen in files.
+# Style and Conventions
+
+## Formatting
+- **Tool**: Black
+- **Line Length**: 120 characters
+- **Target Versions**: Python 3.8 to 3.11 (though README mentions 3.12)
+
+## Linting
+- **Tool**: Flake8
+- **Scope**: `src/` and `tests/`
+
+## Type Checking
+- **Tool**: Mypy
+- **Python Version**: 3.10
+- **Configuration**: Strict optional checking, warns on unused configs and redundant casts.
+
+## Testing
+- **Framework**: Pytest
+- **Markers**: `slow`, `integration`, `unit`
+- **Coverage**: Tracked for `src/` using `pytest-cov`
+
+## Code Structure
+- Flat but massive `src/` directory.
+- Use of sub-packages for specific domains (e.g., `src/ui`, `src/trading`, `src/agents`).
+- Automation scripts at the root (many `.py` and `.bat` files).

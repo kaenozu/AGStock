@@ -55,7 +55,7 @@ with col2:
     consecutive = st.number_input(
         "連続損失回数", min_value=0, value=guard.consecutive_losses, step=1, format="%d"
     )
-    current_value = st.number_input("現在ポートフォリオ価値", min_value=0.0, value=guard.daily_start_value, step=1000.0)
+    current_value = st.number_input("現在ポートフォリオ価値", min_value=0.0, value=float(guard.daily_start_value), step=1000.0)
     vix = st.number_input("現在のVIX", min_value=0.0, value=0.0, step=0.5)
 
     if st.button("評価する"):

@@ -66,7 +66,7 @@ def render_gen_lab():
                 # Init file check
                 init_path = f"{STRATEGY_DIR}/__init__.py"
                 if not os.path.exists(init_path):
-                    with open(init_path, "w") as f:
+                    with open(init_path, "w", encoding="utf-8") as f:
                         f.write("")
 
                 st.success(f"✅ 保存しました: {file_path}")
@@ -75,7 +75,7 @@ def render_gen_lab():
                 # Clear state
                 del st.session_state["gen_code"]
                 if hasattr(st, "rerun"):
-                    st.rerun()
+                    st.experimental_rerun()
 
             except Exception as e:
                 st.error(f"保存エラー: {e}")

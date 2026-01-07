@@ -71,7 +71,7 @@ def render_quick_overview():
     with col2:
         st.caption(f"更新: {datetime.now().strftime('%H:%M:%S')}")
         if st.button("🔄 更新", key="refresh_overview"):
-            st.rerun()
+            st.experimental_rerun()
 
     # メインメトリクス (4列)
     cols = st.columns(4)

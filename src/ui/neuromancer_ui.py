@@ -62,8 +62,14 @@ def render_neuromancer_ui():
         with st.chat_message(msg["role"], avatar="🧠" if msg["role"] == "assistant" else "👤"):
             st.markdown(msg["content"])
 
-    # ユーザー入力
-    if prompt := st.chat_input("AIへの指令を入力..."):
+    # ユーザー入力 (st.chat_input はタブ内で使えないためtext_inputを使用)
+    col_input, col_btn = st.columns([5, 1])
+    with col_input:
+        prompt = st.text_input("AIへの指令を入力...", key="neuromancer_prompt", label_visibility="collapsed")
+    with col_btn:
+        send_clicked = st.button("送信", key="neuromancer_send")
+
+    if send_clicked and prompt:
         # ユーザーメッセージ追加
         history.append({"role": "user", "content": prompt})
         with st.chat_message("user", avatar="👤"):
@@ -77,7 +83,7 @@ def render_neuromancer_ui():
         with st.chat_message("assistant", avatar="🧠"):
             st.markdown(response)
 
-        st.rerun()
+        st.experimental_rerun()
 
     # サイドバーにAIの状態表示
     with st.sidebar:

@@ -95,16 +95,12 @@ class DashboardRouter:
         # タブ定義: (表示名, レンダリング関数)
         tabs = [
             ("🏠 ダッシュボード", render_dashboard_tab),
-            ("🧠 Neural Monitor", render_neural_monitor_tab),
-            ("🕵️ Neuromancer", render_neuromancer_tab),  # Renamed for clarity
             ("📈 運用パフォーマンス", render_performance_tab),
-            ("🤖 AI分析センター", render_ai_hub_tab),
             (f"💼 トレーディング{trading_badge}", render_trading_tab),
             ("🧪 戦略研究所", render_lab_tab),
             ("🎯 予測精度分析", render_prediction_tab),
             ("🏆 シャドウ・トーナメント", render_tournament_tab),
             ("🚀 Mission Control", render_mission_control_tab),
-            ("🏛️ Divine Hub", render_divine_tab),
             ("🧬 Genetic Lab", render_genetic_tab),
             ("🌐 War Room", render_war_room_tab),
         ]

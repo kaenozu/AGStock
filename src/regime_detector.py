@@ -56,6 +56,21 @@ class RegimeDetector:
         )
         return regime
 
+    def get_regime_signal(self, df: pd.DataFrame, vix_value: Optional[float] = None) -> Dict:
+        """
+        Returns regime detection result as a dictionary.
+        Compatibility wrapper for detect_regime.
+        """
+        regime = self.detect_regime(df, vix_value)
+        strategy = self.get_regime_strategy(regime)
+        return {
+            "regime": regime,
+            "strategy": strategy.get("strategy", "unknown"),
+            "position_size": strategy.get("position_size", 1.0),
+            "stop_loss": strategy.get("stop_loss", 0.02),
+            "take_profit": strategy.get("take_profit", 0.05),
+        }
+
     def _detect_trend_fallback(self, df: pd.DataFrame, window: int) -> str:
         if df is None or df.empty or len(df) < window:
             return "ranging"

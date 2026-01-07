@@ -34,15 +34,20 @@ def generate_equity_history(
 def generate_positions(seed: Optional[int] = None) -> pd.DataFrame:
     gen = _rng(seed)
     prices = gen.uniform(120, 400, size=5)
+    # Simulate some profit
+    avg_prices = prices * gen.uniform(0.90, 0.98, size=5) 
+    
     data = [
-        {"ticker": "AAPL", "quantity": 50, "current_price": prices[0]},
-        {"ticker": "MSFT", "quantity": 40, "current_price": prices[1]},
-        {"ticker": "6758.T", "quantity": 100, "current_price": prices[2]},
-        {"ticker": "AIR.PA", "quantity": 30, "current_price": prices[3]},
-        {"ticker": "BTC-USD", "quantity": 0.5, "current_price": prices[4]},
+        {"ticker": "AAPL", "quantity": 50, "current_price": prices[0], "avg_price": avg_prices[0]},
+        {"ticker": "MSFT", "quantity": 40, "current_price": prices[1], "avg_price": avg_prices[1]},
+        {"ticker": "6758.T", "quantity": 100, "current_price": prices[2], "avg_price": avg_prices[2]},
+        {"ticker": "AIR.PA", "quantity": 30, "current_price": prices[3], "avg_price": avg_prices[3]},
+        {"ticker": "BTC-USD", "quantity": 0.5, "current_price": prices[4], "avg_price": avg_prices[4]},
     ]
     df = pd.DataFrame(data)
     df["market_value"] = df["quantity"] * df["current_price"]
+    df["unrealized_pnl"] = (df["current_price"] - df["avg_price"]) * df["quantity"]
+    df["unrealized_pnl_pct"] = (df["current_price"] / df["avg_price"]) - 1
     return df
 
 
