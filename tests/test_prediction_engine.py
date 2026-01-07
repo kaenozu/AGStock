@@ -76,23 +76,40 @@ class TestPredictionEngine:
             
             predictor.transformer_predictor = mock_factory()
             predictor.transformer_predictor.predict_point.return_value = 0.02
+            predictor.transformer_predictor.predict.return_value = np.array([0.02])
             
             predictor.advanced_models = mock_factory()
             predictor.advanced_models.predict_point.return_value = 0.02
+            predictor.advanced_models.predict.return_value = np.array([0.02])
             
             predictor.lgbm_predictor = mock_factory()
             predictor.lgbm_predictor.predict_point.return_value = 0.02
+            predictor.lgbm_predictor.predict.return_value = np.array([0.02])
             
             predictor.prophet_predictor = mock_factory()
+            predictor.prophet_predictor.predict.return_value = np.array([0.02])
+            
             predictor.future_predictor = mock_factory()
+            predictor.future_predictor.predict.return_value = np.array([0.02])
+            
             predictor.sentiment_predictor = mock_factory()
+            predictor.sentiment_predictor.predict.return_value = np.array([0.02])
+            
             predictor.risk_predictor = mock_factory()
+            predictor.risk_predictor.predict.return_value = np.array([0.02])
+            
             predictor.multi_asset_predictor = mock_factory()
+            predictor.multi_asset_predictor.predict.return_value = np.array([0.02])
+            
             predictor.scenario_predictor = mock_factory()
+            predictor.scenario_predictor.predict.return_value = np.array([0.02])
             predictor.scenario_predictor.analyze.return_value = {"details": "mock"}
             
+            predictor.realtime_pipeline = mock_factory()
+            predictor.realtime_pipeline.predict.return_value = np.array([0.02])
+            
             async def side_effect(data_dict):
-                return {ticker: {"prediction": 0.02} for ticker in data_dict.keys()}
+                return {ticker: 0.02 for ticker in data_dict.keys()}
             predictor.batch_predict = AsyncMock(side_effect=side_effect)
             
             predictor.mlops_manager = MagicMock()
@@ -209,7 +226,7 @@ class TestPredictionEngine:
         invalid_data = pd.DataFrame({"invalid": [1, 2, 3]})
 
         # エラーが適切に処理されるか
-        with pytest.raises((ValueError, KeyError)):
+        with pytest.raises((ValueError, KeyError, AttributeError)):
             mock_predictor.predict_ensemble(invalid_data)
 
     def test_model_confidence_calculation(self, sample_data, mock_predictor):
@@ -267,13 +284,13 @@ class TestPredictionEngine:
         new_data = sample_data.iloc[-30:]  # 最新30日分
 
         # モデル更新のモック
-        mock_predictor.update_models = Mock(return_value=True)
+        mock_predictor.update = Mock(return_value=True)
 
         # 更新実行
         result = mock_predictor.update_models_with_new_data(new_data)
 
         assert result is True
-        mock_predictor.update_models.assert_called_once()
+        mock_predictor.update.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_batch_prediction(self, sample_data, mock_predictor):

@@ -143,13 +143,17 @@ class Backtester:
             # Identify exit from signals (if no other exit criteria met yet)
             for i in range(entry_idx, len(df)):
                 s = signals.iloc[i]
-                if s is not None and s != 0:
-                    # If we are Long, look for -1. If Short, look for 1.
+                if s is not None:
+                    # Handle both float/int and Order objects
+                    sig_val = s.action if isinstance(s, Order) else s
                     is_exit = False
-                    if trade_type == "Long" and ((not isinstance(s, Order) and s < 0) or (isinstance(s, Order) and s.action == "SELL")):
-                        is_exit = True
-                    elif trade_type == "Short" and ((not isinstance(s, Order) and s > 0) or (isinstance(s, Order) and s.action == "BUY")):
-                        is_exit = True
+                    
+                    if trade_type == "Long":
+                        if (isinstance(sig_val, str) and sig_val == "SELL") or (not isinstance(sig_val, str) and sig_val <= -0.5):
+                            is_exit = True
+                    elif trade_type == "Short":
+                        if (isinstance(sig_val, str) and sig_val == "BUY") or (not isinstance(sig_val, str) and sig_val >= 0.5):
+                            is_exit = True
                     
                     if is_exit:
                         exit_idx = min(i + 1, len(df) - 1)
@@ -170,37 +174,35 @@ class Backtester:
                     reason = "Strategy Signal"
                 
                 # Simulate Trailing Stop / Stop Loss / Take Profit
+                # Check from entry_idx onwards
                 if stop_loss:
-                    target = entry_price * (1.0 - stop_loss) if trade_type == "Long" else entry_price * (1.0 + stop_loss)
-                    hit = False
+                    sl_target = entry_price * (1.0 - stop_loss) if trade_type == "Long" else entry_price * (1.0 + stop_loss)
                     for i in range(entry_idx, len(df)):
                         l = df["Low"].iloc[i] if "Low" in df.columns else df["Close"].iloc[i]
                         h = df["High"].iloc[i] if "High" in df.columns else df["Close"].iloc[i]
-                        if (trade_type == "Long" and l <= target) or (trade_type == "Short" and h >= target):
-                            exit_price = target
-                            reason = "Stop Loss"
-                            hit = True
-                            exit_idx = i
-                            break
-                    if not hit: exit_price = last_price
-                elif take_profit:
-                    target = entry_price * (1.0 + take_profit) if trade_type == "Long" else entry_price * (1.0 - take_profit)
-                    hit = False
+                        if (trade_type == "Long" and l <= sl_target) or (trade_type == "Short" and h >= sl_target):
+                            if i < exit_idx: # SL hit before signal exit
+                                exit_price = sl_target
+                                reason = "Stop Loss"
+                                exit_idx = i
+                                break
+                
+                if take_profit and reason != "Stop Loss":
+                    tp_target = entry_price * (1.0 + take_profit) if trade_type == "Long" else entry_price * (1.0 - take_profit)
                     for i in range(entry_idx, len(df)):
                         l = df["Low"].iloc[i] if "Low" in df.columns else df["Close"].iloc[i]
                         h = df["High"].iloc[i] if "High" in df.columns else df["Close"].iloc[i]
-                        if (trade_type == "Long" and h >= target) or (trade_type == "Short" and l <= target):
-                            exit_price = target
-                            reason = "Take Profit"
-                            hit = True
-                            exit_idx = i
-                            break
-                    if not hit: exit_price = last_price
-                elif trailing_stop:
+                        if (trade_type == "Long" and h >= tp_target) or (trade_type == "Short" and l <= tp_target):
+                            if i < exit_idx: # TP hit before signal exit or SL
+                                exit_price = tp_target
+                                reason = "Take Profit"
+                                exit_idx = i
+                                break
+
+                if trailing_stop and reason not in ["Stop Loss", "Take Profit"]:
                     reason = "Trailing Stop"
                     if "High" in df.columns and "Low" in df.columns:
                         current_stop = entry_price * (1.0 - trailing_stop) if trade_type == "Long" else entry_price * (1.0 + trailing_stop)
-                        found_exit = False
                         for i in range(entry_idx, len(df)):
                             h = df["High"].iloc[i]
                             l = df["Low"].iloc[i]
@@ -208,19 +210,18 @@ class Backtester:
                                 new_stop = h * (1.0 - trailing_stop)
                                 if new_stop > current_stop: current_stop = new_stop
                                 if l <= current_stop:
-                                    exit_price = current_stop
-                                    found_exit = True
-                                    exit_idx = i
-                                    break
+                                    if i < exit_idx:
+                                        exit_price = current_stop
+                                        exit_idx = i
+                                        break
                             else:
                                 new_stop = l * (1.0 + trailing_stop)
                                 if new_stop < current_stop: current_stop = new_stop
                                 if h >= current_stop:
-                                    exit_price = current_stop
-                                    found_exit = True
-                                    exit_idx = i
-                                    break
-                        if not found_exit: exit_price = last_price
+                                    if i < exit_idx:
+                                        exit_price = current_stop
+                                        exit_idx = i
+                                        break
                     else:
                         high_price = df["Close"].iloc[entry_idx:].max()
                         exit_price = high_price * (1.0 - trailing_stop)

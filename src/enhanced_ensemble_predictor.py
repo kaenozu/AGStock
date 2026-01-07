@@ -458,7 +458,9 @@ class EnhancedEnsemblePredictor:
 
     def calculate_confidence(self, predictions: List[float], actual_values: List[float]) -> float:
         """Calculate model confidence based on error."""
-        if not predictions or not actual_values or len(predictions) != len(actual_values):
+        if predictions is None or actual_values is None:
+            return 0.85
+        if len(predictions) == 0 or len(predictions) != len(actual_values):
             return 0.85
         mse = np.mean((np.array(predictions) - np.array(actual_values))**2)
         confidence = 1.0 / (1.0 + mse)
@@ -472,11 +474,12 @@ class EnhancedEnsemblePredictor:
         """Compatibility alias for update."""
         return self.update(new_data, ticker)
 
-    async def batch_predict(self, data_dict: Dict[str, pd.DataFrame]) -> Dict[str, Dict]:
+    async def batch_predict(self, data_dict: Dict[str, pd.DataFrame]) -> Dict[str, Any]:
         """Predict for multiple tickers."""
         results = {}
         for ticker, data in data_dict.items():
-            results[ticker] = self.predict_ensemble(data, ticker)
+            res = self.predict_ensemble(data, ticker)
+            results[ticker] = res["predicted_price"] if isinstance(res, dict) else res
         return results
 
     def validate_prediction(self, prediction: Dict, current_price: float) -> bool:
