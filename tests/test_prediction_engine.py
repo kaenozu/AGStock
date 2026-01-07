@@ -51,6 +51,28 @@ class TestPredictionEngine:
             predictor.models = {}
             predictor.feature_columns = ["Close", "Volume", "RSI", "MACD"]
             predictor.prediction_cache = {}
+            
+            # Add missing mock attributes
+            predictor.transformer_predictor = Mock()
+            predictor.advanced_models = Mock()
+            predictor.lgbm_predictor = Mock()
+            predictor.prophet_predictor = Mock()
+            predictor.future_predictor = Mock()
+            predictor.sentiment_predictor = Mock()
+            predictor.sentiment_predictor.get_sentiment_features.return_value = {}
+            predictor.risk_predictor = Mock()
+            predictor.multi_asset_predictor = Mock()
+            predictor.scenario_predictor = Mock()
+            predictor.realtime_pipeline = Mock()
+            predictor.mlops_manager = Mock()
+            predictor.concept_drift_detector = Mock()
+            predictor.continual_learning_system = Mock()
+            predictor.fundamental_analyzer = Mock()
+            predictor.advanced_ensemble = Mock()
+            
+            # Setup logger mock
+            predictor.logger = Mock()
+            
             return predictor
 
     def test_ensemble_predictor_initialization(self, mock_predictor):
