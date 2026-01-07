@@ -250,6 +250,60 @@ class PortfolioOptimizer:
 
         return pd.DataFrame(frontier)
 
+    def quantum_hybrid_optimization(
+        self,
+        returns: pd.DataFrame,
+        risk_aversion: float = 0.5,
+        target_assets: int = 10
+    ) -> Dict:
+        """
+        Quantum-inspired hybrid optimization.
+        
+        Args:
+            returns: DataFrame of asset returns
+            risk_aversion: Risk aversion parameter (0-1)
+            target_assets: Number of assets to select via QUBO
+            
+        Returns:
+            Optimal weights and metrics
+        """
+        try:
+            from src.optimization.quantum_engine import QuantumPortfolioOptimizer
+            
+            optimizer = QuantumPortfolioOptimizer()
+            weights_dict = optimizer.solve_hybrid_optimization(
+                {col: pd.DataFrame({"Close": [0, 1], "Return": [0, 0]}) for col in returns.columns}, # Dummy structure for compatibility if needed
+                risk_aversion=risk_aversion,
+                target_assets=target_assets
+            )
+            
+            # Re-implementing logic here for direct DataFrame access
+            mu = returns.mean().values * 252
+            sigma = returns.cov().values * 252
+            tickers = returns.columns.tolist()
+            
+            # Use data directly
+            data_map = {ticker: pd.DataFrame({"Close": np.cumprod(1 + returns[ticker])}) for ticker in returns.columns}
+            weights_dict = optimizer.solve_hybrid_optimization(data_map, risk_aversion=risk_aversion, target_assets=target_assets)
+            
+            weights_series = pd.Series(weights_dict).reindex(returns.columns).fillna(0)
+            
+            # Calculate metrics
+            portfolio_ret = (weights_series * mu).sum()
+            portfolio_vol = np.sqrt(weights_series @ sigma @ weights_series)
+            sharpe = (portfolio_ret - self.risk_free_rate) / portfolio_vol if portfolio_vol > 0 else 0
+            
+            return {
+                "weights": weights_series,
+                "expected_return": portfolio_ret,
+                "volatility": portfolio_vol,
+                "sharpe_ratio": sharpe,
+                "method": "Quantum Hybrid"
+            }
+        except Exception as e:
+            logger.error(f"Quantum optimization failed: {e}")
+            return self.markowitz_optimization(returns)
+
 
 if __name__ == "__main__":
     # Test

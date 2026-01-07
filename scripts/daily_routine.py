@@ -10,22 +10,20 @@ Run this script once per day (e.g., after market close) to:
 Usage: python daily_routine.py
 """
 
-import datetime
 import json
-from pathlib import Path
+from src.utils.setup import setup_runtime_environment
 
-# Create logs directory if it doesn't exist
-Path("logs").mkdir(exist_ok=True)
-
+# Centralized setup
+logger = setup_runtime_environment("DailyRoutine")
 
 def log(message, level="INFO"):
-    """Log message to console and file"""
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    log_message = f"[{timestamp}] [{level}] {message}"
-    print(log_message)
-
-    with open("logs/daily_routine.log", "a", encoding="utf-8") as f:
-        f.write(log_message + "\n")
+    """Compatibility wrapper for existing log calls"""
+    if level == "INFO":
+        logger.info(message)
+    elif level == "WARNING":
+        logger.warning(message)
+    elif level == "ERROR":
+        logger.error(message)
 
 
 def run_daily_scan():

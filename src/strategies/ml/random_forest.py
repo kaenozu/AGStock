@@ -2,16 +2,15 @@ from typing import Dict
 
 import pandas as pd
 import ta
+from sklearn.ensemble import RandomForestClassifier
 
-from .base import Strategy
-from ..oracle.oracle_2026 import Oracle2026
+from ..base import Strategy
+from ...oracle.oracle_2026 import Oracle2026
 
 
 class MLStrategy(Strategy):
     def __init__(self, name: str = "AI Random Forest", trend_period: int = 0) -> None:
         super().__init__(name, trend_period)
-        from sklearn.ensemble import RandomForestClassifier
-
         self.model = RandomForestClassifier(n_estimators=100, random_state=42)
         self.oracle = Oracle2026()
         self.feature_names = ["RSI", "SMA_Ratio", "Volatility", "Ret_1", "Ret_5"]

@@ -23,26 +23,38 @@
 - ✅ `strategies.py` を `strategies_legacy.py` にリネーム
 - ✅ 後方互換性のための `__init__.py` を作成
 - ✅ サブディレクトリ作成: `technical/`, `ml/`, `fundamental/`, `ensemble/`
+- ✅ **テクニカル戦略の分割完了** (`technical/` パッケージ化)
+  - `SMACrossoverStrategy` → `technical/sma_crossover.py`
+  - `RSIStrategy` → `technical/rsi.py`
+  - `BollingerBandsStrategy` → `technical/bollinger_bands.py`
+- ✅ **Ensemble/Combined戦略の分割完了** (`ensemble/` パッケージ化)
+  - `CombinedStrategy` → `ensemble/combined.py`
+  - `EnsembleStrategy` → `ensemble/ensemble.py`
+- ✅ **ML戦略の分割完了** (`ml/` パッケージ化)
+  - `MLStrategy` → `ml/random_forest.py`
+  - `LightGBMStrategy` → `ml/lightgbm.py`
+  - `DeepLearningStrategy` → `ml/lstm.py`
+  - `TransformerStrategy` → `ml/transformer.py`
+  - `RLStrategy` → `ml/reinforcement_learning.py`
+  - `GRUStrategy` → `ml/gru.py`
+  - `AttentionLSTMStrategy` → `ml/attention_lstm.py`
+- ✅ **その他の戦略の分割完了**
+  - `DividendStrategy` → `fundamental/dividend.py`
+  - `SentimentStrategy` → `sentiment/sentiment.py`
+  - `MultiTimeframeStrategy` → `ensemble/multi_timeframe.py`
 
 #### 次のステップ
-1. **テクニカル戦略の分割**
-   - `SMACrossoverStrategy` → `technical/sma_crossover.py`
-   - `RSIStrategy` → `technical/rsi.py`
-   - `BollingerBandsStrategy` → `technical/bollinger_bands.py`
+1. **リファクタリング完了確認**
+   - 全ての戦略が適切なパッケージに配置されました。
+   - `src/strategies/__init__.py` を通じて後方互換性が維持されています。
+   - `strategies_legacy.py` は不要となったため削除されました。
 
-2. **ML戦略の分割**
-   - `MLStrategy` → `ml/random_forest.py`
-   - `LightGBMStrategy` → `ml/lightgbm.py`
-   - `DeepLearningStrategy` → `ml/lstm.py`
-   - `TransformerStrategy` → `ml/transformer.py`
-   - `RLStrategy` → `ml/reinforcement_learning.py`
-   - `GRUStrategy` → `ml/gru.py`
-   - `AttentionLSTMStrategy` → `ml/attention_lstm.py`
+2. **テストの実行と確認**
+   - リファクタリングによる影響がないか、既存のテストスイートを実行して確認する必要があります。
 
-3. **その他の戦略**
-   - `DividendStrategy` → `fundamental/dividend.py`
-   - `CombinedStrategy` → `ensemble/combined.py`
-   - `EnsembleStrategy` → `ensemble/ensemble.py`
+## 完了した成果
+
+全ての戦略ファイル (`strategies.py` 由来およびその他の巨大ファイル) は、機能ごとに整理されたパッケージ構造 (`technical`, `ml`, `fundamental`, `ensemble`, `sentiment`) に分割されました。これにより、コードの見通しが良くなり、個別の戦略の保守や拡張が容易になりました。
    - `MultiTimeframeStrategy` → `ensemble/multi_timeframe.py`
    - `SentimentStrategy` → `ensemble/sentiment.py`
 

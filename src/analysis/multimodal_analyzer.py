@@ -43,7 +43,8 @@ class MultimodalAnalyzer:
         self, 
         video_path: Optional[str] = None, 
         audio_path: Optional[str] = None, 
-        transcript: Optional[str] = None
+        transcript: Optional[str] = None,
+        pdf_path: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         決算説明会のマルチモーダル分析を実行する
@@ -55,25 +56,30 @@ class MultimodalAnalyzer:
             "timestamp": datetime.now().isoformat()
         }
 
-        # 1. テキスト分析 (LLMによる文脈・論理分析)
+        # 1. テキスト分析
         if transcript:
             text_res = self._analyze_text_sentiment(transcript)
             results["components"]["text"] = text_res
+            
+        # 2. PDF分析 (決算短信・説明資料)
+        if pdf_path and os.path.exists(pdf_path):
+            pdf_res = self._analyze_pdf_content(pdf_path)
+            results["components"]["pdf"] = pdf_res
         
-        # 2. 音声トーン分析 (自信、緊張、エネルギー)
+        # 3. 音声トーン分析
         if audio_path and os.path.exists(audio_path):
             audio_res = self._analyze_audio_tone(audio_path)
             results["components"]["audio"] = audio_res
             
-        # 3. 表情・視覚分析 (チャートや経営者の表情)
+        # 4. 表情・視覚分析
         if video_path and os.path.exists(video_path):
             vision_res = self._analyze_facial_expressions(video_path)
             results["components"]["vision"] = vision_res
 
-        # 4. 統合スコアリング
+        # 5. 統合スコアリング
         results["overall_sentiment"] = self._fuse_results(results["components"])
         
-        # 5. 特徴的な洞察の抽出
+        # 6. 特徴的な洞察の抽出
         results["insights"] = self._generate_multimodal_insights(results["components"])
 
         return results
@@ -84,19 +90,29 @@ class MultimodalAnalyzer:
             return {"score": 0.5, "confidence": 0.5, "reason": "No API Key"}
 
         prompt = f"""
-        以下の決算説明会テキストを分析し、感情スコア（0.0: 非常にネガティブ, 1.0: 非常にポジティブ）と
-        その信頼度（0.0-1.0）をJSON形式で出力してください。
+        あなたはシニア・金融アナリストです。
+        以下の決算説明会テキストを分析し、市場への影響度を評価してください。
+        
+        評価軸:
+        1. 業績の進捗 (好調か、予想を上回ったか)
+        2. ガイダンス (将来予測は強気か)
+        3. リスク要因 (コスト増、競争激化、マクロ影響)
+        
+        以下のJSON形式でのみ出力してください:
+        {{
+          "score": 0.0-1.0 (ポジティブ度),
+          "confidence": 0.0-1.0 (信頼度),
+          "summary": "要約",
+          "bull_points": ["ポジティブ要因"],
+          "bear_points": ["ネガティブ要因"]
+        }}
         
         テキスト:
-        {text[:2000]}
-        
-        出力形式:
-        {{"score": 0.0-1.0, "confidence": 0.0-1.0, "summary": "簡潔な要約"}}
+        {text[:4000]}
         """
         
         try:
             response = self.model.generate_content(prompt)
-            # JSON部分を抽出
             content = response.text.strip()
             if "```json" in content:
                 content = content.split("```json")[1].split("```")[0].strip()
@@ -104,6 +120,28 @@ class MultimodalAnalyzer:
         except Exception as e:
             logger.error(f"Text analysis error: {e}")
             return {"score": 0.5, "confidence": 0.3, "error": str(e)}
+
+    def _analyze_pdf_content(self, path: str) -> Dict[str, Any]:
+        """決算短信などのPDFを直接読み取って分析"""
+        try:
+            pdf_file = genai.upload_file(path=path)
+            prompt = """
+            このPDF資料（決算短信等）から主要な財務指標と市場へのメッセージを読み取り、
+            分析結果を以下のJSON形式で返してください。
+            {
+              "score": 0.0-1.0,
+              "key_metrics": {"指標名": "値"},
+              "verdict": "結論としての評価"
+            }
+            """
+            response = self.model.generate_content([prompt, pdf_file])
+            content = response.text.strip()
+            if "```json" in content:
+                content = content.split("```json")[1].split("```")[0].strip()
+            return json.loads(content)
+        except Exception as e:
+            logger.error(f"PDF analysis failed: {e}")
+            return {"score": 0.5, "confidence": 0.2}
 
     def _analyze_audio_tone(self, path: str) -> Dict[str, Any]:
         """声のトーンから「自信」や「緊張」を判定"""
@@ -141,13 +179,14 @@ class MultimodalAnalyzer:
         
         mapping = {
             "text": "text",
+            "pdf": "text", # PDF also contributes to text score for now
             "audio": "audio_tone",
             "vision": "facial_expression"
         }
         
         for comp_key, weight_key in mapping.items():
             if comp_key in components:
-                weight = self.weights[weight_key]
+                weight = self.weights.get(weight_key, 0.3)
                 score += components[comp_key].get("score", 0.5) * weight
                 total_weight += weight
                 
@@ -158,14 +197,26 @@ class MultimodalAnalyzer:
         insights = []
         
         text = components.get("text", {})
+        pdf = components.get("pdf", {})
         audio = components.get("audio", {})
         vision = components.get("vision", {})
         
         if "summary" in text:
-            insights.append(f"テキスト要約: {text['summary']}")
+            insights.append(f"発表内容要約: {text['summary']}")
+            
+        if "verdict" in pdf:
+            insights.append(f"財務資料分析: {pdf['verdict']}")
+
+        if text.get("bull_points"):
+            insights.extend([f"▲ {p}" for p in text["bull_points"][:2]])
+        
+        if text.get("bear_points"):
+            insights.extend([f"▼ {p}" for p in text["bear_points"][:2]])
             
         if text.get("score", 0.5) > 0.6 and audio.get("score", 0.5) > 0.6:
             insights.append("言葉と声のトーンの両面でポジティブなメッセージが確認されました。")
+        elif text.get("score", 0.5) > 0.6 and audio.get("score", 0.5) < 0.4:
+            insights.append("発言内容は前向きですが、声のトーンにやや慎重さが見受けられます。")
             
         return insights
 

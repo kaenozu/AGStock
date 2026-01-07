@@ -2,10 +2,10 @@ import logging
 
 import pandas as pd
 
-from ..multi_timeframe import MultiTimeframeAnalyzer
+from ...multi_timeframe import MultiTimeframeAnalyzer
 
-from .base import Strategy
-from .technical import CombinedStrategy
+from ..base import Strategy
+from .combined import CombinedStrategy
 
 logger = logging.getLogger(__name__)
 
