@@ -102,7 +102,7 @@ def render_portfolio_panel(sidebar_config, strategies):
                 # Weight Optimization
                 weight_mode = st.radio(
                     "配分比率 (Weights)",
-                    ["均等配分 (Equal)", "最適化 (Max Sharpe)"],
+                    ["均等配分 (Equal)", "最適化 (Max Sharpe)", "量子ハイブリッド最適化 (Quantum)"],
                     horizontal=True,
                 )
 
@@ -110,15 +110,20 @@ def render_portfolio_panel(sidebar_config, strategies):
                 if weight_mode == "均等配分 (Equal)":
                     weight = 1.0 / len(selected_portfolio)
                     weights = {t: weight for t in selected_portfolio}
-                else:
+                elif weight_mode == "最適化 (Max Sharpe)":
                     with st.spinner("シャープレシオ最大化ポートフォリオを計算中..."):
                         weights = pm.optimize_portfolio(data_map_pf)
                         st.success("最適化完了")
+                else:
+                    with st.spinner("量子ハイブリッドアニーリングで最適銘柄と配分を探索中..."):
+                        weights = pm.optimize_portfolio_quantum(data_map_pf)
+                        st.success("量子ハイブリッド最適化（銘柄選択＋重み配分）完了")
 
-                        st.write("推奨配分比率:")
-                        w_df = pd.DataFrame.from_dict(weights, orient="index", columns=["Weight"])
-                        w_df["Weight"] = w_df["Weight"].apply(lambda x: f"{x * 100:.1f}%")
-                        st.dataframe(w_df.T)
+                if weight_mode != "均等配分 (Equal)":
+                    st.write(f"推奨配分比率 ({weight_mode}):")
+                    w_df = pd.DataFrame.from_dict(weights, orient="index", columns=["Weight"])
+                    w_df["Weight"] = w_df["Weight"].apply(lambda x: f"{x * 100:.1f}%")
+                    st.dataframe(w_df.T)
 
                 pf_res = pm.simulate_portfolio(data_map_pf, pf_strategies, weights)
 

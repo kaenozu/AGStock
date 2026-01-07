@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
-from fully_automated_trader import FullyAutomatedTrader
+from src.trading.fully_automated_trader import FullyAutomatedTrader
 
 from src.paper_trader import PaperTrader
 
@@ -79,7 +79,7 @@ class TestPhase30FullIntegration(unittest.TestCase):
             mock_sig.return_value = pd.Series([0] * 99 + [1], index=dates)
 
             # Also need to mock fetch_fundamental_data to pass filter
-            with patch("fully_automated_trader.fetch_fundamental_data") as mock_fund:
+            with patch("src.trading.fully_automated_trader.fetch_fundamental_data") as mock_fund:
                 mock_fund.return_value = {"marketCap": 10000000000, "trailingPE": 15}
 
                 # Run scan_market
@@ -139,8 +139,8 @@ class TestPhase30FullIntegration(unittest.TestCase):
             index=dates,
         )
 
-        # fully_automated_trader モジュール内の fetch_stock_data をパッチ
-        with patch("fully_automated_trader.fetch_stock_data", return_value={"7203.T": df_up}):
+        # src.trading.fully_automated_trader モジュール内の fetch_stock_data をパッチ
+        with patch("src.trading.fully_automated_trader.fetch_stock_data", return_value={"7203.T": df_up}):
             # Run evaluate_positions
             self.trader.evaluate_positions()
 
@@ -164,7 +164,7 @@ class TestPhase30FullIntegration(unittest.TestCase):
             index=pd.date_range("2024-01-21", periods=5, freq="D"),
         )
 
-        with patch("fully_automated_trader.fetch_stock_data", return_value={"7203.T": df_drop}):
+        with patch("src.trading.fully_automated_trader.fetch_stock_data", return_value={"7203.T": df_drop}):
             self.trader.evaluate_positions()
 
             positions = self.pt.get_positions()
@@ -183,7 +183,7 @@ class TestPhase30FullIntegration(unittest.TestCase):
             index=pd.date_range("2024-01-26", periods=5, freq="D"),
         )
 
-        with patch("fully_automated_trader.fetch_stock_data", return_value={"7203.T": df_crash}):
+        with patch("src.trading.fully_automated_trader.fetch_stock_data", return_value={"7203.T": df_crash}):
             actions = self.trader.evaluate_positions()
 
             print(f"Actions generated: {actions}")

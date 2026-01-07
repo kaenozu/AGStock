@@ -146,6 +146,9 @@ cat reports/daily_report_$(date +%Y%m%d).txt
 # 自動バックアップスクリプト実行
 python scripts/backup_data.py
 
+# ブロックチェーン・レジャーのバックアップ
+cp data/signal_chain.json data/backups/signal_chain_$(date +%Y%m%d).json
+
 # バックアップ確認
 ls -lh data/backups/
 ```

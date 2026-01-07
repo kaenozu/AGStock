@@ -211,7 +211,23 @@ class DataManager:
         """Optimize the metadata db."""
         try:
             conn = sqlite3.connect(self.db_path)
-            conn.execute("VACUUM")
+            conn.execute("PRAGMA journal_mode=WAL") # WALモード有効化
+            conn.execute("PRAGMA synchronous=NORMAL")
+            conn.execute("ANALYZE") # 統計情報の更新
+            conn.execute("VACUUM") # 断片化解消
             conn.close()
-        except BaseException:
-            pass
+            logger.info("Database optimization (DataManager) completed.")
+        except Exception as e:
+            logger.error(f"Database optimization error: {e}")
+
+    def create_indexes(self):
+        """必要なインデックスを作成して検索を高速化"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            # 銘柄と日付の複合インデックス
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_metadata_ticker_date ON ticker_metadata (ticker, last_updated)")
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            logger.error(f"Index creation error: {e}")

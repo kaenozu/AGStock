@@ -138,6 +138,29 @@ class PortfolioManager:
 
         return optimized_weights
 
+    def optimize_portfolio_quantum(
+        self, data_map: Dict[str, pd.DataFrame], risk_aversion: float = 0.5
+    ) -> Dict[str, float]:
+        """
+        Optimizes portfolio weights using Hybrid Quantum-Classical Optimization.
+        """
+        try:
+            from src.optimization.quantum_engine import QuantumPortfolioOptimizer
+            
+            optimizer = QuantumPortfolioOptimizer()
+            # Use Hybrid Optimization (Subset Selection + Weight Allocation)
+            final_weights = optimizer.solve_hybrid_optimization(
+                data_map, 
+                risk_aversion=risk_aversion,
+                target_assets=10 # Top 10 stocks selection
+            )
+            
+            return final_weights
+            
+        except Exception as e:
+            print(f"Quantum hybrid optimization error: {e}")
+            return self.optimize_portfolio(data_map)
+
     def rebalance_portfolio(
         self,
         current_holdings: Dict[str, float],

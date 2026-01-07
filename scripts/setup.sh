@@ -12,8 +12,10 @@ if ! command -v python3 &> /dev/null; then
     exit 1
 fi
 
-echo "[1/5] Installing dependencies..."
-pip3 install -r requirements.txt
+echo "[1/5] Creating virtual environment and installing dependencies..."
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 if [ $? -ne 0 ]; then
     echo "[ERROR] Failed to install dependencies"
     exit 1
@@ -23,10 +25,11 @@ echo ""
 echo "[2/5] Creating directories..."
 mkdir -p reports
 mkdir -p data
+mkdir -p logs
 
 echo ""
 echo "[3/5] Initializing Paper Trading database..."
-python3 -c "from src.paper_trader import PaperTrader; pt = PaperTrader(); print('Database initialized')"
+./.venv/bin/python -c "from src.paper_trader import PaperTrader; pt = PaperTrader(); print('Database initialized')"
 
 echo ""
 echo "[4/5] Creating environment template..."
@@ -50,13 +53,13 @@ fi
 
 echo ""
 echo "[5/5] Running quick test..."
-python3 -c "import streamlit; import lightgbm; import yfinance; print('All imports successful!')"
+./.venv/bin/python -c "import streamlit; import lightgbm; import yfinance; print('All imports successful!')"
 
 echo ""
 echo "[6/6] Optional: Setup Cron Job"
 read -p "Do you want to schedule daily auto-trade at 17:00? (y/n): " schedule
 if [ "$schedule" = "y" ]; then
-    (crontab -l 2>/dev/null; echo "0 17 * * 1-5 cd $(pwd) && /usr/bin/python3 auto_trader.py >> reports/cron.log 2>&1") | crontab -
+    (crontab -l 2>/dev/null; echo "0 17 * * 1-5 cd $(pwd) && ./.venv/bin/python run_auto_trade.py >> reports/cron.log 2>&1") | crontab -
     echo "Cron job added!"
 fi
 
@@ -67,5 +70,5 @@ echo "========================================"
 echo ""
 echo "Next steps:"
 echo "1. Edit .env file with your notification settings (optional)"
-echo "2. Run: streamlit run app.py"
+echo "2. Run: ./.venv/bin/streamlit run app.py"
 echo ""

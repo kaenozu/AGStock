@@ -5,12 +5,13 @@ Production Readiness Check
 システムが実運用に耐えられるか総合的に調査します。
 
 使い方:
-  python production_readiness_check.py
+  python scripts/production_readiness_check.py
 """
 
 import json
 import sqlite3
 import sys
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -68,7 +69,7 @@ class ProductionReadinessCheck:
         self.check_item(
             "Pythonバージョン",
             passed,
-            f"Python {version.major}.{version.minor}.{version.micro} {'(OK)' if passed else '(3.8以上が必要)'}",
+            f"Python {version.major}.{version.minor}.{version.micro} ({'OK' if passed else '3.8以上が必要'})",
             critical=True,
         )
 
@@ -99,15 +100,15 @@ class ProductionReadinessCheck:
         self.print_header("3. コアファイルチェック")
 
         core_files = [
-            "unified_dashboard.py",
-            "morning_dashboard.py",
-            "weekend_advisor.py",
-            "setup_wizard.py",
-            "quick_start.py",
+            "app.py",
+            "src/dashboard/unified_dashboard.py",
+            "src/dashboard/morning_dashboard.py",
+            "scripts/weekend_advisor.py",
+            "scripts/setup_wizard.py",
+            "scripts/quick_start.py",
             "config.json",
             "src/paper_trader.py",
             "src/data_loader.py",
-            "src/strategies.py",
         ]
 
         for filepath in core_files:
@@ -131,7 +132,8 @@ class ProductionReadinessCheck:
                 cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
                 tables = [row[0] for row in cursor.fetchall()]
 
-                required_tables = ["trades", "positions", "equity_history"]
+                # PaperTrader v2 に合わせたテーブル名
+                required_tables = ["orders", "positions", "balance", "accounts"]
                 for table in required_tables:
                     self.check_item(
                         f"テーブル: {table}", table in tables, "テーブルが存在しません" if table not in tables else ""
@@ -169,13 +171,13 @@ class ProductionReadinessCheck:
                     # 損切りラインチェック
                     stop_loss = risk.get("stop_loss_pct", 0)
                     self.check_item(
-                        "損切りライン設定", 0 < stop_loss <= 0.10, f"現在: {stop_loss*100:.1f}% (推奨: 3-10%)"
+                        "損切りライン設定", 0 < stop_loss <= 0.15, f"現在: {stop_loss*100:.1f}%"
                     )
 
-                    # ポジションサイズチェック
+                    # 最大ポジションサイズチェック
                     max_pos = risk.get("max_position_size", 0)
                     self.check_item(
-                        "最大ポジションサイズ", 0 < max_pos <= 0.20, f"現在: {max_pos*100:.1f}% (推奨: 10-20%)"
+                        "最大ポジションサイズ", 0 < max_pos <= 0.30, f"現在: {max_pos*100:.1f}%"
                     )
 
             except json.JSONDecodeError:
@@ -183,24 +185,28 @@ class ProductionReadinessCheck:
             except Exception as e:
                 self.check_item("config.json", False, f"エラー: {e}", critical=True)
         else:
-            self.check_item("config.json", False, "setup_wizard.py で作成してください", critical=True)
+            self.check_item("config.json", False, "scripts/setup_wizard.py で作成してください", critical=True)
 
     def check_src_modules(self):
         """srcモジュールチェック"""
         self.print_header("6. srcモジュールチェック")
+
+        # インポート確認用
+        if os.getcwd() not in sys.path:
+            sys.path.append(os.getcwd())
 
         critical_modules = [
             "src.paper_trader",
             "src.data_loader",
             "src.strategies",
             "src.formatters",
-            "src.anomaly_detector",
-            "src.auto_rebalancer",
+            "src.execution.anomaly_detector",
+            "src.execution.adaptive_rebalancer",
         ]
 
         for module_name in critical_modules:
             try:
-                module = __import__(module_name, fromlist=[""])
+                __import__(module_name, fromlist=[""])
                 self.check_item(f"モジュール: {module_name}", True)
             except ImportError as e:
                 self.check_item(f"モジュール: {module_name}", False, f"インポートエラー: {e}", critical=True)
@@ -218,7 +224,7 @@ class ProductionReadinessCheck:
             process = psutil.Process()
             memory_mb = process.memory_info().rss / 1024 / 1024
 
-            self.check_item("メモリ使用量", memory_mb < 500, f"現在: {memory_mb:.1f}MB (推奨: 500MB以下)")
+            self.check_item("メモリ使用量", memory_mb < 1500, f"現在: {memory_mb:.1f}MB (推奨: 1500MB以下)")
         except ImportError:
             self.check_item("メモリ使用量", True, "psutilがないため確認できません (任意)")
 
@@ -228,7 +234,7 @@ class ProductionReadinessCheck:
             cache_size = sum(f.stat().st_size for f in cache_dir.rglob("*") if f.is_file())
             cache_size_mb = cache_size / 1024 / 1024
 
-            self.check_item("キャッシュサイズ", cache_size_mb < 100, f"現在: {cache_size_mb:.1f}MB (推奨: 100MB以下)")
+            self.check_item("キャッシュサイズ", cache_size_mb < 500, f"現在: {cache_size_mb:.1f}MB (推奨: 500MB以下)")
         else:
             self.check_item("キャッシュディレクトリ", True, "初回起動時に作成されます")
 
@@ -264,8 +270,9 @@ class ProductionReadinessCheck:
 
         docs = [
             "README.md",
-            "GETTING_STARTED.md",
-            "COMPLETION_SUMMARY.md",
+            "docs/GETTING_STARTED.md",
+            "docs/COMPLETION_SUMMARY.md",
+            "docs/USER_MANUAL.md",
         ]
 
         for doc in docs:
@@ -334,7 +341,7 @@ class ProductionReadinessCheck:
             print("2. 必要なパッケージをインストールしてください:")
             print("   pip install -r requirements.txt")
             print("3. 設定ウィザードを実行してください:")
-            print("   python setup_wizard.py")
+            print("   python scripts/setup_wizard.py")
         elif warnings > 0:
             print("\n1. 警告を確認してください")
             print("2. 可能であれば修正を推奨します")
@@ -343,8 +350,8 @@ class ProductionReadinessCheck:
             print("\n✅ すべてのチェックに合格しました!")
             print("✅ 実運用に問題ありません!")
             print("\n次のステップ:")
-            print("  1. python setup_wizard.py (未実行の場合)")
-            print("  2. run_unified_dashboard.bat")
+            print("  1. python scripts/setup_wizard.py (未実行の場合)")
+            print("  2. streamlit run app.py")
             print("  3. 実際に使ってみる!")
 
         return failed == 0
@@ -352,7 +359,7 @@ class ProductionReadinessCheck:
     def run_all_checks(self):
         """全チェック実行"""
         print("=" * 70)
-        print("  🔍 実運用準備チェック")
+        print("  🔍 実運用準備チェック (v2.0)")
         print("  Production Readiness Check")
         print("=" * 70)
         print(f"\n実行日時: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")

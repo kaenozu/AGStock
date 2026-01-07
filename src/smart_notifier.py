@@ -247,6 +247,49 @@ class SmartNotifier(Notifier):
             print(f"チャート生成エラー: {e}")
             return None
 
+    def create_equity_chart(self, equity_history: pd.DataFrame) -> str:
+        """資産推移チャートを生成してパスを返す"""
+        try:
+            if equity_history.empty:
+                return None
+
+            fig, ax = plt.subplots(figsize=(10, 5), dpi=100)
+
+            # 資産推移
+            ax.plot(equity_history.index, equity_history["total_equity"], linewidth=3, color="#00D9FF")
+            ax.fill_between(equity_history.index, equity_history["total_equity"], alpha=0.2, color="#00D9FF")
+
+            # スタイル設定
+            ax.set_facecolor("#1E1E1E")
+            fig.patch.set_facecolor("#1E1E1E")
+            ax.spines["bottom"].set_color("white")
+            ax.spines["top"].set_color("white")
+            ax.spines["right"].set_color("white")
+            ax.spines["left"].set_color("white")
+            ax.tick_params(colors="white")
+            ax.yaxis.label.set_color("white")
+            ax.xaxis.label.set_color("white")
+            ax.title.set_color("white")
+
+            ax.set_title("ポートフォリオ資産推移", fontsize=16, color="white", fontweight="bold")
+            ax.set_ylabel("総資産 (円)", fontsize=12, color="white")
+            ax.grid(True, alpha=0.2, color="white")
+
+            # 日付フォーマット
+            ax.xaxis.set_major_formatter(mdates.DateFormatter("%m/%d"))
+            plt.xticks(rotation=45)
+            plt.tight_layout()
+
+            # 一時ファイルに保存
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".png", prefix="equity_")
+            fig.savefig(temp_file.name, facecolor="#1E1E1E", dpi=100)
+            plt.close(fig)
+
+            return temp_file.name
+        except Exception as e:
+            print(f"資産推移チャート生成エラー: {e}")
+            return None
+
     def send_trading_signal(self, signal: Dict, df: Optional[pd.DataFrame] = None):
         """
         トレーディングシグナルを通知
@@ -322,7 +365,7 @@ class SmartNotifier(Notifier):
         """Discord Webhookで通知を送信（boolを返すラッパー）"""
         return self._send_discord_webhook_impl(message, webhook_url=webhook_url, image_path=image_path)
 
-    def send_daily_summary_rich(self, summary: Dict):
+    def send_daily_summary_rich(self, summary: Dict, image_path: Optional[str] = None):
         """
         リッチな日次サマリーを送信
 
@@ -336,6 +379,7 @@ class SmartNotifier(Notifier):
                 - signals: シグナルリスト
                 - top_performer: トップパフォーマー
                 - advice: アドバイス
+            image_path: 画像パス（オプション）
         """
         # 静穏時間チェック
         if "PYTEST_CURRENT_TEST" not in os.environ and self.is_quiet_time():
@@ -373,8 +417,8 @@ class SmartNotifier(Notifier):
         # 各種通知
         line_config = self.notification_settings.get("line", {})
         if line_config.get("enabled"):
-            self.send_line_notify(message, token=line_config.get("token"))
+            self.send_line_notify(message, token=line_config.get("token"), image_path=image_path)
 
         discord_config = self.notification_settings.get("discord", {})
         if discord_config.get("enabled"):
-            self.send_discord_webhook(message, webhook_url=discord_config.get("webhook_url"))
+            self.send_discord_webhook(message, webhook_url=discord_config.get("webhook_url"), image_path=image_path)

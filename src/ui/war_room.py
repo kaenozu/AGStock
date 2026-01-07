@@ -3,6 +3,7 @@ import pandas as pd
 import time
 from datetime import datetime
 import random
+from src.trading.collective_intelligence import CollectiveIntelligenceManager
 
 
 def render_war_room():
@@ -32,6 +33,15 @@ def render_war_room():
             border-radius: 5px;
             font-family: 'Courier New', monospace;
         }
+        .consensus-box {
+            background-color: #002200;
+            border: 1px solid #00ff00;
+            color: #ccffcc;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+        }
         .stat-card-war {
             background-color: #111;
             border: 1px solid #333;
@@ -43,12 +53,14 @@ def render_war_room():
         unsafe_allow_html=True,
     )
 
-    st.markdown('<h1 class="war-room-header">🌐 Global Sentiment War Room</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="war-room-header">🌐 DAO Global Sentiment War Room</h1>', unsafe_allow_html=True)
 
+    cim = CollectiveIntelligenceManager()
+    
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.markdown(
-            '<div class="stat-card-war"><h3>DEFCON</h3><h1 style="color:orange">3</h1></div>', unsafe_allow_html=True
+            '<div class="stat-card-war"><h3>DAO NODES</h3><h1 style="color:cyan">12</h1></div>', unsafe_allow_html=True
         )
     with col2:
         st.markdown(
@@ -56,16 +68,48 @@ def render_war_room():
             unsafe_allow_html=True,
         )
     with col3:
+        consensus = cim.get_consensus_signals()
         st.markdown(
-            '<div class="stat-card-war"><h3>News Vol</h3><h1 style="color:cyan">High</h1></div>', unsafe_allow_html=True
+            f'<div class="stat-card-war"><h3>CONSENSUS</h3><h1 style="color:lime">{len(consensus)}</h1></div>', unsafe_allow_html=True
         )
     with col4:
         st.markdown(
-            '<div class="stat-card-war"><h3>Active Alerts</h3><h1 style="color:yellow">2</h1></div>',
+            '<div class="stat-card-war"><h3>DEFCON</h3><h1 style="color:orange">3</h1></div>',
             unsafe_allow_html=True,
         )
 
     st.markdown("---")
+
+    # Consensus Section
+    if consensus:
+        st.subheader("🤝 DAO Consensus Signals")
+        for c in consensus:
+            st.markdown(f"""
+                <div class="consensus-box">
+                    <strong>[CONSENSUS] {c['ticker']}</strong>: {c['action']} 
+                    (Agreement: {c['agreement']*100:.0f}%, Confidence: {c['avg_confidence']*100:.0f}%, Nodes: {c['num_nodes']})
+                </div>
+            """, unsafe_allow_html=True)
+
+    # Global Map Section
+    import plotly.express as px
+    st.subheader("🌍 DAO Node Distribution & Signal Map")
+    node_data = pd.DataFrame({
+        'City': ['Tokyo', 'New York', 'London', 'Singapore', 'Zurich', 'Hong Kong'],
+        'Lat': [35.6895, 40.7128, 51.5074, 1.3521, 47.3769, 22.3193],
+        'Lon': [139.6917, -74.0060, -0.1278, 103.8198, 8.5417, 114.1694],
+        'Status': ['Online', 'Online', 'Online', 'Online', 'Online', 'Online'],
+        'Signals': [5, 3, 2, 4, 1, 3]
+    })
+    fig = px.scatter_geo(node_data, lat='Lat', lon='Lon', hover_name='City',
+                         size='Signals', color='Status',
+                         projection="natural earth",
+                         color_discrete_map={'Online': 'lime'})
+    fig.update_geos(showcountries=True, countrycolor="#333", showocean=True, oceancolor="#000",
+                    showcoastlines=True, coastlinecolor="#444", bgcolor="#000")
+    fig.update_layout(height=400, margin={"r":0,"t":0,"l":0,"b":0}, paper_bgcolor='rgba(0,0,0,0)',
+                      plot_bgcolor='rgba(0,0,0,0)')
+    st.plotly_chart(fig, use_container_width=True)
 
     # Real-time Feed Simulation
     st.subheader("📡 Intercepted Intelligence Stream")

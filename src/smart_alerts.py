@@ -81,8 +81,8 @@ class SmartAlerts:
         if len(equity_history) < 2:
             return alerts
 
-        today_equity = equity_history.iloc[-1]["equity"]
-        yesterday_equity = equity_history.iloc[-2]["equity"]
+        today_equity = equity_history.iloc[-1]["total_equity"]
+        yesterday_equity = equity_history.iloc[-2]["total_equity"]
 
         daily_change_pct = ((today_equity - yesterday_equity) / yesterday_equity) * 100
         threshold = self.alert_config.get("daily_loss_threshold", -3.0)

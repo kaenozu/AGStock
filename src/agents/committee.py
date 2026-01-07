@@ -5,6 +5,7 @@ AI投資委員会 (Investment Committee)
 import logging
 from dataclasses import dataclass
 from typing import List, Dict
+from datetime import datetime
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -19,6 +20,39 @@ class AgentAnalysis:
 class InvestmentCommittee:
     def __init__(self):
         self.agents = ["慎重派(Risk-Averse)", "積極派(Aggressive)", "テクニカル重視(Technical)"]
+        try:
+            from src.rag.experience_memory import ExperienceMemory
+            self.memory = ExperienceMemory()
+        except ImportError:
+            self.memory = None
+
+    def hold_meeting(self, market_context: Dict) -> Dict:
+        """UI互換性のためのラップメソッド。集合知を考慮して判断を下す。"""
+        ticker = market_context.get("ticker", "General Market")
+        ai_score = market_context.get("ai_score", 0.5)
+        
+        # 過去の集合知を取得
+        wisdom = ""
+        if self.memory:
+            wisdom = self.memory.get_collective_wisdom(market_context)
+            logger.info(f"Retrieved wisdom: {wisdom}")
+
+        # 既存の合議ロジックを実行
+        result = self.debate(ticker, ai_score, market_context)
+        
+        # 集合知を結果に追加
+        result["collective_wisdom"] = wisdom
+        result["timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        result["final_decision"] = result["decision"]
+        result["rationale"] = f"集合知に基づく判断: {wisdom[:100]}..." if wisdom else "現在のデータに基づく判断。"
+        
+        # エージェント名をUIに合わせる
+        for a in result["analyses"]:
+            a["agent_name"] = a["agent_name"]
+            a["role"] = "Expert Analyst"
+            a["reasoning"] = a["reason"]
+
+        return result
 
     def debate(self, ticker: str, ai_score: float, market_data: Dict) -> Dict:
         """各エージェントの意見を集約し、最終的な投資判断を下す"""

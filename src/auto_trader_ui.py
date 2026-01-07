@@ -6,7 +6,7 @@ from datetime import datetime
 
 import pandas as pd
 import streamlit as st
-from fully_automated_trader import FullyAutomatedTrader
+from src.trading.fully_automated_trader import FullyAutomatedTrader
 
 from src.paper_trader import PaperTrader
 

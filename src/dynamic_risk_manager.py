@@ -23,17 +23,29 @@ class DynamicRiskManager:
     市場レジームとボラティリティに基づいて、リスクパラメータを動的に調整します。
     """
 
-    def __init__(self, regime_detector: Optional[RegimeDetector] = None):
+    def __init__(self, config: Optional[Dict] = None, regime_detector: Optional[RegimeDetector] = None):
         """
         Args:
+            config: 設定辞書
             regime_detector: 市場レジーム検出器（Noneの場合は新規作成）
         """
+        self.config = config or {}
         self.regime_detector = regime_detector or RegimeDetector()
         self.current_regime = None
         self.current_params = {}
         self.parameter_history = []
 
         logger.info("DynamicRiskManager initialized")
+
+    def adjust_risk_for_volatility(self, volatility: float) -> float:
+        """ボラティリティに応じてリスク許容度を調整"""
+        # 低ボラなら1.0、高ボラ（30%以上）なら0.5程度に縮小
+        if volatility <= 0.1:
+            return 1.0
+        elif volatility >= 0.4:
+            return 0.2
+        else:
+            return 1.0 - (volatility - 0.1) * 2.0
 
     def update_parameters(self, df: pd.DataFrame, lookback: int = 20) -> Dict[str, Any]:
         """

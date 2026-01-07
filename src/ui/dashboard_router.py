@@ -74,6 +74,12 @@ def render_war_room_tab():
     render_war_room()
 
 
+def render_briefing_tab():
+    from src.ui.audio_briefing import render_audio_briefing
+
+    render_audio_briefing()
+
+
 def render_neuromancer_tab():
     from src.ui.neuromancer_ui import render_neuromancer_ui
 
@@ -95,6 +101,7 @@ class DashboardRouter:
         # タブ定義: (表示名, レンダリング関数)
         tabs = [
             ("🏠 ダッシュボード", render_dashboard_tab),
+            ("🎙️ Daily Briefing", render_briefing_tab),
             ("🧠 Neural Monitor", render_neural_monitor_tab),
             ("🕵️ Neuromancer", render_neuromancer_tab),  # Renamed for clarity
             ("📈 運用パフォーマンス", render_performance_tab),

@@ -1,5 +1,5 @@
 {
-    "gemini_api_key": "",
+    "gemini_api_key": "AIzaSyAJyfsdI1jNFMJQR68U1W2tOFVlIEW0J_g",
     "user_profile": {
         "experience": "beginner",
         "risk_tolerance": "low",
@@ -13,6 +13,12 @@
         "max_position_size": 0.1,
         "stop_loss_pct": 0.03,
         "take_profit_pct": 0.05
+    },
+    "risk_limits": {
+        "max_drawdown_limit": 0.15,
+        "max_daily_loss": 0.05,
+        "max_vix_threshold": 40.0,
+        "circuit_breaker_enabled": true
     },
     "auto_trading": {
         "mode": "semi_auto",
@@ -66,14 +72,38 @@
         "crypto": false,
         "fx": false
     },
-"ai_committee": {
-        "enabled": false,
+    "ai_committee": {
+        "enabled": true,
         "strict_mode": false,
-        "api_key": "",
-        "model": "gpt-4"
+        "api_key": "AIzaSyAJyfsdI1jNFMJQR68U1W2tOFVlIEW0J_g",
+        "model": "gemini-1.5-pro",
+        "agents": [
+            "Conservative",
+            "Aggressive",
+            "Technical"
+        ]
     },
-"gemini": {
-        "api_key": "",
+    "quantum_optimization": {
+        "enabled": true,
+        "steps": 2000,
+        "risk_aversion": 0.5,
+        "cooling_rate": 0.99
+    },
+    "multimodal_analysis": {
+        "enabled": true,
+        "weights": {
+            "text": 0.4,
+            "audio": 0.3,
+            "vision": 0.3
+        }
+    },
+    "experience_memory": {
+        "enabled": true,
+        "persist_directory": "./data/chroma_experiences",
+        "n_results": 3
+    },
+    "gemini": {
+        "api_key": "AIzaSyAJyfsdI1jNFMJQR68U1W2tOFVlIEW0J_g",
         "enabled": true
     },
     "paper_trading": {

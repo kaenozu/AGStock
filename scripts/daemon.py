@@ -10,7 +10,7 @@ import time
 import traceback
 
 import schedule
-from fully_automated_trader import FullyAutomatedTrader
+from src.trading.fully_automated_trader import FullyAutomatedTrader
 
 # ロギング設定
 logging.basicConfig(
