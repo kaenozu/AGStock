@@ -143,7 +143,7 @@ class FilingWatcher:
             f"分析完了。AI投資委員会に反映されます。"
         )
 
-        self.notifier.notify(message, title=f"Filing Analysis: {ticker}")
+        self.notifier.send_text(message, title=f"Filing Analysis: {ticker}")
         logger.info(f"Notification sent for {ticker}")
 
 

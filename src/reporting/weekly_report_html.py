@@ -47,7 +47,7 @@ def generate_html_report(pt: PaperTrader, start_date: datetime, end_date: dateti
     positions = pt.get_positions()
 
     # HTML生成
-    f"""
+    html = f"""
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -175,6 +175,7 @@ def generate_html_report(pt: PaperTrader, start_date: datetime, end_date: dateti
 </body>
 </html>
 """
+    return html
 
 
 # return html

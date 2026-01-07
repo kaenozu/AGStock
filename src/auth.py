@@ -38,7 +38,8 @@ class AuthManager:
 
     def _init_database(self):
         """データベース初期化"""
-        with sqlite3.connect(self.db_path) as conn:
+        conn = sqlite3.connect(self.db_path)
+        try:
             cursor = conn.cursor()
 
             cursor.execute(
@@ -75,6 +76,8 @@ class AuthManager:
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at)")
 
             conn.commit()
+        finally:
+            conn.close()
 
     def hash_password(self, password: str) -> str:
         """パスワードをハッシュ化"""
@@ -110,29 +113,30 @@ class AuthManager:
 
         password_hash = self.hash_password(password)
 
-        with sqlite3.connect(self.db_path) as conn:
+        conn = sqlite3.connect(self.db_path)
+        try:
             cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO users (username, email, password_hash, is_admin)
+                VALUES (?, ?, ?, ?)
+            """,
+                (username, email, password_hash, is_admin),
+            )
 
-            try:
-                cursor.execute(
-                    """
-                    INSERT INTO users (username, email, password_hash, is_admin)
-                    VALUES (?, ?, ?, ?)
-                """,
-                    (username, email, password_hash, is_admin),
-                )
-
-                user_id = cursor.lastrowid
-                conn.commit()
-                return user_id
-            except sqlite3.IntegrityError:
-                return None
+            user_id = cursor.lastrowid
+            conn.commit()
+            return user_id
+        except sqlite3.IntegrityError:
+            return None
+        finally:
+            conn.close()
 
     def get_user(self, username: str) -> Optional[User]:
         """ユーザー取得"""
-        with sqlite3.connect(self.db_path) as conn:
+        conn = sqlite3.connect(self.db_path)
+        try:
             cursor = conn.cursor()
-
             cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
             row = cursor.fetchone()
 
@@ -147,12 +151,14 @@ class AuthManager:
                     created_at=row[8],
                 )
             return None
+        finally:
+            conn.close()
 
     def is_account_locked(self, username: str) -> bool:
         """アカウントがロックされているか確認"""
-        with sqlite3.connect(self.db_path) as conn:
+        conn = sqlite3.connect(self.db_path)
+        try:
             cursor = conn.cursor()
-
             cursor.execute(
                 """
                 SELECT locked_until FROM users 
@@ -160,14 +166,15 @@ class AuthManager:
             """,
                 (username,),
             )
-
             return cursor.fetchone() is not None
+        finally:
+            conn.close()
 
     def record_failed_login(self, username: str):
         """ログイン失敗を記録"""
-        with sqlite3.connect(self.db_path) as conn:
+        conn = sqlite3.connect(self.db_path)
+        try:
             cursor = conn.cursor()
-
             cursor.execute(
                 """
                 UPDATE users 
@@ -176,14 +183,12 @@ class AuthManager:
             """,
                 (username,),
             )
-
             cursor.execute(
                 """
                 SELECT failed_login_attempts FROM users WHERE username = ?
             """,
                 (username,),
             )
-
             result = cursor.fetchone()
             if result and result[0] >= self.MAX_LOGIN_ATTEMPTS:
                 # アカウントをロック
@@ -196,14 +201,15 @@ class AuthManager:
                 """,
                     (locked_until, username),
                 )
-
             conn.commit()
+        finally:
+            conn.close()
 
     def reset_failed_login(self, username: str):
         """ログイン失敗カウントをリセット"""
-        with sqlite3.connect(self.db_path) as conn:
+        conn = sqlite3.connect(self.db_path)
+        try:
             cursor = conn.cursor()
-
             cursor.execute(
                 """
                 UPDATE users 
@@ -212,32 +218,36 @@ class AuthManager:
             """,
                 (username,),
             )
-
             conn.commit()
+        finally:
+            conn.close()
 
     def create_token(self, user_id: int, expires_in_days: int = 7) -> str:
         """JWTトークン作成"""
+        now = datetime.utcnow()
+        exp = now + timedelta(days=expires_in_days)
         payload = {
             "user_id": user_id,
-            "exp": datetime.utcnow() + timedelta(days=expires_in_days),
-            "iat": datetime.utcnow(),
+            "exp": exp,
+            "iat": now,
         }
 
         token = jwt.encode(payload, self.secret_key, algorithm="HS256")
 
         # セッションに保存
-        with sqlite3.connect(self.db_path) as conn:
+        conn = sqlite3.connect(self.db_path)
+        try:
             cursor = conn.cursor()
-
             cursor.execute(
                 """
                 INSERT INTO sessions (user_id, token, expires_at)
                 VALUES (?, ?, ?)
             """,
-                (user_id, token, payload["exp"]),
+                (user_id, token, exp.isoformat()),
             )
-
             conn.commit()
+        finally:
+            conn.close()
 
         return token
 
@@ -247,22 +257,25 @@ class AuthManager:
             payload = jwt.decode(token, self.secret_key, algorithms=["HS256"])
 
             # セッション確認
-            with sqlite3.connect(self.db_path) as conn:
+            conn = sqlite3.connect(self.db_path)
+            try:
                 cursor = conn.cursor()
-
                 cursor.execute(
                     """
                     SELECT user_id FROM sessions
-                    WHERE token = ? AND expires_at > datetime('now')
+                    WHERE token = ?
                 """,
                     (token,),
                 )
-
                 result = cursor.fetchone()
-
                 if result:
-                    return payload
+                    # Python側で期限チェック（SQLiteのdatetime比較の不確実性を避ける）
+                    exp = payload.get("exp")
+                    if exp and datetime.fromtimestamp(exp) > datetime.utcnow():
+                        return payload
                 return None
+            finally:
+                conn.close()
         except jwt.ExpiredSignatureError:
             return None
         except jwt.InvalidTokenError:

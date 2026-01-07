@@ -5,7 +5,7 @@ import pandas as pd
 
 from src.constants import NIKKEI_225_TICKERS, SP500_TICKERS  # 地域判定のため
 from src.data_loader import fetch_fundamental_data, fetch_stock_data, get_latest_price
-from src.ensemble_predictor import EnsemblePredictor  # 中期予測フィルター
+from src.ensemble_predictor import EnhancedEnsemblePredictor  # 中期予測フィルター
 from src.sentiment import SentimentAnalyzer
 from src.strategies import CombinedStrategy, DividendStrategy, LightGBMStrategy, MLStrategy
 

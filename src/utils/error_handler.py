@@ -137,6 +137,49 @@ class ErrorRecovery:
         raise last_exception
 
 
+class ErrorRecovery:
+    """Utility for automatic error recovery strategies."""
+
+    @staticmethod
+    def retry_with_backoff(
+        func: Callable,
+        max_retries: int = 3,
+        initial_delay: float = 1.0,
+        backoff_factor: float = 2.0,
+        exceptions: tuple = (Exception,),
+    ) -> Any:
+        """Retries a function call with exponential backoff on failure."""
+        import time
+
+        delay = initial_delay
+        last_exception = None
+
+        for i in range(max_retries):
+            try:
+                return func()
+            except exceptions as e:
+                last_exception = e
+                logger.warning(f"Retry {i + 1}/{max_retries} failed: {e}. Retrying in {delay}s...")
+                time.sleep(delay)
+                delay *= backoff_factor
+
+        raise last_exception if last_exception else RuntimeError("Retry failed")
+
+    @staticmethod
+    def fallback_chain(*funcs: Callable) -> Any:
+        """Execute a chain of functions until one succeeds."""
+        last_exception = None
+        for func in funcs:
+            try:
+                return func()
+            except Exception as e:
+                last_exception = e
+                logger.warning(f"Fallback attempt failed: {e}")
+                continue
+
+        raise last_exception if last_exception else RuntimeError("All fallbacks failed")
+
+
 def autonomous_error_handler(name: str = "System", reraise: bool = False, notification_enabled: bool = True):
     """
     Decorator for autonomous error handling, logging, and diagnostics.

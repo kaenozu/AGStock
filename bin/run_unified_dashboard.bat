@@ -6,6 +6,8 @@ echo   AGStock 統合ダッシュボード
 echo ========================================
 echo.
 
+cd /d "%~dp0.."
+
 REM 仮想環境がある場合はアクティベート
 if exist .venv\Scripts\activate.bat (
     call .venv\Scripts\activate.bat

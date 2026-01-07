@@ -59,19 +59,8 @@ class BacktestEngine:
         strategy: Union[Strategy, Dict[str, Strategy]],
         stop_loss: float = BACKTEST_DEFAULT_STOP_LOSS_PCT,
         take_profit: float = BACKTEST_DEFAULT_TAKE_PROFIT_PCT,
-        trailing_stop: Optional[float] = None,
+        trailing_stop: float = None,
     ) -> Dict[str, Any]:
-        """
-        Execute strategy(ies) on historical data with profiling.
-
-        Supports integer signals (1 for long entry, -1 for exit/short) and ``Order`` objects.
-        Trades are executed at the *next* day's open price.
-        """
-        # プロファイリングを開始
-        import cProfile
-
-        pr = cProfile.Profile()
-        pr.enable()
         """Execute strategy(ies) on historical data.
 
         Supports integer signals (1 for long entry, -1 for exit/short) and ``Order`` objects.
@@ -242,8 +231,8 @@ class BacktestEngine:
                             continue
 
                 # ----- EXIT LOGIC FOR INTEGER SIGNALS -----
-                if isinstance(today_sig, (int, np.integer)):
-                    if position > 0 and today_sig == -1:
+                if isinstance(today_sig, (int, np.integer, float, np.floating)):
+                    if position > 0 and today_sig <= -0.5:
                         entry = entry_prices[ticker]
                         ret = (exec_price - entry) / entry
                         trades.append(
@@ -261,7 +250,7 @@ class BacktestEngine:
                         holdings[ticker] = 0.0
                         entry_prices[ticker] = 0.0
                         exit_executed = True
-                    elif position < 0 and today_sig == 1:
+                    elif position < 0 and today_sig >= 0.5:
                         entry = entry_prices[ticker]
                         ret = (entry - exec_price) / entry
                         trades.append(
@@ -367,8 +356,8 @@ class BacktestEngine:
                                 entry_prices[ticker] = 0.0
                                 exit_executed = True
 
-                if not exit_executed and isinstance(today_sig, (int, np.integer)):
-                    if holdings[ticker] == 0 and today_sig == 1:
+                if not exit_executed and isinstance(today_sig, (int, np.integer, float, np.floating)):
+                    if holdings[ticker] == 0 and today_sig >= 0.5:
                         # Open long position
                         shares = self._size_position(ticker, current_portfolio_value, exec_price)
                         holdings[ticker] = shares
@@ -378,7 +367,7 @@ class BacktestEngine:
                         highest_prices[ticker] = exec_price
                         if trailing_stop and trailing_stop > 0:
                             trailing_stop_levels[ticker] = exec_price * (1 - trailing_stop)
-                    elif holdings[ticker] == 0 and today_sig == -1 and self.allow_short:
+                    elif holdings[ticker] == 0 and today_sig <= -0.5 and self.allow_short:
                         # Open short position
                         shares = self._size_position(ticker, current_portfolio_value, exec_price)
                         holdings[ticker] = -shares
@@ -468,18 +457,6 @@ class BacktestEngine:
         else:
             # Multi-asset: return Dict
             result_signals = signals_map
-
-        # プロファイリングを終了
-        pr.disable()
-
-        # 結果を出力
-        import pstats
-        from io import StringIO
-
-        s = StringIO()
-        ps = pstats.Stats(pr, stream=s).sort_stats("cumulative")
-        ps.print_stats()
-        print(s.getvalue())
 
         return {
             "total_return": total_return,

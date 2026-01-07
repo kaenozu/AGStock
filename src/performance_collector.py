@@ -98,7 +98,7 @@ class PerformanceCollector:
             # ログファイルから取引統計
             trading_log_file = "logs/trading_log.json"
             if os.path.exists(trading_log_file):
-                with open(trading_log_file, "r") as f:
+                with open(trading_log_file, "r", encoding="utf-8") as f:
                     logs = json.load(f)
 
                 # 最近1時間のログ
@@ -120,7 +120,7 @@ class PerformanceCollector:
             # 設定ファイル
             config_file = "config.json"
             if os.path.exists(config_file):
-                with open(config_file, "r") as f:
+                with open(config_file, "r", encoding="utf-8") as f:
                     config = json.load(f)
                 agstock_metrics["config_hash"] = hash(str(config))
 
@@ -128,7 +128,7 @@ class PerformanceCollector:
             error_log_file = "logs/error.log"
             if os.path.exists(error_log_file):
                 # 最近1時間のエラー数
-                with open(error_log_file, "r") as f:
+                with open(error_log_file, "r", encoding="utf-8") as f:
                     error_lines = f.readlines()
 
                 one_hour_ago = datetime.now() - timedelta(hours=1)
@@ -166,7 +166,7 @@ class PerformanceCollector:
             # 既存データ読み込み
             existing_data = []
             if os.path.exists(daily_file):
-                with open(daily_file, "r") as f:
+                with open(daily_file, "r", encoding="utf-8") as f:
                     existing_data = json.load(f)
 
             # 新データ追加
@@ -177,12 +177,12 @@ class PerformanceCollector:
                 existing_data = existing_data[-self.max_records :]
 
             # 保存
-            with open(daily_file, "w") as f:
+            with open(daily_file, "w", encoding="utf-8") as f:
                 json.dump(existing_data, f, indent=2)
 
             # 最新データとしても保存
             latest_file = f"{self.data_dir}/latest_metrics.json"
-            with open(latest_file, "w") as f:
+            with open(latest_file, "w", encoding="utf-8") as f:
                 json.dump(metrics, f, indent=2)
 
             self.logger.debug(f"メトリクス保存完了: {len(existing_data)} レコード")

@@ -1,6 +1,6 @@
 import datetime
 import sqlite3
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import feedparser
 
@@ -18,6 +18,11 @@ class SentimentAnalyzer:
         self.db_path = db_path
         self._init_database()
         self.bert_analyzer = get_bert_analyzer()
+        try:
+            from src.analysis.multimodal_analyzer import MultimodalAnalyzer
+            self.multimodal_analyzer = MultimodalAnalyzer()
+        except ImportError:
+            self.multimodal_analyzer = None
 
     def fetch_news(self, limit: int = 20) -> List[Dict]:
         """
@@ -56,39 +61,53 @@ class SentimentAnalyzer:
         result = self.bert_analyzer.analyze(text)
         return result["score"]
 
-    def get_market_sentiment(self) -> Dict:
+    def get_market_sentiment(self, multimodal_data: Optional[Dict] = None) -> Dict:
         """
-        Calculates overall market sentiment from recent news.
+        Calculates overall market sentiment, now supporting multimodal inputs.
         """
         news = self.fetch_news(limit=30)
-        if not news:
-            return {"score": 0.0, "label": "Neutral", "news_count": 0}
-
-        total_score = 0.0
+        news_score = 0.0
         count = 0
 
-        for item in news:
-            # Analyze title and summary
-            text = f"{item['title']} {item['summary']}"
-            score = self.analyze_sentiment(text)
-            total_score += score
-            count += 1
+        if news:
+            total_score = 0.0
+            for item in news:
+                # Analyze title and summary
+                text = f"{item['title']} {item['summary']}"
+                score = self.analyze_sentiment(text)
+                total_score += score
+                count += 1
+            news_score = total_score / count if count > 0 else 0.0
 
-        avg_score = total_score / count if count > 0 else 0.0
+        # Fusion with Multimodal Data
+        final_score = news_score
+        multimodal_results = None
+
+        if multimodal_data and self.multimodal_analyzer:
+            multimodal_results = self.multimodal_analyzer.analyze_earnings_presentation(
+                video_path=multimodal_data.get("video"),
+                audio_path=multimodal_data.get("audio"),
+                transcript=multimodal_data.get("transcript")
+            )
+            # Weighted average: 60% news, 40% multimodal insights
+            mm_score = multimodal_results.get("overall_sentiment", 0.0)
+            final_score = (news_score * 0.6) + (mm_score * 0.4)
 
         # Determine Label
-        if avg_score > 0.15:
+        if final_score > 0.15:
             label = "Positive"
-        elif avg_score < -0.15:
+        elif final_score < -0.15:
             label = "Negative"
         else:
             label = "Neutral"
 
         return {
-            "score": avg_score,
+            "score": final_score,
             "label": label,
             "news_count": count,
-            "top_news": news[:5],
+            "top_news": news[:5] if news else [],
+            "multimodal_insights": multimodal_results.get("insights") if multimodal_results else None,
+            "multimodal_active": multimodal_results is not None
         }
 
     def _init_database(self):

@@ -11,14 +11,17 @@ from datetime import datetime, timedelta
 import tempfile
 import os
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 # テスト対象モジュール
 from src.security.secure_config import SecureConfigManager, validate_input_data
 from src.security.secure_data_manager import SecureDataManager
 from src.security.risk_manager import RiskManager, TradingState, RiskLevel
 from src.security.input_validator import InputValidator, RateLimiter
-from src.security.error_handling import ErrorHandler, MemoryManager, BaseTradingError
-from src.performance.async_processor import AsyncAPIClient, CacheManager, DataProcessor
+from src.security.error_handling import ErrorHandler, MemoryManager, BaseTradingError, ErrorCategory, ErrorSeverity
+from src.performance.async_processor import AsyncAPIClient, CacheManager, DataProcessor, APIResponse, APIRequest
 
 
 class TestSecureConfigManager:
@@ -421,8 +424,10 @@ class TestAsyncAPIClient:
         # モックレスポンス
         mock_response = Mock()
         mock_response.status = 200
-        mock_response.headers = {}
+        mock_response.headers = {"content-type": "application/json"}
         mock_response.json = AsyncMock(return_value={"data": "test"})
+        mock_response.text = AsyncMock(return_value='{"data": "test"}')
+        mock_response.read = AsyncMock(return_value=b'{"data": "test"}')
 
         with patch("aiohttp.ClientSession.request") as mock_request:
             mock_request.return_value.__aenter__.return_value = mock_response
@@ -446,8 +451,10 @@ class TestAsyncAPIClient:
         # モックレスポンス
         mock_response = Mock()
         mock_response.status = 200
-        mock_response.headers = {}
+        mock_response.headers = {"content-type": "application/json"}
         mock_response.json = AsyncMock(return_value={"data": "test"})
+        mock_response.text = AsyncMock(return_value='{"data": "test"}')
+        mock_response.read = AsyncMock(return_value=b'{"data": "test"}')
 
         with patch("aiohttp.ClientSession.request") as mock_request:
             mock_request.return_value.__aenter__.return_value = mock_response
@@ -474,8 +481,10 @@ class TestAsyncAPIClient:
         # モックレスポンス
         mock_response = Mock()
         mock_response.status = 200
-        mock_response.headers = {}
+        mock_response.headers = {"content-type": "application/json"}
         mock_response.json = AsyncMock(return_value={"data": "test"})
+        mock_response.text = AsyncMock(return_value='{"data": "test"}')
+        mock_response.read = AsyncMock(return_value=b'{"data": "test"}')
 
         with patch("aiohttp.ClientSession.request") as mock_request:
             mock_request.return_value.__aenter__.return_value = mock_response

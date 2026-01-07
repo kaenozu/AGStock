@@ -17,13 +17,13 @@
 """
 
 import logging
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from src.advanced_ensemble import AdvancedEnsemble, create_model_diversity_ensemble
+from src.advanced_ensemble import create_model_diversity_ensemble
 from src.advanced_models import AdvancedModels
 
 # 新しい高度な機能のインポート
@@ -675,4 +675,4 @@ class EnhancedEnsemblePredictor:
 
 
 # 既存のEnsemblePredictorを新しい実装で置き換えるか、エイリアスを設定
-EnhancedEnsemblePredictor = EnhancedEnsemblePredictor
+EnsemblePredictor = EnhancedEnsemblePredictor

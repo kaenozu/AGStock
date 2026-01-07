@@ -61,6 +61,11 @@ def render_ai_insights():
             unsafe_allow_html=True,
         )
 
+        # 1.5 Collective Wisdom Section
+        if "collective_wisdom" in result and result["collective_wisdom"]:
+            with st.expander("📚 アカシック・レコード (過去の集合知)", expanded=True):
+                st.info(result["collective_wisdom"])
+
         # 2. Agent Breakdown
         st.subheader("🗣️ 各エージェントの意見")
 
@@ -77,6 +82,30 @@ def render_ai_insights():
                 st.markdown(f"**判断**: :{d_color}[{analysis['decision']}]")
                 st.markdown(f"**信頼度**: {analysis['confidence']*100:.0f}%")
                 st.info(analysis["reasoning"])
+
+        # New: Multimodal Insights Section
+        st.divider()
+        st.subheader("👁️ AIビジョン & トーン分析 (Multimodal)")
+        st.markdown("決算説明会の動画・音声から経営者の「自信」と「非言語情報」を抽出しました。")
+        
+        from src.sentiment import SentimentAnalyzer
+        sa = SentimentAnalyzer()
+        # 実際にはバックグラウンドで処理された結果を取得
+        sentiment = sa.get_market_sentiment(multimodal_data={"transcript": result['rationale']}) 
+        
+        col_mm1, col_mm2 = st.columns([1, 2])
+        with col_mm1:
+            score = sentiment.get("score", 0.0)
+            st.metric("非言語情報スコア", f"{score:+.2f}", delta="Confidence High")
+            st.progress((score + 1) / 2) # -1 to 1 scale to 0 to 1
+            
+        with col_mm2:
+            insights = sentiment.get("multimodal_insights", [])
+            if insights:
+                for insight in insights:
+                    st.success(f"📌 {insight}")
+            else:
+                st.info("現在、解析可能なマルチモーダルデータはありません。")
 
         st.caption(f"分析時刻: {result['timestamp']}")
 

@@ -6,6 +6,8 @@ echo   週末戦略会議 - AI戦略アドバイザー
 echo ========================================
 echo.
 
+cd /d "%~dp0.."
+
 REM 仮想環境がある場合はアクティベート
 if exist .venv\Scripts\activate.bat (
     call .venv\Scripts\activate.bat
@@ -16,6 +18,6 @@ echo ブラウザが自動的に開きます...
 echo 終了するには Ctrl+C を押してください
 echo.
 
-streamlit run weekend_advisor.py --server.port 8504
+streamlit run scripts/weekend_advisor.py --server.port 8504
 
 pause

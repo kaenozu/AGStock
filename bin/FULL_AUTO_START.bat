@@ -1,6 +1,7 @@
 @echo off
 chcp 65001 >nul
 title AGStock フルオートシステム
+cd /d "%~dp0.."
 
 echo ============================================================
 echo   🤖 AGStock フルオート取引システム
@@ -36,6 +37,6 @@ echo.
 echo ※ 停止するにはCtrl+Cを押してください
 echo.
 
-python daemon.py
+python scripts/daemon.py
 
 pause
