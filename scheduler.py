@@ -78,7 +78,7 @@ def run_auto_invest():
     logger.info("自動投資開始")
     try:
         update_status("auto_invest", "running", "実行中...")
-        from fully_automated_trader import FullyAutomatedTrader
+        from src.trading.fully_automated_trader import FullyAutomatedTrader
 
         trader = FullyAutomatedTrader()
         trader.daily_routine()

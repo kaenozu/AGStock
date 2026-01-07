@@ -1,11 +1,27 @@
+<<<<<<< HEAD
 from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
+=======
+"""
+AGStock バックテスト機能
+戦略の過去データ検証
+(Shim for src.backtesting.engine)
+"""
+import logging
+from src.backtesting.engine import BacktestEngine as CoreEngine
+>>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f
 
 from .strategies import Order, OrderType, Strategy
 
+class BacktestEngine(CoreEngine):
+    """Shim for BacktestEngine"""
+    def __init__(self, *args, **kwargs):
+        # Handle renaming of arguments if necessary
+        super().__init__(*args, **kwargs)
 
+<<<<<<< HEAD
 class Backtester:
     """Backtester for executing trading strategies over historical data.
 
@@ -41,10 +57,15 @@ class Backtester:
         """Calculate number of shares for a new position.
         Uses ``self.position_size`` which may be a float or a dict per ticker.
         """
+=======
+    def _size_position(self, ticker, portfolio_value, exec_price):
+        """Test compatibility shim"""
+>>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f
         if isinstance(self.position_size, dict):
             alloc = self.position_size.get(ticker, 0.0)
         else:
             alloc = self.position_size
+<<<<<<< HEAD
         target_amount = portfolio_value * alloc
         return target_amount / exec_price if exec_price != 0 else 0.0
 
@@ -633,3 +654,9 @@ class Backtester:
                 position_history.append(-1)
             else:
                 position_history.append(0)
+=======
+        return (portfolio_value * alloc) / exec_price if exec_price > 0 else 0.0
+
+# Aliases
+Backtester = BacktestEngine
+>>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f

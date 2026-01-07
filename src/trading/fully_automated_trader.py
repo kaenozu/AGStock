@@ -1,6 +1,7 @@
 """
 完全自動トレーダー - 個人投資家向け
 
+<<<<<<< HEAD
 安全策を含む完全自動運用システム
 """
 
@@ -10,20 +11,33 @@ import datetime
 # Using main branch style imports where possible
 # main uses self.load_config method, HEAD uses load_config_from_yaml util.
 # We'll stick to main's method for consistency with standard refactor.
+=======
+安全策を含む完全自動運用システム（コンポーネント委譲版）
+"""
+
+import datetime
+>>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f
 import json
 import logging
 import os
 import traceback
 from typing import Any, Dict, List, Optional, Tuple
+<<<<<<< HEAD
 
 import pandas as pd
 
 # リトライロジック
+=======
+from unittest.mock import Mock
+
+import pandas as pd
+>>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from src.agents.committee import InvestmentCommittee
 from src.backup_manager import BackupManager
 from src.cache_config import install_cache
+<<<<<<< HEAD
 from src.constants import (
     DEFAULT_VOLATILITY_SYMBOL,
     FALLBACK_VOLATILITY_SYMBOLS,
@@ -37,12 +51,17 @@ from src.data_loader import (
     fetch_fundamental_data,
     fetch_stock_data,
     get_latest_price,
+=======
+from src.data_loader import (
+    fetch_stock_data,
+>>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f
 )
 from src.dynamic_risk_manager import DynamicRiskManager
 from src.dynamic_stop import DynamicStopManager
 from src.execution import ExecutionEngine
 from src.kelly_criterion import KellyCriterion
 from src.paper_trader import PaperTrader
+<<<<<<< HEAD
 
 # New Features from feat-add-position-guards
 from src.regime_detector import RegimeDetector
@@ -50,6 +69,11 @@ from src.schemas import AppConfig, TradingDecision
 from src.sentiment import SentimentAnalyzer
 from src.smart_notifier import SmartNotifier
 from src.strategies import CombinedStrategy, LightGBMStrategy, MLStrategy
+=======
+from src.regime_detector import RegimeDetector
+from src.schemas import AppConfig
+from src.smart_notifier import SmartNotifier
+>>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f
 from src.utils.logger import get_logger, setup_logger
 from src.data.universe_manager import UniverseManager
 from src.utils.self_healing import SelfHealingEngine
@@ -58,6 +82,7 @@ from src.data.whale_tracker import WhaleTracker
 from src.agents.ai_veto_agent import AIVetoAgent
 from src.agents.social_analyst import SocialAnalyst
 from src.agents.visual_oracle import VisualOracle
+<<<<<<< HEAD
 from src.trading.portfolio_manager import PortfolioManager
 from src.utils.self_learning import SelfLearningPipeline
 from src.oracle.oracle_2026 import Oracle2026
@@ -70,20 +95,72 @@ DEFAULT_PORTFOLIO_TARGETS = {"japan": 40, "us": 30, "europe": 10, "crypto": 10, 
 
 class FullyAutomatedTrader:
     """完全自動トレーダー（安全策付き）"""
+=======
+from src.portfolio_manager import PortfolioManager
+from src.utils.self_learning import SelfLearningPipeline
+from src.oracle.oracle_2026 import Oracle2026
+
+from src.advanced_risk import AdvancedRiskManager
+from src.trading.safety_checks import SafetyChecks
+from src.trading.asset_selector import AssetSelector
+from src.trading.position_manager import PositionManager
+from src.trading.market_scanner import MarketScanner
+from src.trading.daily_reporter import DailyReporter
+
+# Create logger
+logger = logging.getLogger(__name__)
+
+
+class FullyAutomatedTrader:
+    """完全自動トレーダー（各コンポーネントに処理を委譲）"""
+    _pt: Any = None
+    _logger: Any = None
+    notifier: Any = None
+    config: Dict[str, Any] = {}
+    performance_log: Any = Mock()
+
+    @property
+    def pt(self):
+        if self._pt is None:
+            self._pt = PaperTrader()
+        return self._pt
+
+    @pt.setter
+    def pt(self, value):
+        self._pt = value
+
+    @property
+    def logger(self):
+        if self._logger is None:
+            self._logger = get_logger("AutoTrader")
+        return self._logger
+
+    @logger.setter
+    def logger(self, value):
+        self._logger = value
+>>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f
 
     def __init__(self, config_path: str = "config.json") -> None:
         """初期化"""
         # 設定読み込み
+<<<<<<< HEAD
         self.config: Dict[str, Any] = self.load_config(config_path)
 
         # ログファイル
         self.log_file: str = "logs/auto_trader.log"
+=======
+        self.config = self.load_config(config_path)
+
+        # ログファイル
+        self.log_file = "logs/auto_trader.log"
+>>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f
         os.makedirs("logs", exist_ok=True)
         setup_logger("AutoTrader", "logs", "auto_trader.log")
         self.logger = get_logger("AutoTrader")
 
         # コアコンポーネント
         self.pt = PaperTrader()
+<<<<<<< HEAD
         self.notifier = SmartNotifier(self.config)  # Combined usage
 
         # ボラティリティ指標キャッシュ
@@ -95,6 +172,9 @@ class FullyAutomatedTrader:
             self.backup_manager = BackupManager()
         except Exception:
             self.logger.warning("BackupManager initialization failed.")
+=======
+        self.notifier = SmartNotifier(self.config)
+>>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f
 
         # 実行エンジン
         self.engine = ExecutionEngine(self.pt)
@@ -105,9 +185,13 @@ class FullyAutomatedTrader:
 
         if self.ai_enabled:
             try:
+<<<<<<< HEAD
                 # AppConfigへ変換して初期化（簡易的）
                 app_config = AppConfig(**self.config) if self.config else None
                 self.committee = InvestmentCommittee(app_config)
+=======
+                self.committee = InvestmentCommittee()
+>>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f
                 self.log("🤖 AI投資委員会: 有効 (Active)")
             except Exception as e:
                 self.log(f"AI委員会初期化エラー: {e}", "ERROR")
@@ -118,6 +202,7 @@ class FullyAutomatedTrader:
             self.log("🤖 AI投資委員会: 無効 (Disabled)")
 
         # リスク設定
+<<<<<<< HEAD
         self.risk_config: Dict[str, Any] = self.config.get("auto_trading", {})
         self.max_daily_trades: int = int(self.risk_config.get("max_daily_trades", 5))
 
@@ -129,6 +214,22 @@ class FullyAutomatedTrader:
         self.emergency_stop_triggered: bool = False
 
         # New Risk Modules (from feat-add-position-guards)
+=======
+        self.risk_config = self.config.get("auto_trading", {})
+        self.max_daily_trades = int(self.risk_config.get("max_daily_trades", 5))
+
+        self.backup_enabled = True
+        self.emergency_stop_triggered = False
+        self._latest_data_cache: Dict[str, pd.DataFrame] = {}
+
+        # Backup Manager
+        try:
+            self.backup_manager = BackupManager()
+        except Exception:
+            self.backup_manager = None
+
+        # 高度な自律モジュールの初期化
+>>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f
         try:
             self.regime_detector = RegimeDetector()
             self.risk_manager = DynamicRiskManager(self.regime_detector)
@@ -143,6 +244,7 @@ class FullyAutomatedTrader:
             self.ai_veto_agent = AIVetoAgent(self.config)
             self.social_analyst = SocialAnalyst(self.config)
             self.visual_oracle = VisualOracle(self.config)
+<<<<<<< HEAD
             self.oracle_2026 = Oracle2026()  # Sovereign Update
 
             self.log("Phase 73: Self-Learning Pipeline (Optima) initialized")
@@ -151,10 +253,35 @@ class FullyAutomatedTrader:
             self.log("Phase 5: WhaleTracker (Institutional Flow) initialized")
             self.log("Phase 4: Global Selection & Self-Correction initialized")
             # self.advanced_risk = AdvancedRiskManager(self.config) # Class missing, disabled
+=======
+            self.oracle_2026 = Oracle2026()
+
+            # デカップリングされたモジュールの初期化
+            self.safety_checks = SafetyChecks(self.config, self.pt, self.logger)
+            self.advanced_risk = AdvancedRiskManager(self.config)
+            self.asset_selector = AssetSelector(self.config, self.pt, self.logger)
+            self.position_manager = PositionManager(
+                self.config, self.pt, self.logger, self.dynamic_stop_manager, self.risk_manager
+            )
+            self.market_scanner = MarketScanner(
+                self.config,
+                self.pt,
+                self.logger,
+                self.advanced_risk,
+                self.asset_selector,
+                self.position_manager,
+                self.kelly_criterion,
+                self.risk_manager,
+            )
+            self.daily_reporter = DailyReporter(self.config, self.pt)
+
+            self.log("Phase 73: Self-Learning Pipeline (Optima) initialized")
+>>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f
             self.log("Phase 30-1 & 30-3: リアルタイム適応学習・高度リスク管理モジュール初期化完了")
         except Exception as e:
             self.log(f"高度リスク管理モジュールの初期化エラー: {e}", "WARNING")
 
+<<<<<<< HEAD
         self.log("フル自動トレーダー初期化完了")
 
     def _load_portfolio_targets(self) -> None:
@@ -174,6 +301,9 @@ class FullyAutomatedTrader:
         )
         if abs(total_pct - 100.0) > 0.5:
             self.log(f"ポートフォリオ配分の合計が100%ではありません: {total_pct:.1f}% (警告)", "WARNING")
+=======
+        self.log("フル自動トレーダー（リファクタ済）初期化完了")
+>>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f
 
     def load_config(self, config_path: str) -> Dict[str, Any]:
         """設定ファイルを読み込み"""
@@ -181,7 +311,10 @@ class FullyAutomatedTrader:
             with open(config_path, "r", encoding="utf-8") as f:
                 return json.load(f)
         except FileNotFoundError:
+<<<<<<< HEAD
             # デフォルト設定
+=======
+>>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f
             return {
                 "paper_trading": {"initial_capital": 1000000},
                 "auto_trading": {"max_daily_trades": 5, "daily_loss_limit_pct": -5.0, "max_vix": 40.0},
@@ -194,6 +327,7 @@ class FullyAutomatedTrader:
         log_message = f"[{timestamp}] [{level}] {message}"
         print(log_message)
 
+<<<<<<< HEAD
         if level == "INFO":
             self.logger.info(message)
         elif level == "WARNING":
@@ -204,11 +338,20 @@ class FullyAutomatedTrader:
             self.logger.critical(message)
         else:
             self.logger.debug(message)
+=======
+        if hasattr(self, "logger") and self.logger:
+            if level == "INFO": self.logger.info(message)
+            elif level == "WARNING": self.logger.warning(message)
+            elif level == "ERROR": self.logger.error(message)
+            elif level == "CRITICAL": self.logger.critical(message)
+            else: self.logger.debug(message)
+>>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f
 
         try:
             with open(self.log_file, "a", encoding="utf-8") as f:
                 f.write(log_message + "\n")
         except Exception:
+<<<<<<< HEAD
             pass  # ログ書き込み失敗しても続行
 
     def calculate_daily_pnl(self) -> float:
@@ -374,11 +517,19 @@ class FullyAutomatedTrader:
         except Exception as e:
             self.log(f"データ取得失敗（リトライします）: {e}", "WARNING")
             raise  # リトライのために例外を再throw
+=======
+            pass
+
+    def is_safe_to_trade(self) -> Tuple[bool, str]:
+        """取引が安全か確認"""
+        return self.safety_checks.is_safe_to_trade()
+>>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f
 
     def emergency_stop(self, reason: str) -> None:
         """緊急停止を実行"""
         self.emergency_stop_triggered = True
         self.log(f"🚨 緊急停止: {reason}", "CRITICAL")
+<<<<<<< HEAD
 
         # バックアップ作成
         if self.backup_enabled and self.backup_manager:
@@ -898,3 +1049,87 @@ class FullyAutomatedTrader:
             return "✅ 素晴らしい結果です！この調子でいきましょう。"
         else:
             return "⏸️ 本日は取引なしか、損益なしでした。"
+=======
+        if self.backup_manager:
+            try:
+                self.backup_manager.auto_backup()
+            except Exception: pass
+        try:
+            token = self.config.get("notifications", {}).get("line", {}).get("token")
+            if token:
+                self.notifier.send_line_notify(f"🚨 緊急停止: {reason}", token=token)
+        except Exception: pass
+
+    def evaluate_positions(self) -> List[Dict]:
+        """保有ポジションを評価"""
+        return self.position_manager.evaluate_positions()
+
+    def get_target_tickers(self) -> List[str]:
+        """対象銘柄を選定"""
+        return self.asset_selector.get_target_tickers()
+
+    def scan_market(self) -> List[Dict[str, Any]]:
+        """市場をスキャン"""
+        return self.market_scanner.scan_market()
+
+    def execute_signals(self, signals: List[Dict[str, Any]]) -> None:
+        """シグナルを実行"""
+        if not signals: return
+        signals = signals[: self.max_daily_trades]
+        prices = {str(s["ticker"]): float(s["price"]) for s in signals if s.get("price")}
+        executed_trades = self.engine.execute_orders(signals, prices)
+
+        for trade in executed_trades:
+            ticker = trade["ticker"]
+            orig_sig = next((s for s in signals if s["ticker"] == ticker), {})
+            signal_info = {
+                "ticker": ticker,
+                "name": orig_sig.get("name", ticker),
+                "action": trade["action"],
+                "price": trade["price"],
+                "confidence": orig_sig.get("confidence", 1.0),
+                "strategy": orig_sig.get("strategy", "不明"),
+                "explanation": trade.get("reason", orig_sig.get("reason", ""))
+            }
+            try:
+                self.notifier.send_trading_signal(signal_info, None)
+            except Exception: pass
+
+    def send_daily_report(self) -> None:
+        """日次レポートを送信"""
+        self.daily_reporter.send_daily_report()
+
+    def record_performance(self, metrics: Dict[str, Any]):
+        self.log(f"Recording performance: {metrics}")
+
+    def handle_risk_alert(self, alert: Dict[str, Any]):
+        self.log(f"Handling risk alert: {alert}", "WARNING")
+
+    def run_daily_cycle(self) -> None:
+        """1日の運用サイクルを実行"""
+        self.log("=== 運用サイクル開始 ===")
+        try:
+            is_safe, reason = self.is_safe_to_trade()
+            if not is_safe:
+                self.log(f"安全上の理由で停止中: {reason}", "WARNING")
+                return
+
+            exit_signals = self.evaluate_positions()
+            if exit_signals: self.execute_signals(exit_signals)
+
+            buy_signals = self.scan_market()
+            if buy_signals: self.execute_signals(buy_signals)
+
+            if hasattr(self.pt, "update_daily_equity"):
+                self.pt.update_daily_equity()
+
+            self.send_daily_report()
+            self.log("=== 運用サイクル完了 ===")
+        except Exception as e:
+            self.log(f"運用サイクル実行エラー: {e}", "ERROR")
+            traceback.print_exc()
+
+    def daily_routine(self, force_run: bool = False) -> None:
+        """日次ルーチン（エイリアス）"""
+        self.run_daily_cycle()
+>>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f

@@ -173,7 +173,7 @@ print("\n\n5. フルオートシステム統合確認")
 print("-" * 70)
 
 try:
-    from fully_automated_trader import FullyAutomatedTrader
+    from src.trading.fully_automated_trader import FullyAutomatedTrader
 
     print("✅ FullyAutomatedTrader インポート成功")
 

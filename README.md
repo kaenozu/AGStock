@@ -83,22 +83,19 @@ AGStockは、AI技術を活用した個人向け株式自動取引システム�
 git clone https://github.com/your-username/AGStock.git
 cd AGStock
 
-# ステップ1: 設定ウィザード (3分)
-python setup_wizard.py
-
-# ステップ2: 統合ダッシュボード起動
-run_unified_dashboard.bat
+# システム起動 (Linux/Mac)
+./start_system.sh
 ```
 
 **これだけで:**
+- ✅ 仮想環境の自動構築・依存ライブラリのインストール
 - ✅ 最適な設定が自動生成
-- ✅ すべての機能が1つのアプリに統合
-- ✅ 朝活・週末戦略・設定管理が1画面で完結
+- ✅ ダッシュボード、自動売買、システム診断を一元管理
 - ✅ 高速・軽量・使いやすい
 
 **📋 初めての方:** [今日から始めるガイド](GETTING_STARTED.md) を参照
 
-### 手動セットアップ
+### 手動セットアップ (Windows / カスタム)
 
 ```bash
 # 依存関係インストール

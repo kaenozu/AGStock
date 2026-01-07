@@ -246,7 +246,7 @@ class TestRiskManagement:
 
         assert isinstance(rebalance_signal, bool)
 
-    def test_stress_testing(self, risk_manager, price_history):
+    def test_stress_testing(self, risk_manager, price_history, sample_portfolio):
         """ストレステストのテスト"""
         # 市場ショックのシミュレーション
         stress_scenarios = {

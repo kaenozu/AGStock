@@ -18,24 +18,76 @@ logger = logging.getLogger(__name__)
 
 
 class ErrorSeverity(Enum):
-    """エラー深刻度レベル"""
-
-    LOW = "low"  # 軽微な問題、継続可能
-    MEDIUM = "medium"  # 中程度の問題、通知必要
-    HIGH = "high"  # 重大な問題、即時対応必要
-    CRITICAL = "critical"  # 致命的な問題、システム停止
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
+    CRITICAL = "CRITICAL"
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
 
 
 class ErrorCategory(Enum):
-    """エラーカテゴリ"""
+    NETWORK = "NETWORK"
+    API = "API"
+    DATABASE = "DATABASE"
+    LOGIC = "LOGIC"
+    SYSTEM = "SYSTEM"
+    TRADING = "TRADING"
+    DATA = "DATA"
+    ML = "ML"
+    MODEL = "MODEL"
+    SECURITY = "SECURITY"
+    PERMISSION = "PERMISSION"
+    VALIDATION = "VALIDATION"
+    UNKNOWN = "UNKNOWN"
 
-    DATA = "data"  # データ関連エラー
-    NETWORK = "network"  # ネットワークエラー
-    MODEL = "model"  # モデル関連エラー
-    TRADING = "trading"  # 取引関連エラー
-    VALIDATION = "validation"  # バリデーションエラー
-    SYSTEM = "system"  # システムエラー
-    USER_INPUT = "user_input"  # ユーザー入力エラー
+
+class RetryableError(Exception):
+    """Exception raised for errors that can be retried."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+        self.message = message
+
+
+def api_retry(max_retries: int = 3, backoff_factor: float = 1.0):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            for i in range(max_retries):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    if i == max_retries - 1:
+                        raise e
+                    time.sleep(backoff_factor * (2**i))
+            return func(*args, **kwargs)
+
+        return wrapper
+    return decorator
+
+
+def classify_error(error: Exception) -> ErrorCategory:
+    """Classify an error into a category."""
+    if isinstance(error, (ConnectionError, TimeoutError)):
+        return ErrorCategory.NETWORK
+    return ErrorCategory.UNKNOWN
+
+
+def get_user_friendly_message(error: Exception) -> str:
+    """Get a user-friendly message for an error."""
+    return str(error)
+
+
+def log_error_with_context(error: Exception, context: dict = None):
+    """Log an error with additional context."""
+    logger.error(f"Error: {error}, Context: {context}")
+
+
+# Alias
+network_retry = api_retry
+retry = api_retry
 
 
 class UserFriendlyError:

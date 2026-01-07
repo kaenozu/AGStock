@@ -112,9 +112,9 @@ class AttentionLSTM(keras.Model):
         # LSTMレイヤー
         self.lstm_layers = []
         for i in range(num_layers):
-            return_sequences = True if i < num_layers - 1 else False
+            # AttentionLayerを使用するため、常にシーケンスを返すように修正
             self.lstm_layers.append(
-                layers.LSTM(hidden_dim, return_sequences=return_sequences, dropout=dropout, recurrent_dropout=dropout)
+                layers.LSTM(hidden_dim, return_sequences=True, dropout=dropout, recurrent_dropout=dropout)
             )
 
         # Attentionレイヤー
@@ -533,7 +533,7 @@ class AdvancedModels:
             input_dim=input_shape[-1], hidden_dim=64, num_layers=2, dropout=0.2, forecast_horizon=forecast_horizon
         )
 
-        model.build(input_shape)
+        model.build((None, *input_shape))
 
         model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001), loss="mse", metrics=["mae"])
 
@@ -551,7 +551,7 @@ class AdvancedModels:
             forecast_horizon=forecast_horizon,
         )
 
-        model.build(input_shape)
+        model.build((None, *input_shape))
 
         model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001), loss="mse", metrics=["mae"])
 
@@ -564,7 +564,7 @@ class AdvancedModels:
             input_dim=input_shape[-1], hidden_dim=64, num_layers=2, dropout=0.2, forecast_horizon=forecast_horizon
         )
 
-        model.build(input_shape)
+        model.build((None, *input_shape))
 
         model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001), loss="mse", metrics=["mae"])
 
@@ -582,7 +582,7 @@ class AdvancedModels:
             units=32,
         )
 
-        model.build(input_shape)
+        model.build((None, *input_shape))
 
         model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001), loss="mse", metrics=["mae"])
 
