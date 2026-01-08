@@ -79,6 +79,14 @@ class PortfolioManager(BaseManager):
     def max_correlation(self):
         return self.constraints.max_correlation
 
+    @property
+    def max_sector_exposure(self):
+        return self.constraints.max_sector_exposure
+
+    @property
+    def max_position_size(self):
+        return self.constraints.max_position_size
+
     def set_sector_map(self, sector_map: Dict[str, str]) -> None:
         """セクターマップ設定"""
         if not sector_map:

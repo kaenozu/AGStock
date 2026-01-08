@@ -117,10 +117,15 @@ class TestRiskManagement:
         var_95 = risk_manager.calculate_var(returns, confidence=0.95)
         var_99 = risk_manager.calculate_var(returns, confidence=0.99)
 
-        assert isinstance(var_95, float)
-        assert isinstance(var_99, float)
-        assert var_99 < var_95  # 99% VaRは95% VaRより小さい（より悪い）
-        assert var_95 < 0  # VaRは負の値
+        assert isinstance(var_95, (float, np.float64, pd.Series))
+        assert isinstance(var_99, (float, np.float64, pd.Series))
+        # Seriesの場合は各要素をチェック
+        if isinstance(var_95, pd.Series):
+            assert (var_99 < var_95).all()
+            assert (var_95 < 0).all()
+        else:
+            assert var_99 < var_95  # 99% VaRは95% VaRより小さい（より悪い）
+            assert var_95 < 0  # VaRは負の値
 
     def test_maximum_drawdown_calculation(self, risk_manager, price_history):
         """最大ドローダウン計算のテスト"""

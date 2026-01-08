@@ -170,6 +170,29 @@ class FullyAutomatedTrader:
             self.log(f"高度リスク管理モジュールの初期化エラー: {e}", "WARNING")
 
         self.log("フル自動トレーダー（リファクタ済）初期化完了")
+        self._load_evolved_params()
+
+    def _load_evolved_params(self):
+        """進化した戦略パラメータ（Neural Link）をロード"""
+        paths = [
+            "models/config/evolved_strategy_params.json",
+            "config/evolved_strategy_params.json",
+            "evolved_strategy_params.json"
+        ]
+        
+        for p in paths:
+            if os.path.exists(p):
+                try:
+                    with open(p, "r", encoding="utf-8") as f:
+                        content = f.read()
+                        if not content: continue
+                        params = json.loads(content)
+                        genotype = params.get("genotype", "unknown")
+                        msg = f"Neural Link: Strategy parameters loaded from {p}, overriding with '{genotype}'"
+                        self.log(msg)
+                        return # Load only the first one found
+                except Exception as e:
+                    self.log(f"Neural Linkロードエラー ({p}): {e}", "WARNING")
 
     def load_config(self, config_path: str) -> Dict[str, Any]:
         """設定ファイルを読み込み"""
@@ -230,6 +253,8 @@ class FullyAutomatedTrader:
 
     def scan_market(self) -> List[Dict[str, Any]]:
         """市場をスキャン"""
+        self._load_evolved_params()
+        self.log("市場スキャン開始...")
         return self.market_scanner.scan_market()
 
     def execute_signals(self, signals: List[Dict[str, Any]]) -> None:

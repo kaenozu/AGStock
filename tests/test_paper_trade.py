@@ -74,8 +74,9 @@ def test_trade_history(paper_trader):
     assert history.iloc[0]["action"] == "BUY"
 
 
-def test_positions_realtime_fallback(monkeypatch, temp_db_path):
-    pt = PaperTrader(db_path=temp_db_path, initial_capital=1000000, use_realtime_fallback=True)
+def test_positions_realtime_fallback(temp_db_path):
+    # use_realtime_fallback引数は実装に存在しないため削除
+    pt = PaperTrader(db_path=temp_db_path, initial_capital=1000000)
     try:
         cursor = pt.conn.cursor()
         cursor.execute(
