@@ -182,29 +182,34 @@ class AIModelManager:
     def initialize_models(self):
         """モデル初期化"""
         # Random Forest
-        self.models["random_forest"] = RandomForestClassifier(
-            n_estimators=100, max_depth=10, random_state=42, n_jobs=-1
-        )
+        if RandomForestClassifier:
+            self.models["random_forest"] = RandomForestClassifier(
+                n_estimators=100, max_depth=10, random_state=42, n_jobs=-1
+            )
 
         # Gradient Boosting
-        self.models["gradient_boost"] = GradientBoostingClassifier(
-            n_estimators=100, learning_rate=0.1, max_depth=6, random_state=42
-        )
+        if GradientBoostingClassifier:
+            self.models["gradient_boost"] = GradientBoostingClassifier(
+                n_estimators=100, learning_rate=0.1, max_depth=6, random_state=42
+            )
 
         # XGBoost
-        self.models["xgboost"] = xgb.XGBClassifier(
-            n_estimators=100,
-            max_depth=6,
-            learning_rate=0.1,
-            random_state=42,
-            eval_metric="logloss",
-        )
+        if xgb:
+            self.models["xgboost"] = xgb.XGBClassifier(
+                n_estimators=100,
+                max_depth=6,
+                learning_rate=0.1,
+                random_state=42,
+                eval_metric="logloss",
+            )
 
         # LightGBM
-        self.models["lightgbm"] = lgb.LGBMClassifier(n_estimators=100, max_depth=6, learning_rate=0.1, random_state=42)
+        if lgb:
+            self.models["lightgbm"] = lgb.LGBMClassifier(n_estimators=100, max_depth=6, learning_rate=0.1, random_state=42)
 
         # Logistic Regression
-        self.models["logistic"] = LogisticRegression(random_state=42, max_iter=1000)
+        if LogisticRegression:
+            self.models["logistic"] = LogisticRegression(random_state=42, max_iter=1000)
 
         # Neural Network (LSTM)
         self.models["lstm"] = None  # 動的に生成
