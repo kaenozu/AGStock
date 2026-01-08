@@ -40,7 +40,7 @@ jobs:
         # Install only essential testing dependencies, skip heavy ML libs
         pip install --no-cache-dir pytest pytest-cov pytest-asyncio
         # Install lightweight dependencies needed for core logic tests
-        pip install --no-cache-dir pandas numpy requests python-dotenv pydantic pydantic-settings fastapi uvicorn yfinance matplotlib tenacity joblib cryptography feedparser psutil ta scikit-learn
+        pip install --no-cache-dir pandas numpy requests python-dotenv pydantic pydantic-settings fastapi uvicorn yfinance matplotlib tenacity joblib cryptography feedparser psutil ta scikit-learn scipy aiohttp bcrypt PyYAML pypdf optuna lightgbm xgboost prophet
 
     - name: Run tests
       env:
