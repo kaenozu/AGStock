@@ -1,4 +1,4 @@
-$Action = New-ScheduledTaskAction -Execute "c:\gemini-thinkpad\AGStock\run_auto_invest.bat"
+$Action = New-ScheduledTaskAction -Execute (Join-Path $PSScriptRoot "..\run_auto_invest.bat")
 $Trigger = New-ScheduledTaskTrigger -Daily -At 15:30
 $Principal = New-ScheduledTaskPrincipal -UserId "$env:USERNAME" -LogonType Interactive
 $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable

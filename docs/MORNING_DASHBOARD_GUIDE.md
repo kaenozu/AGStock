@@ -138,7 +138,7 @@ http://192.168.1.100:8503
    - **名前**: 朝活ダッシュボード
    - **トリガー**: 毎日 5:00
    - **操作**: プログラムの起動
-   - **プログラム**: `C:\gemini-thinkpad\AGStock\run_morning_dashboard.bat`
+   - **プログラム**: `C:\path\to\AGStock\run_morning_dashboard.bat`
 
 これで毎朝5時に自動起動します!
 

@@ -59,11 +59,11 @@ python auto_trader.py
 2. 操作: `プログラムの開始`
 3. プログラム/スクリプト: 
    ```
-   C:\gemini-thinkpad\AGStock\run_auto_trader.bat
+   C:\path\to\AGStock\run_auto_trader.bat
    ```
 4. 開始(オプション):
    ```
-   C:\gemini-thinkpad\AGStock
+   C:\path\to\AGStock
    ```
 5. OK
 
