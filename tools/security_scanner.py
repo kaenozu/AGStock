@@ -197,7 +197,7 @@ def main():
     
     results = scanner.scan_project()
     
-    print(f"\n📊 Summary:")
+    print("\n📊 Summary:")
     print(f"  Files scanned: {results['files_scanned']}")
     print(f"  Vulnerabilities found: {len(results['vulnerabilities'])}")
     

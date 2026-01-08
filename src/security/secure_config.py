@@ -162,8 +162,8 @@ class SecureConfigManager:
             api_keys_found.append("openai_api_key")
 
         if api_keys_found:
-            if "pytest" in sys.modules:
-                logger.warning(f"テスト実行中のため、ハードコードされたAPIキーを許可します: {api_keys_found}")
+            if os.getenv("AGSTOCK_ALLOW_HARDCODED_KEYS") == "1":
+                logger.warning(f"ハードコードされたAPIキーを許可します（テスト用）: {api_keys_found}")
             else:
                 logger.error(f"設定ファイルにAPIキーがハードコーディングされています: {api_keys_found}")
                 raise ValueError("APIキーは環境変数で管理してください")
