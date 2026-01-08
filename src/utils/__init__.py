@@ -14,6 +14,8 @@ from .lazy_imports import (
     is_transformers_available,
 )
 
+from .error_handler import retry_with_backoff
+
 __all__ = [
     "LazyModule",
     "LazyImporter",
@@ -26,4 +28,5 @@ __all__ = [
     "is_torch_available",
     "is_prophet_available",
     "is_transformers_available",
+    "retry_with_backoff",
 ]
