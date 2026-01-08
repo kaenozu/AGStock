@@ -14,3 +14,8 @@ class MobileCommander:
         """コマンドを送信"""
         logger.info(f"Mobile command received: {command}")
         return True
+
+    def process_command(self, user: str, command: str):
+        """コマンドを処理"""
+        logger.info(f"Mobile command processed for {user}: {command}")
+        return f"Executed: {command}"

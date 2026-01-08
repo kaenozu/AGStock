@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from src.strategies.lightgbm_strategy import LightGBMStrategy
+from src.strategies.ml.lightgbm import LightGBMStrategy
 
 
 def _evaluate_signals(signals: pd.Series, actual: pd.Series) -> tuple[float, float]:

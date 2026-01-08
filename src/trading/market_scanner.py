@@ -246,22 +246,3 @@ class MarketScanner:
 
         self.logger.info(f"最終確定シグナル数: {len(signals)}")
         return signals
-                        latest_price = get_latest_price(df)
-
-                        signals.append(
-                            {
-                                "ticker": ticker,
-                                "action": "SELL",
-                                "confidence": 0.85,
-                                "price": latest_price,
-                                "strategy": strategy_name,
-                                "reason": f"{strategy_name}による売りシグナル",
-                            }
-                        )
-                        break
-
-                except Exception as e:
-                    self.logger.warning(f"シグナル生成エラー ({ticker}, {strategy_name}): {e}")
-
-        self.logger.info(f"検出シグナル数: {len(signals)}")
-        return signals

@@ -55,7 +55,7 @@ class AssetSelector:
             else:
                 europe_value += value
 
-        total_value = balance["total_equity"]
+        total_value = float(balance.get("total_equity", 0))
 
         if total_value > 0:
             japan_pct = (japan_value / total_value) * 100
