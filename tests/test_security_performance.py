@@ -95,22 +95,31 @@ class TestSecureConfigManager:
 
     def test_hardcoded_api_key_detection(self, temp_config):
         """ハードコードAPIキー検出テスト"""
-        # ハードコードされたAPIキーを含む設定
-        config_data = {
-            "risk": {"max_position_size": 0.1},
-            "gemini_api_key": "hardcoded_key_123",  # ハードコード
-        }
-
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-            json.dump(config_data, f)
-            temp_path = f.name
-
+        # 環境変数が設定されている場合はスキップされる可能性があるため、一時的にクリア
+        import os
+        old_allow = os.getenv("AGSTOCK_ALLOW_HARDCODED_KEYS")
+        if old_allow:
+            del os.environ["AGSTOCK_ALLOW_HARDCODED_KEYS"]
+            
         try:
+            # ハードコードされたAPIキーを含む設定
+            config_data = {
+                "risk": {"max_position_size": 0.1},
+                "gemini_api_key": "hardcoded_key_123",  # ハードコード
+            }
+
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+                json.dump(config_data, f)
+                temp_path = f.name
+
             manager = SecureConfigManager(temp_path)
             with pytest.raises(ValueError, match="APIキーは環境変数で管理してください"):
                 manager.load_config()
         finally:
-            os.unlink(temp_path)
+            if old_allow:
+                os.environ["AGSTOCK_ALLOW_HARDCODED_KEYS"] = old_allow
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
 
 
 class TestInputValidator:

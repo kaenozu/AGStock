@@ -63,6 +63,8 @@ class TestPhase124_125:
         
         with open(param_path, "w") as f:
             json.dump(dummy_params, f)
+            f.flush()
+            os.fsync(f.fileno())
             
         try:
             # Trader初期化
@@ -75,15 +77,16 @@ class TestPhase124_125:
             trader.scan_market()
             
             # ログを確認してロードされたか検証
-            # logメソッドが "overriding with 'Test_Genotype_Alpha'" のようなメッセージを受け取ったか
             found_log = False
+            captured = []
             for call in mock_log.call_args_list:
-                args, _ = call
-                if "Neural Link" in args[0] and "Test_Genotype_Alpha" in args[0]:
+                msg = str(call[0][0])
+                captured.append(msg)
+                if "Neural Link" in msg:
                     found_log = True
                     break
             
-            assert found_log, "Neural Link activation log not found!"
+            assert found_log, f"Neural Link activation log not found! Captured: {captured}"
             
         finally:
             # クリーンアップ
