@@ -1,0 +1,425 @@
+{
+  "total_violations": 1706,
+  "severity_breakdown": {
+    "medium": 632,
+    "low": 993,
+    "high": 81
+  },
+  "violation_types": {
+    "function_name": 632,
+    "private_method": 576,
+    "variable_name": 494,
+    "constant_name": 2,
+    "class_name": 2
+  },
+  "files_affected": 287,
+  "recommendations": [
+    "関数名はsnake_caseを使用してください（例: calculate_price）",
+    "一貫した命名規則を使用してください",
+    "意味のある変数名や関数名を選択してください",
+    "省略形は避け、説明的な名前を使用してください"
+  ],
+  "violations": [
+    {
+      "file": "community_dashboard.py",
+      "line": 11,
+      "type": "function_name",
+      "current": "_init_db",
+      "suggested": "_init_db",
+      "severity": "medium"
+    },
+    {
+      "file": "community_dashboard.py",
+      "line": 11,
+      "type": "private_method",
+      "current": "_init_db",
+      "suggested": "_init_db",
+      "severity": "low"
+    },
+    {
+      "file": "conftest.py",
+      "line": 10,
+      "type": "variable_name",
+      "current": "__all__",
+      "suggested": "__all__",
+      "severity": "low"
+    },
+    {
+      "file": "pages\\7_🛡_ヘルスチェック.py",
+      "line": 80,
+      "type": "function_name",
+      "current": "_build_quality_summary",
+      "suggested": "_build_quality_summary",
+      "severity": "medium"
+    },
+    {
+      "file": "pages\\7_🛡_ヘルスチェック.py",
+      "line": 80,
+      "type": "private_method",
+      "current": "_build_quality_summary",
+      "suggested": "_build_quality_summary",
+      "severity": "low"
+    },
+    {
+      "file": "scripts\\check_accuracy_fast.py",
+      "line": 19,
+      "type": "variable_name",
+      "current": "X_train",
+      "suggested": "x_train",
+      "severity": "low"
+    },
+    {
+      "file": "scripts\\check_accuracy_fast.py",
+      "line": 19,
+      "type": "variable_name",
+      "current": "X_test",
+      "suggested": "x_test",
+      "severity": "low"
+    },
+    {
+      "file": "scripts\\check_prediction_detail.py",
+      "line": 40,
+      "type": "variable_name",
+      "current": "_",
+      "suggested": "_",
+      "severity": "high"
+    },
+    {
+      "file": "scripts\\check_prediction_detail.py",
+      "line": 72,
+      "type": "variable_name",
+      "current": "_",
+      "suggested": "_",
+      "severity": "high"
+    },
+    {
+      "file": "scripts\\check_prediction_detail.py",
+      "line": 89,
+      "type": "variable_name",
+      "current": "X_latest",
+      "suggested": "x_latest",
+      "severity": "low"
+    },
+    {
+      "file": "scripts\\evaluate_performance.py",
+      "line": 35,
+      "type": "variable_name",
+      "current": "X_train",
+      "suggested": "x_train",
+      "severity": "low"
+    },
+    {
+      "file": "scripts\\evaluate_performance.py",
+      "line": 35,
+      "type": "variable_name",
+      "current": "X_test",
+      "suggested": "x_test",
+      "severity": "low"
+    },
+    {
+      "file": "scripts\\morning_brief.py",
+      "line": 29,
+      "type": "function_name",
+      "current": "_load_config",
+      "suggested": "_load_config",
+      "severity": "medium"
+    },
+    {
+      "file": "scripts\\morning_brief.py",
+      "line": 29,
+      "type": "private_method",
+      "current": "_load_config",
+      "suggested": "_load_config",
+      "severity": "low"
+    },
+    {
+      "file": "scripts\\optimize_models.py",
+      "line": 51,
+      "type": "variable_name",
+      "current": "X_train",
+      "suggested": "x_train",
+      "severity": "low"
+    },
+    {
+      "file": "scripts\\optimize_models.py",
+      "line": 51,
+      "type": "variable_name",
+      "current": "X_val",
+      "suggested": "x_val",
+      "severity": "low"
+    },
+    {
+      "file": "scripts\\predict_future.py",
+      "line": 67,
+      "type": "variable_name",
+      "current": "_",
+      "suggested": "_",
+      "severity": "high"
+    },
+    {
+      "file": "scripts\\pre_trade_check.py",
+      "line": 95,
+      "type": "variable_name",
+      "current": "_",
+      "suggested": "_",
+      "severity": "high"
+    },
+    {
+      "file": "scripts\\validate_config.py",
+      "line": 14,
+      "type": "function_name",
+      "current": "_manual_validate",
+      "suggested": "_manual_validate",
+      "severity": "medium"
+    },
+    {
+      "file": "scripts\\validate_config.py",
+      "line": 14,
+      "type": "private_method",
+      "current": "_manual_validate",
+      "suggested": "_manual_validate",
+      "severity": "low"
+    },
+    {
+      "file": "scripts\\weekly_review.py",
+      "line": 154,
+      "type": "variable_name",
+      "current": "_",
+      "suggested": "_",
+      "severity": "high"
+    },
+    {
+      "file": "src\\advanced_analytics.py",
+      "line": 132,
+      "type": "variable_name",
+      "current": "_",
+      "suggested": "_",
+      "severity": "high"
+    },
+    {
+      "file": "src\\advanced_ensemble.py",
+      "line": 43,
+      "type": "variable_name",
+      "current": "X_train_fold",
+      "suggested": "x_train_fold",
+      "severity": "low"
+    },
+    {
+      "file": "src\\advanced_ensemble.py",
+      "line": 43,
+      "type": "variable_name",
+      "current": "X_val_fold",
+      "suggested": "x_val_fold",
+      "severity": "low"
+    },
+    {
+      "file": "src\\advanced_ensemble.py",
+      "line": 76,
+      "type": "function_name",
+      "current": "_default_weight_calculator",
+      "suggested": "_default_weight_calculator",
+      "severity": "medium"
+    },
+    {
+      "file": "src\\advanced_ensemble.py",
+      "line": 76,
+      "type": "private_method",
+      "current": "_default_weight_calculator",
+      "suggested": "_default_weight_calculator",
+      "severity": "low"
+    },
+    {
+      "file": "src\\advanced_ensemble.py",
+      "line": 166,
+      "type": "function_name",
+      "current": "_compute_pairwise_correlations",
+      "suggested": "_compute_pairwise_correlations",
+      "severity": "medium"
+    },
+    {
+      "file": "src\\advanced_ensemble.py",
+      "line": 166,
+      "type": "private_method",
+      "current": "_compute_pairwise_correlations",
+      "suggested": "_compute_pairwise_correlations",
+      "severity": "low"
+    },
+    {
+      "file": "src\\advanced_ensemble.py",
+      "line": 280,
+      "type": "variable_name",
+      "current": "X_meta",
+      "suggested": "x_meta",
+      "severity": "low"
+    },
+    {
+      "file": "src\\advanced_ensemble.py",
+      "line": 288,
+      "type": "variable_name",
+      "current": "X_meta",
+      "suggested": "x_meta",
+      "severity": "low"
+    },
+    {
+      "file": "src\\advanced_ensemble.py",
+      "line": 439,
+      "type": "variable_name",
+      "current": "X_meta",
+      "suggested": "x_meta",
+      "severity": "low"
+    },
+    {
+      "file": "src\\advanced_ensemble.py",
+      "line": 455,
+      "type": "variable_name",
+      "current": "X_meta",
+      "suggested": "x_meta",
+      "severity": "low"
+    },
+    {
+      "file": "src\\advanced_features_v2.py",
+      "line": 150,
+      "type": "variable_name",
+      "current": "_features_v2",
+      "suggested": "_features_v2",
+      "severity": "low"
+    },
+    {
+      "file": "src\\advanced_features_v2.py",
+      "line": 156,
+      "type": "variable_name",
+      "current": "_features_v2",
+      "suggested": "_features_v2",
+      "severity": "low"
+    },
+    {
+      "file": "src\\advanced_models.py",
+      "line": 67,
+      "type": "function_name",
+      "current": "__getattr__",
+      "suggested": "__getattr__",
+      "severity": "medium"
+    },
+    {
+      "file": "src\\advanced_models.py",
+      "line": 82,
+      "type": "variable_name",
+      "current": "W",
+      "suggested": "w",
+      "severity": "high"
+    },
+    {
+      "file": "src\\advanced_models.py",
+      "line": 215,
+      "type": "variable_name",
+      "current": "_",
+      "suggested": "_",
+      "severity": "high"
+    },
+    {
+      "file": "src\\advanced_models.py",
+      "line": 255,
+      "type": "variable_name",
+      "current": "_",
+      "suggested": "_",
+      "severity": "high"
+    },
+    {
+      "file": "src\\advanced_models.py",
+      "line": 306,
+      "type": "variable_name",
+      "current": "_",
+      "suggested": "_",
+      "severity": "high"
+    },
+    {
+      "file": "src\\advanced_models.py",
+      "line": 424,
+      "type": "variable_name",
+      "current": "X_3d",
+      "suggested": "x_3d",
+      "severity": "low"
+    },
+    {
+      "file": "src\\advanced_models.py",
+      "line": 470,
+      "type": "variable_name",
+      "current": "X_3d",
+      "suggested": "x_3d",
+      "severity": "low"
+    },
+    {
+      "file": "src\\advanced_models.py",
+      "line": 470,
+      "type": "variable_name",
+      "current": "_",
+      "suggested": "_",
+      "severity": "high"
+    },
+    {
+      "file": "src\\advanced_models.py",
+      "line": 512,
+      "type": "function_name",
+      "current": "_create_sequences",
+      "suggested": "_create_sequences",
+      "severity": "medium"
+    },
+    {
+      "file": "src\\advanced_models.py",
+      "line": 512,
+      "type": "private_method",
+      "current": "_create_sequences",
+      "suggested": "_create_sequences",
+      "severity": "low"
+    },
+    {
+      "file": "src\\advanced_models.py",
+      "line": 519,
+      "type": "variable_name",
+      "current": "Xs",
+      "suggested": "xs",
+      "severity": "low"
+    },
+    {
+      "file": "src\\advanced_risk.py",
+      "line": 29,
+      "type": "function_name",
+      "current": "__gt__",
+      "suggested": "__gt__",
+      "severity": "medium"
+    },
+    {
+      "file": "src\\advanced_risk.py",
+      "line": 30,
+      "type": "function_name",
+      "current": "__lt__",
+      "suggested": "__lt__",
+      "severity": "medium"
+    },
+    {
+      "file": "src\\advanced_risk.py",
+      "line": 31,
+      "type": "function_name",
+      "current": "__ge__",
+      "suggested": "__ge__",
+      "severity": "medium"
+    },
+    {
+      "file": "src\\advanced_risk.py",
+      "line": 32,
+      "type": "function_name",
+      "current": "__le__",
+      "suggested": "__le__",
+      "severity": "medium"
+    },
+    {
+      "file": "src\\advanced_risk.py",
+      "line": 34,
+      "type": "function_name",
+      "current": "__float__",
+      "suggested": "__float__",
+      "severity": "medium"
+    }
+  ],
+  "auto_fixed_files": []
+}

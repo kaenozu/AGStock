@@ -1,7 +1,7 @@
 # AGStock 運用自動化セットアップスクリプト
 # このスクリプトは Windows タスクスケジューラに主要なタスクを登録します。
 
-$BaseDir = "C:\gemini-thinkpad\AGStock"
+$BaseDir = Resolve-Path (Join-Path $PSScriptRoot "..")
 $PythonExe = "python.exe" # venvを使用する場合はパスを書き換えてください
 
 # 1. 毎朝の市場スキャン (平日 08:45)

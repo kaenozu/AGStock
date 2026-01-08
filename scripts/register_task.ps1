@@ -3,8 +3,8 @@
 
 $TaskName = "AGStock_AutoTrading"
 $TaskDescription = "Daily automated trading execution"
-$ScriptPath = "c:\gemini-thinkpad\AGStock\run_auto_trade.bat"
-$WorkingDirectory = "c:\gemini-thinkpad\AGStock"
+$ScriptPath = Join-Path $PSScriptRoot "..\run_auto_trade.bat"
+$WorkingDirectory = $PSScriptRoot
 
 # Create task action
 $Action = New-ScheduledTaskAction -Execute $ScriptPath -WorkingDirectory $WorkingDirectory

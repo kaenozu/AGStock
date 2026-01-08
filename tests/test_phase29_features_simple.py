@@ -6,7 +6,8 @@ Phase 29-1: 特徴量エンジニアリング簡易検証スクリプト
 
 import sys
 
-sys.path.insert(0, "c:\\gemini-thinkpad\\AGStock")
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import numpy as np
 import pandas as pd

@@ -1,7 +1,7 @@
 
 import os
 
-APP_PATH = "c:\\gemini-thinkpad\\AGStock\\app.py"
+APP_PATH = os.path.join(os.path.dirname(__file__), "..", "app.py")
 
 def fix_app():
     with open(APP_PATH, "r", encoding="utf-8") as f:

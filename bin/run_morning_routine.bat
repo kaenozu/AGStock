@@ -7,7 +7,7 @@ REM ============================================
 echo [%DATE% %TIME%] Starting AGStock Morning Routine...
 
 REM Navigate to project directory
-cd /d "C:\gemini-thinkpad\AGStock"
+cd /d "%~dp0.."
 
 REM Activate virtual environment if exists
 if exist "venv\Scripts\activate.bat" (
