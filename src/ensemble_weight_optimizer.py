@@ -31,8 +31,8 @@ class EnsembleWeightOptimizer:
             try:
                 with open(WEIGHTS_PATH, "r") as f:
                     return json.load(f)
-            except Exception:
-                pass
+            except Exception as e:
+                logging.getLogger(__name__).debug(f"Non-critical exception: {e}")
 
         # デフォルト重み
         return {

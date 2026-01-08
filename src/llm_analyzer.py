@@ -50,7 +50,7 @@ class LLMAnalyzer:
                 config = get_config()
                 self.api_key = config.get_api_key("gemini")
             except ImportError:
-                pass
+                logger.debug("Core config module not available")
         
         self.model = None
         self.is_active = False

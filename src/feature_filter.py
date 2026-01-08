@@ -30,8 +30,8 @@ class FeatureImportanceFilter:
             try:
                 with open(IMPORTANCE_PATH, "r") as f:
                     return json.load(f)
-            except Exception:
-                pass
+            except Exception as e:
+                logging.getLogger(__name__).debug(f"Non-critical exception: {e}")
         return {}
 
     def _save_importance(self, scores: Dict[str, float]):

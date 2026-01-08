@@ -71,8 +71,8 @@ class SafetyManager:
             saved = db_manager.get_config("safety_settings")
             if saved:
                 return SafetySettings(**saved)
-        except:
-            pass
+        except Exception as e:
+            logging.getLogger(__name__).debug(f"Non-critical exception: {e}")
         return SafetySettings()
 
     def save_safety_settings(self, settings: SafetySettings):

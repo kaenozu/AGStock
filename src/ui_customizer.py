@@ -4,6 +4,7 @@ UI Customizer - カスタマイズ可能なダッシュボード
 """
 
 import json
+import logging
 import os
 from typing import Dict, List
 

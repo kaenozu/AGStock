@@ -353,8 +353,8 @@ class SmartNotifier(Notifier):
         if chart_path and os.path.exists(chart_path):
             try:
                 os.unlink(chart_path)
-            except:
-                pass
+            except Exception as e:
+                logging.getLogger(__name__).debug(f"Failed to delete chart file: {e}")
 
     def send_line_notify(self, message: str, image_path: Optional[str] = None, token: Optional[str] = None) -> bool:
         """LINE Notifyで通知を送信（boolを返すラッパー）"""

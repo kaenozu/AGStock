@@ -4,6 +4,7 @@
 一目でわかる資産状況 - Zero-Touch Mode
 """
 
+import logging
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -285,8 +286,8 @@ def _go_no_go():
         vix_df = ext.get("VIX")
         if vix_df is not None and not vix_df.empty:
             vix_display = f"{float(vix_df['Close'].iloc[-1]):.2f}"
-    except Exception:
-        pass
+    except Exception as e:
+        logging.getLogger(__name__).debug(f"Failed to fetch VIX: {e}")
     st.write(f"VIX: {vix_display}")
 
     safe_mode = st.checkbox("安全モード (BUY抑制)", value=os.getenv("SAFE_MODE", "").lower() in {"1", "true", "yes"})
@@ -610,8 +611,8 @@ def create_simple_dashboard():
                 vix_df = ext.get("VIX")
                 if vix_df is not None and not vix_df.empty:
                     vix_display = f"{float(vix_df['Close'].iloc[-1]):.2f}"
-            except Exception:
-                pass
+            except Exception as e:
+                logging.getLogger(__name__).debug(f"Failed to fetch VIX in header: {e}")
             st.warning(f"VIX: {vix_display}")
         with col4:
             scenario = st.session_state.get("scenario", os.getenv("TRADING_SCENARIO", "neutral"))

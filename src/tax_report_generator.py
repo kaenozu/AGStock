@@ -4,6 +4,7 @@ e-Tax対応フォーマット、年間取引報告書、損益計算書
 """
 
 import io
+import logging
 from datetime import datetime
 from typing import Dict
 
@@ -24,8 +25,8 @@ class TaxReportGenerator:
         # 日本語フォント登録
         try:
             pdfmetrics.registerFont(UnicodeCIDFont("HeiseiMin-W3"))
-        except:
-            pass
+        except Exception as e:
+            logging.getLogger(__name__).debug(f"Non-critical exception: {e}")
 
     def generate_annual_report(self, year: int, trades: pd.DataFrame, user_info: Dict) -> bytes:
         """
