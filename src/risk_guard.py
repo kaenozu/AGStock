@@ -73,8 +73,11 @@ class RiskGuard:
                 current_date = datetime.date.today()
         
         # Resolve Mock objects to their underlying values if possible
-        while hasattr(current_date, "return_value"):
+        # Add a depth limit to prevent infinite loops in tests
+        depth = 0
+        while hasattr(current_date, "return_value") and depth < 10:
             current_date = current_date.return_value
+            depth += 1
 
         try:
             if current_date > self.last_reset_date:
