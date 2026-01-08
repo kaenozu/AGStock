@@ -74,8 +74,11 @@ class RiskGuard:
         
         # Resolve Mock objects to their underlying values if possible
         # Add a depth limit to prevent infinite loops in tests
+        # Also stop if we find a real date/datetime object (has 'year' attribute)
         depth = 0
         while hasattr(current_date, "return_value") and depth < 10:
+            if hasattr(current_date, "year"):
+                break
             current_date = current_date.return_value
             depth += 1
 

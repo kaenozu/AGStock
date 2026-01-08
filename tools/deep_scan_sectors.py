@@ -8,12 +8,12 @@ import logging
 import warnings
 import concurrent.futures
 
-# 
+# Configure logging
 logging.basicConfig(level=logging.ERROR)
 warnings.filterwarnings('ignore')
 
 def get_sector_tickers():
-    """EEE"""
+    """Sector Tickers"""
     sectors = {
         "Semiconductor": ["8035.T", "6857.T", "6146.T", "6723.T", "NVDA", "AMD", "ASML"],
         "Trading_Houses": ["8001.T", "8031.T", "8058.T", "8053.T", "8015.T"],
@@ -64,10 +64,9 @@ def verify_single_ticker(ticker):
 
 def run_deep_scan():
     tickers = get_sector_tickers()
-    print(f"---  AIE(: {len(tickers)}) ---")
+    print(f"--- Deep Scan Start (Total: {len(tickers)}) ---")
     
     results = []
-    # TickerEE
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
         future_to_ticker = {executor.submit(verify_single_ticker, ticker): ticker for ticker in tickers}
         for future in concurrent.futures.as_completed(future_to_ticker):
@@ -77,28 +76,26 @@ def run_deep_scan():
                 ticker = res['ticker']
                 wr = res['win_rate']
                 ret = res['avg_ret']
-                indicator = "" if wr > 0.55 else "E if wr > 0.52 else """
-                print(f"  {indicator} {ticker:8}: EE{wr:.1%} | E {ret:+.2%} ({res['count']}E")
+                indicator = "🚀" if wr > 0.55 else "✅" if wr > 0.52 else "  "
+                print(f"  {indicator} {ticker:8}: WinRate={wr:.1%} | AvgRet={ret:+.2%} ({res['count']} Trades)")
 
     if not results:
-        print("EEE)"
+        print("No valid results found.")
         return
 
     df_res = pd.DataFrame(results)
     
     print("\n" + "="*60)
-    print("  AIE E)"
+    print("  Deep Sector Scan Results")
     print("="*60)
     
-    # EE53%
     best_stocks = df_res[df_res['win_rate'] >= 0.53].sort_values(by='win_rate', ascending=False)
     
     for i, row in best_stocks.iterrows():
-        print(f"  {row['ticker']:8} | EE {row['win_rate']:.1%} | E: {row['avg_ret']:+.2%}")
+        print(f"  {row['ticker']:8} | WinRate {row['win_rate']:.1%} | AvgRet: {row['avg_ret']:+.2%}")
     
     print("="*60)
-    print(f"\nE{len(best_stocks)} E)"
-    print("EE)"
+    print(f"\nScan complete. {len(best_stocks)} stocks passed threshold.")
 
 if __name__ == "__main__":
     run_deep_scan()
