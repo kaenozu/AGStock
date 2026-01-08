@@ -67,6 +67,7 @@ class PaperTrader:
                 quantity INTEGER,
                 avg_price REAL,
                 entry_price REAL DEFAULT 0.0,
+                entry_date TEXT,
                 stop_price REAL DEFAULT 0.0,
                 highest_price REAL DEFAULT 0.0
             )

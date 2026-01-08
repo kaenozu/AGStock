@@ -2,14 +2,17 @@ name: Tests
 
 on:
   push:
-    branches: [ main, add-test-suite ]
+    branches: [ main, develop ]
   pull_request:
     branches: [ main ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11']
+
     steps:
     - uses: actions/checkout@v4
 
@@ -19,28 +22,23 @@ jobs:
         sudo rm -rf /opt/ghc
         sudo rm -rf "/usr/local/share/boost"
         sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-    
-    - name: Set up Python
+        sudo docker image prune -a -f
+        sudo apt-get clean
+        df -h
+
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
-    
+        python-version: ${{ matrix.python-version }}
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install -r requirements-dev.txt
-        pip install pytest-asyncio
-    
-    - name: Run tests with pytest
+        pip install pytest pytest-cov pytest-asyncio
+
+    - name: Run tests
       env:
         AGSTOCK_ALLOW_HARDCODED_KEYS: "1"
       run: |
-        pytest tests/ -v --cov=src --cov-report=xml --cov-report=term-missing -x --ignore=tests/test_robustness.py || true
-      continue-on-error: true
-    
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.xml
-        fail_ci_if_error: false
+        pytest tests/ --cov=src --cov-report=xml

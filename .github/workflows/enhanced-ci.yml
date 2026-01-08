@@ -24,6 +24,9 @@ jobs:
         sudo rm -rf /opt/ghc
         sudo rm -rf "/usr/local/share/boost"
         sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+        sudo docker image prune -a -f
+        sudo apt-get clean
+        df -h
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
