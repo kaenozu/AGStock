@@ -25,14 +25,25 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-import mlflow
 import numpy as np
 import pandas as pd
-import tensorflow as tf
+try:
+    import mlflow
+    from mlflow.models.signature import infer_signature
+    from mlflow.utils.environment import _mlflow_conda_env
+except ImportError:
+    mlflow = None
+    infer_signature = None
+    _mlflow_conda_env = None
+
+try:
+    import tensorflow as tf
+    from tensorflow import keras
+except ImportError:
+    tf = None
+    keras = None
+
 import yaml
-from mlflow.models.signature import infer_signature
-from mlflow.utils.environment import _mlflow_conda_env
-from tensorflow import keras
 
 warnings.filterwarnings("ignore")
 

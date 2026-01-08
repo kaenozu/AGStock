@@ -13,9 +13,16 @@ from typing import Tuple
 
 import numpy as np
 import pandas as pd
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
+try:
+    import tensorflow as tf
+    from tensorflow import keras
+    from tensorflow.keras import layers
+    TF_AVAILABLE = True
+except ImportError:
+    tf = None
+    keras = None
+    layers = None
+    TF_AVAILABLE = False
 
 warnings.filterwarnings("ignore")
 

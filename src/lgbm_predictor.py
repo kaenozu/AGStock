@@ -6,7 +6,10 @@ LightGBM予測モデル
 import logging
 from typing import Any, Dict
 
-import lightgbm as lgb
+try:
+    import lightgbm as lgb
+except ImportError:
+    lgb = None
 import pandas as pd
 
 from .base_predictor import BasePredictor

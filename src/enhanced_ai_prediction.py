@@ -10,13 +10,35 @@ from typing import Dict, List, Any, Optional, Tuple
 import json
 import logging
 from datetime import datetime, timedelta
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.linear_model import LogisticRegression
-import xgboost as xgb
-import lightgbm as lgb
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense, Dropout
+try:
+    from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+    from sklearn.linear_model import LogisticRegression
+except ImportError:
+    RandomForestClassifier = None
+    GradientBoostingClassifier = None
+    LogisticRegression = None
+
+try:
+    import xgboost as xgb
+except ImportError:
+    xgb = None
+
+try:
+    import lightgbm as lgb
+except ImportError:
+    lgb = None
+
+try:
+    import tensorflow as tf
+    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.layers import LSTM, Dense, Dropout
+except ImportError:
+    tf = None
+    Sequential = None
+    LSTM = None
+    Dense = None
+    Dropout = None
+
 import joblib
 import os
 import asyncio
