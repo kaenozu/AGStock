@@ -77,16 +77,16 @@ class TournamentManager:
                             action="BUY",
                             quantity=quantity,
                             price=price,
-                            reason=f"Tournament: {profile['name']}",
-                            initial_stop_price=stop_price,
+                            strategy="Tournament",
+                            reason=f"Tournament: {profile['name']} (Stop: {stop_price:,.0f})",
                         )
 
                 elif action == "SELL":
                     # Personalities might have different sell signals, but for now we follow main signals
                     # Or we check if they actually hold it
                     pos = trader.get_positions()
-                    if ticker in pos.index:
-                        qty = pos.loc[ticker, "quantity"]
+                    if not pos.empty and ticker in pos["ticker"].values:
+                        qty = pos[pos["ticker"] == ticker]["quantity"].values[0]
                         trader.execute_trade(
                             ticker=ticker,
                             action="SELL",

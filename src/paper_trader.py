@@ -7,19 +7,13 @@ SQLiteデータベースを使用してポジション、残高、および注�
 import json
 import logging
 import sqlite3
-import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
-<<<<<<< HEAD
-from typing import Dict, Union, Any, List, Tuple
+from typing import Dict, Union, Any, List, Tuple, Optional
 
 import pandas as pd
 
 
-=======
-from typing import Dict, Union, Any, Optional
-import pandas as pd
-from datetime import datetime
->>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +21,12 @@ logger = logging.getLogger(__name__)
 class PaperTrader:
     """ペーパートレード機能を提供するクラス。"""
 
-    def __init__(self, db_path: str = "paper_trading.db", initial_capital: float = None):
+    def __init__(self, db_path: str = None, initial_capital: float = None, account_id: str = None):
+        if db_path is None:
+            if account_id:
+                db_path = f"paper_trading_{account_id}.db"
+            else:
+                db_path = "paper_trading.db"
         self.db_path = db_path
 
         # Load initial capital from config.json if not specified
@@ -245,15 +244,27 @@ class PaperTrader:
         positions = self.get_positions()
         
         invested = 0.0
-        # In a real scenario, we'd fetch latest prices. For summary, use avg_price as fallback.
+        unrealized_pnl = 0.0
         if not positions.empty:
+            # We use avg_price for invested capital
             invested = (positions["quantity"] * positions["avg_price"]).sum()
+            # We use unrealized_pnl column if market data was fetched during get_positions()
+            if "unrealized_pnl" in positions.columns:
+                unrealized_pnl = positions["unrealized_pnl"].sum()
+        
+        
+        total_equity = cash + invested + unrealized_pnl
+        
+        # Calculate daily pnl using standalone utility to bypass caching issues
+        from src.pnl_utils import calculate_daily_pnl_standalone
+        daily_pnl, last_equity = calculate_daily_pnl_standalone(self.db_path, total_equity)
             
         return {
             "cash": cash,
-            "total_equity": cash + invested,
+            "total_equity": total_equity,
             "invested_amount": invested,
-            "unrealized_pnl": 0.0
+            "unrealized_pnl": unrealized_pnl,
+            "daily_pnl": daily_pnl
         }
 
     def execute_order(self, order: Any) -> bool:
@@ -355,33 +366,6 @@ class PaperTrader:
         except Exception as e:
             logger.error(f"Error updating daily equity: {e}")
 
-    def get_equity_history(self) -> pd.DataFrame:
-        """Get historical equity data."""
-        try:
-            query = "SELECT date, total_equity, cash, invested FROM balance ORDER BY date ASC"
-            df = pd.read_sql_query(query, self.conn)
-            if not df.empty:
-                df["date"] = pd.to_datetime(df["date"])
-                df.set_index("date", inplace=True)
-            return df
-        except Exception as e:
-            logger.error(f"Error fetching equity history: {e}")
-            return pd.DataFrame()
-
-    def get_portfolio_value(self, prices: Dict[str, float]) -> float:
-        """Calculate total portfolio value based on current prices."""
-        total_value = self.get_balance()
-        positions = self.get_positions()
-
-        for _, row in positions.iterrows():
-            ticker = row["ticker"]
-            if ticker in prices:
-                total_value += row["quantity"] * prices[ticker]
-            else:
-                total_value += row["quantity"] * row["avg_price"]
-
-        return total_value
-
     def get_equity_history(self, days: int = None) -> pd.DataFrame:
         """Get historical equity balance as a DataFrame. Optional days limit."""
         try:
@@ -389,19 +373,20 @@ class PaperTrader:
             cursor = self.conn.cursor()
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='balance'")
             if not cursor.fetchone():
-                return pd.DataFrame(columns=["date", "total_equity"])
+                return pd.DataFrame(columns=["date", "total_equity", "cash", "invested"])
 
-            query = "SELECT date, total_equity FROM balance ORDER BY date ASC"
+            query = "SELECT date, total_equity, cash, invested FROM balance ORDER BY date ASC"
             df = pd.read_sql_query(query, self.conn)
 
-            if days and not df.empty:
-                # Basic limit if needed, but for now return all or filter here
-                df = df.tail(days)
+            if not df.empty:
+                df["date"] = pd.to_datetime(df["date"])
+                if days:
+                    df = df.tail(days)
 
             return df
         except Exception as e:
-            logger.error(f"Error getting equity history: {e}")
-            return pd.DataFrame(columns=["date", "total_equity"])
+            logger.error(f"Error fetching equity history: {e}")
+            return pd.DataFrame(columns=["date", "total_equity", "cash", "invested"])
 
     def get_positions(self) -> pd.DataFrame:
         """Get all current positions as a DataFrame with market data.
@@ -503,65 +488,29 @@ class PaperTrader:
             logger.error(f"Error getting positions: {e}")
             return pd.DataFrame()
 
-    def get_current_balance(self) -> Dict[str, float]:
-        """Get comprehensive balance overview."""
-        cash = self.get_balance()
-        positions_df = self.get_positions()
-        
-        if not positions_df.empty:
-            market_value = positions_df["market_value"].sum()
-            unrealized_pnl = positions_df["unrealized_pnl"].sum()
-        else:
-            market_value = 0.0
-            unrealized_pnl = 0.0
-            
-        total_equity = cash + market_value
-        
-        # Calculate daily PnL (Simplified: change in equity vs yesterday? 
-        # For now, just using unrealized as a proxy or 0 if no history)
-        daily_pnl = 0.0 
-        
-        return {
-            "total_equity": total_equity,
-            "cash": cash,
-            "unrealized_pnl": unrealized_pnl,
-            "daily_pnl": daily_pnl
-        }
-
-    def get_trade_history(self, limit: int = 100) -> pd.DataFrame:
+    def get_trade_history(self, limit: int = 1000, start_date: Optional[datetime] = None) -> pd.DataFrame:
         """Get trade history as DataFrame."""
         try:
-            query = """
-                SELECT timestamp, ticker, action, quantity, price, 
-                       (quantity * price) as amount 
-                FROM orders 
-                ORDER BY timestamp DESC 
-                LIMIT ?
-            """
-            df = pd.read_sql_query(query, self.conn, params=(limit,))
-            if not df.empty:
-                 # Calculate realized PnL roughly? 
-                 # orders table doesn't track pnl per trade easily without FIFO matching.
-                 # We will return raw columns for now. simple_dashboard expects 'realized_pnl' column
-                 # We'll add dummy realized_pnl column if missing
-                 df["realized_pnl"] = 0.0 
-            return df
+            query = "SELECT * FROM orders ORDER BY timestamp DESC LIMIT ?"
+            params = [limit]
+            if start_date:
+                query = "SELECT * FROM orders WHERE timestamp >= ? ORDER BY timestamp DESC LIMIT ?"
+                params = [start_date, limit]
+            
+            return pd.read_sql_query(query, self.conn, params=params)
         except Exception as e:
-            logger.error(f"Error getting trade history: {e}")
+            logger.error(f"Error fetching trade history: {e}")
             return pd.DataFrame()
 
-    def get_daily_summary(self) -> list:
+    def get_daily_summary(self) -> List[Dict]:
         """Get daily summary (date, pnl, trade_count)."""
-        # Return dummy list for now as we don't have a daily_summary table in this version
-        return [(datetime.datetime.now().date().isoformat(), 0.0, 0)]
+        # Optional: Implement actual summary logic if needed
+        return []
 
     def close(self):
         """Close database connection."""
-        if self.conn:
-<<<<<<< HEAD
+        if hasattr(self, 'conn') and self.conn:
             self.conn.close()
 
 # END
-=======
-            self.conn.close()
->>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f
+

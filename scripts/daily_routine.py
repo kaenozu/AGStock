@@ -10,12 +10,21 @@ Run this script once per day (e.g., after market close) to:
 Usage: python daily_routine.py
 """
 
+import sys
+import os
 import datetime
 import json
 from pathlib import Path
 
+# Add project root to sys.path
+script_dir = Path(__file__).resolve().parent
+project_root = script_dir.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
 # Create logs directory if it doesn't exist
-Path("logs").mkdir(exist_ok=True)
+log_dir = project_root / "logs"
+log_dir.mkdir(exist_ok=True)
 
 
 def log(message, level="INFO"):
@@ -144,7 +153,7 @@ def run_paper_trading():
 
         trader.close()
 
-        return {"equity": total_equity, "return": total_return, "positions": len(positions)}
+        return {"total_equity": total_equity, "return": total_return, "positions": len(positions)}
 
     except Exception as e:
         log(f"Error in paper trading: {e}", "ERROR")
@@ -173,7 +182,7 @@ def generate_summary(signals, paper_trading_result):
     log(f"Signals Found: {len(signals)}")
 
     if paper_trading_result:
-        log(f"Paper Trading Equity: ¥{paper_trading_result['equity']:,.0f}")
+        log(f"Paper Trading Equity: ¥{paper_trading_result['total_equity']:,.0f}")
         log(f"Paper Trading Return: {paper_trading_result['return']:+.2f}%")
         log(f"Open Positions: {paper_trading_result['positions']}")
 
@@ -191,10 +200,22 @@ def main():
     # Step 1: Scan for signals
     signals = run_daily_scan()
 
-    # Step 2: Execute paper trades
+    # Step 2: Shadow Tournament Simulation
+    try:
+        log("\n" + "=" * 60)
+        log("STEP 1.5: Running Shadow Tournament Simulation...")
+        log("=" * 60)
+        from src.trading.tournament_manager import TournamentManager
+        tm = TournamentManager()
+        tm.run_daily_simulation(signals)
+        log("Shadow Tournament simulation completed.")
+    except Exception as e:
+        log(f"Error in Shadow Tournament simulation: {e}", "ERROR")
+
+    # Step 3: Execute paper trades (Main Account)
     paper_result = run_paper_trading()
 
-    # Step 3: Generate summary
+    # Step 4: Generate summary
     generate_summary(signals, paper_result)
 
 
