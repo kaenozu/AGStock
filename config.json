@@ -1,83 +1,9 @@
 {
-<<<<<<< HEAD
-    "gemini_api_key": "",
-=======
     "gemini_api_key": "AIzaSyAJyfsdI1jNFMJQR68U1W2tOFVlIEW0J_g",
->>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f
     "user_profile": {
         "experience": "beginner",
         "risk_tolerance": "low",
         "setup_date": "2025-12-02"
-<<<<<<< HEAD
-    },
-    "capital": {
-        "initial_capital": 500000,
-        "currency": "JPY"
-    },
-    "risk": {
-        "max_position_size": 0.1,
-        "stop_loss_pct": 0.03,
-        "take_profit_pct": 0.05
-    },
-    "auto_trading": {
-        "mode": "semi_auto",
-        "require_approval": true,
-        "max_daily_trades": 3,
-        "daily_loss_limit_pct": -3.0,
-        "max_vix": 40.0,
-        "enabled": true
-    },
-    "notifications": {
-        "enabled": false,
-        "line": {
-            "enabled": false,
-            "token": ""
-        },
-        "discord": {
-            "enabled": false,
-            "webhook_url": ""
-        },
-        "email": {
-            "enabled": false,
-            "smtp_server": "",
-            "to_address": ""
-        }
-    },
-    "portfolio_targets": {
-        "japan": 40,
-        "us": 30,
-        "europe": 10,
-        "crypto": 10,
-        "fx": 10
-    },
-    "strategies": {
-        "enabled": [
-            "LightGBM",
-            "ML",
-            "Combined",
-            "Dividend"
-        ],
-        "weights": {
-            "LightGBM": 0.4,
-            "ML": 0.3,
-            "Combined": 0.2,
-            "Dividend": 0.1
-        }
-    },
-    "assets": {
-        "japan_stocks": true,
-        "us_stocks": true,
-        "europe_stocks": false,
-        "crypto": false,
-        "fx": false
-    },
-"ai_committee": {
-        "enabled": false,
-        "strict_mode": false,
-        "api_key": "",
-        "model": "gpt-4"
-=======
->>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f
     },
     "capital": {
         "initial_capital": 500000,
@@ -102,8 +28,6 @@
         "max_vix": 40.0,
         "enabled": true
     },
-<<<<<<< HEAD
-=======
     "notifications": {
         "enabled": false,
         "line": {
@@ -182,7 +106,6 @@
         "api_key": "AIzaSyAJyfsdI1jNFMJQR68U1W2tOFVlIEW0J_g",
         "enabled": true
     },
->>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f
     "paper_trading": {
         "initial_capital": 500000,
         "enabled": true
@@ -196,8 +119,4 @@
         "description": "楽天かぶミニ - 1株から取引可能 (寄付:無料 / リアルタイム:0.22%)"
     },
     "openai_api_key": ""
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f

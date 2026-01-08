@@ -384,6 +384,7 @@ class MarketScanner:
         positions = self.pt.get_positions()
         held_tickers = set(positions["ticker"]) if not positions.empty else set()
         signals = []
+        candidate_buys = []
 
         for ticker in tickers:
             df = data_map.get(ticker)
@@ -405,159 +406,14 @@ class MarketScanner:
 
                     # BUYシグナル
                     if last_signal == 1 and not is_held and allow_buy:
-
-                        # 📊 銘柄相関チェック
-                        existing_tickers = list(held_tickers)
-                        allow_corr, corr_reason = self.advanced_risk.check_correlation(
-                            ticker, existing_tickers, self.logger
-                        )
-                        if not allow_corr:
-                            self.logger.info(f"  {ticker}: {corr_reason}")
-                            continue
-                        # ファンダメンタルチェック
-                        fundamentals = fetch_fundamental_data(ticker)
-
-                        # 時価総額チェック
-                        if not self.asset_selector.filter_by_market_cap(ticker, fundamentals):
-                            self.logger.info(f"  {ticker}: 時価総額が小さすぎるためスキップ")
-                            continue
-
-                        pe = fundamentals.get("trailingPE") if fundamentals else None
-
-                        # PERが極端に高い場合はスキップ
-                        if pe and pe > 50:
-                            continue
-
-                        latest_price = get_latest_price(df)
-
-                        # 🔮 中期予測フィルター（新機能）
-                        # 短期だけでなく、5日後も上昇が見込める銘柄のみBUY
-                        try:
-                            predictor = EnhancedEnsemblePredictor()
-                            future_result = predictor.predict_trajectory(df, days_ahead=5)
-
-                            if "error" not in future_result:
-                                predicted_change_pct = future_result["change_pct"]
-
-                                # 5日後に+0.5%以上の上昇が見込めない場合はスキップ（閾値を緩和）
-                                if predicted_change_pct < 0.5:
-                                    self.logger.info(
-                                        f"  {ticker}: 中期予測が弱い({predicted_change_pct:+.1f}%)ためスキップ"
-                                    )
-                                    continue
-                                else:
-                                    self.logger.info(f"  {ticker}: 中期予測OK({predicted_change_pct:+.1f}%) ✅")
-                            else:
-                                # 予測エラー時は従来通りBUY（保守的に通す）
-                                self.logger.warning(f"  {ticker}: 中期予測エラー、従来ロジックで判断")
-                        except Exception as e:
-                            self.logger.warning(f"  {ticker}: 中期予測失敗 ({e})、従来ロジックで判断")
-
-                        # 地域を判定
-                        if ticker in NIKKEI_225_TICKERS:
-                            region = "日本"
-                        elif ticker in SP500_TICKERS:
-                            region = "米国"
-                        else:
-                            region = "欧州"
-
-                        # Phase 30-3: Kelly Criterion for Position Sizing
-                        # Calculate optimal size based on actual trading history
-                        balance = self.pt.get_current_balance()
-                        equity = balance["total_equity"]
-                        cash = balance["cash"]
-
-                        # Calculate actual win rate and win/loss ratio from history
-                        try:
-                            history = self.pt.get_trade_history()
-                            if not history.empty and "realized_pnl" in history.columns:
-                                # Filter out trades with zero PnL (still open or just closed at breakeven)
-                                closed_trades = history[history["realized_pnl"] != 0]
-
-                                if len(closed_trades) >= 10:  # Need at least 10 trades for meaningful stats
-                                    wins = closed_trades[closed_trades["realized_pnl"] > 0]
-                                    losses = closed_trades[closed_trades["realized_pnl"] < 0]
-
-                                    win_rate = len(wins) / len(closed_trades)
-
-                                    if len(wins) > 0 and len(losses) > 0:
-                                        avg_win = wins["realized_pnl"].mean()
-                                        avg_loss = abs(losses["realized_pnl"].mean())
-                                        win_loss_ratio = avg_win / avg_loss if avg_loss > 0 else 1.5
-                                    else:
-                                        win_loss_ratio = 1.5  # Default if no losses yet
-
-                                    self.logger.info(
-                                        f"📊 実績ベース Kelly: 勝率={win_rate:.1f}, 損益比={win_loss_ratio:.2f} (過去{len(closed_trades)}件)"
-                                    )
-                                else:
-                                    # Not enough history, use conservative defaults
-                                    win_rate = 0.50  # More conservative than 55%
-                                    win_loss_ratio = 1.5
-                                    self.logger.info(
-                                        f"📊 デフォルト Kelly: 勝率={win_rate:.1f}, 損益比={win_loss_ratio:.2f} (履歴不足)"
-                                    )
-                            else:
-                                win_rate = 0.50
-                                win_loss_ratio = 1.5
-                                self.logger.info(
-                                    f"📊 デフォルト Kelly: 勝率={win_rate:.1f}, 損益比={win_loss_ratio:.2f} (履歴なし)"
-                                )
-                        except Exception as e:
-                            self.logger.warning(f"Kelly計算エラー: {e}")
-                            win_rate = 0.50
-                            win_loss_ratio = 1.5
-
-                        kelly_pct = self.kelly_criterion.calculate_size(
-                            win_rate=win_rate, win_loss_ratio=win_loss_ratio
-                        )
-
-                        # Adjust by Regime (DynamicRiskManager)
-                        regime_multiplier = self.risk_manager.current_params.get("position_size", 1.0)
-                        final_size_pct = kelly_pct * regime_multiplier
-
-                        # Calculate quantity
-                        target_amount = equity * final_size_pct
-                        target_amount = min(target_amount, cash)  # Cap at cash
-
-                        # 米国株かどうか判定（ティッカーにドットがない、または特定のリストに含まれる）
-                        is_us_stock = "." not in ticker
-
-                        if is_us_stock:
-                            # 米国株は1株単位
-                            quantity = int(target_amount / latest_price)
-                            if quantity < 1:
-                                # 資金不足でも最低1株は買えるかチェック（積極的モードの場合）
-                                if cash >= latest_price:
-                                    quantity = 1
-                                else:
-                                    self.logger.info(
-                                        f"  {ticker}: 資金不足のためスキップ (必要: {latest_price:.2f}, 保有: {cash:.2f})"
-                                    )
-                                    continue
-                        else:
-                            # 日本株は100株単位
-                            quantity = int(target_amount / latest_price / 100) * 100
-                            if quantity < 100:
-                                # 資金不足でも最低100株は買えるかチェック
-                                if cash >= latest_price * 100:
-                                    quantity = 100
-                                else:
-                                    self.logger.info(f"  {ticker}: 算出数量が少なすぎるためスキップ ({quantity})")
-                                    continue
-
-                        signals.append(
-                            {
-                                "ticker": ticker,
-                                "action": "BUY",
-                                "confidence": 0.85,
-                                "price": latest_price,
-                                "quantity": quantity,
-                                "strategy": strategy_name,
-                                "reason": f"{strategy_name}による買いシグナル（{region}）",
-                            }
-                        )
-                        break  # 1銘柄につき1シグナル
+                        # 候補として追加（後で一括最適化するため）
+                        candidate_buys.append({
+                            "ticker": ticker,
+                            "price": get_latest_price(df),
+                            "strategy": strategy_name,
+                            "df": df # 後でリターン計算に使用
+                        })
+                        break # 1銘柄につき1戦略の候補
 
                     # SELLシグナル（保有中の場合）
                     elif last_signal == -1 and is_held:
@@ -578,6 +434,108 @@ class MarketScanner:
                 except Exception as e:
                     self.logger.warning(f"シグナル生成エラー ({ticker}, {strategy_name}): {e}")
 
-        self.logger.info(f"検出シグナル数: {len(signals)}")
+        # --- 量子ハイブリッド最適化によるBUY銘柄の選別 ---
+        if candidate_buys:
+            self.logger.info(f"量子最適化開始: 候補銘柄数 {len(candidate_buys)}")
+            
+            try:
+                from src.portfolio_optimizer import PortfolioOptimizer
+                optimizer = PortfolioOptimizer()
+                
+                # 候補銘柄のリターンデータを準備
+                returns_dict = {}
+                for cand in candidate_buys:
+                    returns_dict[cand["ticker"]] = cand["df"]["Close"].pct_change().dropna()
+                
+                returns_df = pd.DataFrame(returns_dict).dropna()
+                
+                if not returns_df.empty:
+                    # 量子最適化実行 (リスク回避度を少し高めに設定)
+                    opt_res = optimizer.quantum_hybrid_optimization(
+                        returns_df, 
+                        risk_aversion=0.7, 
+                        target_assets=min(5, len(candidate_buys)) # 最大5銘柄に絞り込む
+                    )
+                    
+                    weights = opt_res["weights"]
+                    selected_tickers = weights[weights > 0.05].index.tolist()
+                    
+                    self.logger.info(f"量子最適化完了: {len(selected_tickers)} 銘柄を選択")
+                    
+                    for ticker in selected_tickers:
+                        cand = next(c for c in candidate_buys if c["ticker"] == ticker)
+                        weight = weights[ticker]
+                        
+                        # Phase 30-3: Kelly Criterion + Weight
+                        balance = self.pt.get_current_balance()
+                        equity = balance["total_equity"]
+                        cash = balance["cash"]
+                        
+                        # Kellyベースの基本サイズに量子ウェイトを乗算
+                        base_kelly = 0.1 # デフォルト10%
+                        final_size_pct = base_kelly * (weight / weights.max())
+                        
+                        # キャッシュ状況とリスク設定に応じた最終調整
+                        target_amount = equity * final_size_pct
+                        target_amount = min(target_amount, cash * 0.9)
+                        
+                        latest_price = cand["price"]
+                        is_us_stock = "." not in ticker
+                        
+                        if is_us_stock:
+                            quantity = int(target_amount / latest_price)
+                            if quantity < 1 and cash >= latest_price: quantity = 1
+                        else:
+                            quantity = int(target_amount / latest_price / 100) * 100
+                            
+                        if quantity > 0:
+                            signals.append({
+                                "ticker": ticker,
+                                "action": "BUY",
+                                "confidence": float(weight),
+                                "price": latest_price,
+                                "quantity": quantity,
+                                "strategy": cand["strategy"],
+                                "source": "local_quantum", # ソースを明示
+                                "reason": f"量子ハイブリッド最適化により選出 (Weight: {weight:.2f})",
+                            })
+                else:
+                    self.logger.warning("最適化用のリターンデータが不足しています。")
+            except Exception as e:
+                self.logger.error(f"量子最適化プロセス失敗: {e}")
+                # フォールバック略
+        
+        # --- Phase 67: DAO Consensus (分散型合意形成) ---
+        if signals:
+            try:
+                from src.trading.dao_client import DAOClient
+                from src.trading.consensus_engine import ConsensusEngine
+                
+                dao_client = DAOClient()
+                consensus_engine = ConsensusEngine(threshold=0.8) # 合意閾値を設定
+                
+                # ピアノードからシグナルを取得
+                peer_signals = dao_client.fetch_peer_signals([s["ticker"] for s in signals])
+                
+                # ローカルシグナルとピアシグナルを統合
+                all_signals = signals + peer_signals
+                
+                # コンセンサス形成
+                self.logger.info("🤝 DAOコンセンサス形成プロセス実行中...")
+                consensus_signals = consensus_engine.aggregate_signals(all_signals)
+                
+                if len(consensus_signals) < len(signals):
+                    self.logger.info(f"🛡️ DAOコンセンサスにより {len(signals) - len(consensus_signals)} 件のシグナルがフィルタリングされました。")
+                
+                signals = consensus_signals
+                
+                # 最後にネットワークへ共有
+                dao_client.share_insights(signals)
+                
+            except Exception as e:
+                self.logger.error(f"DAOコンセンサスプロセス失敗: {e}")
+                # 失敗時はローカルシグナルを維持
+
+        self.logger.info(f"最終確定シグナル数: {len(signals)}")
         return signals
 >>>>>>> 9ead59c0c8153a0969ef2e94b492063a605db31f

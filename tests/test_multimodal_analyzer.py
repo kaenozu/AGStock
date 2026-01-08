@@ -1,11 +1,11 @@
-
 import pytest
 from unittest.mock import MagicMock, patch
 from src.analysis.multimodal_analyzer import MultimodalAnalyzer
 
 @pytest.fixture
 def mock_gemini():
-    with patch("google.generativeai.GenerativeModel") as mock_model:
+    # Patch where it is used
+    with patch("src.analysis.multimodal_analyzer.genai.GenerativeModel") as mock_model:
         instance = mock_model.return_value
         # Mock JSON response
         mock_response = MagicMock()
@@ -15,7 +15,11 @@ def mock_gemini():
 
 def test_multimodal_text_analysis(mock_gemini):
     """テキスト分析の単体テスト"""
+    # Create analyzer with a dummy key to ensure self.model is initialized
     analyzer = MultimodalAnalyzer(api_key="test_key")
+    # Manually ensure the model is our mock instance if it wasn't already
+    analyzer.model = mock_gemini
+    
     result = analyzer._analyze_text_sentiment("テストテキスト")
     
     assert result["score"] == 0.8

@@ -57,13 +57,14 @@ def setup_logging(log_level: str = "INFO", log_dir: str = "logs"):
         f"{log_dir}/agstock.log",
         maxBytes=10 * 1024 * 1024,
         backupCount=5,  # 10MB
+        encoding="utf-8"
     )
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(JSONFormatter())
 
     # エラーログ専用ハンドラ
     error_handler = logging.handlers.RotatingFileHandler(
-        f"{log_dir}/error.log", maxBytes=10 * 1024 * 1024, backupCount=5
+        f"{log_dir}/error.log", maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8"
     )
     error_handler.setLevel(logging.ERROR)
     error_handler.setFormatter(JSONFormatter())

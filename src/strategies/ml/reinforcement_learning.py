@@ -4,7 +4,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from .base import Strategy
+from ..base import Strategy
 
 logger = logging.getLogger(__name__)
 
@@ -28,9 +28,9 @@ class RLStrategy(Strategy):
         signals = pd.Series(0, index=df.index)
 
         try:
-            from src.features import add_advanced_features
-            from src.rl.agent import DQNAgent
-            from src.rl.environment import TradingEnvironment
+            from ...features import add_advanced_features
+            from ...rl.agent import DQNAgent
+            from ...rl.environment import TradingEnvironment
 
             # 特徴量追加
             df_features = add_advanced_features(df.copy())

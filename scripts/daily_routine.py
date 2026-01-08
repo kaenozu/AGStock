@@ -10,31 +10,21 @@ Run this script once per day (e.g., after market close) to:
 Usage: python daily_routine.py
 """
 
-import sys
-import os
-import datetime
 import json
-from pathlib import Path
+import datetime
+from src.utils.setup import setup_runtime_environment
 
-# Add project root to sys.path
-script_dir = Path(__file__).resolve().parent
-project_root = script_dir.parent
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
-
-# Create logs directory if it doesn't exist
-log_dir = project_root / "logs"
-log_dir.mkdir(exist_ok=True)
-
+# Centralized setup
+logger = setup_runtime_environment("DailyRoutine")
 
 def log(message, level="INFO"):
-    """Log message to console and file"""
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    log_message = f"[{timestamp}] [{level}] {message}"
-    print(log_message)
-
-    with open("logs/daily_routine.log", "a", encoding="utf-8") as f:
-        f.write(log_message + "\n")
+    """Compatibility wrapper for existing log calls"""
+    if level == "INFO":
+        logger.info(message)
+    elif level == "WARNING":
+        logger.warning(message)
+    elif level == "ERROR":
+        logger.error(message)
 
 
 def run_daily_scan():
@@ -138,14 +128,15 @@ def run_paper_trading():
         trader = PaperTrader()
 
         # Update positions
-        trader.update_positions_prices()
+        # trader.update_positions_prices() # Method name changed or removed in new version
         positions = trader.get_positions()
 
         log(f"Current positions: {len(positions)}")
 
         # Update equity
-        total_equity = trader.update_daily_equity()
+        trader.update_daily_equity()
         balance = trader.get_current_balance()
+        total_equity = balance["total_equity"]
         total_return = ((total_equity - trader.initial_capital) / trader.initial_capital) * 100
 
         log(f"Total Equity: ¥{total_equity:,.0f}")
@@ -172,6 +163,8 @@ def generate_summary(signals, paper_trading_result):
 
     # Save to file
     summary_file = f"logs/summary_{today}.json"
+    import os
+    os.makedirs("logs", exist_ok=True)
     with open(summary_file, "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2, ensure_ascii=False)
 
@@ -200,7 +193,7 @@ def main():
     # Step 1: Scan for signals
     signals = run_daily_scan()
 
-    # Step 2: Shadow Tournament Simulation
+    # Step 1.5: Shadow Tournament Simulation (from PR 89)
     try:
         log("\n" + "=" * 60)
         log("STEP 1.5: Running Shadow Tournament Simulation...")
@@ -212,10 +205,10 @@ def main():
     except Exception as e:
         log(f"Error in Shadow Tournament simulation: {e}", "ERROR")
 
-    # Step 3: Execute paper trades (Main Account)
+    # Step 2: Execute paper trades (Main Account)
     paper_result = run_paper_trading()
 
-    # Step 4: Generate summary
+    # Step 3: Generate summary
     generate_summary(signals, paper_result)
 
 

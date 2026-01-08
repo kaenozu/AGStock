@@ -25,7 +25,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # テスト対象モジュール
-from src.trading_engine_refactored import TradingEngineRefactored as TradingEngine
+from src.core.trading_engine import TradingEngine
 from src.agents.risk_manager import RiskManager
 from src.enhanced_ai_prediction import EnhancedPredictionSystem, FeatureEngineering
 from src.performance_collector import PerformanceCollector

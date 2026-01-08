@@ -282,11 +282,12 @@ class SentimentAnalyzer:
             multimodal_results = self.multimodal_analyzer.analyze_earnings_presentation(
                 video_path=multimodal_data.get("video"),
                 audio_path=multimodal_data.get("audio"),
-                transcript=multimodal_data.get("transcript")
+                transcript=multimodal_data.get("transcript"),
+                pdf_path=multimodal_data.get("pdf")
             )
-            # Weighted average: 60% news, 40% multimodal insights
+            # Weighted average: 50% news, 50% multimodal insights (if provided)
             mm_score = multimodal_results.get("overall_sentiment", 0.0)
-            final_score = (news_score * 0.6) + (mm_score * 0.4)
+            final_score = (news_score * 0.5) + (mm_score * 0.5)
 
         # Determine Label
         if final_score > 0.15:
@@ -301,8 +302,9 @@ class SentimentAnalyzer:
             "label": label,
             "news_count": count,
             "top_news": news[:5] if news else [],
-            "multimodal_insights": multimodal_results.get("insights") if multimodal_results else None,
-            "multimodal_active": multimodal_results is not None
+            "multimodal_insights": multimodal_results.get("insights") if multimodal_results else [],
+            "multimodal_active": multimodal_results is not None,
+            "overall_summary": multimodal_results.get("insights")[0] if multimodal_results and multimodal_results.get("insights") else f"市場は現在{label}な傾向にあります。"
         }
 
     def _init_database(self):

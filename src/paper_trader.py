@@ -14,7 +14,6 @@ from typing import Dict, Union, Any, List, Tuple, Optional
 import pandas as pd
 
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -191,19 +190,83 @@ class PaperTrader:
         return {"quantity": 0, "avg_price": 0.0}
 
     def get_positions(self) -> pd.DataFrame:
-        """Get all open positions as a DataFrame."""
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT ticker, quantity, avg_price, stop_price, highest_price FROM positions WHERE quantity > 0")
-        data = cursor.fetchall()
-        
-        if not data:
-            return pd.DataFrame(columns=["ticker", "quantity", "avg_price", "stop_price", "highest_price", "entry_price", "unrealized_pnl"])
+        """Get all current positions as a DataFrame with market data.
+
+        Returns:
+            pd.DataFrame: DataFrame with columns [ticker, quantity, avg_price, current_price,
+                                                market_value, unrealized_pnl, unrealized_pnl_pct, sector]
+        """
+        try:
+            cursor = self.conn.cursor()
+            # Select all columns
+            cursor.execute("SELECT * FROM positions WHERE quantity > 0")
+            columns = [description[0] for description in cursor.description]
+            rows = cursor.fetchall()
+
+            if not rows:
+                return pd.DataFrame()
+
+            positions = []
+            tickers = [r[columns.index("ticker")] for r in rows]
             
-        df = pd.DataFrame(data, columns=["ticker", "quantity", "avg_price", "stop_price", "highest_price"])
-        df["entry_price"] = df["avg_price"]
-        df["unrealized_pnl"] = 0.0
-        df["highest_price"] = df.apply(lambda row: row["highest_price"] if row["highest_price"] > 0 else row["avg_price"], axis=1)
-        return df
+            # Fetch current prices (using external data loader)
+            try:
+                from src.data_loader import fetch_stock_data
+                # Batch fetch prices for better performance
+                data_map = fetch_stock_data(tickers, period="1mo")
+                prices = {}
+                volatilities = {}
+                for ticker in tickers:
+                    df = data_map.get(ticker)
+                    if df is not None and not df.empty:
+                        prices[ticker] = float(df["Close"].iloc[-1])
+                        rets = df["Close"].pct_change().dropna()
+                        vol = rets.std() * df["Close"].iloc[-1]
+                        volatilities[ticker] = float(vol) if not pd.isna(vol) else 0.0
+                    else:
+                        prices[ticker] = 0.0
+                        volatilities[ticker] = 0.0
+            except Exception as e:
+                logger.warning(f"Batch fetch failed: {e}")
+                prices = {t: 0.0 for t in tickers}
+                volatilities = {t: 0.0 for t in tickers}
+
+            for row in rows:
+                pos = dict(zip(columns, row))
+                ticker = pos.get("ticker")
+                qty = pos.get("quantity")
+                avg_p = pos.get("avg_price", 0.0)
+                
+                curr_p = prices.get(ticker, avg_p)
+                m_val = qty * curr_p
+                
+                if avg_p > 0:
+                    u_pnl = m_val - (qty * avg_p)
+                    u_pnl_pct = u_pnl / (qty * avg_p)
+                else:
+                    u_pnl = 0.0
+                    u_pnl_pct = 0.0
+                
+                positions.append({
+                    "ticker": ticker,
+                    "quantity": qty,
+                    "avg_price": avg_p,
+                    "entry_price": avg_p,
+                    "volatility": volatilities.get(ticker, 0.0),
+                    "current_price": curr_p,
+                    "market_value": m_val,
+                    "unrealized_pnl": u_pnl,
+                    "unrealized_pnl_pct": u_pnl_pct,
+                    "sector": "Market",
+                    "stop_price": pos.get("stop_price", 0.0),
+                    "highest_price": pos.get("highest_price", 0.0)
+                })
+            
+            return pd.DataFrame(positions)
+
+        except Exception as e:
+            logger.error(f"Error getting positions: {e}")
+            return pd.DataFrame()
 
     def update_position_stop(self, ticker: str, stop_price: float, highest_price: float) -> bool:
         """Update stop price and highest price for a position."""
@@ -221,22 +284,19 @@ class PaperTrader:
 
     def get_trade_history(self, limit: int = 1000, start_date: Optional[datetime] = None) -> pd.DataFrame:
         """Get trade history as DataFrame."""
-        cursor = self.conn.cursor()
-        if start_date:
-            query = "SELECT timestamp, ticker, action, quantity, price, strategy_name FROM orders WHERE timestamp >= ? ORDER BY timestamp DESC LIMIT ?"
-            cursor.execute(query, (start_date.isoformat(), limit))
-        else:
-            query = "SELECT timestamp, ticker, action, quantity, price, strategy_name FROM orders ORDER BY timestamp DESC LIMIT ?"
-            cursor.execute(query, (limit,))
+        try:
+            query = "SELECT * FROM orders"
+            params = []
+            if start_date:
+                query += " WHERE timestamp >= ?"
+                params.append(start_date.isoformat())
+            query += " ORDER BY timestamp DESC LIMIT ?"
+            params.append(limit)
             
-        data = cursor.fetchall()
-        
-        if not data:
-            return pd.DataFrame(columns=["timestamp", "ticker", "action", "quantity", "price", "strategy_name", "realized_pnl"])
-            
-        df = pd.DataFrame(data, columns=["timestamp", "ticker", "action", "quantity", "price", "strategy_name"])
-        df["realized_pnl"] = 0.0 # Simplified
-        return df
+            return pd.read_sql_query(query, self.conn, params=params)
+        except Exception as e:
+            logger.error(f"Error fetching trade history: {e}")
+            return pd.DataFrame()
 
     def get_current_balance(self) -> Dict[str, float]:
         """Get balance summary including estimated total equity."""
@@ -246,18 +306,18 @@ class PaperTrader:
         invested = 0.0
         unrealized_pnl = 0.0
         if not positions.empty:
-            # We use avg_price for invested capital
             invested = (positions["quantity"] * positions["avg_price"]).sum()
-            # We use unrealized_pnl column if market data was fetched during get_positions()
             if "unrealized_pnl" in positions.columns:
                 unrealized_pnl = positions["unrealized_pnl"].sum()
         
-        
         total_equity = cash + invested + unrealized_pnl
         
-        # Calculate daily pnl using standalone utility to bypass caching issues
-        from src.pnl_utils import calculate_daily_pnl_standalone
-        daily_pnl, last_equity = calculate_daily_pnl_standalone(self.db_path, total_equity)
+        # Calculate daily pnl
+        try:
+            from src.pnl_utils import calculate_daily_pnl_standalone
+            daily_pnl, _ = calculate_daily_pnl_standalone(self.db_path, total_equity)
+        except Exception:
+            daily_pnl = 0.0
             
         return {
             "cash": cash,
@@ -369,7 +429,6 @@ class PaperTrader:
     def get_equity_history(self, days: int = None) -> pd.DataFrame:
         """Get historical equity balance as a DataFrame. Optional days limit."""
         try:
-            # Check if balance table exists first
             cursor = self.conn.cursor()
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='balance'")
             if not cursor.fetchone():
@@ -388,129 +447,7 @@ class PaperTrader:
             logger.error(f"Error fetching equity history: {e}")
             return pd.DataFrame(columns=["date", "total_equity", "cash", "invested"])
 
-    def get_positions(self) -> pd.DataFrame:
-        """Get all current positions as a DataFrame with market data.
-
-        Returns:
-            pd.DataFrame: DataFrame with columns [ticker, quantity, avg_price, current_price,
-                                                market_value, unrealized_pnl, unrealized_pnl_pct, sector]
-        """
-        try:
-            cursor = self.conn.cursor()
-            cursor = self.conn.cursor()
-            # Select all columns to ensure we get entry_price if available
-            cursor.execute("SELECT * FROM positions WHERE quantity > 0")
-            columns = [description[0] for description in cursor.description]
-            rows = cursor.fetchall()
-
-            if not rows:
-                return pd.DataFrame()
-
-            positions = []
-            tickers = [r[0] for r in rows]
-            
-            # Fetch current prices (using external data loader)
-            # Avoid circular import if possible, or import inside method
-            try:
-                from src.data_loader import fetch_stock_data
-                # Batch fetch prices for better performance
-                data_map = fetch_stock_data(tickers, period="1mo") # Fetch 1mo for volatility
-                prices = {}
-                volatilities = {}
-                for ticker in tickers:
-                    df = data_map.get(ticker)
-                    if df is not None and not df.empty:
-                        # Price
-                        prices[ticker] = float(df["Close"].iloc[-1])
-                        
-                        # Volatility (Std Dev of Returns for last 20 days)
-                        # Approximating ATR-like movement power
-                        rets = df["Close"].pct_change().dropna()
-                        vol = rets.std() * df["Close"].iloc[-1] # Convert % vol to Price units
-                        volatilities[ticker] = float(vol) if not pd.isna(vol) else 0.0
-                    else:
-                        prices[ticker] = 0.0
-                        volatilities[ticker] = 0.0
-            except Exception as e:
-                logger.warning(f"Batch fetch failed for some tickers: {e}")
-                prices = {t: 0.0 for t in tickers}
-                volatilities = {t: 0.0 for t in tickers}
-
-            # Create list of dictionaries directly from rows and columns
-            temp_positions = []
-            for row in rows:
-                temp_positions.append(dict(zip(columns, row)))
-
-            for pos in temp_positions:
-                ticker = pos.get("ticker")
-                qty = pos.get("quantity")
-                
-                # Robustly determine average/entry price
-                # Prefer entry_price if available and valid, otherwise avg_price
-                avg_p = pos.get("avg_price")
-                entry_p = pos.get("entry_price")
-                
-                effective_avg_price = 0.0
-                if entry_p is not None and entry_p > 0:
-                    effective_avg_price = float(entry_p)
-                elif avg_p is not None and avg_p > 0:
-                    effective_avg_price = float(avg_p)
-
-                curr_p = prices.get(ticker, effective_avg_price)
-                if curr_p is None: curr_p = 0.0
-
-                m_val = qty * curr_p
-                
-                if effective_avg_price > 0:
-                    u_pnl = m_val - (qty * effective_avg_price)
-                    u_pnl_pct = u_pnl / (qty * effective_avg_price)
-                else:
-                    u_pnl = 0.0
-                    u_pnl_pct = 0.0
-                
-                positions.append({
-                    "ticker": ticker,
-                    "quantity": qty,
-                    "avg_price": effective_avg_price,
-                    "entry_price": effective_avg_price, # Alias for UI compatibility
-                    "entry_date": pos.get("entry_date"),
-                    "volatility": volatilities.get(ticker, 0.0), # Daily Price Move StdDev
-                    "current_price": curr_p,
-                    "market_value": m_val,
-                    "unrealized_pnl": u_pnl,
-                    "unrealized_pnl_pct": u_pnl_pct,
-                    "sector": "Market" 
-                })
-            
-            return pd.DataFrame(positions)
-
-        except Exception as e:
-            logger.error(f"Error getting positions: {e}")
-            return pd.DataFrame()
-
-    def get_trade_history(self, limit: int = 1000, start_date: Optional[datetime] = None) -> pd.DataFrame:
-        """Get trade history as DataFrame."""
-        try:
-            query = "SELECT * FROM orders ORDER BY timestamp DESC LIMIT ?"
-            params = [limit]
-            if start_date:
-                query = "SELECT * FROM orders WHERE timestamp >= ? ORDER BY timestamp DESC LIMIT ?"
-                params = [start_date, limit]
-            
-            return pd.read_sql_query(query, self.conn, params=params)
-        except Exception as e:
-            logger.error(f"Error fetching trade history: {e}")
-            return pd.DataFrame()
-
-    def get_daily_summary(self) -> List[Dict]:
-        """Get daily summary (date, pnl, trade_count)."""
-        # Optional: Implement actual summary logic if needed
-        return []
-
     def close(self):
         """Close database connection."""
         if hasattr(self, 'conn') and self.conn:
             self.conn.close()
-
-# END
-

@@ -4,10 +4,11 @@ from typing import Any, Dict, List
 
 import pandas as pd
 
-from .base import Strategy
-from .deep_learning import DeepLearningStrategy, GRUStrategy
-from .lightgbm_strategy import LightGBMStrategy
-from .technical import CombinedStrategy, RSIStrategy
+from ..base import Strategy
+from ..ml import DeepLearningStrategy, GRUStrategy, LightGBMStrategy
+from .combined import CombinedStrategy
+# RSIStrategy is in technical.rsi or imported via technical package
+from ..technical import RSIStrategy
 
 logger = logging.getLogger(__name__)
 
