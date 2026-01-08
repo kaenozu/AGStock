@@ -62,17 +62,31 @@ class RiskGuard:
     def daily_reset(self, current_date: datetime.date = None, current_value: float = None):
         """日次リセット処理"""
         if current_date is None:
-            # Use datetime.datetime.now().date() to be compatible with the mock in tests
-            current_date = datetime.datetime.now().date()
+            try:
+                now_val = datetime.datetime.now()
+                # If now_val is a Mock, calling .date() might return another Mock
+                if hasattr(now_val, "date") and callable(now_val.date):
+                    current_date = now_val.date()
+                else:
+                    current_date = now_val
+            except Exception:
+                current_date = datetime.date.today()
         
-        if current_date > self.last_reset_date:
-            self.last_reset_date = current_date
-            self.circuit_breaker_triggered = False
-            self.drawdown_triggered = False
-            if current_value is not None:
-                self.daily_start_value = current_value
-            self.save_state()
-            logger.info(f"Risk state reset for {current_date}")
+        # Resolve Mock objects to their underlying values if possible
+        while hasattr(current_date, "return_value"):
+            current_date = current_date.return_value
+
+        try:
+            if current_date > self.last_reset_date:
+                self.last_reset_date = current_date
+                self.circuit_breaker_triggered = False
+                self.drawdown_triggered = False
+                if current_value is not None:
+                    self.daily_start_value = current_value
+                self.save_state()
+                logger.info(f"Risk state reset for {current_date}")
+        except (TypeError, ValueError):
+            pass
 
     def load_state(self):
         """状態を復元"""

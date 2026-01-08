@@ -66,6 +66,7 @@ class PaperTrader:
                 ticker TEXT UNIQUE,
                 quantity INTEGER,
                 avg_price REAL,
+                current_price REAL DEFAULT 0.0,
                 entry_price REAL DEFAULT 0.0,
                 entry_date TEXT,
                 stop_price REAL DEFAULT 0.0,
