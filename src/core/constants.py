@@ -93,3 +93,4 @@ CYCLE_SECTOR_MAP = {
 }
 
 # Simple market index map (used lightly)
+
