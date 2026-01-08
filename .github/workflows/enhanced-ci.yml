@@ -45,7 +45,20 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip --no-cache-dir
-        if [ -f requirements.txt ]; then pip install -r requirements.txt --no-cache-dir; fi
+        
+        # Force install CPU versions to save disk space
+        echo "Installing CPU-only versions of TensorFlow and PyTorch..."
+        pip install tensorflow-cpu --no-cache-dir
+        pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu --no-cache-dir
+        
+        # Install other requirements, excluding heavy GPU libs to prevent overwrite
+        if [ -f requirements.txt ]; then 
+            # Create a clean requirement file excluding tensorflow and torch to avoid reinstalling GPU versions
+            grep -vE "^tensorflow|^torch" requirements.txt > requirements.slim.txt || true
+            echo "Installing remaining dependencies from filtered requirements..."
+            pip install -r requirements.slim.txt --no-cache-dir
+        fi
+        
         pip install pytest pytest-cov flake8 mypy pytest-asyncio --no-cache-dir
         pip install --upgrade types-requests types-urllib3 --no-cache-dir
 
@@ -86,6 +99,15 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip --no-cache-dir
+        # Force CPU installs for security scan too if they analyze imports
+        pip install tensorflow-cpu --no-cache-dir
+        pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu --no-cache-dir
+        
+        if [ -f requirements.txt ]; then 
+            grep -vE "^tensorflow|^torch" requirements.txt > requirements.slim.txt || true
+            pip install -r requirements.slim.txt --no-cache-dir
+        fi
+        
         pip install bandit safety safety-db --no-cache-dir
 
     - name: Run Bandit security scan
