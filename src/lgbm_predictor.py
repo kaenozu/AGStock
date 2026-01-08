@@ -32,8 +32,8 @@ class LGBMPredictor(BasePredictor):
                 with open("model_params.json", "r", encoding="utf-8") as f:
                     all_params = json.load(f)
                     return all_params.get("lgbm", {})
-        except Exception:
-            pass
+        except Exception as e:
+            logging.getLogger(__name__).debug(f"Non-critical exception: {e}")
         return {}
 
     def prepare_model(self, X, y):

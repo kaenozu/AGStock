@@ -322,8 +322,8 @@ class JapanFinancialAnalyzer:
             if element is not None:
                 # XBRLから会計年度を抽出
                 return "2023"  # 簡易版
-        except:
-            pass
+        except Exception as e:
+            logging.getLogger(__name__).debug(f"Non-critical exception: {e}")
         return "2023"
 
     def _get_document_type(self, doc: Dict) -> str:
@@ -340,8 +340,8 @@ class JapanFinancialAnalyzer:
                 # 単位変換（通常百万円単位）
                 value = float(element.text.replace(",", ""))
                 return value * 1000000  # 百万円→円
-        except:
-            pass
+        except Exception as e:
+            logging.getLogger(__name__).debug(f"Non-critical exception: {e}")
         return 0.0
 
     def _calculate_financial_ratios(self, statement: FinancialStatement) -> FinancialStatement:

@@ -3,14 +3,20 @@ Centralized Configuration Management using Pydantic.
 Replaces dispersed os.getenv calls and hardcoded constants.
 """
 
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Dict
 from pathlib import Path
 from pydantic_settings import BaseSettings
 from pydantic import Field, SecretStr
 from dotenv import load_dotenv
+import json
+import os
+import logging
+from functools import lru_cache
 
 # Load .env file explicitly if present
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 
 class TradingSettings(BaseSettings):
@@ -39,6 +45,7 @@ class AICommitteeSettings(BaseSettings):
     model_name: str = "gemini-2.0-flash-exp"
     confidence_threshold: float = 0.7
     debate_rounds: int = 3
+    api_key: Optional[str] = Field(None, validation_alias="GEMINI_API_KEY")
 
 
 class SystemSettings(BaseSettings):
@@ -91,17 +98,14 @@ class Config(BaseSettings):
         self.system.models_dir.mkdir(parents=True, exist_ok=True)
 
     def get(self, key: str, default: Any = None) -> Any:
-        """後方互換性のためのドット記法アクセス.
-
-        Example:
-            config.get("trading.max_daily_trades") -> 5
-            config.get("system.initial_capital") -> 10000000
-        """
+        """後方互換性のためのドット記法アクセス."""
         parts = key.split(".")
         obj: Any = self
         try:
             for part in parts:
-                if hasattr(obj, part):
+                if isinstance(obj, dict):
+                    obj = obj.get(part, default)
+                elif hasattr(obj, part):
                     obj = getattr(obj, part)
                 else:
                     return default
@@ -109,36 +113,46 @@ class Config(BaseSettings):
         except (AttributeError, KeyError):
             return default
 
+    def to_dict(self) -> Dict[str, Any]:
+        """辞書として取得 (互換性のための簡易実装)"""
+        # 実際にはより複雑な変換が必要だが、ここでは基本的なものを返す
+        return self.model_dump() if hasattr(self, "model_dump") else self.dict()
 
-# Singleton wrapper for backward compatibility
-class ConfigSingleton:
-    """Singleton wrapper for Config."""
-
-    _instance: Optional["ConfigSingleton"] = None
-    _config: dict = {}  # Legacy storage
-    _pydantic_config: Optional[Config] = None
-
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._pydantic_config = Config()
-            cls._pydantic_config.ensure_dirs()
-        return cls._instance
-
-    def __getattr__(self, name: str):
-        """Delegate attribute access to underlying Config."""
-        if name.startswith("_"):
-            return super().__getattribute__(name)
-        return getattr(self._pydantic_config, name)
-
-    def get(self, key: str, default: Any = None) -> Any:
-        """後方互換性のためのドット記法アクセス."""
-        return self._pydantic_config.get(key, default)
+    def get_api_key(self, service: str) -> Optional[str]:
+        """APIキーを安全に取得 (PR #90 互換)"""
+        if service == "gemini":
+            val = self.get("system.gemini_api_key")
+            if hasattr(val, "get_secret_value"):
+                return val.get_secret_value()
+            return val or self.get("ai.api_key")
+        elif service == "openai":
+            return os.getenv("OPENAI_API_KEY")
+        return None
 
 
 # Global Settings Instance (Pydantic)
 settings = Config()
 settings.ensure_dirs()
 
-# Backward compatible config instance (Singleton)
+
+@lru_cache(maxsize=1)
+def get_config(config_path: str = "config.json") -> Config:
+    """設定インスタンスを取得 (PR #90 互換)"""
+    return settings
+
+
+def load_config(config_path: str = "config.json") -> Dict[str, Any]:
+    """後方互換性のための関数"""
+    return settings.to_dict()
+
+
+# Backward compatible config instance (Singleton wrapper)
+class ConfigSingleton:
+    def __getattr__(self, name: str):
+        return getattr(settings, name)
+
+    def get(self, key: str, default: Any = None) -> Any:
+        return settings.get(key, default)
+
+
 config = ConfigSingleton()

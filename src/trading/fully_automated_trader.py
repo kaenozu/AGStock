@@ -195,16 +195,29 @@ class FullyAutomatedTrader:
                     self.log(f"Neural Linkロードエラー ({p}): {e}", "WARNING")
 
     def load_config(self, config_path: str) -> Dict[str, Any]:
-        """設定ファイルを読み込み"""
+        """設定ファイルを読み込み（統一設定管理を優先使用）"""
+        try:
+            # 統一設定管理を試みる
+            from src.core.config import get_config
+            config = get_config(config_path)
+            return config.to_dict()
+        except ImportError:
+            # フォールバック: 直接JSONを読み込み
+            pass
+        
         try:
             with open(config_path, "r", encoding="utf-8") as f:
                 return json.load(f)
         except FileNotFoundError:
+            logger.warning(f"Config file not found: {config_path}, using defaults")
             return {
                 "paper_trading": {"initial_capital": 1000000},
                 "auto_trading": {"max_daily_trades": 5, "daily_loss_limit_pct": -5.0, "max_vix": 40.0},
                 "notifications": {"line": {"enabled": False}},
             }
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse config file: {e}")
+            return {}
 
     def log(self, message: str, level: str = "INFO") -> None:
         """ログ出力"""

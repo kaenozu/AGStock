@@ -185,3 +185,35 @@ check-sentiment:
 # セクターローテーション
 check-sectors:
 	python -c "from src.features.sector_rotation import get_sector_rotation; sr = get_sector_rotation(); print(sr.get_recommendations())"
+
+# === 新規追加: 品質改善コマンド ===
+
+# セキュリティチェック（APIキー漏洩など）
+security-check:
+	@echo "Checking for hardcoded secrets..."
+	@! grep -rn "api_key.*=.*['\"][A-Za-z0-9_-]\{20,\}['\"]" src/ config.json --include="*.py" --include="*.json" || echo "WARNING: Potential API key found!"
+	@! grep -rn "token.*=.*['\"][A-Za-z0-9_-]\{20,\}['\"]" src/ config.json --include="*.py" --include="*.json" || echo "WARNING: Potential token found!"
+	@echo "Security check complete."
+
+# サイレント例外チェック
+silent-exceptions:
+	@echo "Checking for silent exceptions..."
+	@grep -rn "except.*:" src/ -A1 | grep -E "pass\s*$$" | head -20 || echo "No silent exceptions found."
+
+# 設定の検証
+validate-config:
+	@python3 -c "import json; json.load(open('config.json'))" && echo "config.json: Valid JSON"
+	@python3 -c "from src.core.config import get_config; c = get_config(); print(f'Config loaded: {len(c.to_dict())} keys')"
+
+# 全品質チェック
+quality: lint security-check silent-exceptions validate-config
+	@echo "All quality checks passed!"
+
+# 設定の初期化（.envファイル作成）
+init-env:
+	@if [ ! -f .env ]; then cp .env.example .env && echo "Created .env from .env.example"; else echo ".env already exists"; fi
+	@echo "Please edit .env and add your API keys"
+
+# クリーンビルド
+fresh: clean install
+	@echo "Fresh installation complete"

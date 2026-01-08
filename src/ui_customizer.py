@@ -4,6 +4,7 @@ UI Customizer - カスタマイズ可能なダッシュボード
 """
 
 import json
+import logging
 import os
 from typing import Dict, List
 
@@ -63,7 +64,7 @@ class UICustomizer:
             self.config["theme"] = theme
             self.save_config()
             st.sidebar.success("テーマを変更しました")
-            st.experimental_rerun()
+            st.rerun()
 
         # 自動更新
         auto_refresh = st.sidebar.checkbox("自動更新", value=self.config.get("auto_refresh", False))
@@ -170,7 +171,7 @@ class UICustomizer:
 
             if current_time - st.session_state.last_refresh > interval:
                 st.session_state.last_refresh = current_time
-                st.experimental_rerun()
+                st.rerun()
 
     def get_visible_tabs(self) -> List[str]:
         """表示タブ取得"""
@@ -195,7 +196,7 @@ def render_dashboard_customizer():
         customizer.config["dashboard_layout"] = layout
         customizer.save_config()
         st.success("レイアウトを変更しました")
-        st.experimental_rerun()
+        st.rerun()
 
     # 表示タブ選択
     all_tabs = [
@@ -221,7 +222,7 @@ def render_dashboard_customizer():
     if visible_tabs != customizer.get_visible_tabs():
         customizer.set_visible_tabs(visible_tabs)
         st.success("表示タブを更新しました")
-        st.experimental_rerun()
+        st.rerun()
 
 
 if __name__ == "__main__":
