@@ -1,3 +1,4 @@
+import logging
 """
 AGStock Personal Edition - Safety Features
 個人投資家向け安全・安心機能

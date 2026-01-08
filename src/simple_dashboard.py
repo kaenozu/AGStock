@@ -102,8 +102,9 @@ def _load_backtest_history(demo: bool, pt: PaperTrader = None) -> pd.DataFrame:
             if "date" in df.columns:
                 df["date"] = pd.to_datetime(df["date"])
             return df
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).debug(f"Failed to load backtest history from CSV: {e}")
 
     # Fallback: compute from equity/trade history
     if pt:

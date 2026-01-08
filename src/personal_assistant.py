@@ -1,3 +1,4 @@
+import logging
 """
 AGStock Personal Edition - Personal Assistant
 個人投資家向けAIアシスタント

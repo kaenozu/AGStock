@@ -1,3 +1,9 @@
+"""
+LLM分析モジュール (改善版)
+
+統一設定管理とエラーハンドリングを適用。
+"""
+
 import json
 import logging
 import os
@@ -8,7 +14,6 @@ logger = logging.getLogger(__name__)
 # Try to import google.generativeai
 try:
     import google.generativeai as genai
-
     HAS_GEMINI = True
 except ImportError:
     HAS_GEMINI = False
@@ -19,10 +24,34 @@ except ImportError:
 class LLMAnalyzer:
     """
     Analyzes financial data using Large Language Models (Gemini).
+    
+    改善点:
+    - 統一設定管理からAPIキーを取得
+    - 適切なエラーログ出力
+    - フォールバック動作の明確化
     """
 
     def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
+        # 優先順位: 引数 > 環境変数 > 設定ファイル
+        self.api_key = api_key
+        
+        if not self.api_key:
+            # 環境変数から取得
+            for env_var in ["AGSTOCK_GEMINI_API_KEY", "GOOGLE_API_KEY", "GEMINI_API_KEY"]:
+                self.api_key = os.getenv(env_var)
+                if self.api_key:
+                    logger.debug(f"API key loaded from {env_var}")
+                    break
+        
+        if not self.api_key:
+            # 設定ファイルから取得を試みる
+            try:
+                from src.core.config import get_config
+                config = get_config()
+                self.api_key = config.get_api_key("gemini")
+            except ImportError:
+                pass
+        
         self.model = None
         self.is_active = False
 
@@ -35,7 +64,10 @@ class LLMAnalyzer:
             except Exception as e:
                 logger.error(f"Failed to initialize Gemini API: {e}")
         else:
-            logger.info("LLMAnalyzer running in MOCK mode (No API Key or Library).")
+            if not HAS_GEMINI:
+                logger.info("LLMAnalyzer: google.generativeai not installed, running in MOCK mode.")
+            elif not self.api_key:
+                logger.info("LLMAnalyzer: No API key found, running in MOCK mode.")
 
     def analyze_news(self, ticker: str, news_list: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
@@ -67,7 +99,9 @@ class LLMAnalyzer:
             except Exception as e:
                 logger.error(f"Gemini text generation failed: {e}")
                 return ""
-        return ""
+        else:
+            logger.debug("generate_text called but LLM not active, returning empty string")
+            return ""
 
     def _analyze_with_gemini(self, ticker: str, news_list: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
@@ -80,11 +114,9 @@ class LLMAnalyzer:
         You are a senior financial analyst. Analyze the following recent news headlines for {ticker}.
 
         News:
-            pass
         {news_text}
 
         Provide a structured analysis in JSON format with the following keys:
-            pass
         - sentiment: "Bullish", "Bearish", or "Neutral"
         - score: A float between 0.0 (Bearish) and 1.0 (Bullish)
         - reasoning: A concise summary of why (max 3 sentences).
@@ -104,6 +136,9 @@ class LLMAnalyzer:
                 text = text.replace("```", "")
 
             return json.loads(text)
+        except json.JSONDecodeError as e:
+            logger.warning(f"Failed to parse Gemini response as JSON: {e}")
+            return self._analyze_mock(ticker, news_list)
         except Exception as e:
             logger.error(f"Gemini analysis failed: {e}")
             return self._analyze_mock(ticker, news_list)
@@ -114,24 +149,10 @@ class LLMAnalyzer:
         """
         # Simple keyword based mock
         bullish_keywords = [
-            "up",
-            "rise",
-            "gain",
-            "profit",
-            "growth",
-            "high",
-            "buy",
-            "outperform",
+            "up", "rise", "gain", "profit", "growth", "high", "buy", "outperform",
         ]
         bearish_keywords = [
-            "down",
-            "fall",
-            "loss",
-            "drop",
-            "low",
-            "sell",
-            "underperform",
-            "risk",
+            "down", "fall", "loss", "drop", "low", "sell", "underperform", "risk",
         ]
 
         score = 0.5

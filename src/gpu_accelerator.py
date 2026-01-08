@@ -116,16 +116,16 @@ class GPUAccelerator:
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
                 logger.debug("PyTorch GPU memory cleared")
-        except Exception:
-            pass
+        except Exception as e:
+            logging.getLogger(__name__).debug(f"Non-critical exception: {e}")
 
         try:
             import tensorflow as tf
 
             tf.keras.backend.clear_session()
             logger.debug("TensorFlow session cleared")
-        except Exception:
-            pass
+        except Exception as e:
+            logging.getLogger(__name__).debug(f"Non-critical exception: {e}")
 
     def get_status(self) -> Dict:
         """GPU状態を取得"""
@@ -145,8 +145,8 @@ class GPUAccelerator:
                     "cached": torch.cuda.memory_reserved(0),
                     "total": torch.cuda.get_device_properties(0).total_memory,
                 }
-        except Exception:
-            pass
+        except Exception as e:
+            logging.getLogger(__name__).debug(f"Non-critical exception: {e}")
 
         return status
 

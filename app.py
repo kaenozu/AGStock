@@ -83,7 +83,8 @@ try:
     from src.ui.shortcuts import KeyboardShortcuts
     KeyboardShortcuts.inject_listener()
 except Exception as e:
-    pass  # Silently fail if shortcuts not available
+    import logging
+    logging.getLogger(__name__).debug(f"Keyboard shortcuts not available: {e}")
 
 
 # Initialize Global Risk Manager
