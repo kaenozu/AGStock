@@ -16,6 +16,14 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+
+    - name: Free disk space
+      if: runner.os == 'Linux'
+      run: |
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /opt/ghc
+        sudo rm -rf "/usr/local/share/boost"
+        sudo rm -rf "$AGENT_TOOLSDIRECTORY"
     
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
@@ -58,6 +66,8 @@ jobs:
       continue-on-error: true
     
     - name: Test coverage
+      env:
+        AGSTOCK_ALLOW_HARDCODED_KEYS: "1"
       run: |
         pytest tests/ --cov=src --cov-report=xml --cov-report=html -x --ignore=tests/test_robustness.py
       continue-on-error: true
