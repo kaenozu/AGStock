@@ -73,6 +73,9 @@ class PaperTrader:
                 ticker TEXT UNIQUE,
                 quantity INTEGER,
                 avg_price REAL,
+                entry_price REAL DEFAULT 0.0,
+                entry_date TEXT,
+                current_price REAL DEFAULT 0.0,
                 stop_price REAL DEFAULT 0.0,
                 highest_price REAL DEFAULT 0.0
             )
@@ -237,7 +240,7 @@ class PaperTrader:
                 qty = pos.get("quantity")
                 avg_p = pos.get("avg_price", 0.0)
                 
-                curr_p = prices.get(ticker, avg_p)
+                curr_p = prices.get(ticker, pos.get("current_price", avg_p))
                 m_val = qty * curr_p
                 
                 if avg_p > 0:
@@ -251,7 +254,8 @@ class PaperTrader:
                     "ticker": ticker,
                     "quantity": qty,
                     "avg_price": avg_p,
-                    "entry_price": avg_p,
+                    "entry_price": pos.get("entry_price", avg_p),
+                    "entry_date": pos.get("entry_date"),
                     "volatility": volatilities.get(ticker, 0.0),
                     "current_price": curr_p,
                     "market_value": m_val,
@@ -353,10 +357,18 @@ class PaperTrader:
 
                 cursor.execute(
                     """
-                    INSERT OR REPLACE INTO positions (ticker, quantity, avg_price, highest_price)
-                    VALUES (?, ?, ?, ?)
+                    INSERT OR REPLACE INTO positions (ticker, quantity, avg_price, entry_price, entry_date, current_price, highest_price)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
-                    (order.ticker, new_quantity, new_avg_price, max(new_avg_price, order.price)),
+                    (
+                        order.ticker, 
+                        new_quantity, 
+                        new_avg_price, 
+                        new_avg_price if position["quantity"] == 0 else position.get("entry_price", new_avg_price),
+                        datetime.now().strftime("%Y-%m-%d %H:%M:%S") if position["quantity"] == 0 else position.get("entry_date"),
+                        order.price,
+                        max(new_avg_price, order.price)
+                    ),
                 )
 
             elif order.action == "SELL":
