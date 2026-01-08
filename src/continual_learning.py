@@ -6,6 +6,7 @@
 - 自己教師あり学習
 """
 
+from __future__ import annotations
 import logging
 import os
 import pickle

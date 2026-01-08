@@ -76,6 +76,10 @@ def setup_logging(
     root_logger.info("Logging initialized")
 
 
+# デフォルトのロガーインスタンスを提供
+logger = get_logger("agstock")
+
+
 def get_logger(name: str) -> logging.Logger:
     """名前付きロガーを取得"""
     if name not in _loggers:

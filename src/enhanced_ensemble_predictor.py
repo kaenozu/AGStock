@@ -16,6 +16,7 @@
 - シナリオ分析とストレステスト
 """
 
+from __future__ import annotations
 import logging
 from typing import Dict, List, Optional, Tuple, Union, Any
 

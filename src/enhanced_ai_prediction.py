@@ -4,6 +4,7 @@ Enhanced AI Prediction System with Multiple Models and Ensemble Learning
 複数AIモデルとアンサンブル学習による予測精度改善
 """
 
+from __future__ import annotations
 import numpy as np
 import pandas as pd
 from typing import Dict, List, Any, Optional, Tuple
@@ -208,8 +209,9 @@ class AIModelManager:
         # Neural Network (LSTM)
         self.models["lstm"] = None  # 動的に生成
 
-    def create_lstm_model(self, input_shape: Tuple[int, int]) -> tf.keras.Model:
-        """LSTMモデル生成"""
+    def create_lstm_model(self, input_shape: Tuple[int, int]) -> Any:
+        """LSTMモデルの構築 (型ヒントを Any に変更してエラー回避)"""
+        if tf is None: return None
         model = Sequential(
             [
                 LSTM(64, return_sequences=True, input_shape=input_shape),

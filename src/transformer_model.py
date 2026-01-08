@@ -3,6 +3,7 @@ Temporal Fusion Transformer (TFT) モデルの実装
 時系列予測に特化したTransformerベースのモデル
 """
 
+from __future__ import annotations
 import logging
 from typing import List, Optional, Tuple
 
