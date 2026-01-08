@@ -53,6 +53,45 @@ class RiskGuard:
             self.save_state()
         return triggered
 
+    def daily_reset(self, current_date: datetime.date = None):
+        """日次リセット処理"""
+        if current_date is None:
+            current_date = datetime.date.today()
+        
+        if current_date > self.last_reset_date:
+            self.last_reset_date = current_date
+            self.circuit_breaker_triggered = False
+            self.drawdown_triggered = False
+            self.save_state()
+            logger.info(f"Risk state reset for {current_date}")
+
+    def load_state(self):
+        """状態を復元"""
+        if not self.state_file: return
+        import json
+        import os
+        if not os.path.exists(self.state_file): return
+        try:
+            with open(self.state_file, "r") as f:
+                state = json.load(f)
+                self.circuit_breaker_triggered = state.get("circuit_breaker_triggered", False)
+                self.drawdown_triggered = state.get("drawdown_triggered", False)
+                self.high_water_mark = state.get("high_water_mark", self.initial_portfolio_value)
+                self.daily_start_value = state.get("daily_start_value", self.initial_portfolio_value)
+                last_reset = state.get("last_reset_date")
+                if last_reset:
+                    self.last_reset_date = datetime.date.fromisoformat(last_reset)
+        except Exception as e:
+            logger.error(f"Error loading risk state: {e}")
+        """日次損失制限をチェック"""
+        if self.daily_start_value <= 0: return False
+        loss_pct = (current_value - self.daily_start_value) / self.daily_start_value * 100
+        triggered = loss_pct <= self.daily_loss_limit_pct
+        if triggered:
+            self.circuit_breaker_triggered = True
+            self.save_state()
+        return triggered
+
     def check_drawdown_limit(self, current_value: float) -> bool:
         """ドローダウン制限をチェック"""
         if current_value > self.high_water_mark:

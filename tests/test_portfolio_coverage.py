@@ -86,53 +86,25 @@ class TestPortfolioRiskManager(unittest.TestCase):
         # High correlation
         corr_matrix = pd.DataFrame([[1.0, 0.9], [0.9, 1.0]], index=["A", "B"], columns=["A", "B"])
 
-        allowed = self.manager.check_new_position("B", curr_port_list, corr_matrix)
+        allowed, reason = self.manager.check_new_position("B", curr_port_list, corr_matrix)
 
         self.assertFalse(allowed)  # Only 0.7 allowed
 
         # Low correlation
-        # Use 'C' (Finance) to avoid Sector Check failure (A is Tech, B is Tech, C is Finance)
-        # Existing portfolio ['A'] -> Tech exposure 100%. Limit 50%.
-        # Adding 'B' (Tech) fails due to Sector Check.
-        # Adding 'C' (Finance) should pass Sector Check (Finance exposure 0%).
-
         corr_matrix_low = pd.DataFrame([[1.0, 0.1], [0.1, 1.0]], index=["A", "C"], columns=["A", "C"])
 
-        allowed = self.manager.check_new_position("C", curr_port_list, corr_matrix_low)
+        allowed, reason = self.manager.check_new_position("C", curr_port_list, corr_matrix_low)
         self.assertTrue(allowed)
 
     def test_check_new_position_sector(self):
-        # Max sector exposure is 0.5 (50%)
-        # Current: 1 Tech stock ('A'), total 2 stocks if we add 'B' (Tech) -> 2/2 = 100% > 50%
-
         current = ["A"]  # 1 Tech
         corr_matrix = pd.DataFrame([[1]], index=["A"], columns=["A"])
 
-        # Adding B (Tech) -> Risk: 100% Tech (A, B)
-        # Wait, current_portfolio is passed in. Logic uses current_portfolio to calculate exposure.
-        # "sector_counts = [self.sector_map.get(t) for t in current_portfolio]"
-        # "sector_exposure = sector_counts.count(sector) / len(current_portfolio)"
-        # This implementation calculates exposure of *existing* portfolio?
-        # Let's check source code again:
-        # "if self.sector_map: sector = self.sector_map.get(ticker)" (Ticker to add)
-        # "if sector: sector_counts = ... "
-        # "sector_exposure = sector_counts.count(sector) / len(current_portfolio)"
-        # It checks if existing exposure to THIS sector is already high?
-        # A common logic is: (count(sector) + 1) / (len(current) + 1)
-        # But let's test what IS implemented.
-        pass
-
-        # If current implementation checks existing exposure:
-        # Case: Current ['A'] (Tech). Exposure to Tech is 1/1 = 1.0 > 0.5.
-        # Adding 'B' (Tech) -> Should reject if it checks existing exposure limit for new ticker's sector.
-
-        allowed = self.manager.check_new_position("B", current, corr_matrix)
-        # If current is ['A'], 100% Tech. Max 50%. So it should reject adding ANY Tech stock?
-        # Yes, warning: "Sector limit reached".
+        allowed, reason = self.manager.check_new_position("B", current, corr_matrix)
         self.assertFalse(allowed)
 
         # Adding C (Finance) -> Exposure of Finance in current (['A']) is 0% < 50%.
-        allowed = self.manager.check_new_position("C", current, corr_matrix)
+        allowed, reason = self.manager.check_new_position("C", current, corr_matrix)
         self.assertTrue(allowed)
 
 
