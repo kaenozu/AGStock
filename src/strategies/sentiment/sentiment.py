@@ -1,6 +1,6 @@
 import pandas as pd
 
-from .base import Strategy
+from ..base import Strategy
 
 
 class SentimentStrategy(Strategy):

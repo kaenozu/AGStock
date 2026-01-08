@@ -11,8 +11,7 @@ def temp_signal_file(tmp_path):
 
 def test_signal_publication(temp_signal_file):
     """シグナル公開のテスト"""
-    cim = CollectiveIntelligenceManager(node_id="test_node")
-    cim.shared_signals_path = temp_signal_file
+    cim = CollectiveIntelligenceManager(node_id="test_node", ledger_path=temp_signal_file)
     
     cim.publish_signal("7203", "BUY", 0.9, "Test reason")
     
@@ -23,8 +22,7 @@ def test_signal_publication(temp_signal_file):
 
 def test_consensus_logic(temp_signal_file):
     """合意形成ロジックのテスト"""
-    cim = CollectiveIntelligenceManager(node_id="master")
-    cim.shared_signals_path = temp_signal_file
+    cim = CollectiveIntelligenceManager(node_id="master", ledger_path=temp_signal_file)
     
     # 3つのノードがBUY、1つがSELL
     cim.publish_signal("7203", "BUY", 0.8, "R1")
@@ -42,8 +40,7 @@ def test_consensus_logic(temp_signal_file):
 
 def test_no_consensus_below_threshold(temp_signal_file):
     """合意率が低い場合に採用されないことのテスト"""
-    cim = CollectiveIntelligenceManager(node_id="master")
-    cim.shared_signals_path = temp_signal_file
+    cim = CollectiveIntelligenceManager(node_id="master", ledger_path=temp_signal_file)
     
     # 1対1で合意形成不可
     cim.publish_signal("9984", "BUY", 0.8, "R1")

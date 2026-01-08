@@ -1,10 +1,7 @@
 import pandas as pd
 
-from .base import Strategy
-
-
-from ..oracle.oracle_2026 import Oracle2026
-from .base import Strategy
+from ..base import Strategy
+from ...oracle.oracle_2026 import Oracle2026
 
 
 class DividendStrategy(Strategy):

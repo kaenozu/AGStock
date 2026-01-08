@@ -72,9 +72,9 @@ class CollectiveIntelligenceManager:
     using a simulated Blockchain Ledger.
     """
     
-    def __init__(self, node_id: str = "node_01"):
+    def __init__(self, node_id: str = "node_01", ledger_path: str = "data/signal_chain.json"):
         self.node_id = node_id
-        self.ledger = BlockchainSignalLedger()
+        self.ledger = BlockchainSignalLedger(ledger_path=ledger_path)
         
         if not os.path.exists("data"):
             os.makedirs("data")

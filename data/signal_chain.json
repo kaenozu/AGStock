@@ -426,5 +426,110 @@
     "previous_hash": "c5fcfaf333948b3910fa3a389f6f9f77db5fb6e2e9b180371868a71246959666",
     "nonce": 0,
     "hash": "0b6a763d084fe1661085deb8b3606d714792171e09df73d76413cb5b71c12a46"
+  },
+  {
+    "index": 29,
+    "timestamp": "2026-01-08T09:11:57.585254",
+    "data": {
+      "node_id": "test_node",
+      "ticker": "7203",
+      "action": "BUY",
+      "confidence": 0.9,
+      "reason": "Test reason",
+      "timestamp": "2026-01-08T09:11:57.581253"
+    },
+    "previous_hash": "0b6a763d084fe1661085deb8b3606d714792171e09df73d76413cb5b71c12a46",
+    "nonce": 0,
+    "hash": "00f4a611f248c7e07b19ebad8c40482a1b19dae395c274200d70270263e68d85"
+  },
+  {
+    "index": 30,
+    "timestamp": "2026-01-08T09:11:57.648156",
+    "data": {
+      "node_id": "master",
+      "ticker": "7203",
+      "action": "BUY",
+      "confidence": 0.8,
+      "reason": "R1",
+      "timestamp": "2026-01-08T09:11:57.645155"
+    },
+    "previous_hash": "00f4a611f248c7e07b19ebad8c40482a1b19dae395c274200d70270263e68d85",
+    "nonce": 0,
+    "hash": "62d5e9c27fb18d24e940ad76d06ade53b352615cc69710ed8f6bce4a1e71b6dc"
+  },
+  {
+    "index": 31,
+    "timestamp": "2026-01-08T09:11:57.653353",
+    "data": {
+      "node_id": "master",
+      "ticker": "7203",
+      "action": "BUY",
+      "confidence": 0.7,
+      "reason": "R2",
+      "timestamp": "2026-01-08T09:11:57.650155"
+    },
+    "previous_hash": "62d5e9c27fb18d24e940ad76d06ade53b352615cc69710ed8f6bce4a1e71b6dc",
+    "nonce": 0,
+    "hash": "5674aa1e5c6bbefab43bd7f1cb1c8967e93dc5a702eeeeff5ce403c79f1e773f"
+  },
+  {
+    "index": 32,
+    "timestamp": "2026-01-08T09:11:57.657353",
+    "data": {
+      "node_id": "master",
+      "ticker": "7203",
+      "action": "BUY",
+      "confidence": 0.9,
+      "reason": "R3",
+      "timestamp": "2026-01-08T09:11:57.655355"
+    },
+    "previous_hash": "5674aa1e5c6bbefab43bd7f1cb1c8967e93dc5a702eeeeff5ce403c79f1e773f",
+    "nonce": 0,
+    "hash": "e91d0cb7a028340c75f623cfa1adaf2576608003f843c160fa350b1e09e7d99d"
+  },
+  {
+    "index": 33,
+    "timestamp": "2026-01-08T09:11:57.660859",
+    "data": {
+      "node_id": "master",
+      "ticker": "7203",
+      "action": "SELL",
+      "confidence": 0.6,
+      "reason": "R4",
+      "timestamp": "2026-01-08T09:11:57.659353"
+    },
+    "previous_hash": "e91d0cb7a028340c75f623cfa1adaf2576608003f843c160fa350b1e09e7d99d",
+    "nonce": 0,
+    "hash": "8ca77fd85695617f59fcc1da52417f35a03af0d20892df3d54378831bb75617d"
+  },
+  {
+    "index": 34,
+    "timestamp": "2026-01-08T09:11:57.688893",
+    "data": {
+      "node_id": "master",
+      "ticker": "9984",
+      "action": "BUY",
+      "confidence": 0.8,
+      "reason": "R1",
+      "timestamp": "2026-01-08T09:11:57.685894"
+    },
+    "previous_hash": "8ca77fd85695617f59fcc1da52417f35a03af0d20892df3d54378831bb75617d",
+    "nonce": 0,
+    "hash": "496c949a15e2ed876e21b244332e8d6e4b26efc16b3f4cdecacb3981ef6a79a8"
+  },
+  {
+    "index": 35,
+    "timestamp": "2026-01-08T09:11:57.693218",
+    "data": {
+      "node_id": "master",
+      "ticker": "9984",
+      "action": "SELL",
+      "confidence": 0.8,
+      "reason": "R2",
+      "timestamp": "2026-01-08T09:11:57.691218"
+    },
+    "previous_hash": "496c949a15e2ed876e21b244332e8d6e4b26efc16b3f4cdecacb3981ef6a79a8",
+    "nonce": 0,
+    "hash": "8c4dcc6d2230828ebe3da0091823a8d58e269e456ebf4030661faeebbe253252"
   }
 ]

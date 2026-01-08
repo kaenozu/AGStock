@@ -1,11 +1,15 @@
 from .base import Order, OrderType, Strategy
-from .deep_learning import AttentionLSTMStrategy, DeepLearningStrategy, GRUStrategy, TransformerStrategy
-from .dividend import DividendStrategy
-from .ensemble import EnsembleStrategy
-from .lightgbm_strategy import LightGBMStrategy
+from .fundamental import DividendStrategy
+from .ensemble import EnsembleStrategy, CombinedStrategy, MultiTimeframeStrategy
 from .loader import load_custom_strategies
-from .ml import MLStrategy
-from .multi_timeframe import MultiTimeframeStrategy
-from .rl import RLStrategy
-from .sentiment_strategy import SentimentStrategy
-from .technical import BollingerBandsStrategy, CombinedStrategy, RSIStrategy, SMACrossoverStrategy
+from .ml import (
+    AttentionLSTMStrategy,
+    DeepLearningStrategy,
+    GRUStrategy,
+    LightGBMStrategy,
+    MLStrategy,
+    RLStrategy,
+    TransformerStrategy,
+)
+from .sentiment import SentimentStrategy
+from .technical import BollingerBandsStrategy, RSIStrategy, SMACrossoverStrategy
