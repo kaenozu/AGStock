@@ -1,3 +1,7 @@
+"""
+LSTM戦略（遅延読み込み対応版）
+"""
+
 import logging
 import numpy as np
 import pandas as pd
@@ -6,6 +10,22 @@ from sklearn.preprocessing import MinMaxScaler
 from ..base import Strategy
 
 logger = logging.getLogger(__name__)
+
+# TensorFlow遅延読み込み
+_model_cache = {}
+
+
+def _get_tf_components():
+    """TensorFlowコンポーネントを遅延読み込み"""
+    try:
+        from src.utils.lazy_imports import get_tensorflow, get_keras
+        tf = get_tensorflow()
+        keras = get_keras()
+        return tf, keras, True
+    except ImportError:
+        logger.warning("TensorFlow not available for LSTM strategy")
+        return None, None, False
+
 
 class DeepLearningStrategy(Strategy):
     def __init__(
@@ -19,6 +39,13 @@ class DeepLearningStrategy(Strategy):
         self.predict_window_days = predict_window_days
         self.model = None
         self.scaler = MinMaxScaler(feature_range=(0, 1))
+        self._tf_available = None
+
+    def _check_tf(self):
+        """TensorFlowの利用可能性をチェック"""
+        if self._tf_available is None:
+            _, _, self._tf_available = _get_tf_components()
+        return self._tf_available
 
     def _create_sequences(self, data):
         X, y = [], []
@@ -28,6 +55,10 @@ class DeepLearningStrategy(Strategy):
         return np.array(X), np.array(y)
 
     def build_model(self, input_shape):
+        if not self._check_tf():
+            raise ImportError("TensorFlow is required for LSTM model")
+        
+        tf, keras, _ = _get_tf_components()
         from tensorflow.keras.layers import LSTM, Dense, Dropout
         from tensorflow.keras.models import Sequential
         from tensorflow.keras.optimizers import Adam
@@ -42,6 +73,10 @@ class DeepLearningStrategy(Strategy):
     def generate_signals(self, df: pd.DataFrame) -> pd.Series:
         if df is None or df.empty or "Close" not in df.columns:
             return pd.Series(dtype=int)
+
+        if not self._check_tf():
+            logger.warning("TensorFlow not available, returning neutral signals")
+            return pd.Series(0, index=df.index)
 
         data = df.copy()
         data["Volume"] = data["Volume"].replace(0, np.nan).ffill()
@@ -59,7 +94,7 @@ class DeepLearningStrategy(Strategy):
         end_index = len(dataset)
         step = self.predict_window_days
 
-        print(f"Starting Walk-Forward Validation for DL Strategy... (Total steps: {(end_index - start_index) // step})")
+        logger.info(f"Starting Walk-Forward Validation for DL Strategy... (Total steps: {(end_index - start_index) // step})")
 
         for current_idx in range(start_index, end_index, step):
             train_start = max(0, current_idx - self.train_window_days)
