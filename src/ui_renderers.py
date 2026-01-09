@@ -23,7 +23,7 @@ def render_market_ticker_selector(key: str = "main"):
     tickers_list = get_cached_tickers(market)
     with col2:
         tickers = st.multiselect(
-            "銘柄を選択 (空欄で全銘柄)",
+            "銘柄を選択 (空白で全銘柄)",
             tickers_list,
             format_func=lambda x: f"{x} {TICKER_NAMES.get(x, '')}",
             key=f"ticker_sel_{key}",
@@ -42,12 +42,12 @@ def render_performance_tab(ticker_group, selected_market, custom_tickers, curren
         custom_tickers (list): カスタム銘柄リスト
         currency (str): 通貨単位 (JPY, USD, etc.)
     """
-    st.header("🎯 パフォーマンス・ダッシュボード")
+    st.header("📊 パフォーマンス・ダッシュボード")
     st.write("全銘柄のパフォーマンスを一目で確認できます。")
 
     # Performance Analysis Section
     st.markdown("---")
-    st.subheader("📈 詳細パフォーマンス分析")
+    st.subheader("📉 詳細パフォーマンス分析")
 
     try:
         analyzer = PerformanceAnalyzer()
@@ -84,7 +84,7 @@ def render_performance_tab(ticker_group, selected_market, custom_tickers, curren
                             x=benchmark_df["date"],
                             y=benchmark_df["benchmark_return"],
                             mode="lines",
-                            name="日経225",
+                            name="譌･邨・25",
                             line=dict(color="lightblue", width=2, dash="dash"),
                         )
                     )
@@ -128,14 +128,14 @@ def render_performance_tab(ticker_group, selected_market, custom_tickers, curren
             st.info("戦略別データがありません。")
 
         # Top/Worst Performers
-        st.markdown("#### 銘柄別パフォーマンス")
+        st.markdown("#### 驫俶氛蛻･繝代ヵ繧ｩ繝ｼ繝槭Φ繧ｹ")
         ticker_perf = analyzer.get_ticker_performance()
 
         if not ticker_perf.empty:
             col1, col2 = st.columns(2)
 
             with col1:
-                st.markdown("**🚀 トップ5銘柄**")
+                st.markdown("**🏆 トップ5銘柄**")
                 top5 = ticker_perf.nlargest(5, "total_pnl")[["ticker", "trades", "avg_profit", "total_pnl"]]
                 top5_display = top5.copy()
                 top5_display["avg_profit"] = top5_display["avg_profit"].apply(lambda x: f"{x:+.2f}%")
@@ -153,7 +153,7 @@ def render_performance_tab(ticker_group, selected_market, custom_tickers, curren
                 st.dataframe(bottom5_display, use_container_width=True)
 
         # Monthly Returns
-        st.markdown("#### 月次パフォーマンス")
+        st.markdown("#### 譛域ｬ｡繝代ヵ繧ｩ繝ｼ繝槭Φ繧ｹ")
         monthly_returns = analyzer.get_monthly_returns()
 
         if not monthly_returns.empty:
@@ -180,7 +180,7 @@ def render_performance_tab(ticker_group, selected_market, custom_tickers, curren
     st.markdown("---")
 
     # Performance Heatmap
-    st.subheader("📊 パフォーマンス・ヒートマップ")
+    st.subheader("🔥 パフォーマンス・ヒートマップ")
 
     if st.button("ヒートマップを生成", type="primary"):
         with st.spinner("データ取得中..."):
@@ -211,7 +211,7 @@ def render_performance_tab(ticker_group, selected_market, custom_tickers, curren
                 fig_heatmap = px.treemap(
                     returns_df,
                     path=["Ticker"],
-                    values=abs(returns_df["Return"]),  # Size by absolute return
+                    values=abs(returns_df["Return"].astype(float)),  # Size by absolute return
                     color="Return",
                     color_continuous_scale="RdYlGn",
                     color_continuous_midpoint=0,
@@ -223,7 +223,7 @@ def render_performance_tab(ticker_group, selected_market, custom_tickers, curren
                 # Top/Bottom performers
                 col1, col2 = st.columns(2)
                 with col1:
-                    st.subheader("🚀 トップ5")
+                    st.subheader("🏆 トップ5")
                     top5 = returns_df.nlargest(5, "Return")[["Ticker", "Name", "Return"]]
                     top5["Return"] = top5["Return"].apply(lambda x: f"{x*100:+.2f}%")
                     st.dataframe(top5, use_container_width=True)
@@ -283,9 +283,9 @@ def render_paper_trading_tab():
             st.dataframe(
                 pos_display.style.format(
                     {
-                        "entry_price": "¥{:,.0f}",
-                        "current_price": "¥{:,.0f}",
-                        "unrealized_pnl": "¥{:,.0f}",
+                        "entry_price": "ﾂ･{:,.0f}",
+                        "current_price": "ﾂ･{:,.0f}",
+                        "unrealized_pnl": "ﾂ･{:,.0f}",
                         "unrealized_pnl_pct": "{:.1%}",
                     }
                 ),
@@ -310,30 +310,19 @@ def render_paper_trading_tab():
 
                     if pt.execute_trade(ticker_input, action_input, qty_input, current_price, reason="Manual"):
                         st.success(f"{action_input}注文が完了しました: {ticker_input} @ {current_price}")
-                        st.rerun()
+                        st.experimental_rerun()
                     else:
-                        st.error("注文に失敗しました（資金不足または保有株不足）。")
+                        st.error("注文に失敗しました。（資金不足または保有株不足です。）")
                 else:
                     st.error("価格データの取得に失敗しました。")
 
     st.divider()
     st.subheader("取引履歴")
     history = pt.get_trade_history()
-    if not history.empty:
+    if history:
         # Format for display
         hist_display = history.copy()
-        # timestampカラムがない場合のフォールバック
-        if "timestamp" in hist_display.columns:
-            hist_display["timestamp"] = pd.to_datetime(hist_display["timestamp"]).dt.strftime("%Y-%m-%d %H:%M")
-        elif "date" in hist_display.columns:
-            hist_display["date"] = pd.to_datetime(hist_display["date"]).dt.strftime("%Y-%m-%d %H:%M")
-
-        st.subheader("取引履歴")
-    history = pt.get_trade_history()
-    if not history.empty:
-        # Format for display
-        hist_display = history.copy()
-        # timestampカラムがない場合のフォールバック
+        # timestampカラムがない場合はデフォルトで日付カラムを使用
         if "timestamp" in hist_display.columns:
             hist_display["timestamp"] = pd.to_datetime(hist_display["timestamp"]).dt.strftime("%Y-%m-%d %H:%M")
         elif "date" in hist_display.columns:
@@ -373,7 +362,7 @@ def render_market_scan_tab(
     from src.ui_components import display_best_pick_card, display_error_message, display_sentiment_gauge
 
     st.header("市場全体スキャン")
-    st.write("指定した銘柄群に対して全戦略をバックテストし、有望なシグナルを検出します。")
+    st.write("指定した銘柄群に対して全戦略をバックテストし、有望な信号を検出します。")
 
     # --- Automation Logic ---
     cached_results = None
@@ -406,16 +395,16 @@ def render_market_scan_tab(
         results_data = cached_results["results"]
 
         # === Display Cached Sentiment ===
-        with st.expander("📰 市場センチメント分析", expanded=True):
+        with st.expander("🔍 市場センチメント分析", expanded=True):
             display_sentiment_gauge(sentiment["score"], sentiment.get("news_count", 0))
 
-            st.subheader("📰 最新ニュース見出し")
+            st.subheader("堂 譛譁ｰ繝九Η繝ｼ繧ｹ隕句・縺")
             if sentiment.get("top_news"):
                 for i, news in enumerate(sentiment["top_news"][:5], 1):
                     st.markdown(f"{i}. [{news['title']}]({news['link']})")
 
         # === Display Macro Indicators ===
-        with st.expander("🌍 マクロ経済指標", expanded=True):
+        with st.expander("📈 マクロ経済指標", expanded=True):
             try:
                 from src.data_loader import fetch_external_data
 
@@ -518,10 +507,9 @@ def render_market_scan_tab(
                 kelly = win_prob - (1 - win_prob) / risk_reward if risk_reward > 0 else 0
                 kelly = max(0, kelly)  # No negative Kelly
 
-                # リスクレベル判定（統一版）
-                risk_level = get_risk_level(best_pick.get("Max Drawdown", -0.15))
+                # 繝ｪ繧ｹ繧ｯ繝ｬ繝吶Ν蛻､螳夲ｼ育ｵｱ荳迚茨ｼ・                risk_level = get_risk_level(best_pick.get("Max Drawdown", -0.15))
 
-                # 追加情報の準備
+                # 霑ｽ蜉諠・ｱ縺ｮ貅門ｙ
                 additional_info = {"Kelly": kelly, "RiskRatio": risk_reward}
                 if "PER" in best_pick and pd.notna(best_pick["PER"]):
                     additional_info["PER"] = best_pick["PER"]
@@ -530,7 +518,7 @@ def render_market_scan_tab(
                 if "ROE" in best_pick and pd.notna(best_pick["ROE"]):
                     additional_info["ROE"] = best_pick["ROE"]
 
-                # 注文コールバック
+                # 豕ｨ譁・さ繝ｼ繝ｫ繝舌ャ繧ｯ
                 def handle_best_pick_order(ticker, action, price):
                     pt = PaperTrader()
                     trade_action = "BUY" if "BUY" in action else "SELL"
@@ -538,7 +526,7 @@ def render_market_scan_tab(
                         ticker, trade_action, trading_unit, price, reason=f"Best Pick: {best_pick['Strategy']}"
                     ):
                         st.balloons()
-                        st.success(f"{best_pick['Name']} を {trading_unit}株 {trade_action} しました！")
+                        st.success(f"{best_pick['Name']} 繧・{trading_unit}譬ｪ {trade_action} を注文しました。")
                     else:
                         display_error_message(
                             "permission",
@@ -546,7 +534,7 @@ def render_market_scan_tab(
                             f"Ticker: {ticker}, Action: {trade_action}, Unit: {trading_unit}",
                         )
 
-                # 改善版コンポーネントで表示
+                # 謾ｹ蝟・沿繧ｳ繝ｳ繝昴・繝阪Φ繝医〒陦ｨ遉ｺ
                 display_best_pick_card(
                     ticker=best_pick["Ticker"],
                     name=best_pick["Name"],
@@ -563,14 +551,14 @@ def render_market_scan_tab(
             if "portfolio" in cached_results and cached_results["portfolio"]:
                 st.markdown("---")
                 st.subheader("🤖 AIロボアドバイザー推奨ポートフォリオ")
-                st.info("AIがリスク・リターンを考慮して構築した推奨ポートフォリオです。")
+                st.info("AI縺後Μ繧ｹ繧ｯ繝ｻ繝ｪ繧ｿ繝ｼ繝ｳ繧定・・縺励※讒狗ｯ峨＠縺滓耳螂ｨ繝昴・繝医ヵ繧ｩ繝ｪ繧ｪ縺ｧ縺吶")
 
                 pf_df = pd.DataFrame(cached_results["portfolio"])
                 st.dataframe(pf_df)
 
             # 2. Recommended Signals (Cards)
             st.markdown("---")
-            st.subheader(f"✨ その他の注目銘柄 ({len(actionable_df) - 1}件)")
+            st.subheader(f"笨ｨ 縺昴・莉悶・豕ｨ逶ｮ驫俶氛 ({len(actionable_df) - 1}莉ｶ)")
 
             for idx, row in actionable_df.iloc[1:].iterrows():
                 with st.container():
@@ -591,11 +579,11 @@ def render_market_scan_tab(
                         st.caption(row["Ticker"])
                     with c2:
                         st.markdown(f"**{row['Action']}**")
-                        st.caption(f"¥{row['Last Price']:,.0f}")
+                        st.caption(f"ﾂ･{row['Last Price']:,.0f}")
                     with c3:
-                        st.markdown(f"戦略: {strat_name}")
+                        st.markdown(f"謌ｦ逡･: {strat_name}")
                     with c4:
-                        st.markdown(f"リスク: {r_color} {r_level}")
+                        st.markdown(f"繝ｪ繧ｹ繧ｯ: {r_color} {r_level}")
                         if st.button("注文", key=f"btn_{row['Ticker']}_{row['Strategy']}"):
                             pt = PaperTrader()
                             t_act = "BUY" if row["Action"] == "BUY" else "SELL"
@@ -607,21 +595,21 @@ def render_market_scan_tab(
                     st.divider()
 
             # 3. Advanced Details
-            with st.expander("📊 詳細データ・分析ツール (上級者向け)"):
+            with st.expander("投 隧ｳ邏ｰ繝・・繧ｿ繝ｻ蛻・梵繝・・繝ｫ (荳顔ｴ夊・髄縺"):
                 st.dataframe(actionable_df)
         else:
-            st.info("有効なシグナルは見つかりませんでした。")
+            st.info("譛牙柑縺ｪ繧ｷ繧ｰ繝翫Ν縺ｯ隕九▽縺九ｊ縺ｾ縺帙ｓ縺ｧ縺励◆縲")
 
     elif run_fresh:
         # === Sentiment Analysis Section ===
-        with st.expander("📰 市場センチメント分析", expanded=True):
+        with st.expander("🔍 市場センチメント分析", expanded=True):
 
             # Cache SentimentAnalyzer in session state
             if "sentiment_analyzer" not in st.session_state:
                 st.session_state.sentiment_analyzer = SentimentAnalyzer()
             sa = st.session_state.sentiment_analyzer
 
-            with st.spinner("市場センチメントを分析中..."):
+            with st.spinner("蟶ょｴ繧ｻ繝ｳ繝√Γ繝ｳ繝医ｒ蛻・梵荳ｭ..."):
                 try:
                     sentiment = sa.get_market_sentiment()
                     # Save to database
@@ -636,8 +624,8 @@ def render_market_scan_tab(
             display_sentiment_gauge(sentiment["score"], sentiment.get("news_count", 0))
 
             # Sentiment Timeline
-            st.subheader("📈 センチメント推移")
-            history_days = st.radio("表示期間", [7, 30], horizontal=True, key="sentiment_history_days")
+            st.subheader("嶋 繧ｻ繝ｳ繝√Γ繝ｳ繝域耳遘ｻ")
+            history_days = st.radio("陦ｨ遉ｺ譛滄俣", [7, 30], horizontal=True, key="sentiment_history_days")
             history = sa.get_sentiment_history(days=history_days)
 
             if history:
@@ -670,25 +658,25 @@ def render_market_scan_tab(
                 )
                 st.plotly_chart(fig_timeline, use_container_width=True)
             else:
-                st.info("まだ履歴データがありません。スキャンを繰り返すことで履歴が蓄積されます。")
+                st.info("縺ｾ縺螻･豁ｴ繝・・繧ｿ縺後≠繧翫∪縺帙ｓ縲ゅせ繧ｭ繝｣繝ｳ繧堤ｹｰ繧願ｿ斐☆縺薙→縺ｧ螻･豁ｴ縺瑚塘遨阪＆繧後∪縺吶")
 
             # Top News Headlines
-            st.subheader("📰 最新ニュース見出し")
+            st.subheader("堂 譛譁ｰ繝九Η繝ｼ繧ｹ隕句・縺")
             if sentiment.get("top_news"):
                 for i, news in enumerate(sentiment["top_news"][:5], 1):
                     news_text = f"{news['title']} {news.get('summary', '')}"
                     news_sentiment = sa.analyze_sentiment(news_text)
-                    sentiment_emoji = "🟢" if news_sentiment > 0.1 else "🔴" if news_sentiment < -0.1 else "🟡"
+                    sentiment_emoji = "泙" if news_sentiment > 0.1 else "閥" if news_sentiment < -0.1 else "泯"
                     st.markdown(f"{i}. {sentiment_emoji} [{news['title']}]({news['link']})")
             else:
-                st.info("ニュースが取得できませんでした。")
+                st.info("繝九Η繝ｼ繧ｹ縺悟叙蠕励〒縺阪∪縺帙ｓ縺ｧ縺励◆縲")
 
             # Warning if sentiment is bad
             if sentiment["score"] < -0.2:
-                st.error("⚠️ 市場センチメントが悪化しています。買いシグナルは抑制されます。")
+                st.error("笞・・蟶ょｴ繧ｻ繝ｳ繝√Γ繝ｳ繝医′謔ｪ蛹悶＠縺ｦ縺・∪縺吶りｲｷ縺・す繧ｰ繝翫Ν縺ｯ謚大宛縺輔ｌ縺ｾ縺吶")
 
         # === Macro Indicators ===
-        with st.expander("🌍 マクロ経済指標", expanded=True):
+        with st.expander("訣 繝槭け繝ｭ邨梧ｸ域欠讓・, expanded=True"):
             try:
                 from src.data_loader import fetch_external_data
 
@@ -711,31 +699,30 @@ def render_market_scan_tab(
                                     delta_color="inverse" if name == "VIX" else "normal",
                                 )
                 else:
-                    st.info("マクロデータが取得できませんでした。")
+                    st.info("繝槭け繝ｭ繝・・繧ｿ縺悟叙蠕励〒縺阪∪縺帙ｓ縺ｧ縺励◆縲")
             except Exception as e:
-                st.warning(f"マクロデータ表示エラー: {e}")
+                st.warning(f"繝槭け繝ｭ繝・・繧ｿ陦ｨ遉ｺ繧ｨ繝ｩ繝ｼ: {e}")
 
-        with st.spinner("データを取得し、全戦略をバックテスト中..."):
+        with st.spinner("繝・・繧ｿ繧貞叙蠕励＠縲∝・謌ｦ逡･繧偵ヰ繝・け繝・せ繝井ｸｭ..."):
             # 1. Fetch Data with performance measurement
             import time
 
             fetch_start = time.time()
 
-            if ticker_group == "カスタム入力":
+            if ticker_group == "繧ｫ繧ｹ繧ｿ繝蜈･蜉・":
                 tickers = custom_tickers
             else:
                 tickers = MARKETS[selected_market]
 
             if not tickers:
-                display_error_message("data", "銘柄が指定されていません。サイドバーで銘柄を選択してください。", None)
+                display_error_message("data", "驫俶氛縺梧欠螳壹＆繧後※縺・∪縺帙ｓ縲ゅし繧､繝峨ヰ繝ｼ縺ｧ驫俶氛繧帝∈謚槭＠縺ｦ縺上□縺輔＞縲・, None")
                 st.stop()
 
             try:
-                # 非同期ローダーを使用（3銘柄以上の場合）
-                data_map = fetch_stock_data(tickers, period=period, use_async=True)
+                # 髱槫酔譛溘Ο繝ｼ繝繝ｼ繧剃ｽｿ逕ｨ・・驫俶氛莉･荳翫・蝣ｴ蜷茨ｼ・                data_map = fetch_stock_data(tickers, period=period, use_async=True)
                 fetch_time = time.time() - fetch_start
 
-                # パフォーマンスメトリクスを表示
+                # 繝代ヵ繧ｩ繝ｼ繝槭Φ繧ｹ繝｡繝医Μ繧ｯ繧ｹ繧定｡ｨ遉ｺ
                 perf_col1, perf_col2, perf_col3 = st.columns(3)
                 with perf_col1:
                     st.metric("データ取得時間", f"{fetch_time:.2f}秒")
@@ -810,7 +797,7 @@ def render_market_scan_tab(
 
                 # 1. Today's Best Pick
                 st.markdown("---")
-                st.subheader("🏆 今日のイチオシ (Today's Best Pick)")
+                st.subheader("醇 莉頑律縺ｮ繧､繝√が繧ｷ (Today's Best Pick)")
 
                 best_pick = actionable_df.iloc[0]
                 best_ticker = best_pick["Ticker"]
@@ -823,7 +810,7 @@ def render_market_scan_tab(
                 # Get Explanation
                 explanation = best_pick.get("Explanation", "")
 
-                # 注文コールバック
+                # 豕ｨ譁・さ繝ｼ繝ｫ繝舌ャ繧ｯ
                 def handle_best_pick_order_fresh(ticker, action, price):
                     pt = PaperTrader()
                     trade_action = "BUY" if "BUY" in action else "SELL"
@@ -831,7 +818,7 @@ def render_market_scan_tab(
                         ticker, trade_action, trading_unit, price, reason=f"Best Pick: {best_strat_name}"
                     ):
                         st.balloons()
-                        st.success(f"{best_pick['Name']} を {trading_unit}株 {trade_action} しました！")
+                        st.success(f"{best_pick['Name']} 繧・{trading_unit}譬ｪ {trade_action} を注文しました。")
                     else:
                         display_error_message(
                             "permission",
@@ -839,7 +826,7 @@ def render_market_scan_tab(
                             f"Ticker: {ticker}, Action: {trade_action}, Unit: {trading_unit}",
                         )
 
-                # 改善版コンポーネントで表示
+                # 謾ｹ蝟・沿繧ｳ繝ｳ繝昴・繝阪Φ繝医〒陦ｨ遉ｺ
                 display_best_pick_card(
                     ticker=best_pick["Ticker"],
                     name=best_pick["Name"],
@@ -854,7 +841,7 @@ def render_market_scan_tab(
 
                 # 2. Recommended Signals (Cards)
                 st.markdown("---")
-                st.subheader(f"✨ その他の注目銘柄 ({len(actionable_df) - 1}件)")
+                st.subheader(f"笨ｨ 縺昴・莉悶・豕ｨ逶ｮ驫俶氛 ({len(actionable_df) - 1}莉ｶ)")
 
                 for idx, row in actionable_df.iloc[1:].iterrows():
                     with st.container():
@@ -890,8 +877,8 @@ def render_market_scan_tab(
                         st.divider()
 
                 # 3. Advanced Details
-                with st.expander("📊 詳細データ・分析ツール (上級者向け)"):
-                    st.subheader("全シグナル一覧")
+                with st.expander("投 隧ｳ邏ｰ繝・・繧ｿ繝ｻ蛻・梵繝・・繝ｫ (荳顔ｴ夊・髄縺"):
+                    st.subheader("蜈ｨ繧ｷ繧ｰ繝翫Ν荳隕ｧ")
 
                     # Fetch Fundamentals for display
                     # Add columns for fundamentals
@@ -923,16 +910,16 @@ def render_market_scan_tab(
                     ].copy()
                     display_df["Return"] = display_df["Return"].apply(lambda x: f"{x*100:.1f}%")
                     display_df["Max Drawdown"] = display_df["Max Drawdown"].apply(lambda x: f"{x*100:.1f}%")
-                    display_df["Last Price"] = display_df["Last Price"].apply(lambda x: f"¥{x:,.0f}")
+                    display_df["Last Price"] = display_df["Last Price"].apply(lambda x: f"ﾂ･{x:,.0f}")
 
                     st.dataframe(display_df, use_container_width=True)
             else:
-                st.warning("現在、有効なシグナルが出ている銘柄はありませんでした。")
+                st.warning("迴ｾ蝨ｨ縲∵怏蜉ｹ縺ｪ繧ｷ繧ｰ繝翫Ν縺悟・縺ｦ縺・ｋ驫俶氛縺ｯ縺ゅｊ縺ｾ縺帙ｓ縺ｧ縺励◆縲")
 
 
 def render_realtime_monitoring_tab(ticker_group, selected_market, custom_tickers):
     """
-    リアルタイム監視タブのレンダリングロジック
+    繝ｪ繧｢繝ｫ繧ｿ繧､繝逶｣隕悶ち繝悶・繝ｬ繝ｳ繝繝ｪ繝ｳ繧ｰ繝ｭ繧ｸ繝・け
     """
     import time
 
@@ -941,15 +928,14 @@ def render_realtime_monitoring_tab(ticker_group, selected_market, custom_tickers
     from src.constants import MARKETS
     from src.streaming_pipeline import get_streaming_pipeline
 
-    st.header("📡 リアルタイム市場監視")
-    st.write("市場データをリアルタイムで監視し、AIが継続的に予測を行います。")
+    st.header("リアルタイム市場監視")
+    st.write("市場データをリアルタイムで監視し、AIが自動的に推奨を提示します。")
 
     # 監視対象の選択
     if ticker_group == "カスタム入力":
         target_tickers = custom_tickers
     else:
-        target_tickers = MARKETS[selected_market][:10]  # パフォーマンスのため上位10銘柄に制限
-
+        target_tickers = MARKETS[selected_market][:10]
     st.info(f"監視対象: {len(target_tickers)} 銘柄 ({', '.join(target_tickers[:5])}...)")
 
     # コントロール
@@ -959,8 +945,7 @@ def render_realtime_monitoring_tab(ticker_group, selected_market, custom_tickers
     with col2:
         stop_btn = st.button("監視を停止", key="stop_monitoring")
 
-    # 状態管理
-    if "monitoring_active" not in st.session_state:
+    # 迥ｶ諷狗ｮ｡逅・    if "monitoring_active" not in st.session_state:
         st.session_state.monitoring_active = False
 
     if start_btn:
@@ -968,19 +953,15 @@ def render_realtime_monitoring_tab(ticker_group, selected_market, custom_tickers
     if stop_btn:
         st.session_state.monitoring_active = False
 
-    # 監視ループ
-    if st.session_state.monitoring_active:
-        st.success("監視中... (停止するには「監視を停止」を押してください)")
+    # 逶｣隕悶Ν繝ｼ繝・    if st.session_state.monitoring_active:
+        st.success("逶｣隕紋ｸｭ... (蛛懈ｭ｢縺吶ｋ縺ｫ縺ｯ縲檎屮隕悶ｒ蛛懈ｭ｢縲阪ｒ謚ｼ縺励※縺上□縺輔＞)")
 
-        # パイプライン初期化（初回のみ）
-        pipeline = get_streaming_pipeline()
+        # 繝代う繝励Λ繧､繝ｳ蛻晄悄蛹厄ｼ亥・蝗槭・縺ｿ・・        pipeline = get_streaming_pipeline()
         if not pipeline.is_initialized:
-            with st.spinner("AIパイプラインを初期化中..."):
+            with st.spinner("AI繝代う繝励Λ繧､繝ｳ繧貞・譛溷喧荳ｭ..."):
                 pipeline.initialize(target_tickers)
 
-        # データローダー初期化
-        # 注意: Streamlitの再実行モデルとスレッドの相性が悪いため、
-        # ここでは簡易的にループ内でデータ取得を行う
+        # 繝・・繧ｿ繝ｭ繝ｼ繝繝ｼ蛻晄悄蛹・        # 豕ｨ諢・ Streamlit縺ｮ蜀榊ｮ溯｡後Δ繝・Ν縺ｨ繧ｹ繝ｬ繝・ラ縺ｮ逶ｸ諤ｧ縺梧が縺・◆繧√・        # 縺薙％縺ｧ縺ｯ邁｡譏鍋噪縺ｫ繝ｫ繝ｼ繝怜・縺ｧ繝・・繧ｿ蜿門ｾ励ｒ陦後≧
 
         placeholder = st.empty()
         log_placeholder = st.empty()
@@ -988,32 +969,27 @@ def render_realtime_monitoring_tab(ticker_group, selected_market, custom_tickers
         logs = []
 
         try:
-            # 簡易ループ (実際にはバックグラウンドスレッド推奨だが、UI更新のためメインスレッドで実行)
-            # Streamlitのrerunを使うため、whileループは1回で抜ける構造にするか、
-            # あるいはst.empty()を更新し続けるならsleepを使う
+            # 邁｡譏薙Ν繝ｼ繝・(螳滄圀縺ｫ縺ｯ繝舌ャ繧ｯ繧ｰ繝ｩ繧ｦ繝ｳ繝峨せ繝ｬ繝・ラ謗ｨ螂ｨ縺縺後ゞI譖ｴ譁ｰ縺ｮ縺溘ａ繝｡繧､繝ｳ繧ｹ繝ｬ繝・ラ縺ｧ螳溯｡・
+            # Streamlit縺ｮrerun繧剃ｽｿ縺・◆繧√『hile繝ｫ繝ｼ繝励・1蝗槭〒謚懊￠繧区ｧ矩縺ｫ縺吶ｋ縺九・            # 縺ゅｋ縺・・st.empty()繧呈峩譁ｰ縺礼ｶ壹￠繧九↑繧鋭leep繧剃ｽｿ縺・
+            # 縺薙％縺ｧ縺ｯ繧ｷ繝ｳ繝励Ν縺ｫ1蝗槫ｮ溯｡後＠縺ｦsleep縺励※rerun縺吶ｋ繝代ち繝ｼ繝ｳ
 
-            # ここではシンプルに1回実行してsleepしてrerunするパターン
+            # 1. 繝・・繧ｿ蜿門ｾ暦ｼ域闘莨ｼ繝ｪ繧｢繝ｫ繧ｿ繧､繝・・            from src.data_loader import fetch_stock_data
 
-            # 1. データ取得（擬似リアルタイム）
-            from src.data_loader import fetch_stock_data
+            # 譛譁ｰ繝・・繧ｿ蜿門ｾ・            current_data = fetch_stock_data(target_tickers, period="1d", interval="1m")
 
-            # 最新データ取得
-            current_data = fetch_stock_data(target_tickers, period="1d", interval="1m")
-
-            # パイプライン更新
+            # 繝代う繝励Λ繧､繝ｳ譖ｴ譁ｰ
             results = pipeline.process_update(current_data)
 
-            # UI更新
+            # UI譖ｴ譁ｰ
             with placeholder.container():
-                # 予測結果のサマリー表示
-                st.subheader(f"最新状況 ({pd.Timestamp.now().strftime('%H:%M:%S')})")
+                # 莠域ｸｬ邨先棡縺ｮ繧ｵ繝槭Μ繝ｼ陦ｨ遉ｺ
+                st.subheader(f"譛譁ｰ迥ｶ豕・({pd.Timestamp.now().strftime('%H:%M:%S')})")
 
-                # 注目すべきシグナル
+                # 豕ｨ逶ｮ縺吶∋縺阪す繧ｰ繝翫Ν
                 signals = []
                 for ticker, res in results.items():
                     if res["final_signal"] != "HOLD":
-                        # 信頼度取得（安全策）
-                        conf = 0.0
+                        # 菫｡鬆ｼ蠎ｦ蜿門ｾ暦ｼ亥ｮ牙・遲厄ｼ・                        conf = 0.0
                         if "LightGBM" in res["details"]:
                             conf = res["details"]["LightGBM"]["confidence"]
 
@@ -1027,13 +1003,12 @@ def render_realtime_monitoring_tab(ticker_group, selected_market, custom_tickers
                         )
 
                 if signals:
-                    st.warning(f"⚠️ {len(signals)}件のシグナルを検知！")
+                    st.warning(f"笞・・{len(signals)}莉ｶ縺ｮ繧ｷ繧ｰ繝翫Ν繧呈､懃衍・")
                     st.dataframe(pd.DataFrame(signals))
                 else:
-                    st.info("現在、強いシグナルは検出されていません。")
+                    st.info("迴ｾ蝨ｨ縲∝ｼｷ縺・す繧ｰ繝翫Ν縺ｯ讀懷・縺輔ｌ縺ｦ縺・∪縺帙ｓ縲")
 
-                # 全銘柄の状況
-                with st.expander("全銘柄ステータス"):
+                # 蜈ｨ驫俶氛縺ｮ迥ｶ豕・                with st.expander("蜈ｨ驫俶氛繧ｹ繝・・繧ｿ繧ｹ"):
                     status_data = []
                     for ticker, res in results.items():
                         status_data.append(
@@ -1046,41 +1021,36 @@ def render_realtime_monitoring_tab(ticker_group, selected_market, custom_tickers
                         )
                     st.dataframe(pd.DataFrame(status_data))
 
-            # 自動リロード
-            time.sleep(10)  # 10秒待機
-            st.rerun()
+            # 閾ｪ蜍輔Μ繝ｭ繝ｼ繝・            time.sleep(10)  # 10遘貞ｾ・ｩ・            st.experimental_rerun()
 
         except Exception as e:
-            st.error(f"監視中にエラーが発生しました: {e}")
+            st.error(f"逶｣隕紋ｸｭ縺ｫ繧ｨ繝ｩ繝ｼ縺檎匱逕溘＠縺ｾ縺励◆: {e}")
             st.session_state.monitoring_active = False
 
 
 def render_xai_section(model, X_test, ticker_name):
     """
-    XAI（説明可能AI）セクションのレンダリング
+    XAI・郁ｪｬ譏主庄閭ｽAI・峨そ繧ｯ繧ｷ繝ｧ繝ｳ縺ｮ繝ｬ繝ｳ繝繝ｪ繝ｳ繧ｰ
 
     Args:
-        model: 学習済みモデル
-        X_test: テストデータ（特徴量）
-        ticker_name: 銘柄名
-    """
+        model: 蟄ｦ鄙呈ｸ医∩繝｢繝・Ν
+        X_test: 繝・せ繝医ョ繝ｼ繧ｿ・育音蠕ｴ驥擾ｼ・        ticker_name: 驫俶氛蜷・    """
     import streamlit as st
 
     from src.xai import get_xai_manager
 
     st.markdown("---")
-    st.header(f"🔬 AI予測の根拠分析 (XAI) - {ticker_name}")
-    st.write("AIがなぜそのような予測をしたのか、SHAP値を用いて解析します。")
+    st.header(f"溌 AI莠域ｸｬ縺ｮ譬ｹ諡蛻・梵 (XAI) - {ticker_name}")
+    st.write("AI縺後↑縺懊◎縺ｮ繧医≧縺ｪ莠域ｸｬ繧偵＠縺溘・縺九ヾHAP蛟､繧堤畑縺・※隗｣譫舌＠縺ｾ縺吶")
 
     if model is None or X_test is None or X_test.empty:
-        st.warning("モデルまたはデータが不足しているため、分析を実行できません。")
+        st.warning("繝｢繝・Ν縺ｾ縺溘・繝・・繧ｿ縺御ｸ崎ｶｳ縺励※縺・ｋ縺溘ａ縲∝・譫舌ｒ螳溯｡後〒縺阪∪縺帙ｓ縲")
         return
 
     xai = get_xai_manager()
 
-    with st.spinner("AIの思考プロセスを解析中..."):
-        # SHAP値計算
-        # 計算コスト削減のため、直近のデータ（例えば最新100件）のみを使用
+    with st.spinner("AI縺ｮ諤晁・・繝ｭ繧ｻ繧ｹ繧定ｧ｣譫蝉ｸｭ..."):
+        # SHAP蛟､險育ｮ・        # 險育ｮ励さ繧ｹ繝亥炎貂帙・縺溘ａ縲∫峩霑代・繝・・繧ｿ・井ｾ九∴縺ｰ譛譁ｰ100莉ｶ・峨・縺ｿ繧剃ｽｿ逕ｨ
         X_sample = X_test.tail(100)
         shap_values = xai.get_shap_values(model, X_sample)
 
@@ -1088,37 +1058,36 @@ def render_xai_section(model, X_test, ticker_name):
             col1, col2 = st.columns(2)
 
             with col1:
-                # 全体的な特徴量重要度
+                # 蜈ｨ菴鍋噪縺ｪ迚ｹ蠕ｴ驥城㍾隕∝ｺｦ
                 fig_imp = xai.plot_feature_importance(shap_values, X_sample)
                 st.plotly_chart(fig_imp, use_container_width=True)
-                st.caption("モデル全体として、どの指標を重視しているかを示します。")
+                st.caption("繝｢繝・Ν蜈ｨ菴薙→縺励※縲√←縺ｮ謖・ｨ吶ｒ驥崎ｦ悶＠縺ｦ縺・ｋ縺九ｒ遉ｺ縺励∪縺吶")
 
             with col2:
-                # 直近の予測理由
+                # 逶ｴ霑代・莠域ｸｬ逅・罰
                 fig_reason = xai.plot_prediction_reason(shap_values, X_sample, row_index=-1)
                 st.plotly_chart(fig_reason, use_container_width=True)
-                st.caption("最新の予測において、どの指標がプラス/マイナスに働いたかを示します。")
+                st.caption("譛譁ｰ縺ｮ莠域ｸｬ縺ｫ縺翫＞縺ｦ縲√←縺ｮ謖・ｨ吶′繝励Λ繧ｹ/繝槭う繝翫せ縺ｫ蜒阪＞縺溘°繧堤､ｺ縺励∪縺吶")
 
-            # 自然言語による説明
-            explanation = xai.generate_explanation_text(shap_values, X_sample, row_index=-1)
+            # 閾ｪ辟ｶ險隱槭↓繧医ｋ隱ｬ譏・            explanation = xai.generate_explanation_text(shap_values, X_sample, row_index=-1)
             st.info(explanation)
 
         else:
-            st.error("SHAP値の計算に失敗しました。このモデルタイプはサポートされていない可能性があります。")
+            st.error("SHAP蛟､縺ｮ險育ｮ励↓螟ｱ謨励＠縺ｾ縺励◆縲ゅ％縺ｮ繝｢繝・Ν繧ｿ繧､繝励・繧ｵ繝昴・繝医＆繧後※縺・↑縺・庄閭ｽ諤ｧ縺後≠繧翫∪縺吶")
 
 
 def render_integrated_signal(df, ticker, ai_prediction=0.0):
     """
-    統合シグナル分析結果を表示する
+    邨ｱ蜷医す繧ｰ繝翫Ν蛻・梵邨先棡繧定｡ｨ遉ｺ縺吶ｋ
     """
     from src.integrated_signals import get_signal_integrator
 
-    st.subheader("🧩 AI総合判断 (Integrated Signal)")
+    st.subheader("ｧｩ AI邱丞粋蛻､譁ｭ (Integrated Signal)")
 
     integrator = get_signal_integrator()
     result = integrator.analyze(df, ticker, ai_prediction)
 
-    # メインシグナル表示
+    # 繝｡繧､繝ｳ繧ｷ繧ｰ繝翫Ν陦ｨ遉ｺ
     col1, col2 = st.columns([1, 2])
 
     with col1:
@@ -1127,8 +1096,8 @@ def render_integrated_signal(df, ticker, ai_prediction=0.0):
         confidence = result["confidence"]
 
         color = "green" if action == "BUY" else "red" if action == "SELL" else "gray"
-        icon = "🚀" if action == "BUY" else "🔻" if action == "SELL" else "⏸️"
-        action_jp = "買い" if action == "BUY" else "売り" if action == "SELL" else "様子見"
+        icon = "💹" if action == "BUY" else "🔻" if action == "SELL" else "⚖️"
+        action_jp = "買い" if action == "BUY" else "売り" if action == "SELL" else "待機"
 
         st.markdown(
             f"""
@@ -1142,18 +1111,18 @@ def render_integrated_signal(df, ticker, ai_prediction=0.0):
         )
 
     with col2:
-        st.markdown("**🔍 判断理由:**")
+        st.markdown("**剥 蛻､譁ｭ逅・罰:**")
         for reason in result["reasons"]:
             st.markdown(f"- {reason}")
 
         if not result["reasons"]:
-            st.info("特筆すべき判断材料はありません。")
+            st.info("迚ｹ遲・☆縺ｹ縺榊愛譁ｭ譚先侭縺ｯ縺ゅｊ縺ｾ縺帙ｓ縲")
 
-    # 詳細スコア内訳
-    with st.expander("📊 スコア内訳詳細"):
+    # 隧ｳ邏ｰ繧ｹ繧ｳ繧｢蜀・ｨｳ
+    with st.expander("投 繧ｹ繧ｳ繧｢蜀・ｨｳ隧ｳ邏ｰ"):
         details = result["details"]
 
-        # バーチャートで表示
+        # 繝舌・繝√Ε繝ｼ繝医〒陦ｨ遉ｺ
         fig = go.Figure()
 
         categories = ["テクニカル", "AI予測", "長期トレンド", "ニュース感情"]
@@ -1166,7 +1135,7 @@ def render_integrated_signal(df, ticker, ai_prediction=0.0):
         )
 
         fig.update_layout(
-            title="要素別貢献度 (-1.0 to 1.0)", yaxis_range=[-1.1, 1.1], height=300, margin=dict(l=20, r=20, t=40, b=20)
+            title="隕∫ｴ蛻･雋｢迪ｮ蠎ｦ (-1.0 to 1.0)", yaxis_range=[-1.1, 1.1], height=300, margin=dict(l=20, r=20, t=40, b=20)
         )
 
         st.plotly_chart(fig, use_container_width=True)

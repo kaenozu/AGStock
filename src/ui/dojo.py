@@ -29,11 +29,11 @@ def render():
     #                 if not manager.get_status()["is_running"]:
     #                     if st.button("🔥 Start Training", type="primary"):
     #                         manager.start_training(ticker, episodes)
-    #                         st.rerun()
+    #                         st.experimental_rerun()
     #                 else:
     #                     if st.button("🛑 Stop Training", type="secondary"):
     #                         manager.stop_training()
-    #                         st.rerun()
+    #                         st.experimental_rerun()
     #                     status = manager.get_status()
     #                 st.info(f"Status: {status['status_message']}")
     #                     if status["is_running"]:
@@ -42,7 +42,7 @@ def render():
     #     # Auto-refresh logic
     #     import time
     #                         time.sleep(1)
-    #                     st.rerun()
+    #                     st.experimental_rerun()
     #                 with col2:
     #                     st.subheader("Live Performance")
     #                 metrics = manager.get_status()["metrics"]

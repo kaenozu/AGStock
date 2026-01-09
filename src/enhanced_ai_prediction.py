@@ -4,19 +4,42 @@ Enhanced AI Prediction System with Multiple Models and Ensemble Learning
 複数AIモデルとアンサンブル学習による予測精度改善
 """
 
+from __future__ import annotations
 import numpy as np
 import pandas as pd
 from typing import Dict, List, Any, Optional, Tuple
 import json
 import logging
 from datetime import datetime, timedelta
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.linear_model import LogisticRegression
-import xgboost as xgb
-import lightgbm as lgb
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense, Dropout
+try:
+    from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+    from sklearn.linear_model import LogisticRegression
+except ImportError:
+    RandomForestClassifier = None
+    GradientBoostingClassifier = None
+    LogisticRegression = None
+
+try:
+    import xgboost as xgb
+except ImportError:
+    xgb = None
+
+try:
+    import lightgbm as lgb
+except ImportError:
+    lgb = None
+
+try:
+    import tensorflow as tf
+    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.layers import LSTM, Dense, Dropout
+except ImportError:
+    tf = None
+    Sequential = None
+    LSTM = None
+    Dense = None
+    Dropout = None
+
 import joblib
 import os
 import asyncio
@@ -159,35 +182,41 @@ class AIModelManager:
     def initialize_models(self):
         """モデル初期化"""
         # Random Forest
-        self.models["random_forest"] = RandomForestClassifier(
-            n_estimators=100, max_depth=10, random_state=42, n_jobs=-1
-        )
+        if RandomForestClassifier:
+            self.models["random_forest"] = RandomForestClassifier(
+                n_estimators=100, max_depth=10, random_state=42, n_jobs=-1
+            )
 
         # Gradient Boosting
-        self.models["gradient_boost"] = GradientBoostingClassifier(
-            n_estimators=100, learning_rate=0.1, max_depth=6, random_state=42
-        )
+        if GradientBoostingClassifier:
+            self.models["gradient_boost"] = GradientBoostingClassifier(
+                n_estimators=100, learning_rate=0.1, max_depth=6, random_state=42
+            )
 
         # XGBoost
-        self.models["xgboost"] = xgb.XGBClassifier(
-            n_estimators=100,
-            max_depth=6,
-            learning_rate=0.1,
-            random_state=42,
-            eval_metric="logloss",
-        )
+        if xgb:
+            self.models["xgboost"] = xgb.XGBClassifier(
+                n_estimators=100,
+                max_depth=6,
+                learning_rate=0.1,
+                random_state=42,
+                eval_metric="logloss",
+            )
 
         # LightGBM
-        self.models["lightgbm"] = lgb.LGBMClassifier(n_estimators=100, max_depth=6, learning_rate=0.1, random_state=42)
+        if lgb:
+            self.models["lightgbm"] = lgb.LGBMClassifier(n_estimators=100, max_depth=6, learning_rate=0.1, random_state=42)
 
         # Logistic Regression
-        self.models["logistic"] = LogisticRegression(random_state=42, max_iter=1000)
+        if LogisticRegression:
+            self.models["logistic"] = LogisticRegression(random_state=42, max_iter=1000)
 
         # Neural Network (LSTM)
         self.models["lstm"] = None  # 動的に生成
 
-    def create_lstm_model(self, input_shape: Tuple[int, int]) -> tf.keras.Model:
-        """LSTMモデル生成"""
+    def create_lstm_model(self, input_shape: Tuple[int, int]) -> Any:
+        """LSTMモデルの構築 (型ヒントを Any に変更してエラー回避)"""
+        if tf is None: return None
         model = Sequential(
             [
                 LSTM(64, return_sequences=True, input_shape=input_shape),

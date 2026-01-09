@@ -16,36 +16,59 @@
 - シナリオ分析とストレステスト
 """
 
+from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-import tensorflow as tf
+try:
+    import tensorflow as tf
+except ImportError:
+    tf = None
 
 from src.advanced_ensemble import create_model_diversity_ensemble
 from src.advanced_models import AdvancedModels
 
 # 新しい高度な機能のインポート
-from src.continual_learning import ConceptDriftDetector, ContinualLearningSystem
-from src.data_loader import fetch_external_data
-from src.data_preprocessing import preprocess_for_prediction
-from src.features.enhanced_features import generate_enhanced_features
-from src.fundamental_analyzer import FundamentalAnalyzer
-from src.future_predictor import FuturePredictor
-from src.hyperparameter_optimizer import MultiModelOptimizer
-from src.lgbm_predictor import LGBMPredictor
-from src.mlops_manager import MLopsManager
-from src.multi_asset_analytics import MultiAssetPredictor
-from src.prophet_predictor import ProphetPredictor
-from src.realtime_analytics import RealTimeAnalyticsPipeline
-from src.risk_adjusted_prediction import RiskAdjustedPredictor
-from src.scenario_analyzer import ScenarioBasedPredictor
-from src.sentiment_analytics import SentimentEnhancedPredictor
-
-# 新しい実装のインポート
-from src.transformer_predictor import TransformerPredictor
-from src.xai_explainer import XAIFramework
+try:
+    from src.continual_learning import ConceptDriftDetector, ContinualLearningSystem
+    from src.data_loader import fetch_external_data
+    from src.data_preprocessing import preprocess_for_prediction
+    from src.features.enhanced_features import generate_enhanced_features
+    from src.fundamental_analyzer import FundamentalAnalyzer
+    from src.future_predictor import FuturePredictor
+    from src.hyperparameter_optimizer import MultiModelOptimizer
+    from src.lgbm_predictor import LGBMPredictor
+    from src.mlops_manager import MLopsManager
+    from src.multi_asset_analytics import MultiAssetPredictor
+    from src.prophet_predictor import ProphetPredictor
+    from src.realtime_analytics import RealTimeAnalyticsPipeline
+    from src.risk_adjusted_prediction import RiskAdjustedPredictor
+    from src.scenario_analyzer import ScenarioBasedPredictor
+    from src.sentiment_analytics import SentimentEnhancedPredictor
+    from src.transformer_predictor import TransformerPredictor
+    from src.xai_explainer import XAIFramework
+except ImportError:
+    # Set to None for missing modules
+    ConceptDriftDetector = None
+    ContinualLearningSystem = None
+    fetch_external_data = None
+    preprocess_for_prediction = None
+    generate_enhanced_features = None
+    FundamentalAnalyzer = None
+    FuturePredictor = None
+    MultiModelOptimizer = None
+    LGBMPredictor = None
+    MLopsManager = None
+    MultiAssetPredictor = None
+    ProphetPredictor = None
+    RealTimeAnalyticsPipeline = None
+    RiskAdjustedPredictor = None
+    ScenarioBasedPredictor = None
+    SentimentEnhancedPredictor = None
+    TransformerPredictor = None
+    XAIFramework = None
 
 logger = logging.getLogger(__name__)
 

@@ -7,7 +7,10 @@ Uses Hugging Face Transformers and FinBERT to analyze sentiment of financial new
 import logging
 from typing import Dict
 
-import torch
+try:
+    import torch
+except ImportError:
+    torch = None
 
 logger = logging.getLogger(__name__)
 

@@ -166,12 +166,12 @@ def _render_filing_watcher_ui():
     if st.session_state.filing_watcher_running:
         if st.button("🔴 監視を停止", type="secondary"):
             st.session_state.filing_watcher_running = False
-            st.rerun()
+            st.experimental_rerun()
         st.success("👀 監視実行中... ディレクトリにPDFを入れると自動で分析されます。")
     else:
         if st.button("🟢 監視を開始", type="primary"):
             st.session_state.filing_watcher_running = True
-            st.rerun()
+            st.experimental_rerun()
         st.info(
             "監視を開始すると、バックグラウンドでのチェックが有効になります（現在の実装ではこのタブを表示している間、または明示的なトリガーで実行されます）。"
         )

@@ -55,13 +55,13 @@ def render_alert_list(manager: AlertManager):
             with col2:
                 if st.button("有効/無効", key=f"toggle_{alert.id}"):
                     manager.toggle_alert(alert.id, not alert.enabled)
-                    st.rerun()
+                    st.experimental_rerun()
 
             with col3:
                 if st.button("削除", key=f"delete_{alert.id}", type="secondary"):
                     manager.delete_alert(alert.id)
                     st.success("削除しました")
-                    st.rerun()
+                    st.experimental_rerun()
 
 
 def render_create_alert(manager: AlertManager):
@@ -96,7 +96,7 @@ def render_create_alert(manager: AlertManager):
             )
             alert_id = manager.create_alert(alert)
             st.success(f"アラートを作成しました (ID: {alert_id})")
-            st.rerun()
+            st.experimental_rerun()
 
     elif alert_type == AlertType.PORTFOLIO.value:
         # ポートフォリオアラート
@@ -118,7 +118,7 @@ def render_create_alert(manager: AlertManager):
             )
             alert_id = manager.create_alert(alert)
             st.success(f"アラートを作成しました (ID: {alert_id})")
-            st.rerun()
+            st.experimental_rerun()
 
 
 def render_alert_history(manager: AlertManager):

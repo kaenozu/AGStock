@@ -185,7 +185,7 @@ def render_performance_monitor():
         if st.button("🗑️ キャッシュをクリア", key="clear_cache"):
             optimizer.cache.clear()
             st.success("キャッシュをクリアしました")
-            st.rerun()
+            st.experimental_rerun()
 
 
 def optimized_dataframe_display(

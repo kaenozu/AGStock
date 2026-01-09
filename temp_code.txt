@@ -1,0 +1,78 @@
+        # センチメント分析
+        allow_buy = True
+        sentiment_penalty = 1.0
+        try:
+            sa = SentimentAnalyzer()
+            sentiment = sa.get_market_sentiment()
+            self.log(f"市場センチメント: {sentiment['label']} ({sentiment['score']:.2f})")
+
+            score = float(sentiment.get("score", 0.0))
+            if score < -0.35:
+                sentiment_penalty = 0.5
+            elif score < -0.15:
+                sentiment_penalty = 0.75
+        except Exception as e:
+            self.log(f"センチメント分析エラー: {e}", "WARNING")
+
+        # 対象銘柄（グローバル分散）
+        tickers = self.get_target_tickers()
+        self.log(f"対象銘柄数: {len(tickers)}")
+
+        # データ取得（リトライ付き）
+        data_map = self._fetch_data_with_retry(tickers)
+
+        # 戦略初期化
+        from src.strategies.hybrid import AdaptiveHybridStrategy
+        strategies = [
+            ("LightGBM", LightGBMStrategy(lookback_days=365, threshold=0.005)),
+            ("ML Random Forest", MLStrategy()),
+            ("Adaptive Hybrid", AdaptiveHybridStrategy()),
+            ("Combined", CombinedStrategy()),
+        ]
+
+        # Phase 124: Neural Link Override
+        try:
+            if os.path.exists("models/config/evolved_strategy_params.json"):
+                with open("models/config/evolved_strategy_params.json", "r") as f:
+                    evo = json.load(f)
+                self.log(f"🧬 Neural Link: Overriding with '{evo.get('name')}'")
+
+                # Evolved Strategy Instance
+                new_combined = CombinedStrategy(
+                    rsi_period=evo.get("rsi_period", 14),
+                    bb_length=evo.get("bb_window", 20),
+                    bb_std=evo.get("bb_dev", 2.0),
+                )
+                # Replace Combined strategy
+                strategies = [s for s in strategies if s[0] != "Combined"]
+                strategies.append(("Combined (Evolved)", new_combined))
+
+                # Risk Manager Update
+                if self.risk_manager and hasattr(self.risk_manager, "current_params"):
+                    self.risk_manager.current_params["take_profit"] = evo.get("take_profit_pct", 0.10)
+                    self.risk_manager.current_params["stop_loss"] = evo.get("stop_loss_pct", 0.05)
+        except Exception as e:
+            self.log(f"Neural Link Error: {e}", "WARNING")
+
+        signals: List[Dict[str, Any]] = []
+
+        for ticker in tickers:
+            df = data_map.get(ticker)
+            if df is None or df.empty:
+                continue
+
+            # 既にポジションを持っているかチェック (PaperTraderの実装に合わせて安全に)
+            is_held = False
+            try:
+                if hasattr(self.pt, "get_positions"):
+                    positions = self.pt.get_positions()
+                    if not positions.empty:
+                        if "ticker" in positions.columns:
+                            is_held = ticker in positions["ticker"].values
+                        else:
+                            is_held = ticker in positions.index
+                elif hasattr(self.pt, "get_position"):
+                    pos = self.pt.get_position(ticker)
+                    is_held = pos and float(pos.get("quantity", 0)) > 0
+            except Exception:
+                is_held = False

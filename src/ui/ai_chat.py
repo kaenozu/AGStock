@@ -45,7 +45,7 @@ def render_ai_chat():
         async def handle_market_data(data):
             st.session_state.realtime_data = data
             # Force Streamlit to rerun to update UI
-            st.rerun()
+            st.experimental_rerun()
 
         st.session_state.realtime_client.register_data_handler("market_data", handle_market_data)
 
@@ -195,12 +195,12 @@ def render_ai_chat():
                     message_placeholder.error(error_msg)
                     st.session_state.messages.append({"role": "assistant", "content": error_msg})
 
-        st.rerun()
+        st.experimental_rerun()
 
     # 4. Add Realtime Data Display
     with st.sidebar:
         st.divider()
-        st.session_state["enable_divine_voice"] = st.toggle("🔊 Divine Voice (音声読み上げ)", value=False)
+        st.session_state["enable_divine_voice"] = st.checkbox("🔊 Divine Voice (音声読み上げ)", value=False)
         
     if st.session_state.realtime_data:
         st.sidebar.subheader("📡 リアルタイム市場データ")

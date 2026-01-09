@@ -7,10 +7,12 @@ SQLiteデータベースを使用してポジション、残高、および注�
 import json
 import logging
 import sqlite3
+from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, Union, Any, Optional
+from typing import Dict, Union, Any, List, Tuple, Optional
+
 import pandas as pd
-from datetime import datetime
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +20,12 @@ logger = logging.getLogger(__name__)
 class PaperTrader:
     """ペーパートレード機能を提供するクラス。"""
 
-    def __init__(self, db_path: str = "paper_trading.db", initial_capital: float = None):
+    def __init__(self, db_path: str = None, initial_capital: float = None, account_id: str = None):
+        if db_path is None:
+            if account_id:
+                db_path = f"paper_trading_{account_id}.db"
+            else:
+                db_path = "paper_trading.db"
         self.db_path = db_path
 
         # Load initial capital from config.json if not specified
@@ -66,9 +73,9 @@ class PaperTrader:
                 ticker TEXT UNIQUE,
                 quantity INTEGER,
                 avg_price REAL,
-                current_price REAL DEFAULT 0.0,
                 entry_price REAL DEFAULT 0.0,
                 entry_date TEXT,
+                current_price REAL DEFAULT 0.0,
                 stop_price REAL DEFAULT 0.0,
                 highest_price REAL DEFAULT 0.0
             )
@@ -118,6 +125,47 @@ class PaperTrader:
             )
 
         self.conn.commit()
+        
+        # Ensure data consistency on startup
+        self.recalculate_balance()
+
+    def recalculate_balance(self):
+        """
+        Recalculates the current cash balance based on initial capital and order history.
+        This fixes potential data corruption where orders exist but balance wasn't updated.
+        """
+        try:
+            cursor = self.conn.cursor()
+            
+            # Since we don't have a deposits table, we'll assume the 'initial_capital' 
+            # in the accounts table is the starting point.
+            
+            cursor.execute("SELECT initial_capital FROM accounts WHERE id=1")
+            res = cursor.fetchone()
+            if not res: return
+            start_cap = res[0]
+            
+            # Sum up all BUYs and SELLs
+            cursor.execute("SELECT action, quantity, price FROM orders")
+            orders = cursor.fetchall()
+            
+            calculated_balance = start_cap
+            
+            for action, qty, price in orders:
+                if price is None: continue
+                amount = qty * price
+                if action == "BUY":
+                    calculated_balance -= amount
+                elif action == "SELL":
+                    calculated_balance += amount
+            
+            # Update the accounts table
+            cursor.execute("UPDATE accounts SET current_balance = ? WHERE id = 1", (calculated_balance,))
+            self.conn.commit()
+            logger.info(f"Balance recalculated from history: {calculated_balance:,.0f} JPY")
+            
+        except Exception as e:
+            logger.error(f"Failed to recalculate balance: {e}")
 
     def optimize_database(self):
         """データベースの最適化を実行"""
@@ -145,19 +193,84 @@ class PaperTrader:
         return {"quantity": 0, "avg_price": 0.0}
 
     def get_positions(self) -> pd.DataFrame:
-        """Get all open positions as a DataFrame."""
-        cursor = self.conn.cursor()
-        cursor.execute("SELECT ticker, quantity, avg_price, stop_price, highest_price FROM positions WHERE quantity > 0")
-        data = cursor.fetchall()
-        
-        if not data:
-            return pd.DataFrame(columns=["ticker", "quantity", "avg_price", "stop_price", "highest_price", "entry_price", "unrealized_pnl"])
+        """Get all current positions as a DataFrame with market data.
+
+        Returns:
+            pd.DataFrame: DataFrame with columns [ticker, quantity, avg_price, current_price,
+                                                market_value, unrealized_pnl, unrealized_pnl_pct, sector]
+        """
+        try:
+            cursor = self.conn.cursor()
+            # Select all columns
+            cursor.execute("SELECT * FROM positions WHERE quantity > 0")
+            columns = [description[0] for description in cursor.description]
+            rows = cursor.fetchall()
+
+            if not rows:
+                return pd.DataFrame()
+
+            positions = []
+            tickers = [r[columns.index("ticker")] for r in rows]
             
-        df = pd.DataFrame(data, columns=["ticker", "quantity", "avg_price", "stop_price", "highest_price"])
-        df["entry_price"] = df["avg_price"]
-        df["unrealized_pnl"] = 0.0
-        df["highest_price"] = df.apply(lambda row: row["highest_price"] if row["highest_price"] > 0 else row["avg_price"], axis=1)
-        return df
+            # Fetch current prices (using external data loader)
+            try:
+                from src.data_loader import fetch_stock_data
+                # Batch fetch prices for better performance
+                data_map = fetch_stock_data(tickers, period="1mo")
+                prices = {}
+                volatilities = {}
+                for ticker in tickers:
+                    df = data_map.get(ticker)
+                    if df is not None and not df.empty:
+                        prices[ticker] = float(df["Close"].iloc[-1])
+                        rets = df["Close"].pct_change().dropna()
+                        vol = rets.std() * df["Close"].iloc[-1]
+                        volatilities[ticker] = float(vol) if not pd.isna(vol) else 0.0
+                    else:
+                        prices[ticker] = 0.0
+                        volatilities[ticker] = 0.0
+            except Exception as e:
+                logger.warning(f"Batch fetch failed: {e}")
+                prices = {t: 0.0 for t in tickers}
+                volatilities = {t: 0.0 for t in tickers}
+
+            for row in rows:
+                pos = dict(zip(columns, row))
+                ticker = pos.get("ticker")
+                qty = pos.get("quantity")
+                avg_p = pos.get("avg_price", 0.0)
+                
+                curr_p = prices.get(ticker, pos.get("current_price", avg_p))
+                m_val = qty * curr_p
+                
+                if avg_p > 0:
+                    u_pnl = m_val - (qty * avg_p)
+                    u_pnl_pct = u_pnl / (qty * avg_p)
+                else:
+                    u_pnl = 0.0
+                    u_pnl_pct = 0.0
+                
+                positions.append({
+                    "ticker": ticker,
+                    "quantity": qty,
+                    "avg_price": avg_p,
+                    "entry_price": pos.get("entry_price", avg_p),
+                    "entry_date": pos.get("entry_date"),
+                    "volatility": volatilities.get(ticker, 0.0),
+                    "current_price": curr_p,
+                    "market_value": m_val,
+                    "unrealized_pnl": u_pnl,
+                    "unrealized_pnl_pct": u_pnl_pct,
+                    "sector": "Market",
+                    "stop_price": pos.get("stop_price", 0.0),
+                    "highest_price": pos.get("highest_price", 0.0)
+                })
+            
+            return pd.DataFrame(positions)
+
+        except Exception as e:
+            logger.error(f"Error getting positions: {e}")
+            return pd.DataFrame()
 
     def update_position_stop(self, ticker: str, stop_price: float, highest_price: float) -> bool:
         """Update stop price and highest price for a position."""
@@ -175,22 +288,19 @@ class PaperTrader:
 
     def get_trade_history(self, limit: int = 1000, start_date: Optional[datetime] = None) -> pd.DataFrame:
         """Get trade history as DataFrame."""
-        cursor = self.conn.cursor()
-        if start_date:
-            query = "SELECT timestamp, ticker, action, quantity, price, strategy_name FROM orders WHERE timestamp >= ? ORDER BY timestamp DESC LIMIT ?"
-            cursor.execute(query, (start_date.isoformat(), limit))
-        else:
-            query = "SELECT timestamp, ticker, action, quantity, price, strategy_name FROM orders ORDER BY timestamp DESC LIMIT ?"
-            cursor.execute(query, (limit,))
+        try:
+            query = "SELECT * FROM orders"
+            params = []
+            if start_date:
+                query += " WHERE timestamp >= ?"
+                params.append(start_date.isoformat())
+            query += " ORDER BY timestamp DESC LIMIT ?"
+            params.append(limit)
             
-        data = cursor.fetchall()
-        
-        if not data:
-            return pd.DataFrame(columns=["timestamp", "ticker", "action", "quantity", "price", "strategy_name", "realized_pnl"])
-            
-        df = pd.DataFrame(data, columns=["timestamp", "ticker", "action", "quantity", "price", "strategy_name"])
-        df["realized_pnl"] = 0.0 # Simplified
-        return df
+            return pd.read_sql_query(query, self.conn, params=params)
+        except Exception as e:
+            logger.error(f"Error fetching trade history: {e}")
+            return pd.DataFrame()
 
     def get_current_balance(self) -> Dict[str, float]:
         """Get balance summary including estimated total equity."""
@@ -198,15 +308,27 @@ class PaperTrader:
         positions = self.get_positions()
         
         invested = 0.0
-        # In a real scenario, we'd fetch latest prices. For summary, use avg_price as fallback.
+        unrealized_pnl = 0.0
         if not positions.empty:
             invested = (positions["quantity"] * positions["avg_price"]).sum()
+            if "unrealized_pnl" in positions.columns:
+                unrealized_pnl = positions["unrealized_pnl"].sum()
+        
+        total_equity = cash + invested + unrealized_pnl
+        
+        # Calculate daily pnl
+        try:
+            from src.pnl_utils import calculate_daily_pnl_standalone
+            daily_pnl, _ = calculate_daily_pnl_standalone(self.db_path, total_equity)
+        except Exception:
+            daily_pnl = 0.0
             
         return {
             "cash": cash,
-            "total_equity": cash + invested,
+            "total_equity": total_equity,
             "invested_amount": invested,
-            "unrealized_pnl": 0.0
+            "unrealized_pnl": unrealized_pnl,
+            "daily_pnl": daily_pnl
         }
 
     def execute_order(self, order: Any) -> bool:
@@ -235,10 +357,18 @@ class PaperTrader:
 
                 cursor.execute(
                     """
-                    INSERT OR REPLACE INTO positions (ticker, quantity, avg_price, highest_price)
-                    VALUES (?, ?, ?, ?)
+                    INSERT OR REPLACE INTO positions (ticker, quantity, avg_price, entry_price, entry_date, current_price, highest_price)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
-                    (order.ticker, new_quantity, new_avg_price, max(new_avg_price, order.price)),
+                    (
+                        order.ticker, 
+                        new_quantity, 
+                        new_avg_price, 
+                        new_avg_price if position["quantity"] == 0 else position.get("entry_price", new_avg_price),
+                        datetime.now().strftime("%Y-%m-%d %H:%M:%S") if position["quantity"] == 0 else position.get("entry_date"),
+                        order.price,
+                        max(new_avg_price, order.price)
+                    ),
                 )
 
             elif order.action == "SELL":
@@ -308,34 +438,28 @@ class PaperTrader:
         except Exception as e:
             logger.error(f"Error updating daily equity: {e}")
 
-    def get_equity_history(self) -> pd.DataFrame:
-        """Get historical equity data."""
+    def get_equity_history(self, days: int = None) -> pd.DataFrame:
+        """Get historical equity balance as a DataFrame. Optional days limit."""
         try:
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='balance'")
+            if not cursor.fetchone():
+                return pd.DataFrame(columns=["date", "total_equity", "cash", "invested"])
+
             query = "SELECT date, total_equity, cash, invested FROM balance ORDER BY date ASC"
             df = pd.read_sql_query(query, self.conn)
+
             if not df.empty:
                 df["date"] = pd.to_datetime(df["date"])
-                df.set_index("date", inplace=True)
+                if days:
+                    df = df.tail(days)
+
             return df
         except Exception as e:
             logger.error(f"Error fetching equity history: {e}")
-            return pd.DataFrame()
-
-    def get_portfolio_value(self, prices: Dict[str, float]) -> float:
-        """Calculate total portfolio value based on current prices."""
-        total_value = self.get_balance()
-        positions = self.get_positions()
-
-        for _, row in positions.iterrows():
-            ticker = row["ticker"]
-            if ticker in prices:
-                total_value += row["quantity"] * prices[ticker]
-            else:
-                total_value += row["quantity"] * row["avg_price"]
-
-        return total_value
+            return pd.DataFrame(columns=["date", "total_equity", "cash", "invested"])
 
     def close(self):
         """Close database connection."""
-        if self.conn:
+        if hasattr(self, 'conn') and self.conn:
             self.conn.close()

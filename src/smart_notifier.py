@@ -1,3 +1,4 @@
+import logging
 """
 スマート通知システム - 個人投資家向け
 
@@ -70,8 +71,8 @@ class SmartNotifier(Notifier):
             if image_path:
                 try:
                     files = {"imageFile": open(image_path, "rb")}
-                except Exception:
-                    pass
+                except Exception as e:
+                    logging.getLogger(__name__).debug(f"Non-critical exception: {e}")
             resp = requests.post("https://notify-api.line.me/api/notify", headers=headers, data=data, files=files)
             return resp.status_code == 200
         except Exception:
@@ -80,8 +81,8 @@ class SmartNotifier(Notifier):
             if "files" in locals() and files:
                 try:
                     files["imageFile"].close()
-                except Exception:
-                    pass
+                except Exception as e:
+                    logging.getLogger(__name__).debug(f"Non-critical exception: {e}")
 
     def _send_discord_webhook_impl(
         self, message: str, webhook_url: Optional[str] = None, image_path: Optional[str] = None
@@ -106,8 +107,8 @@ class SmartNotifier(Notifier):
             if files:
                 try:
                     files["file"].close()
-                except Exception:
-                    pass
+                except Exception as e:
+                    logging.getLogger(__name__).debug(f"Non-critical exception: {e}")
 
     def send_text(self, message: str, title: str = "AGStock Alert") -> bool:
         """
@@ -352,8 +353,8 @@ class SmartNotifier(Notifier):
         if chart_path and os.path.exists(chart_path):
             try:
                 os.unlink(chart_path)
-            except:
-                pass
+            except Exception as e:
+                logging.getLogger(__name__).debug(f"Failed to delete chart file: {e}")
 
     def send_line_notify(self, message: str, image_path: Optional[str] = None, token: Optional[str] = None) -> bool:
         """LINE Notifyで通知を送信（boolを返すラッパー）"""

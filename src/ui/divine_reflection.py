@@ -153,13 +153,13 @@ def render_divine_reflection():
                 if st.button("🔄 Refresh Guidance"):
                     new_guidance = oracle.get_risk_guidance()
                     rm.apply_oracle_guidance(new_guidance)
-                    st.rerun()
+                    st.experimental_rerun()
         else:
             st.warning("Divine Shield is currently on standby. No guidance applied yet.")
             if st.button("⚡ Initialize Divine Shield"):
                 new_guidance = oracle.get_risk_guidance()
                 rm.apply_oracle_guidance(new_guidance)
-                st.rerun()
+                st.experimental_rerun()
     else:
         st.error("Risk Manager not initialized. Cannot deploy Divine Shield.")
 

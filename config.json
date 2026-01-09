@@ -1,5 +1,4 @@
 {
-    "gemini_api_key": "AIzaSyAJyfsdI1jNFMJQR68U1W2tOFVlIEW0J_g",
     "user_profile": {
         "experience": "beginner",
         "risk_tolerance": "low",
@@ -75,7 +74,6 @@
     "ai_committee": {
         "enabled": true,
         "strict_mode": false,
-        "api_key": "AIzaSyAJyfsdI1jNFMJQR68U1W2tOFVlIEW0J_g",
         "model": "gemini-1.5-pro",
         "agents": [
             "Conservative",
@@ -102,10 +100,6 @@
         "persist_directory": "./data/chroma_experiences",
         "n_results": 3
     },
-    "gemini": {
-        "api_key": "AIzaSyAJyfsdI1jNFMJQR68U1W2tOFVlIEW0J_g",
-        "enabled": true
-    },
     "paper_trading": {
         "initial_capital": 500000,
         "enabled": true
@@ -117,6 +111,5 @@
         "min_order_amount": 500,
         "broker": "rakuten_kabumini",
         "description": "楽天かぶミニ - 1株から取引可能 (寄付:無料 / リアルタイム:0.22%)"
-    },
-    "openai_api_key": ""
+    }
 }

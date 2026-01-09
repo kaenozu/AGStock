@@ -1,0 +1,31 @@
+{
+  "timestamp": "2026-01-06 14:40:56",
+  "checks": [
+    {
+      "name": "Storage Integrity",
+      "status": "OK",
+      "message": "Synced. Removed 0 orphaned entries."
+    },
+    {
+      "name": "Oracle Guidance",
+      "status": "OK",
+      "message": "✅ STABLE: Macro indicators normal (VIX=14.9). Maintain standard protocol."
+    },
+    {
+      "name": "LLM Provider",
+      "status": "WARN",
+      "message": "Using mock provider."
+    },
+    {
+      "name": "Account Balance",
+      "status": "OK",
+      "message": "Cash: 500,000"
+    },
+    {
+      "name": "Timezone Patch",
+      "status": "OK",
+      "message": "Applied. US stocks filtering fix verified."
+    }
+  ],
+  "morning_briefing": "Error: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/generate (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x0000021AD2816540>: Failed to establish a new connection: [WinError 10061] 対象のコンピューターによって拒否されたため、接続できませんでした。'))"
+}

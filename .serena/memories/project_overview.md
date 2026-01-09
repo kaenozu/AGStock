@@ -1,3 +1,21 @@
-- AGStock is a Streamlit web app that analyzes Nikkei 225 stocks and surfaces statistically favorable buy/sell signals. It aggregates multiple technical analysis strategies (SMA crossover, RSI reversal, Bollinger Bands) and can backtest them as well as show current recommendations.
-- Core code lives in `src/`: `strategies.py` defines the indicator-based strategies, `backtester.py` runs strategies across historical data, `data_loader.py` fetches and caches OHLCV data (yfinance), and `constants.py` stores ticker lists. `app.py` wires these pieces into the Streamlit UI. Tests live under `tests/` mirroring the modules.
-- Requirements are pure-Python libraries (Streamlit, yfinance, pandas, numpy, ta, plotly, requests-cache). Dev dependencies add pytest + coverage plugins.
+# AGStock Project Overview
+
+## Purpose
+AGStock is an AI-powered stock trading system designed for personal use. It focuses on individual investor needs, simplicity, high performance, and ease of use. It supports Japanese stocks, crypto, FX, and futures.
+
+## Tech Stack
+- **Language**: Python 3.12
+- **UI**: Streamlit
+- **Database**: SQLite
+- **AI/ML**: TensorFlow, scikit-learn, Optuna, LightGBM
+- **Data**: yfinance, pandas, numpy, TA-Lib
+- **Async**: asyncio, aiohttp
+- **Optimization**: Numba (for performance)
+
+## Core Components
+- **Unified Dashboard**: Single interface for all functions.
+- **AI Prediction Engine**: LSTM, Transformer, Stacking Ensemble.
+- **Risk Management**: Dynamic stop-loss, position sizing.
+- **Backtesting**: Parallel processing engine.
+- **Regime Detection**: Adapting to market changes.
+- **Oracle 2026**: Risk engine based on VIX and Yield.

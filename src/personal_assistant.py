@@ -1,3 +1,4 @@
+import logging
 """
 AGStock Personal Edition - Personal Assistant
 個人投資家向けAIアシスタント
@@ -71,8 +72,8 @@ class PersonalAssistant:
             saved = db_manager.get_config("personal_risk_profile")
             if saved:
                 return RiskProfile(**saved)
-        except:
-            pass
+        except Exception as e:
+            logging.getLogger(__name__).debug(f"Non-critical exception: {e}")
 
         return RiskProfile()
 
@@ -373,8 +374,8 @@ class PersonalAssistant:
             saved = db_manager.get_config("investment_goals")
             if saved:
                 return [InvestmentGoal(**g) for g in saved]
-        except:
-            pass
+        except Exception as e:
+            logging.getLogger(__name__).debug(f"Non-critical exception: {e}")
 
         return []
 

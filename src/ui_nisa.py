@@ -101,7 +101,7 @@ def render_nisa_manager():
             )
             if success:
                 st.success("購入を記録しました！")
-                st.rerun()
+                st.experimental_rerun()
             else:
                 st.error("購入記録に失敗しました")
     else:

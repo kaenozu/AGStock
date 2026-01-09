@@ -8,7 +8,10 @@ import logging
 
 import numpy as np
 import pandas as pd
-from prophet import Prophet
+try:
+    from prophet import Prophet
+except ImportError:
+    Prophet = None
 
 from .base_predictor import BasePredictor
 

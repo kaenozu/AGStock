@@ -118,29 +118,6 @@ class ErrorRecovery:
     """Utility for automatic error recovery strategies."""
 
     @staticmethod
-    def retry_with_backoff(func: Callable, max_retries: int = 3, initial_delay: float = 1.0) -> Any:
-        """Retries a function call with exponential backoff on failure."""
-        import time
-
-        delay = initial_delay
-        last_exception = None
-
-        for i in range(max_retries):
-            try:
-                return func()
-            except Exception as e:
-                last_exception = e
-                logger.warning(f"Retry {i + 1}/{max_retries} failed: {e}. Retrying in {delay}s...")
-                time.sleep(delay)
-                delay *= 2
-
-        raise last_exception
-
-
-class ErrorRecovery:
-    """Utility for automatic error recovery strategies."""
-
-    @staticmethod
     def retry_with_backoff(
         func: Callable,
         max_retries: int = 3,
@@ -316,3 +293,27 @@ class SafeExecution:
                 handle_error(exc_val, context=self.context)
             return True  # Suppress the exception
         return False
+
+# Expose retry_with_backoff as top-level function for backward compatibility
+def retry_with_backoff(func=None, retries=3, backoff_in_seconds=1, max_retries=None, initial_delay=None, **kwargs):
+    """
+    Compatibility wrapper for retry_with_backoff to support both decorator (with/without args)
+    and legacy function call patterns.
+    """
+    _max_retries = max_retries if max_retries is not None else retries
+    _initial_delay = initial_delay if initial_delay is not None else backoff_in_seconds
+
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            return ErrorRecovery.retry_with_backoff(
+                lambda: f(*args, **kwargs),
+                max_retries=_max_retries,
+                initial_delay=_initial_delay
+            )
+        return wrapper
+
+    if func and callable(func):
+        return decorator(func)
+    else:
+        return decorator

@@ -5,663 +5,179 @@
 - CNN-LSTMハイブリッド
 - 多段階予測モデル
 - N-BEATSスタイルモデル
+
+遅延読み込み対応版
 """
 
 import logging
 import warnings
-from typing import Tuple
+from typing import Tuple, Optional, Any
 
 import numpy as np
 import pandas as pd
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
 
 warnings.filterwarnings("ignore")
 
 logger = logging.getLogger(__name__)
 
-# Lazy/Safe Import for TensorFlow
-try:
-
-    TF_AVAILABLE = True
-except ImportError:
-    logger.warning("TensorFlow not available. Advanced models will not be usable.")
-    TF_AVAILABLE = False
-
-    # Define mocks to allow class definition without errors
-    class MockKeras:
-        class Model:
-            pass
-
-    keras = MockKeras
-
-    class MockLayers:
-        class Layer:
-            pass
-
-        class LSTM:
-            pass
-
-        class Dense:
-            pass
-
-        class Dropout:
-            pass
-
-        class Conv1D:
-            pass
-
-        class MaxPooling1D:
-            pass
-
-        class GlobalMaxPooling1D:
-            pass
-
-        class GlobalAveragePooling1D:
-            pass
-
-        class BatchNormalization:
-            pass
-
-        def __getattr__(self, name):
-            return object
-
-    layers = MockLayers()
-
-warnings.filterwarnings("ignore")
-
-
-class AttentionLayer(layers.Layer):
-    """Attentionメカニズムを実装するカスタムレイヤー"""
-
-    def __init__(self, **kwargs):
-        super(AttentionLayer, self).__init__(**kwargs)
-
-    def build(self, input_shape):
-        self.W = self.add_weight(
-            name="attention_weight",
-            shape=(input_shape[-1], input_shape[-1]),
-            initializer="random_normal",
-            trainable=True,
-        )
-        self.b = self.add_weight(name="attention_bias", shape=(input_shape[-1],), initializer="zeros", trainable=True)
-        super(AttentionLayer, self).build(input_shape)
-
-    def call(self, x):
-        # Attentionスコアの計算
-        e = tf.nn.tanh(tf.tensordot(x, self.W, axes=1) + self.b)
-        a = tf.nn.softmax(tf.reduce_sum(e, axis=-1, keepdims=True), axis=1)
-        # 元の入力とAttention重みの乗算
-        output = x * a
-        return output
-
-
-class AttentionLSTM(keras.Model):
-    """Attention付きLSTMモデル"""
-
-    def __init__(
-        self, input_dim: int, hidden_dim: int = 50, num_layers: int = 2, dropout: float = 0.2, forecast_horizon: int = 5
-    ):
-        super(AttentionLSTM, self).__init__()
-
-        self.hidden_dim = hidden_dim
-        self.num_layers = num_layers
-        self.forecast_horizon = forecast_horizon
-
-        # LSTMレイヤー
-        self.lstm_layers = []
-        for i in range(num_layers):
-            # AttentionLayerを使用するため、常にシーケンスを返すように修正
-            self.lstm_layers.append(
-                layers.LSTM(hidden_dim, return_sequences=True, dropout=dropout, recurrent_dropout=dropout)
-            )
-
-        # Attentionレイヤー
-        self.attention = AttentionLayer()
-
-        # フォワード部分
-        self.dropout = layers.Dropout(dropout)
-        self.dense1 = layers.Dense(50, activation="relu")
-        self.dense2 = layers.Dense(forecast_horizon)
-
-    def call(self, x, training=None):
-        # LSTM
-        for lstm_layer in self.lstm_layers:
-            x = lstm_layer(x)
-
-        # Attention
-        x = self.attention(x)
-
-        # 平坦化
-        x = layers.GlobalMaxPooling1D()(x)
-
-        # ドロップアウトと全結合
-        x = self.dropout(x, training=training)
-        x = self.dense1(x)
-        x = self.dropout(x, training=training)
-        x = self.dense2(x)
-
-        return x
-
-
-class CNNLSTMHybrid(keras.Model):
-    """CNN-LSTMハイブリッドモデル"""
-
-    def __init__(
-        self,
-        input_dim: int,
-        cnn_filters: int = 64,
-        cnn_kernel_size: int = 3,
-        lstm_units: int = 50,
-        dropout: float = 0.2,
-        forecast_horizon: int = 5,
-    ):
-        super(CNNLSTMHybrid, self).__init__()
-
-        self.forecast_horizon = forecast_horizon
-
-        # CNN部分
-        self.cnn1 = layers.Conv1D(filters=cnn_filters, kernel_size=cnn_kernel_size, activation="relu", padding="same")
-        self.cnn2 = layers.Conv1D(filters=cnn_filters, kernel_size=cnn_kernel_size, activation="relu", padding="same")
-        self.pool = layers.MaxPooling1D(pool_size=2)
-        self.dropout_cnn = layers.Dropout(dropout)
-
-        # LSTM部分
-        self.lstm = layers.LSTM(lstm_units, return_sequences=True, dropout=dropout)
-        self.lstm2 = layers.LSTM(lstm_units, dropout=dropout)
-
-        # 出力部分
-        self.dropout = layers.Dropout(dropout)
-        self.dense1 = layers.Dense(50, activation="relu")
-        self.dense2 = layers.Dense(forecast_horizon)
-
-    def call(self, x, training=None):
-        # CNNで短期パターンを抽出
-        x = self.cnn1(x)
-        x = self.cnn2(x)
-        x = self.pool(x)
-        x = self.dropout_cnn(x, training=training)
-
-        # LSTMで長期依存性を学習
-        x = self.lstm(x)
-        x = self.lstm2(x)
-
-        # 出力層
-        x = self.dropout(x, training=training)
-        x = self.dense1(x)
-        x = self.dropout(x, training=training)
-        x = self.dense2(x)
-
-        return x
-
-
-class MultiStepPredictor(keras.Model):
-    """多段階予測モデル"""
-
-    def __init__(
-        self, input_dim: int, hidden_dim: int = 50, num_layers: int = 2, dropout: float = 0.2, forecast_horizon: int = 5
-    ):
-        super(MultiStepPredictor, self).__init__()
-
-        self.forecast_horizon = forecast_horizon
-        self.hidden_dim = hidden_dim
-
-        # 共通エンコーダー
-        self.lstm_encoder = layers.LSTM(hidden_dim, return_state=True, dropout=dropout)
-
-        # 各ステップのデコーダー
-        self.decoders = []
-        for _ in range(forecast_horizon):
-            decoder_lstm = layers.LSTM(hidden_dim, return_sequences=False, dropout=dropout)
-            decoder_dense = layers.Dense(1)
-            self.decoders.append((decoder_lstm, decoder_dense))
-
-        self.dropout = layers.Dropout(dropout)
-
-    def call(self, x, training=None):
-        # エンコーディング
-        encoder_out, state_h, state_c = self.lstm_encoder(x)
-
-        # 各ステップを順次予測
-        outputs = []
-        current_input = encoder_out  # 最初の入力
-
-        for decoder_lstm, decoder_dense in self.decoders:
-            # LSTMデコーディング
-            decoder_out = decoder_lstm(current_input[:, tf.newaxis, :])
-            # 出力計算
-            output = decoder_dense(decoder_out)
-            outputs.append(output)
-
-            # 次のステップの入力として使用
-            current_input = decoder_out
-
-        # すべてのステップの出力を結合
-        return tf.concat(outputs, axis=1)
-
-
-class NBEATSBlock(layers.Layer):
-    """N-BEATSの基本ブロック"""
-
-    def __init__(self, units: int, thetas_dim: int, num_layers: int, **kwargs):
-        super().__init__(**kwargs)
-        self.units = units
-        self.thetas_dim = thetas_dim
-        self.num_layers = num_layers
-
-        # FC layers
-        self.fc_layers = []
-        for _ in range(num_layers):
-            self.fc_layers.append(layers.Dense(units, activation="relu"))
-
-        # Thetas出力
-        self.theta_fc = layers.Dense(thetas_dim, activation="linear")
-
-        # トレンド/季節性コンポーネント用のベース
-        self.backcast_fc = layers.Dense(units, activation="relu")
-        self.forecast_fc = layers.Dense(units, activation="relu")
-
-    def call(self, x):
-        # Feed forward
-        for fc in self.fc_layers:
-            x = fc(x)
-
-        # Thetasを計算
-        thetas = self.theta_fc(x)
-
-        # BackcastとForecastを計算（簡略化版）
-        backcast = self.backcast_fc(thetas)
-        forecast = self.forecast_fc(thetas)
-
-        return backcast, forecast
-
-
-class NBEATS(keras.Model):
-    """N-BEATS風の時系列予測モデル"""
-
-    def __init__(
-        self,
-        input_size: int,
-        forecast_size: int = 5,
-        stack_types: list = ["trend", "seasonal"],
-        num_blocks: int = 2,
-        num_layers: int = 4,
-        units: int = 32,
-    ):
-        super(NBEATS, self).__init__()
-
-        self.input_size = input_size
-        self.forecast_size = forecast_size
-        self.stack_types = stack_types
-        self.num_blocks = num_blocks
-
-        # 前処理用Dense layer
-        self.preprocess = layers.Dense(units, activation="relu")
-
-        # 各スタック
-        self.blocks = []
-        for stack_type in stack_types:
-            stack_blocks = []
-            for _ in range(num_blocks):
-                thetas_dim = forecast_size if stack_type == "seasonal" else forecast_size
-                block = NBEATSBlock(units=units, thetas_dim=thetas_dim, num_layers=num_layers)
-                stack_blocks.append(block)
-            self.blocks.append(stack_blocks)
-
-        # 最終出力
-        self.output_layer = layers.Dense(forecast_size)
-
-    def call(self, x):
-        # 前処理
-        x = self.preprocess(x)
-
-        # 各スタックを処理
-        forecast = tf.zeros_like(x[:, -self.forecast_size :], dtype=tf.float32)
-
-        for stack_blocks in self.blocks:
-            backcast = x
-            for block in stack_blocks:
-                b, f = block(backcast)
-                backcast = backcast - b
-                forecast = forecast + f
-
-        # 最終出力
-        forecast = self.output_layer(forecast)
-
-        return forecast
-
-
-class EnhancedLSTM(keras.Model):
-    """高度なLSTMアーキテクチャ"""
-
-    def __init__(
-        self, input_dim: int, hidden_dim: int = 64, num_layers: int = 3, dropout: float = 0.2, forecast_horizon: int = 5
-    ):
-        super(EnhancedLSTM, self).__init__()
-
-        self.forecast_horizon = forecast_horizon
-        self.num_layers = num_layers
-
-        # LSTM layers with batch normalization
-        self.lstm_layers = []
-        for i in range(num_layers):
-            return_sequences = True if i < num_layers - 1 else False
-            lstm_layer = layers.LSTM(
-                hidden_dim,
-                return_sequences=return_sequences,
-                dropout=dropout,
-                recurrent_dropout=dropout,
-                recurrent_activation="sigmoid",  # Forget gate
-                implementation=2,  # CuDNN implementation if available
-            )
-            self.lstm_layers.append(lstm_layer)
-
-            # Batch normalization after each LSTM (except the last one)
-            if return_sequences:
-                self.lstm_layers.append(layers.BatchNormalization())
-
-        # Attention layer
-        self.attention = AttentionLayer()
-
-        # Output layers
-        self.global_avg_pool = layers.GlobalAveragePooling1D()
-        self.dropout = layers.Dropout(dropout)
-        self.dense1 = layers.Dense(128, activation="relu")
-        self.batch_norm = layers.BatchNormalization()
-        self.dense2 = layers.Dense(64, activation="relu")
-        self.dropout2 = layers.Dropout(dropout)
-        self.dense3 = layers.Dense(forecast_horizon)
-
-    def call(self, x, training=None):
-        # Pass through LSTM layers
-        for i, layer in enumerate(self.lstm_layers):
-            if isinstance(layer, layers.BatchNormalization):
-                x = layer(x, training=training)
-            else:
-                x = layer(x)
-
-        # Apply attention
-        x = self.attention(x)
-
-        # Global average pooling
-        x = self.global_avg_pool(x)
-
-        # Dense layers with dropout and batch norm
-        x = self.dropout(x, training=training)
-        x = self.dense1(x)
-        x = self.batch_norm(x, training=training)
-        x = self.dense2(x)
-        x = self.dropout2(x, training=training)
-        x = self.dense3(x)
-
-        return x
+# TensorFlowの遅延読み込み
+_tf = None
+_keras = None
+_layers = None
+TF_AVAILABLE = None
+
+
+def _ensure_tf():
+    """TensorFlowを必要な時に読み込む"""
+    global _tf, _keras, _layers, TF_AVAILABLE
+    if TF_AVAILABLE is None:
+        try:
+            from src.utils.lazy_imports import get_tensorflow, get_keras
+            _tf = get_tensorflow()
+            _keras = get_keras()
+            _layers = _keras.layers
+            TF_AVAILABLE = True
+            logger.debug("TensorFlow loaded successfully")
+        except ImportError:
+            logger.warning("TensorFlow not available. Advanced models will not be usable.")
+            TF_AVAILABLE = False
+    return TF_AVAILABLE
+
+
+def get_tf():
+    _ensure_tf()
+    return _tf
+
+
+def get_keras_module():
+    _ensure_tf()
+    return _keras
+
+
+def get_layers():
+    _ensure_tf()
+    return _layers
+
+
+class AttentionLayer:
+    """Attention層（遅延読み込み対応）"""
+    
+    def __new__(cls, *args, **kwargs):
+        if not _ensure_tf():
+            raise ImportError("TensorFlow is required for AttentionLayer")
+        
+        layers = get_layers()
+        
+        class _AttentionLayer(layers.Layer):
+            def __init__(self, units: int, **layer_kwargs):
+                super().__init__(**layer_kwargs)
+                self.units = units
+                self.W = None
+                self.b = None
+                self.u = None
+
+            def build(self, input_shape):
+                tf = get_tf()
+                self.W = self.add_weight(
+                    name="attention_weight",
+                    shape=(input_shape[-1], self.units),
+                    initializer="glorot_uniform",
+                    trainable=True,
+                )
+                self.b = self.add_weight(
+                    name="attention_bias",
+                    shape=(self.units,),
+                    initializer="zeros",
+                    trainable=True,
+                )
+                self.u = self.add_weight(
+                    name="context_vector",
+                    shape=(self.units,),
+                    initializer="glorot_uniform",
+                    trainable=True,
+                )
+                super().build(input_shape)
+
+            def call(self, inputs):
+                tf = get_tf()
+                uit = tf.matmul(inputs, self.W) + self.b
+                uit = tf.nn.tanh(uit)
+                ait = tf.matmul(uit, tf.expand_dims(self.u, axis=-1))
+                ait = tf.squeeze(ait, axis=-1)
+                ait = tf.nn.softmax(ait)
+                ait = tf.expand_dims(ait, axis=-1)
+                weighted_input = inputs * ait
+                return tf.reduce_sum(weighted_input, axis=1)
+
+            def get_config(self):
+                config = super().get_config()
+                config.update({"units": self.units})
+                return config
+        
+        return _AttentionLayer(*args, **kwargs)
 
 
 class AdvancedModels:
-    """高度な予測モデルのクラス"""
+    """高度なAI予測モデルのファクトリ"""
 
-    def __init__(self):
-        self.models = {}
-        self.sequence_length = 60
-        self.is_fitted = False
+    def __init__(self, input_shape: Tuple[int, int] = (10, 5)):
+        self.input_shape = input_shape
 
-    def prepare_models(self, X, y):
-        """モデルの構築"""
-        input_shape = (self.sequence_length, X.shape[1])
-        
-        # モデルの初期化
-        self.models["attention_lstm"] = self.build_attention_lstm((None, *input_shape))
-        self.models["cnn_lstm"] = self.build_cnn_lstm((None, *input_shape))
-        # 他のモデルも必要に応じて追加
-
-    def fit(self, X, y, epochs=5, batch_size=32):
-        """モデルの学習"""
-        if not self.models:
-            self.prepare_models(X, y)
+    def build_attention_lstm(self, units: int = 64) -> Any:
+        """Attention付きLSTMモデル"""
+        if not _ensure_tf():
+            return None
             
-        # データの整形 (sliding window)
-        X_3d, y_3d = self._create_sequences(X, y, self.sequence_length)
+        tf = get_tf()
+        keras = get_keras_module()
+        layers = get_layers()
         
-        if len(X_3d) == 0:
-            logger.warning("Not enough data to train advanced models")
-            return
-
-        for name, model in self.models.items():
-            try:
-                # yの形状を合わせる (各モデルの出力に合わせて調整が必要)
-                # ここでは簡易的に単一ステップ予測と仮定
-                if len(y_3d.shape) == 1:
-                    y_target = y_3d
-                else:
-                    y_target = y_3d # 必要に応じて調整
-
-                # モデルが多出力の場合の対応など
-                # 今回は forecast_horizon=5 で構築されているため、yも合わせる必要がある
-                # yがスカラー(変動率)の場合、モデルの出力次元(5)と合わない
-                # 簡易対応: モデルの出力を1にするか、yを拡張する
-                # ここではfitをtry-exceptで囲み、形状不一致をログ出力
-                
-                # yをターゲットの形状に合わせる
-                if model.output_shape[-1] == 1:
-                     model.fit(X_3d, y_3d, epochs=epochs, batch_size=batch_size, verbose=0)
-                else:
-                     # yを複製して合わせる (仮)
-                     y_expanded = np.repeat(y_3d.reshape(-1, 1), model.output_shape[-1], axis=1)
-                     model.fit(X_3d, y_expanded, epochs=epochs, batch_size=batch_size, verbose=0)
-                     
-            except Exception as e:
-                logger.error(f"Failed to fit {name}: {e}")
-        
-        self.is_fitted = True
-
-    def predict(self, X):
-        """予測 (バッチ)"""
-        if not self.is_fitted:
-            return np.zeros(len(X))
-            
-        # Xは2D DataFrameと想定、しかしLSTMは過去のシーケンスが必要
-        # ここでは学習時と同様にシーケンスを作成して予測し、最後の点の予測を返すか、
-        # あるいは全点の予測を返すか。
-        # アンサンブルで使用するため、Xと同じ長さの予測(1D array)を返すのが望ましいが、
-        # シーケンス長分だけ先頭が欠ける。
-        
-        # 簡易実装: パディングして予測 (または欠損は0埋め)
-        X_3d, _ = self._create_sequences(X, np.zeros(len(X)), self.sequence_length)
-        
-        if len(X_3d) == 0:
-            return np.zeros(len(X))
-            
-        predictions = []
-        for name, model in self.models.items():
-            try:
-                pred = model.predict(X_3d, verbose=0)
-                # 複数ステップ予測の場合は平均または最初のステップを使用
-                if pred.shape[-1] > 1:
-                    pred = pred[:, 0] # 1ステップ先
-                predictions.append(pred.flatten())
-            except Exception as e:
-                logger.error(f"Failed to predict {name}: {e}")
-        
-        if not predictions:
-            return np.zeros(len(X))
-            
-        # モデル平均
-        avg_pred = np.mean(predictions, axis=0)
-        
-        # 元の長さに合わせる (先頭を0埋め)
-        pad_width = len(X) - len(avg_pred)
-        if pad_width > 0:
-            avg_pred = np.pad(avg_pred, (pad_width, 0), 'constant')
-            
-        return avg_pred
-
-    def predict_point(self, current_features):
-        """一点予測 (最新データから)"""
-        # current_features shape: (1, n_features)
-        # 本来は過去のシーケンスが必要だが、インターフェース上1点しか渡されない場合
-        # 内部で履歴を保持するか、呼び出し元がシーケンスを渡す必要がある。
-        # EnhancedEnsemblePredictorは _prepare_features で全データを処理しているが、
-        # predict_trajectory では current_features = X.iloc[-1:].values となっている。
-        # これではLSTMは動かない。
-        
-        # 暫定処置: 0を返す (履歴データがないため予測不能)
-        # TODO: EnhancedEnsemblePredictorを修正して履歴を渡すようにする
-        return 0.0
-
-    def _create_sequences(self, X, y, time_steps=60):
-        """時系列データを[samples, time_steps, features]に変形"""
-        if isinstance(X, pd.DataFrame):
-            X = X.values
-        if isinstance(y, (pd.Series, pd.DataFrame)):
-            y = y.values
-            
-        Xs, ys = [], []
-        if len(X) <= time_steps:
-            return np.array([]), np.array([])
-            
-        for i in range(len(X) - time_steps):
-            Xs.append(X[i : i + time_steps])
-            ys.append(y[i + time_steps])
-            
-        return np.array(Xs), np.array(ys)
-
-    @staticmethod
-    def build_attention_lstm(input_shape: Tuple[int, int], forecast_horizon: int = 5) -> keras.Model:
-        """Attention付きLSTMモデルを構築"""
-        model = AttentionLSTM(
-            input_dim=input_shape[-1], hidden_dim=64, num_layers=2, dropout=0.2, forecast_horizon=forecast_horizon
-        )
-
-        model.build((None, *input_shape))
-
-        model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001), loss="mse", metrics=["mae"])
-
-        return model
-
-    @staticmethod
-    def build_cnn_lstm(input_shape: Tuple[int, int], forecast_horizon: int = 5) -> keras.Model:
-        """CNN-LSTMハイブリッドモデルを構築"""
-        model = CNNLSTMHybrid(
-            input_dim=input_shape[-1],
-            cnn_filters=64,
-            cnn_kernel_size=3,
-            lstm_units=50,
-            dropout=0.2,
-            forecast_horizon=forecast_horizon,
-        )
-
-        model.build((None, *input_shape))
-
-        model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001), loss="mse", metrics=["mae"])
-
-        return model
-
-    @staticmethod
-    def build_multistep_predictor(input_shape: Tuple[int, int], forecast_horizon: int = 5) -> keras.Model:
-        """多段階予測モデルを構築"""
-        model = MultiStepPredictor(
-            input_dim=input_shape[-1], hidden_dim=64, num_layers=2, dropout=0.2, forecast_horizon=forecast_horizon
-        )
-
-        model.build((None, *input_shape))
-
-        model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001), loss="mse", metrics=["mae"])
-
-        return model
-
-    @staticmethod
-    def build_nbeats(input_shape: Tuple[int, int], forecast_horizon: int = 5) -> keras.Model:
-        """N-BEATS風モデルを構築"""
-        model = NBEATS(
-            input_size=input_shape[-1],
-            forecast_size=forecast_horizon,
-            stack_types=["trend", "seasonal"],
-            num_blocks=2,
-            num_layers=4,
-            units=32,
-        )
-
-        model.build((None, *input_shape))
-
-        model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001), loss="mse", metrics=["mae"])
-
-        return model
-
-    @staticmethod
-    def build_gru_model(input_shape: Tuple[int, int]) -> keras.Model:
-        """シンプルなGRUモデル（テスト用）"""
-        model = keras.Sequential(
-            [
-                layers.Input(shape=input_shape),
-                layers.GRU(64, return_sequences=False),
-                layers.Dense(32, activation="relu"),
-                layers.Dense(1, activation="linear"),
-            ]
-        )
-        model.compile(optimizer="adam", loss="mse")
-        return model
-
-    @staticmethod
-    def build_attention_lstm_model(input_shape: Tuple[int, int]) -> keras.Model:
-        """Attention付きLSTM（単一出力、テスト用）"""
-        inputs = layers.Input(shape=input_shape)
-        x = layers.LSTM(64, return_sequences=True)(inputs)
-        x = AttentionLayer()(x)
-        x = layers.GlobalMaxPooling1D()(x)
+        inputs = layers.Input(shape=self.input_shape)
+        x = layers.LSTM(units, return_sequences=True)(inputs)
+        x = AttentionLayer(units)(x)
+        x = layers.Dropout(0.2)(x)
         x = layers.Dense(32, activation="relu")(x)
         outputs = layers.Dense(1, activation="linear")(x)
-        model = keras.Model(inputs, outputs)
+        
+        model = keras.Model(inputs=inputs, outputs=outputs)
+        model.compile(optimizer="adam", loss="mse", metrics=["mae"])
+        return model
+
+    def build_cnn_lstm(self, filters: int = 32, lstm_units: int = 64) -> Any:
+        """CNN-LSTMハイブリッドモデル"""
+        if not _ensure_tf():
+            return None
+            
+        tf = get_tf()
+        keras = get_keras_module()
+        layers = get_layers()
+        
+        inputs = layers.Input(shape=self.input_shape)
+        x = layers.Conv1D(filters=filters, kernel_size=3, padding="same", activation="relu")(inputs)
+        x = layers.MaxPooling1D(pool_size=2)(x)
+        x = layers.LSTM(lstm_units)(x)
+        x = layers.Dropout(0.2)(x)
+        outputs = layers.Dense(1)(x)
+        
+        model = keras.Model(inputs=inputs, outputs=outputs)
         model.compile(optimizer="adam", loss="mse")
         return model
 
-    @staticmethod
-    def build_enhanced_lstm(input_shape: Tuple[int, int], forecast_horizon: int = 5) -> keras.Model:
-        """高度なLSTMモデルを構築"""
-        model = EnhancedLSTM(
-            input_dim=input_shape[-1], hidden_dim=64, num_layers=3, dropout=0.2, forecast_horizon=forecast_horizon
-        )
-
-        model.build(input_shape)
-
-        model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001), loss="mse", metrics=["mae"])
-
+    def build_multistep_predictor(self, steps: int = 5) -> Any:
+        """多段階予測モデル"""
+        if not _ensure_tf():
+            return None
+            
+        tf = get_tf()
+        keras = get_keras_module()
+        layers = get_layers()
+        
+        inputs = layers.Input(shape=self.input_shape)
+        x = layers.LSTM(128, return_sequences=True)(inputs)
+        x = layers.LSTM(64)(x)
+        x = layers.Dense(64, activation="relu")(x)
+        outputs = layers.Dense(steps)(x)
+        
+        model = keras.Model(inputs=inputs, outputs=outputs)
+        model.compile(optimizer="adam", loss="mse")
         return model
-
-
-if __name__ == "__main__":
-    # テスト用の実装
-    logging.basicConfig(level=logging.INFO)
-
-    # ダミーデータの作成
-    batch_size, sequence_length, features = 32, 60, 10
-    X = np.random.randn(batch_size, sequence_length, features).astype(np.float32)
-    y = np.random.randn(batch_size, 5).astype(np.float32)  # 5ステップ先予測
-
-    # モデルのテスト
-    input_shape = (None, sequence_length, features)
-
-    # Attention LSTM
-    model1 = AdvancedModels.build_attention_lstm(input_shape, forecast_horizon=5)
-    print(f"Attention LSTM params: {model1.count_params():,}")
-
-    # CNN-LSTM
-    model2 = AdvancedModels.build_cnn_lstm(input_shape, forecast_horizon=5)
-    print(f"CNN-LSTM params: {model2.count_params():,}")
-
-    # Multi-step predictor
-    model3 = AdvancedModels.build_multistep_predictor(input_shape, forecast_horizon=5)
-    print(f"Multi-step predictor params: {model3.count_params():,}")
-
-    # N-BEATS
-    model4 = AdvancedModels.build_nbeats(input_shape, forecast_horizon=5)
-    print(f"N-BEATS params: {model4.count_params():,}")
-
-    # Enhanced LSTM
-    model5 = AdvancedModels.build_enhanced_lstm(input_shape, forecast_horizon=5)
-    print(f"Enhanced LSTM params: {model5.count_params():,}")
-
-    # 学習テスト
-    print("Training test...")
-    history = model1.fit(X, y, epochs=1, batch_size=16, verbose=1)
-    print("Training completed successfully!")

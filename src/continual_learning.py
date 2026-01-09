@@ -6,14 +6,22 @@
 - 自己教師あり学習
 """
 
+from __future__ import annotations
 import logging
 import os
 import pickle
 from typing import Any, List, Optional
 
 import numpy as np
-from sklearn.metrics import mean_squared_error
-from tensorflow import keras
+try:
+    from sklearn.metrics import mean_squared_error
+except ImportError:
+    mean_squared_error = None
+
+try:
+    from tensorflow import keras
+except ImportError:
+    keras = None
 
 from .base_predictor import BasePredictor
 

@@ -81,8 +81,8 @@ class WalkForwardBlender:
                 colsample_bytree=0.8,
                 random_state=self.random_state,
             )
-        except Exception:
-            pass
+        except Exception as e:
+            logging.getLogger(__name__).debug(f"Non-critical exception: {e}")
 
         for name, model in models.items():
             model.fit(X, y)

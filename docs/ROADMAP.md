@@ -1,66 +1,114 @@
-# 🗺️ AGStock ロードマップ (v2.0)
+# AGStock ロードマップ
 
-## プロジェクト現況
+## ✅ 実装完了
 
-✅ **Phase 1-64 完了** (2026-01-07)
-- **次世代予測システム**: Stacking Ensemble (+28~47% 精度向上)
-- **自律型運用**: Fully Automated Trader + Dynamic Risk Manager
-- **高度なUI**: Unified Dashboard (Glassmorphism 2.0)
-- **守護システム**: Oracle 2026 + Smart Alerts + Self-Healing
-- **メンテナンス性**: Production Readiness Check v2.0 + Run All v2.0
+### Phase 1: 安定化 ✅
+| 項目 | 状態 | 内容 |
+|------|------|------|
+| 依存関係軽量化 | ✅ | `src/utils/lazy_imports.py` - TensorFlow/PyTorch等の遅延読み込み |
+| コード整理 | ✅ | `src/performance/` - パフォーマンス関連モジュール統合 |
+| 設定統一 | ✅ | `src/core/config.py` - 統一設定管理 |
 
----
+### Phase 2: 機能強化 ✅
+| 項目 | 状態 | 内容 |
+|------|------|------|
+| API化 | ✅ | `src/api/server.py` - FastAPI内部API |
+| ローカルLLM | ✅ | `src/llm/provider.py` - Ollama/Gemini/OpenAI統合 |
 
-## 🚀 今後の展開 (Next Horizons)
+### Phase 3: アーキテクチャ刷新 ✅
+| 項目 | 状態 | 内容 |
+|------|------|------|
+| プラグイン化 | ✅ | `src/plugins/` - 戦略プラグインシステム |
 
-### Phase 65: 量子ハイブリッド最適化（優先度: 中）
-- **目標**: ポートフォリオ配分の最適化に量子アニーリング（擬似）を導入
-- **期待効果**: 多銘柄分散時の計算速度と精度の向上
-
-### Phase 66: マルチモーダル感情分析（優先度: 高）
-- **目標**: ニューステキストに加え、決算説明会の音声や経営者の表情分析（Vision）を統合
-- **期待効果**: 数値化できない「期待感」の定量化
-
-### Phase 67: 分散型自律取引ネットワーク (DAO-Ready)
-- **目標**: 複数のAGStockインスタンス間での集合知（Collective Intelligence）共有
-- **期待効果**: ブラックスワン事象への耐性強化
-
----
-
-## 📅 マイルストーン実績と予定
-
-### Milestone 1: 基礎構築 ✅
-- コアバックテスター、基本戦略、 yfinance統合
-
-### Milestone 2: AI高度化 ✅
-- LightGBM, LSTM, Transformer, Stacking Ensemble
-
-### Milestone 3: 実用化パッケージ (Phase 46-51) ✅
-- 朝活/週末ダッシュボード、設定ウィザード、パフォーマンス最適化
-
-### Milestone 4: 自律知能の覚醒 (Phase 52-63) ✅
-- Mission Control, Oracle 2026, Genetic Lab, Neuromancer
-
-### Milestone 5: 量子・マルチモーダル統合 (2026 Q1-Q2) ⏳
-- Phase 65-67の実装
+### Phase 4: UX向上 ✅
+| 項目 | 状態 | 内容 |
+|------|------|------|
+| PWA対応 | ✅ | `src/ui/pwa.py` - プッシュ通知・テーマ |
+| 税金計算 | ✅ | `src/tax/` - 確定申告用レポート |
 
 ---
 
-## 📊 システム性能目標
+## 📁 新規追加ファイル
 
-| 指標 | 現状 (v2.0) | 目標 |
-|------|------------|------|
-| **Sharpe Ratio** | 2.8 | 3.5+ |
-| **勝率** | 72% | 80%+ |
-| **最大DD** | -8.5% | -5.0%以下 |
-| **年間リターン** | 45% | 60%+ |
+```
+src/
+├── api/
+│   ├── __init__.py
+│   └── server.py          # FastAPI サーバー
+├── core/
+│   ├── config.py          # 統一設定管理
+│   ├── logger.py          # 統一ロギング
+│   └── exceptions.py      # 例外処理
+├── llm/
+│   ├── base.py            # LLM基底クラス
+│   └── provider.py        # Ollama/Gemini/OpenAI統合
+├── performance/
+│   ├── metrics.py         # メトリクス計算
+│   ├── analyzer.py        # パフォーマンス分析
+│   ├── attribution.py     # アトリビューション
+│   └── monitor.py         # 監視・アラート
+├── plugins/
+│   ├── base.py            # プラグイン基底クラス
+│   └── manager.py         # プラグイン管理
+├── tax/
+│   ├── calculator.py      # 税金計算
+│   └── report.py          # レポート生成
+├── ui/
+│   └── pwa.py             # PWAサポート
+└── utils/
+    └── lazy_imports.py    # 遅延インポート
+```
 
 ---
 
-## 💡 研究開発アイデア
-1. **Federated Learning**: ユーザーデータを秘匿したままモデルを共同改善
-2. **LLM Reasoner 2.0**: 取引理由の解説をより専門的、かつ人間味のある対話形式へ
-3. **VR/AR Mission Control**: 仮想空間での市場監視インターフェース
+## 🚀 使い方
+
+### APIサーバー起動
+```bash
+python run_api.py --port 8000
+# API Docs: http://localhost:8000/docs
+```
+
+### ローカルLLM使用（Ollama）
+```bash
+# Ollamaをインストール
+curl -fsSL https://ollama.com/install.sh | sh
+ollama pull llama2
+
+# AGStockで使用
+from src.llm import get_llm
+llm = get_llm("ollama", "llama2")
+response = llm.generate("Analyze this market...")
+```
+
+### カスタム戦略プラグイン
+```bash
+# plugins/ ディレクトリにファイルを配置
+cp plugins/sample_strategy.py plugins/my_strategy.py
+
+# 使用
+from src.plugins import PluginManager
+pm = PluginManager()
+pm.discover_plugins()
+pm.load_plugin("my_strategy")
+```
+
+### 税金レポート生成
+```python
+from src.tax import TaxReportGenerator
+generator = TaxReportGenerator()
+generator.export_excel(trades, filename="tax_2024.xlsx")
+```
 
 ---
-*最終更新: 2026-01-07*
+
+## 🔮 今後の予定
+
+- [ ] WebSocket リアルタイムデータストリーム
+- [ ] モバイルアプリ（React Native）
+- [ ] 証券会社API連携（楽天、SBI）
+- [ ] 自動売買の本番対応
+
+---
+
+*最終更新: 2025-01-08*

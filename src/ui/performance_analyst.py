@@ -4,7 +4,7 @@ from src.analytics import PortfolioAnalytics
 
 
 def render_performance_analyst():
-    st.subheader("\ud83d\udcc8 ポートフォリオ・パフォーマンス分析")
+    st.subheader("\U0001f4c8 ポートフォリオ・パフォーマンス分析")
     st.markdown("資産推移、ドローダウン、およびリターン特性を可視化します。")
 
     analytics = PortfolioAnalytics()
@@ -55,7 +55,7 @@ def render_performance_analyst():
     st.plotly_chart(fig_dd, use_container_width=True)
 
     # 4. Monthly Heatmap
-    st.markdown("### \ud83d\uddd3\ufe0f \u6708\u6b21\u53ce\u76ca\u30d2\u30fc\u30c8\u30de\u30c3\u30d7 (%)")
+    st.markdown("### \U0001f4d3 \u6708\u6b21\u53ce\u76ca\u30d2\u30fc\u30c8\u30de\u30c3\u30d7 (%)")
     monthly_ret = analytics.get_monthly_returns()
     if not monthly_ret.empty:
         fig_heat = px.imshow(

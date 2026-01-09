@@ -156,7 +156,7 @@ class VoiceInterface:
             }
 
             st.session_state.audio_visualization = fig
-            st.rerun()
+            st.experimental_rerun()
 
     def stop_voice_input(self):
         """音声入力を停止"""
@@ -362,7 +362,7 @@ class VoiceControlledUI:
         with col3:
             if st.button("🗑️ クリア", key="clear_voice"):
                 st.session_state.voice_transcript = []
-                st.rerun()
+                st.experimental_rerun()
 
         # 音声入力結果表示
         if "voice_transcript" in st.session_state and st.session_state.voice_transcript:
@@ -459,7 +459,7 @@ class VoiceControlledUI:
             )
 
         # コマンド実行
-        st.rerun()
+        st.experimental_rerun()
 
     def stop_voice_recording(self):
         """音声録音を停止"""
@@ -491,25 +491,25 @@ class VoiceControlledUI:
             st.session_state.quick_trade_action = "buy"
             st.session_state.quick_trade_ticker = "7203"  # デフォルト値
             st.session_state.quick_trade_amount = 100000
-            st.rerun()
+            st.experimental_rerun()
 
         elif command_type == "sell":
             st.session_state.quick_trade_action = "sell"
             st.session_state.quick_trade_ticker = "7203"
             st.session_state.quick_trade_amount = 50
-            st.rerun()
+            st.experimental_rerun()
 
         elif command_type == "portfolio_check":
             st.session_state.show_portfolio = True
-            st.rerun()
+            st.experimental_rerun()
 
         elif command_type == "analysis":
             st.session_state.show_analysis = True
-            st.rerun()
+            st.experimental_rerun()
 
         elif command_type == "assistant":
             st.session_state.show_ai_assistant = True
-            st.rerun()
+            st.experimental_rerun()
 
 
 # グローバルインスタンス

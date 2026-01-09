@@ -4,9 +4,20 @@ import logging
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
-from tensorflow.keras.layers import LSTM, Dense, Dropout
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.optimizers import Adam
+
+try:
+    from tensorflow.keras.layers import LSTM, Dense, Dropout
+    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.optimizers import Adam
+    TENSORFLOW_AVAILABLE = True
+except ImportError:
+    TENSORFLOW_AVAILABLE = False
+    # ダミークラス/関数を定義してエラーを防止
+    class Sequential: pass
+    class LSTM: pass
+    class Dense: pass
+    class Dropout: pass
+    class Adam: pass
 
 from .features import add_technical_indicators
 
@@ -22,12 +33,19 @@ class FuturePredictor:
 
     def prepare_model(self, X, y=None):
         """モデル構造の定義"""
+        if not TENSORFLOW_AVAILABLE:
+            logger.warning("TensorFlow is not available. Skipping prepare_model.")
+            return
         # ここではモデル構造を定義するだけ、または何もしない
         # fitで構築する
         pass
 
     def fit(self, X, y, epochs=10, batch_size=32):
         """モデルの学習"""
+        if not TENSORFLOW_AVAILABLE:
+            logger.error("TensorFlow is not available. Cannot fit FuturePredictor.")
+            return
+
         # X is DataFrame (2D), need to reshape for LSTM if we use it here
         # or use simple regression if we treat it as 2D
         # FuturePredictor original implementation used LSTM with lookback on scaled data.
@@ -82,6 +100,9 @@ class FuturePredictor:
 
     def predict(self, X):
         """予測"""
+        if not TENSORFLOW_AVAILABLE:
+            return np.zeros(len(X))
+
         if not self.is_fitted or self.model is None:
             return np.zeros(len(X))
             
@@ -139,6 +160,9 @@ class FuturePredictor:
         """
         指定された銘柄の向こう数日間の価格推移を予測する
         """
+        if not TENSORFLOW_AVAILABLE:
+            return {"error": "TensorFlow is not available."}
+
         try:
             if df is None or df.empty or len(df) < 20:
                 return {"error": f"データ不足 (データ数: {len(df) if df is not None else 0})"}

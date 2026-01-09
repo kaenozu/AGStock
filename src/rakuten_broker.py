@@ -9,7 +9,12 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from webdriver_manager.chrome import ChromeDriverManager
+
+try:
+    from webdriver_manager.chrome import ChromeDriverManager
+    WEBDRIVER_MANAGER_AVAILABLE = True
+except ImportError:
+    WEBDRIVER_MANAGER_AVAILABLE = False
 
 
 class RakutenBroker:
@@ -69,6 +74,10 @@ class RakutenBroker:
         options.add_experimental_option("useAutomationExtension", False)
 
         try:
+            if not WEBDRIVER_MANAGER_AVAILABLE:
+                print("❌ webdriver_manager がインストールされていません。手動でドライバを指定するか、インストールしてください。")
+                raise ImportError("webdriver_manager not found")
+
             service = Service(ChromeDriverManager().install())
             self.driver = webdriver.Chrome(service=service, options=options)
             self.wait = WebDriverWait(self.driver, 20)

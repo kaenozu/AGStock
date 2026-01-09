@@ -101,7 +101,7 @@ def render_genetic_lab():
                 "deployed_at": str(pd.Timestamp.now()),
             }
 
-            with open("models/config/evolved_strategy_params.json", "w") as f:
+            with open("models/config/evolved_strategy_params.json", "w", encoding="utf-8") as f:
                 json.dump(params, f, indent=4)
 
             st.toast(

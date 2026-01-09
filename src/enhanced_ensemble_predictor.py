@@ -16,13 +16,18 @@
 - シナリオ分析とストレステスト
 """
 
+from __future__ import annotations
 import logging
 from typing import Dict, List, Optional, Tuple, Union, Any
 
 import numpy as np
 import pandas as pd
-import tensorflow as tf
-from tensorflow import keras
+try:
+    import tensorflow as tf
+    from tensorflow import keras
+except ImportError:
+    tf = None
+    keras = None
 
 from .advanced_ensemble import create_model_diversity_ensemble
 from .advanced_models import AdvancedModels

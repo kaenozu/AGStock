@@ -3,14 +3,20 @@ Temporal Fusion Transformer (TFT) モデルの実装
 時系列予測に特化したTransformerベースのモデル
 """
 
+from __future__ import annotations
 import logging
 from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
+try:
+    import tensorflow as tf
+    from tensorflow import keras
+    from tensorflow.keras import layers
+except ImportError:
+    tf = None
+    keras = None
+    layers = None
 
 logger = logging.getLogger(__name__)
 

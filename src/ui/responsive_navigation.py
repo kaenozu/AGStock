@@ -33,17 +33,17 @@ def render_mobile_nav():
             use_container_width=True,
         ):
             st.session_state.selected_tab = 0
-            st.rerun()
+            st.experimental_rerun()
 
     with col2:
         if st.button("💼", key="mobile_trading", help="トレーディング", use_container_width=True):
             st.session_state.selected_tab = 1
-            st.rerun()
+            st.experimental_rerun()
 
     with col3:
         if st.button("🤖", key="mobile_ai", help="AI分析", use_container_width=True):
             st.session_state.selected_tab = 2
-            st.rerun()
+            st.experimental_rerun()
 
     with col4:
         if st.button(
@@ -53,7 +53,7 @@ def render_mobile_nav():
             use_container_width=True,
         ):
             st.session_state.selected_tab = 3
-            st.rerun()
+            st.experimental_rerun()
 
     # Quick stats for mobile
     render_mobile_quick_stats()
@@ -87,7 +87,7 @@ def render_desktop_nav():
                 use_container_width=True,
             ):
                 st.session_state.selected_tab = tab_idx
-                st.rerun()
+                st.experimental_rerun()
 
 
 def render_mobile_quick_stats():
@@ -166,7 +166,7 @@ def toggle_mobile_mode():
 
     if new_mode != is_mobile:
         st.session_state.is_mobile = new_mode
-        st.rerun()
+        st.experimental_rerun()
 
 
 def render_quick_actions():
@@ -179,7 +179,7 @@ def render_quick_actions():
     with col1:
         if st.button("🔄 最新データ", key="quick_refresh", use_container_width=True):
             st.info("データを更新しています...")
-            st.rerun()
+            st.experimental_rerun()
 
     with col2:
         if st.button("📊 レポート", key="quick_report", use_container_width=True):
@@ -189,7 +189,7 @@ def render_quick_actions():
     with col3:
         if st.button("⚙️ 設定", key="quick_settings", use_container_width=True):
             st.session_state.selected_tab = 4
-            st.rerun()
+            st.experimental_rerun()
 
 
 def render_help_section():
@@ -236,10 +236,10 @@ def render_navigation_feedback():
             st.session_state.nav_feedback_score = rating
             st.session_state.nav_feedback_comment = comment
             st.success("ご意見ありがとうございます！改善に役立てます。")
-            st.rerun()
+            st.experimental_rerun()
     else:
         st.success(f"評価: {'⭐' * st.session_state.nav_feedback_score}")
         if st.button("評価を再送", key="re_rate"):
             del st.session_state.nav_feedback_score
             del st.session_state.nav_feedback_comment
-            st.rerun()
+            st.experimental_rerun()

@@ -69,7 +69,7 @@ class GhostwriterUI:
                 gw = Ghostwriter()
                 gw.generate_weekly_report()
                 st.success("✅ 新しいレポートが作成されました！")
-                st.rerun()
+                st.experimental_rerun()
             except Exception as e:
                 st.error(f"生成に失敗しました: {e}")
 
@@ -88,7 +88,7 @@ class GhostwriterUI:
                 label, key=str(file), use_container_width=True, type="primary" if is_selected else "secondary"
             ):
                 st.session_state.selected_report = str(file)
-                st.rerun()
+                st.experimental_rerun()
 
     def _parse_file_date(self, stem: str) -> str:
         """Extracts date from filename stem."""

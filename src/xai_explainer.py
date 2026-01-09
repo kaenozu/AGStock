@@ -13,10 +13,22 @@ from typing import Dict, List, Optional
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-import shap
-import tensorflow as tf
-from sklearn.ensemble import RandomForestRegressor
-from tensorflow import keras
+try:
+    import shap
+except ImportError:
+    shap = None
+
+try:
+    import tensorflow as tf
+    from tensorflow import keras
+except ImportError:
+    tf = None
+    keras = None
+
+try:
+    from sklearn.ensemble import RandomForestRegressor
+except ImportError:
+    RandomForestRegressor = None
 
 # LIMEはオプショナルな依存関係
 try:
