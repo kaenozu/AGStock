@@ -3,57 +3,28 @@ import streamlit as st
 
 
 # 各タブのレンダリング関数を遅延インポートするためのラッパー
-def render_dashboard_tab():
-    from src.simple_dashboard import create_simple_dashboard
-
-    create_simple_dashboard()
-
-
-def render_performance_tab():
-    from src.ui.performance_analyst import render_performance_analyst
-
-    render_performance_analyst()
+def render_main_tab(sidebar_config, strategies):
+    """メイン画面：シンプル売買サポート"""
+    from src.ui.simple_trading_view import render_simple_trading_view
+    render_simple_trading_view(strategies)
 
 
-def render_ai_hub_tab():
-    from src.ui.ai_hub import render_ai_hub
-
-    render_ai_hub()
-
-
-def render_trading_tab(sidebar_config, strategies):
-    from src.ui.trading_hub import render_trading_hub
-
-    render_trading_hub(sidebar_config, strategies)
-
-
-def render_lab_tab():
-    from src.ui.lab_hub import render_lab_hub
-
-    render_lab_hub()
-
-
-def render_tournament_tab():
-    from src.ui.tournament_ui import render_tournament_ui
-
-    render_tournament_ui()
-
-
-def render_prediction_tab():
+def render_analysis_tab():
+    """詳細分析：バックテストと予測精度"""
     from src.prediction_dashboard import create_prediction_analysis_dashboard
-    
     create_prediction_analysis_dashboard()
 
 
-def render_mission_control_tab():
-    from src.ui.mission_control import render_mission_control
-
-    render_mission_control()
+def render_settings_tab():
+    """設定画面"""
+    from src.ui.settings import render_settings
+    render_settings()
 
 
 class DashboardRouter:
     """
     ダッシュボードのタブ構成とルーティングを管理するクラス
+    シンプルな3タブ構成に簡素化
     """
 
     @staticmethod
@@ -61,18 +32,11 @@ class DashboardRouter:
         """
         現在のコンテキストに基づいて表示すべきタブのリスト（タイトル、レンダラー）を返す
         """
-        trading_badge = f" ({signal_count})" if signal_count > 0 else ""
-
         # タブ定義: (表示名, レンダリング関数)
         tabs = [
-            ("🏠 ダッシュボード", render_dashboard_tab),
-            ("📈 運用パフォーマンス", render_performance_tab),
-            ("📊 市場分析センター", render_ai_hub_tab),
-            (f"💼 トレーディング{trading_badge}", render_trading_tab),
-            ("🧪 戦略研究所", render_lab_tab),
-            ("🎯 予測精度分析", render_prediction_tab),
-            ("🏆 シャドウ・トーナメント", render_tournament_tab),
-            ("🚀 Mission Control", render_mission_control_tab),
+            ("🏠 メイン", render_main_tab),
+            ("📊 詳細分析", render_analysis_tab),
+            ("⚙️ 設定", render_settings_tab),
         ]
 
         return tabs

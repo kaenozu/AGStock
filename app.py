@@ -123,13 +123,15 @@ def main():
     for i, (label, render_func) in enumerate(tab_defs):
         with tabs[i]:
             try:
-                # Dependency Injection for specific tabs
-                if "トレーディング" in label:
+                # メインタブには戦略を渡す
+                if "メイン" in label:
                     render_func(sidebar_config, strategies)
                 else:
                     render_func()
             except Exception as e:
                 st.error(f"Error rendering tab {label}: {e}")
+                import traceback
+                st.code(traceback.format_exc())
 
     # 6. Real-time Monitor (Enhanced)
     with st.sidebar.expander("⚡ リアルタイム監視 (β)", expanded=True):
