@@ -51,41 +51,6 @@ def render_mission_control_tab():
     render_mission_control()
 
 
-def render_neural_monitor_tab():
-    from src.ui.neural_monitor import render_neural_monitor
-    render_neural_monitor()
-
-
-def render_divine_tab():
-    from src.ui.divine_reflection import render_divine_reflection
-
-    render_divine_reflection()
-
-
-def render_genetic_tab():
-    from src.ui.genetic_lab import render_genetic_lab
-
-    render_genetic_lab()
-
-
-def render_war_room_tab():
-    from src.ui.war_room import render_war_room
-
-    render_war_room()
-
-
-def render_briefing_tab():
-    from src.ui.audio_briefing import render_audio_briefing
-
-    render_audio_briefing()
-
-
-def render_neuromancer_tab():
-    from src.ui.neuromancer_ui import render_neuromancer_ui
-
-    render_neuromancer_ui()
-
-
 class DashboardRouter:
     """
     ダッシュボードのタブ構成とルーティングを管理するクラス
@@ -101,19 +66,13 @@ class DashboardRouter:
         # タブ定義: (表示名, レンダリング関数)
         tabs = [
             ("🏠 ダッシュボード", render_dashboard_tab),
-            ("🎙️ Daily Briefing", render_briefing_tab),
-            ("🧠 Neural Monitor", render_neural_monitor_tab),
-            ("🧠 Neuromancer", render_neuromancer_tab),  # Renamed for clarity
             ("📈 運用パフォーマンス", render_performance_tab),
-            ("🤖 AI分析センター", render_ai_hub_tab),
+            ("📊 市場分析センター", render_ai_hub_tab),
             (f"💼 トレーディング{trading_badge}", render_trading_tab),
             ("🧪 戦略研究所", render_lab_tab),
             ("🎯 予測精度分析", render_prediction_tab),
             ("🏆 シャドウ・トーナメント", render_tournament_tab),
             ("🚀 Mission Control", render_mission_control_tab),
-            ("🏛️ Divine Hub", render_divine_tab),
-            ("🧬 Genetic Lab", render_genetic_tab),
-            ("🌐 War Room", render_war_room_tab),
         ]
 
         return tabs

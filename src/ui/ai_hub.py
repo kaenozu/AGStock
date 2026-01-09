@@ -1,10 +1,6 @@
 import streamlit as st
 import os
 
-from src.ui.ai_chat import render_ai_chat
-from src.ui.committee_ui import render_committee_ui
-from src.ui.earnings_analyst import render_earnings_analyst  # Phase 28
-from src.ui.news_analyst import render_news_analyst
 from src.ui.risk_hedge_panel import render_risk_hedge_panel
 from src.rag.filing_watcher import FilingWatcher
 from src.data.feedback_store import FeedbackStore
@@ -14,49 +10,32 @@ import plotly.express as px
 
 
 def render_ai_hub():
-    """Renders the consolidated AI Analyzer Hub"""
-    st.header("🧠 AI Intelligence Center")
-    st.caption("Access all AI-driven insights, committee debates, and automated market scanning from this central hub.")
+    """Renders the consolidated Market Intelligence Hub"""
+    st.header("📊 Market Intelligence Center")
+    st.caption("Access data-driven insights and automated market scanning.")
 
     tabs = st.tabs(
         [
-            "🏛️ Committee (投資委員会)",
-            "📰 News (ニュース分析)",
-            "💬 Chat (AI相談)",
-            "📑 Earnings (決算分析)",
+            "📊 Sectors (セクター分析)",
             "🛡️ Risk (リスク管理)",
             "📡 Filings (適時開示)",
-            "📊 Sectors (セクター分析)",
             "⚖️ Governance (ガバナンス)",
         ]
     )
 
     with tabs[0]:
-        render_committee_ui()
+        render_sector_heatmap()
 
     with tabs[1]:
-        render_news_analyst()
-
-    with tabs[2]:
-        render_ai_chat()
-
-    with tabs[3]:
-        render_earnings_analyst()
-
-    with tabs[4]:
-        # Portfolio context (mocked for now, normally would come from session state)
+        # Portfolio context
         portfolio_mock = {"equity": 1500000.0, "cash": 500000.0}
-        # VIX (normally from market data)
         vix_mock = 22.4
         render_risk_hedge_panel(portfolio_mock, vix_mock)
 
-    with tabs[5]:
+    with tabs[2]:
         _render_filing_watcher_ui()
 
-    with tabs[6]:
-        render_sector_heatmap()
-
-    with tabs[7]:
+    with tabs[3]:
         render_executive_control()
 
 
@@ -218,44 +197,23 @@ def render_executive_control():
 
     st.divider()
 
-    from src.agents.strategy_arena import StrategyArena
     from src.data.macro_loader import MacroLoader
     from src.execution.adaptive_rebalancer import AdaptiveRebalancer
     from src.utils.tax_optimizer import TaxOptimizer
 
-    col1, col2 = st.columns([1, 1])
+    # 2. Macro State
+    st.write("### 🌐 マクロ環境スコア")
+    macro = MacroLoader()
+    macro_data = macro.fetch_macro_data()
+    score = macro_data.get("macro_score", 50)
 
-    with col1:
-        # 1. AI Arena Status
-        st.write("### 🧠 AIアリーナ：エージェント権限")
-        arena = StrategyArena()
-        data = arena.get_weights() or {
-            "MarketAnalyst": 1.0,
-            "RiskManager": 1.0,
-            "MacroStrategist": 1.0,
-        }
+    st.write(f"**現在の市場安定度:** {score:.1f}/100")
+    st.progress(score / 100.0)
 
-        # Display as metrics
-        m_col1, m_col2, m_col3 = st.columns(3)
-        m_col1.metric("Market Analyst", f"x{data.get('MarketAnalyst', 1.0)}")
-        m_col2.metric("Risk Manager", f"x{data.get('RiskManager', 1.0)}")
-        m_col3.metric("Macro Strategist", f"x{data.get('MacroStrategist', 1.0)}")
-        st.info("※ 過去の判断精度に基づき、投票権（ウェイト）が自動調整されています。")
-
-    with col2:
-        # 2. Macro State
-        st.write("### 🌐 マクロ環境スコア")
-        macro = MacroLoader()
-        macro_data = macro.fetch_macro_data()
-        score = macro_data.get("macro_score", 50)
-
-        st.write(f"**現在の市場安定度:** {score:.1f}/100")
-        st.progress(score / 100.0)
-
-        if score < 40:
-            st.warning("⚠️ 市場の混乱を検知。防御モードが有効です。")
-        else:
-            st.success("✅ 市場は概ね安定しています。")
+    if score < 40:
+        st.warning("⚠️ 市場の混乱を検知。防御モードが有効です。")
+    else:
+        st.success("✅ 市場は概ね安定しています。")
 
     st.divider()
 
@@ -335,31 +293,6 @@ def render_executive_control():
             st.button(f"節税実行 ({t['ticker']})", key=f"tax_{t['ticker']}")
     else:
         st.write("節税チャンスは現在ありません。")
-
-    st.divider()
-
-    # 5. Strategy Evolution
-    st.write("### 🧬 戦略自己進化 (Strategy Evolution)")
-    from src.evolution.strategy_generator import StrategyGenerator
-
-    col_ev1, col_ev2 = st.columns([1, 1])
-    with col_ev1:
-        st.write("過去の失敗から新しい戦略を自動生成します。")
-        if st.button("🚀 新戦略を生成・進化させる"):
-            gen = StrategyGenerator()
-            # In a real app, API key would be in config
-            with st.spinner("Geminiが失敗を分析し、新しいコードを執筆中..."):
-                gen.evolve_strategies()
-            st.success("新しい戦略コードが `src/strategies/evolved/` に生成されました！")
-
-    with col_ev2:
-        st.write("#### 進化履歴")
-        evolved_files = os.listdir("src/strategies/evolved") if os.path.exists("src/strategies/evolved") else []
-        if evolved_files:
-            for f in evolved_files[-5:]:  # Show last 5
-                st.text(f"📄 {f}")
-        else:
-            st.info("まだ進化した戦略はありません。")
 
     st.divider()
 

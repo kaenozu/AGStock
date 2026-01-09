@@ -15,7 +15,6 @@ from unittest.mock import Mock
 import pandas as pd
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-from src.agents.committee import InvestmentCommittee
 from src.backup_manager import BackupManager
 from src.cache_config import install_cache
 from src.data_loader import (
@@ -34,12 +33,8 @@ from src.data.universe_manager import UniverseManager
 from src.utils.self_healing import SelfHealingEngine
 from src.utils.parameter_optimizer import ParameterOptimizer
 from src.data.whale_tracker import WhaleTracker
-from src.agents.ai_veto_agent import AIVetoAgent
-from src.agents.social_analyst import SocialAnalyst
-from src.agents.visual_oracle import VisualOracle
 from src.portfolio_manager import PortfolioManager
 from src.utils.self_learning import SelfLearningPipeline
-from src.oracle.oracle_2026 import Oracle2026
 
 from src.advanced_risk import AdvancedRiskManager
 from src.trading.safety_checks import SafetyChecks
@@ -98,21 +93,9 @@ class FullyAutomatedTrader:
         # 実行エンジン
         self.engine = ExecutionEngine(self.pt)
 
-        # AI Investment Committee
-        self.ai_config = self.config.get("ai_committee", {})
-        self.ai_enabled = self.ai_config.get("enabled", False)
-
-        if self.ai_enabled:
-            try:
-                self.committee = InvestmentCommittee()
-                self.log("🤖 AI投資委員会: 有効 (Active)")
-            except Exception as e:
-                self.log(f"AI委員会初期化エラー: {e}", "ERROR")
-                self.committee = None
-                self.ai_enabled = False
-        else:
-            self.committee = None
-            self.log("🤖 AI投資委員会: 無効 (Disabled)")
+        # AI Investment Committee (Disabled - LLM dependencies removed)
+        self.ai_enabled = False
+        self.committee = None
 
         # リスク設定
         self.risk_config = self.config.get("auto_trading", {})
@@ -140,10 +123,6 @@ class FullyAutomatedTrader:
             self.whale_tracker = WhaleTracker()
             self.portfolio_manager = PortfolioManager()
             self.learning_pipeline = SelfLearningPipeline(self.config)
-            self.ai_veto_agent = AIVetoAgent(self.config)
-            self.social_analyst = SocialAnalyst(self.config)
-            self.visual_oracle = VisualOracle(self.config)
-            self.oracle_2026 = Oracle2026()
 
             # デカップリングされたモジュールの初期化
             self.safety_checks = SafetyChecks(self.config, self.pt, self.logger)

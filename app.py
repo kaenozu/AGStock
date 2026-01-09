@@ -74,24 +74,16 @@ except Exception as e:
 def get_risk_manager():
     try:
         from src.advanced_risk import AdvancedRiskManager
-        from src.oracle.oracle_2026 import Oracle2026
-        
         rm = AdvancedRiskManager()
-        oracle = Oracle2026()
-        
-        # Apply divine guidance on startup
-        guidance = oracle.get_risk_guidance()
-        rm.apply_oracle_guidance(guidance)
-        return rm, oracle
+        return rm
     except Exception as e:
         print(f"Risk Manager Init Failed: {e}")
-        return None, None
+        return None
 
 def initialize_session_state():
     if "risk_manager" not in st.session_state:
-        rm, oracle = get_risk_manager()
+        rm = get_risk_manager()
         st.session_state["risk_manager"] = rm
-        st.session_state["oracle_2026"] = oracle
         st.session_state["risk_crash_warning"] = None
 
 def main():
