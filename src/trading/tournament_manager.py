@@ -45,10 +45,15 @@ class TournamentManager:
     Runs multiple paper trading accounts with different personalities.
     """
 
-    def __init__(self):
+    def __init__(self, initial_capital: float = 1000000.0):
         self.traders = {}
         for acc_id, profile in PERSONALITIES.items():
-            self.traders[acc_id] = PaperTrader(account_id=acc_id)
+            db_path = f"paper_trading_{acc_id}.db"
+            self.traders[acc_id] = PaperTrader(
+                db_path=db_path, 
+                initial_capital=initial_capital,
+                account_id=acc_id
+            )
 
     def run_daily_simulation(self, signals: List[Dict[str, Any]]):
         """Run simulation for each personality based on the same signals."""
@@ -82,20 +87,21 @@ class TournamentManager:
                         )
 
                 elif action == "SELL":
-                    # Personalities might have different sell signals, but for now we follow main signals
-                    # Or we check if they actually hold it
-                    pos = trader.get_positions()
-                    if not pos.empty and ticker in pos["ticker"].values:
-                        qty = pos[pos["ticker"] == ticker]["quantity"].values[0]
+                    # Personalities follow main signals, selling full position if held
+                    pos_df = trader.get_positions()
+                    if not pos_df.empty and ticker in pos_df["ticker"].values:
+                        qty = pos_df[pos_df["ticker"] == ticker]["quantity"].values[0]
                         trader.execute_trade(
                             ticker=ticker,
                             action="SELL",
                             quantity=qty,
                             price=price,
-                            reason=f"Tournament: {profile['name']}",
+                            strategy="Tournament",
+                            reason=f"Tournament: {profile['name']} (Signal Sell)",
                         )
 
-            # Daily Equity Update
+            # Important: Ensure balance is recalculated and daily snapshot is saved
+            trader.recalculate_balance()
             trader.update_daily_equity()
 
     def get_leaderboard(self) -> pd.DataFrame:
@@ -104,11 +110,17 @@ class TournamentManager:
         for acc_id, trader in self.traders.items():
             balance = trader.get_current_balance()
             profile = PERSONALITIES[acc_id]
+            
+            # Calculate Total Return using utility
+            from src.pnl_utils import calculate_total_return
+            total_return_pct, _ = calculate_total_return(trader.initial_capital, balance["total_equity"])
+            
             data.append(
                 {
                     "Account ID": acc_id,
                     "Name": profile["name"],
                     "Total Equity": balance["total_equity"],
+                    "Return %": total_return_pct,
                     "Daily PnL": balance["daily_pnl"],
                     "Unrealized PnL": balance["unrealized_pnl"],
                     "Description": profile["description"],
@@ -117,7 +129,7 @@ class TournamentManager:
 
         df = pd.DataFrame(data)
         if not df.empty:
-            df = df.sort_values("Total Equity", ascending=False)
+            df = df.sort_values("Return %", ascending=False)
         return df
 
     def get_winner_advise(self) -> str:

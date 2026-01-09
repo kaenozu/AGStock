@@ -240,7 +240,13 @@ class PaperTrader:
                 qty = pos.get("quantity")
                 avg_p = pos.get("avg_price", 0.0)
                 
-                curr_p = prices.get(ticker, pos.get("current_price", avg_p))
+                # Use current price if available, fallback to stored current_price then avg_price
+                curr_p = prices.get(ticker, 0.0)
+                if curr_p <= 0:
+                    curr_p = pos.get("current_price", 0.0)
+                if curr_p <= 0:
+                    curr_p = avg_p
+                
                 m_val = qty * curr_p
                 
                 if avg_p > 0:
