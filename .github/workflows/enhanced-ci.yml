@@ -46,7 +46,7 @@ jobs:
         pip install --no-cache-dir --no-build-isolation pytest pytest-cov flake8 mypy pytest-asyncio 2>/dev/null || pip install --no-cache-dir pytest pytest-cov flake8 mypy pytest-asyncio
         pip install --no-cache-dir --no-build-isolation types-requests types-urllib3 2>/dev/null || pip install --no-cache-dir types-requests types-urllib3
         # Install lightweight dependencies needed for tests
-        pip install --no-cache-dir --no-build-isolation pandas numpy requests python-dotenv pydantic fastapi uvicorn 2>/dev/null || pip install --no-cache-dir pandas numpy requests python-dotenv pydantic fastapi uvicorn
+        pip install --no-cache-dir --no-build-isolation pandas numpy requests python-dotenv pydantic fastapi uvicorn tenacity joblib cryptography feedparser psutil ta scikit-learn scipy aiohttp bcrypt PyYAML pypdf optuna lightgbm xgboost prophet nest_asyncio pyjwt selenium google-generativeai webdriver-manager tensorflow 2>/dev/null || pip install --no-cache-dir pandas numpy requests python-dotenv pydantic fastapi uvicorn tenacity joblib cryptography feedparser psutil ta scikit-learn scipy aiohttp bcrypt PyYAML pypdf optuna lightgbm xgboost prophet nest_asyncio pyjwt selenium google-generativeai webdriver-manager tensorflow
 
     - name: Lint with flake8
       run: |
