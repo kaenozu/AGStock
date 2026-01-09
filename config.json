@@ -71,16 +71,6 @@
         "crypto": false,
         "fx": false
     },
-    "ai_committee": {
-        "enabled": true,
-        "strict_mode": false,
-        "model": "gemini-1.5-pro",
-        "agents": [
-            "Conservative",
-            "Aggressive",
-            "Technical"
-        ]
-    },
     "quantum_optimization": {
         "enabled": true,
         "steps": 2000,

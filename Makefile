@@ -144,6 +144,14 @@ setup-venv:
 start-system:
 	python run_all.py
 
+# APIサーバーを起動
+run-api:
+	python src/api/server.py
+
+# 本番稼働準備チェックを実行
+readiness:
+	python scripts/production_readiness_check.py
+
 # バックテスト実行
 run-backtest:
 	python -c "from src.backtester import Backtester; bt = Backtester(); print('Backtester initialized successfully')"

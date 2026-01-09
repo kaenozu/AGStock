@@ -38,20 +38,9 @@ class TradingSettings(BaseSettings):
     default_interval: str = "1d"
 
 
-class AICommitteeSettings(BaseSettings):
-    """AI Committee settings."""
-
-    enabled: bool = True
-    model_name: str = "gemini-2.0-flash-exp"
-    confidence_threshold: float = 0.7
-    debate_rounds: int = 3
-    api_key: Optional[str] = Field(None, validation_alias="GEMINI_API_KEY")
-
-
 class SystemSettings(BaseSettings):
     """System-wide infrastructure settings."""
 
-    gemini_api_key: Optional[SecretStr] = Field(None, validation_alias="GEMINI_API_KEY")
     data_dir: Path = Path("data")
     db_path: Path = Path("data/stock_data.db")
     parquet_dir: Path = Path("data/parquet")
@@ -61,10 +50,6 @@ class SystemSettings(BaseSettings):
     # Caching
     realtime_ttl_seconds: int = 30
     realtime_backoff_seconds: int = 1
-
-    # Evolution
-    evolution_interval_days: int = 7
-    elite_retention_pct: float = 0.2
 
     model_config = {
         "env_file": ".env",
@@ -83,7 +68,6 @@ class Config(BaseSettings):
     """Root Configuration Object."""
 
     trading: TradingSettings = Field(default_factory=TradingSettings)
-    ai: AICommitteeSettings = Field(default_factory=AICommitteeSettings)
     system: SystemSettings = Field(default_factory=SystemSettings)
     risk_management: RiskManagementSettings = Field(default_factory=RiskManagementSettings)
 
@@ -120,12 +104,7 @@ class Config(BaseSettings):
 
     def get_api_key(self, service: str) -> Optional[str]:
         """APIキーを安全に取得 (PR #90 互換)"""
-        if service == "gemini":
-            val = self.get("system.gemini_api_key")
-            if hasattr(val, "get_secret_value"):
-                return val.get_secret_value()
-            return val or self.get("ai.api_key")
-        elif service == "openai":
+        if service == "openai":
             return os.getenv("OPENAI_API_KEY")
         return None
 

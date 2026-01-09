@@ -6,9 +6,6 @@ Orchestrates the final execution of trade signals through multiple layers of val
 import logging
 from typing import Any, Dict, List
 
-from src.agents.ai_veto_agent import AIVetoAgent
-from src.agents.social_analyst import SocialAnalyst
-from src.agents.visual_oracle import VisualOracle
 from src.data.feedback_store import FeedbackStore
 from src.data_loader import fetch_stock_data, get_latest_price
 from src.execution.execution_engine import ExecutionEngine
@@ -20,7 +17,6 @@ logger = logging.getLogger(__name__)
 class TradeExecutor:
     """
     Handles the validation and execution of trade signals.
-    Integrates AI agents (Veto, Social, Visual) for extra scrutiny.
     """
 
     def __init__(self, config: Dict[str, Any], engine: ExecutionEngine):
@@ -28,12 +24,9 @@ class TradeExecutor:
         self.engine = engine
         self.logger = logger
 
-        # Risk & AI components
+        # Risk & Feedback components
         try:
             self.portfolio_manager = PortfolioManager()
-            self.ai_veto_agent = AIVetoAgent(self.config)
-            self.social_analyst = SocialAnalyst(self.config)
-            self.visual_oracle = VisualOracle(self.config)
             self.feedback_store = FeedbackStore()
             self.logger.info("✅ TradeExecutor components initialized.")
         except Exception as e:
@@ -41,7 +34,7 @@ class TradeExecutor:
 
     def execute_signals(self, signals: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
-        Executes a list of signals after performing AI verification and risk checks.
+        Executes a list of signals after performing verification and risk checks.
         """
         if not signals:
             self.logger.info("No signals to execute.")
@@ -49,11 +42,11 @@ class TradeExecutor:
 
         self.logger.info(f"Processing {len(signals)} signals...")
 
-        # 1. AI Verification Layer
-        verified_signals = self._verify_with_ai(signals)
+        # 1. Verification Layer (LLM dependencies removed)
+        verified_signals = self._verify_signals(signals)
 
         if not verified_signals:
-            self.logger.warning("All signals were vetoed or failed AI verification.")
+            self.logger.warning("All signals failed verification.")
             return []
 
         # 2. Price Fetching
@@ -76,29 +69,15 @@ class TradeExecutor:
 
         return executed_trades
 
-    def _verify_with_ai(self, signals: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _verify_signals(self, signals: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
-        Passes signals through AI agents for a 'second opinion'.
+        Performs basic signal verification.
         """
         vetted_signals = []
         for signal in signals:
             ticker = signal.get("ticker")
             if not ticker:
                 continue
-
-            # Veto Check
-            veto_reason = self.ai_veto_agent.check_veto(signal)
-            if veto_reason:
-                self.logger.info(f"🚫 VETOED {ticker}: {veto_reason}")
-                continue
-
-            # Social Sentiment Check (Informational)
-            sentiment = self.social_analyst.analyze(ticker)
-            signal["social_sentiment"] = sentiment
-
-            # Visual check if needed (Conceptual Phase)
-            # signal["visual_score"] = self.visual_oracle.check_chart(ticker)
-
             vetted_signals.append(signal)
 
         return vetted_signals
